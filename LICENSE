@@ -12,6 +12,10 @@ Sofern dieser Adapter auf Open-Source-Komponenten basiert oder solche enthält, 
 
 DIE NEXOWATT-SPEZIFISCHEN BESTANDTEILE WERDEN, SOWEIT GESETZLICH ZULÄSSIG, OHNE AUSDRÜCKLICHE ODER KONKLUDENTE GEWÄHRLEISTUNG BEREITGESTELLT.
 
+## Hinweis zur öffentlichen npm-Bereitstellung
+
+Eine öffentliche technische Bereitstellung dieses Pakets in einem npm-Registry, Git-Repository, Download-Archiv oder einem NexoWatt-Repository stellt keine Open-Source-Lizenz und keine allgemeine Nutzungserlaubnis dar. Die Nutzung, Installation und Weitergabe bleibt ausschließlich autorisierten NexoWatt-Systemen und ausdrücklich durch NexoWatt lizenzierten Nutzern vorbehalten.
+
 ---
 
 # NexoWatt EOS – Proprietary License Notice
@@ -27,6 +31,10 @@ This adapter is intended exclusively for systems and installations operated, del
 Where this adapter is based on or includes open-source components, the respective third-party licenses continue to apply to those components. Third-party license notices contained in this repository remain unaffected. This proprietary NexoWatt notice applies in particular to the NexoWatt-specific modifications, the visible EOS design, branding and related assets.
 
 THE NEXOWATT-SPECIFIC PARTS ARE PROVIDED, TO THE MAXIMUM EXTENT PERMITTED BY LAW, WITHOUT EXPRESS OR IMPLIED WARRANTY.
+
+## Public npm availability notice
+
+Technical availability of this package through a public npm registry, Git repository, download archive or NexoWatt repository does not constitute an open-source license or a general permission to use. Use, installation and redistribution remain limited to authorized NexoWatt systems and users expressly licensed by NexoWatt.
 
 ---
 
