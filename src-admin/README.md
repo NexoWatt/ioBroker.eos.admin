@@ -1,3 +1,11 @@
+# NexoWatt EOS Admin Frontend Source
+
+Dieser Bereich enthält den Frontend-Quellcode der Administrationsoberfläche. Das sichtbare EOS-Branding wird über die fertigen Assets in `adminWww/` und die NexoWatt-spezifischen Branding-Dateien ergänzt.
+
+Die folgenden Komponentenhinweise stammen aus der technischen Frontend-Basis und bleiben für Entwicklung und Wartung erhalten.
+
+---
+
 # Components
 
 ## DrawerItem

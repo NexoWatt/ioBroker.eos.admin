@@ -65,4 +65,4 @@ Nur Systeme, die das NexoWatt-Repository aktiv verwenden, bekommen diesen Admin-
 
 ## Lizenzhinweis
 
-Die NexoWatt-spezifischen UI-, Branding-, Layout- und EOS-Bestandteile dürfen nur auf autorisierten NexoWatt-Systemen genutzt werden. Details stehen in `NEXOWATT_PROPRIETARY_LICENSE.md` und `LICENSE`.
+Die NexoWatt-spezifischen UI-, Branding-, Layout- und EOS-Bestandteile dürfen nur auf autorisierten NexoWatt-Systemen genutzt werden. Die öffentliche technische Abrufbarkeit über npm, Git oder ein Download-Archiv ist keine Open-Source-Lizenz und keine allgemeine Nutzungserlaubnis. Details stehen in `NEXOWATT_PROPRIETARY_LICENSE.md`, `NEXOWATT_PUBLIC_NPM_DISTRIBUTION.md`, `THIRD_PARTY_NOTICES.md` und `LICENSE`.

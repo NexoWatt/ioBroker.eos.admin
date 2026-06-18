@@ -22,6 +22,13 @@ if (!pkg.publishConfig || pkg.publishConfig.access !== 'public') fail('publishCo
 if (!ioPkg.common || ioPkg.common.name !== 'admin') fail('io-package.json common.name must remain admin');
 if (ioPkg.common.license !== 'NexoWatt Proprietary') fail('io-package.json common.license must remain NexoWatt Proprietary');
 
+const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+if (!readme.includes('NexoWatt EOS Admin')) fail('README.md must describe NexoWatt EOS Admin');
+if (!readme.includes('@nexowatt/iobroker.admin')) fail('README.md must document the scoped npm package name');
+if (!readme.includes('NexoWatt Proprietary') && !readme.includes('proprietär')) fail('README.md must contain the proprietary license notice');
+if (readme.includes('# ioBroker.admin')) fail('README.md must not use the old upstream title');
+if (readme.includes('The MIT License (MIT)') && !readme.includes('THIRD_PARTY_NOTICES.md')) fail('README.md must not present MIT as the main package license');
+
 [
   'adminWww/index.html',
   'adminWww/css/eos-branding.css',
@@ -30,7 +37,9 @@ if (ioPkg.common.license !== 'NexoWatt Proprietary') fail('io-package.json commo
   'admin/admin.png',
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
-  'THIRD_PARTY_NOTICES.md'
+  'NEXOWATT_PUBLIC_NPM_DISTRIBUTION.md',
+  'THIRD_PARTY_NOTICES.md',
+  'README.md'
 ].forEach(file => {
   if (!exists(file)) fail(`required file missing: ${file}`);
 });

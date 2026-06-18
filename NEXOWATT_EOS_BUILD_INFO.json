@@ -1,16 +1,20 @@
 {
-  "name": "NexoWatt EOS admin UI v15",
-  "base": "v14 accepted UI with logo/overlap fixes",
+  "name": "NexoWatt EOS admin UI v17",
+  "base": "v16 public npm proprietary package",
   "created": "2026-06-18T00:00:00Z",
   "changes": [
-    "marks package.json as private and UNLICENSED to prevent accidental public npm publication",
-    "sets io-package license metadata to NexoWatt Proprietary / paid",
-    "adds proprietary NexoWatt license notice while retaining upstream MIT third-party notice",
-    "updates visible license dialog text to NexoWatt EOS proprietary notice",
-    "keeps v14 UI layout and assets unchanged except cache busting"
+    "replaces upstream-style README with NexoWatt EOS Admin README",
+    "documents public npm distribution with proprietary NexoWatt license restrictions",
+    "documents NexoWatt repository installation using packetName @nexowatt/iobroker.admin",
+    "keeps technical adapter id common.name=admin for replacement compatibility",
+    "removes upstream npm badges and MIT license section from README",
+    "updates admin/README.md asset documentation and npm package metadata branding"
   ],
-  "eosUiVersion": "v15-private-license",
-  "layout": "v14 full header + horizontal navigation rail + full-width content",
+  "eosUiVersion": "v17-readme-branding",
+  "layout": "v14/v16 accepted full header + horizontal navigation rail + full-width content",
   "cacheBust": "v=15",
-  "license": "NexoWatt Proprietary / UNLICENSED package metadata"
+  "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
+  "version": "7.9.17",
+  "variant": "v17-readme-aligned-public-npm-proprietary",
+  "notes": "README aligned for NexoWatt EOS public npm / proprietary license distribution."
 }

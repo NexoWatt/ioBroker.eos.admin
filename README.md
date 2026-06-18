@@ -1,198 +1,236 @@
-# NexoWatt EOS Admin Interface
+# NexoWatt EOS Admin
 
-> **Private / proprietary NexoWatt package.** This repository/package is intended only for NexoWatt-authorized systems. Do not publish, redistribute or provide this adapter to third parties without written permission from NexoWatt.
+<p align="center">
+  <img src="admin/admin.png" width="112" height="112" alt="NexoWatt EOS" />
+</p>
 
-For license details see `LICENSE`, `NEXOWATT_PROPRIETARY_LICENSE.md` and `THIRD_PARTY_NOTICES.md`.
+<p align="center">
+  <strong>Energy Operation System – Administrationsoberfläche für NexoWatt Systeme</strong>
+</p>
+
+<p align="center">
+  <img alt="npm package" src="https://img.shields.io/npm/v/@nexowatt/iobroker.admin?label=npm" />
+  <img alt="license" src="https://img.shields.io/badge/license-NexoWatt%20Proprietary-green" />
+  <img alt="package" src="https://img.shields.io/badge/package-public%20npm%20%2F%20proprietary%20use-0ea5a3" />
+</p>
 
 ---
 
-<img src="admin/admin.svg" width="100" height="100" />
+## Überblick
 
-# ioBroker.admin
+**NexoWatt EOS Admin** ist die Administrationsoberfläche für das **NexoWatt Energy Operation System (EOS)**.  
+Der Adapter stellt die Bedienoberfläche, Anmeldemaske, Modulverwaltung, Dienste-/Instanzansicht, Grundeinstellungen und Systemnavigation im NexoWatt-EOS-Design bereit.
 
-![Number of Installations](http://iobroker.live/badges/admin-installed.svg)
-![Number of Installations](http://iobroker.live/badges/admin-stable.svg)
-[![NPM version](http://img.shields.io/npm/v/iobroker.admin.svg)](https://www.npmjs.com/package/iobroker.admin)
+Das Paket ist technisch als Vendor-Build für den bestehenden `admin`-Adapter ausgelegt. Dadurch kann es über ein eigenes NexoWatt-Repository gezielt an NexoWatt-Systeme ausgeliefert werden, ohne dass normale Installationen automatisch umgestellt werden.
 
-![Test and Release](https://github.com/ioBroker/ioBroker.admin/workflows/Test%20and%20Release/badge.svg)
-[![Translation status](https://weblate.iobroker.net/widgets/adapters/-/admin/svg-badge.svg)](https://weblate.iobroker.net/engage/adapters/?utm_source=widget)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.admin.svg)](https://www.npmjs.com/package/iobroker.admin)
+---
 
-User interface for configuration and administration of ioBroker.
+## Lizenz und Nutzung
 
-**This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers.** For more details and for information on how to disable the error reporting, see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)! Sentry reporting is used starting with js-controller 3.0.
+Dieses Paket ist **proprietär**.
 
-## JSON config schema
+Die öffentliche Bereitstellung über npm, Git, Download-Archiv oder ein NexoWatt-Repository stellt **keine Open-Source-Lizenz** und **keine allgemeine Nutzungserlaubnis** dar.
 
-The JSON config schema description can be found at [JSON config schema](/packages/jsonConfig/SCHEMA.md).
+Die Nutzung, Installation, Vervielfältigung, Weitergabe, Veröffentlichung, Unterlizenzierung, Vermietung, der Verkauf oder die Bereitstellung an Dritte ist nur für Systeme erlaubt, die von **NexoWatt** betrieben, geliefert, autorisiert oder ausdrücklich lizenziert wurden.
 
-## Using common.localLink
+Lizenzdateien:
 
--   `%ip%` - ioBroker ip address (address of the admin)
--   `%secure%` or `%protocol%` - read from `native.secure` the value and use http or https
--   `%web_protocol%` - looking for the first instance of web (e.g., `web.0`) and get `native.secure` from `system.adapter.web.0`
--   `%instance%` - instance of the adapter
--   `%someField%` - get someField from `native` of this adapter instance
--   `%web.0_bind%` - get `native.bind` from `system.adapter.web.0`
--   `%native_someField%` - get someField from `native` of this adapter instance
+- `LICENSE`
+- `NEXOWATT_PROPRIETARY_LICENSE.md`
+- `THIRD_PARTY_NOTICES.md`
+- `admin/LICENSE-NEXOWATT.md`
+- `adminWww/LICENSE-NEXOWATT.md`
 
-## Scheduled restart
+Hinweis: Bestandteile, die auf Upstream- oder Drittanbieter-Komponenten basieren, behalten ihre jeweiligen Lizenzhinweise. Die NexoWatt-spezifischen Branding-, Design-, Logo-, Text-, Layout- und Overlay-Bestandteile stehen unter der NexoWatt Proprietary License.
 
-Some adapters are not stable, or the connection disappears after one or two days.
-To fix this, there is a scheduled restart setting.
-To activate scheduled restart, just define CRON condition when to restart adapter.
+---
 
-It is suggested to restart in the night, when no one uses the adapter, e.g. `0 3 * * *` - at 3:00 every day.
+## Paketstruktur
 
-## Let's Encrypt Certificates
+| Datei / Bereich | Bedeutung |
+|---|---|
+| `package.json` | npm-Paket: `@nexowatt/iobroker.admin` |
+| `io-package.json` | Adapter-Metadaten; technischer Adaptername bleibt `admin` |
+| `adminWww/` | fertige Admin-Frontend-Dateien inklusive EOS-Branding |
+| `adminWww/css/eos-branding.css` | visuelles EOS-Design |
+| `adminWww/js/eos-branding.js` | leichte Runtime-Anpassungen für Branding und Texte |
+| `admin/` | Adapter-Icon, Konfigurationsschema und Lizenzhinweis |
+| `docs/` | NexoWatt-spezifische Hinweise und Repository-Beispiele |
+| `THIRD_PARTY_NOTICES.md` | Hinweise zu Upstream-/Drittanbieter-Bestandteilen |
 
-To manage and update, let's encrypt certificates you need to use [`iobroker.acme`](https://github.com/iobroker-community-adapters/ioBroker.acme) adapter.
+---
 
-You will have so-called "collections" of certificates. Each collection has its own domains.
-You can select in the configuration of the admin adapter if and which a collection to use.
+## Installation auf NexoWatt-Systemen
 
-## Simple instance's settings page
+### Empfohlener Weg: NexoWatt Repository
 
-The user has the possibility to limit the access to the instance configuration dialog.
-For that, the option "Allow access only to specific instances" must be activated.
-It could be found on the "Access to the instances" tab.
-Additionally, the allowed instances should be selected in the appeared configuration table.
+Die Installation sollte über das NexoWatt-Repository erfolgen. Im Repository-Eintrag bleibt der Adaptername `admin`, während `packetName` auf das NexoWatt npm-Paket zeigt:
 
-If this option is disabled, the simple configuration page could be accessed under `http://IP:8081/configs.html`
-
-## Reverse proxy
-
-Please be sure that you forward not only the http/https requests, but the web-socket traffic too. It is essential for communication.
-
-From version 6.1.0 you have the possibility to tune the intro page for usage with reverse proxy.
-
-### Example
-
-Your `ioBroker.admin` runs on port 8081 behind reverse proxy with domain `iobroker.mydomain.com` under path `/ioBrokerAdmin/`.
-And you set up e.g., nginx to forward the requests to the `http://local-iobroker.IP:8081`.
-
-The same is with your web instance: `https://iobroker.mydomain.com/ioBrokerWeb/ => http://local-iobroker.IP:8082`.
-And with rest-api instance: `https://iobroker.mydomain.com/ioBrokerAPI/ => http://local-iobroker.IP:8093`.
-
-You can add the following lines into the Reverse Proxy tab to let the Intro tab run behind the reverse proxy properly:
-
-| Global path       | Instance      | Instance path behind proxy |
-|-------------------|---------------|----------------------------|
-| `/ioBrokerAdmin/` | `web.0`       | `/ioBrokerWeb/`            |
-|                   | `rest-api.0`  | `/ioBrokerAPI/`            |
-|                   | `admin.0`     | `/ioBrokerAdmin/`          |
-|                   | `eventlist.0` | `/ioBrokerWeb/eventlist/`  |
-
-So all links of instances that use web server, like `eventlist`, `vis`, `material` and so on will use `https://iobroker.mydomain.com/ioBrokerWeb/` path
-
-### Extended reverse proxy example (with screenshots)
-
-Below is a more complete example showing how a reverse proxy (e.g. Nginx Proxy Manager) can be configured and how the Admin UI resolves links after mapping.
-
-> NOTE: At the moment the admin UI itself still needs to be effectively served from the web root `/` of the host. login and other hardcoded urls do not yet respect another base path (see limitation discussion here: https://github.com/ioBroker/ioBroker.admin/issues/1660#issuecomment-2360056439).
-
-#### 1. Base host / root mapping
-
-Map the public root (or a dedicated host like `https://iobroker.example.com/`) directly to your Admin instance (default port 8081):
-
-<img src="assets/revproxy_nginxpm_root.png" alt="Nginx Proxy Manager: root mapping to admin" width="640" />
-
-#### 2. Custom locations for other services
-
-Add additional custom locations for web / REST / other adapter frontends. Each location forwards to the respective local port (e.g. `web.0` on 8082, rest-api.0 on 8093):
-
-<img src="assets/revproxy_nginxpm_customlocations.png" alt="Nginx Proxy Manager: custom locations" width="640" />
-
-Example custom locations (Nginx style):
+```json
+{
+  "admin": {
+    "name": "admin",
+    "version": "7.9.17",
+    "packetName": "@nexowatt/iobroker.admin",
+    "title": "NexoWatt EOS Admin",
+    "desc": {
+      "de": "NexoWatt EOS Administrationsoberfläche",
+      "en": "NexoWatt EOS administration interface"
+    },
+    "meta": "https://repo.nexowatt.de/iobroker/admin/io-package.json",
+    "icon": "https://repo.nexowatt.de/iobroker/admin/admin.png"
+  }
+}
 ```
-/web/  => http://LOCAL_IOBROKER_IP:8082/
-/welcome/  => http://LOCAL_IOBROKER_IP:PORT_CONFIGURED_IN_WELCOME_INSTANCE_SETTINGS/
-/esphome/  => http://LOCAL_IOBROKER_IP:6052/
+
+Auf dem Zielsystem:
+
+```bash
+cd /opt/iobroker
+
+iobroker repo add nexowatt https://repo.nexowatt.de/iobroker/sources-dist-nexowatt.json
+iobroker repo set nexowatt
+iobroker update
+
+iobroker stop admin.0
+iobroker upgrade admin
+iobroker upload admin
+iobroker start admin.0
 ```
-If you have views imported from vis into vis-2, it is possible images / ... are still used from the old vis path. 
-In this case (or to be on the safe side - just also configuring them should not break other things) you probably also want to add these locations (NOTE: no trailing / here!):
+
+Danach im Browser hart neu laden:
+
+```text
+Strg + F5
 ```
-/vis.0 => http://LOCAL_IOBROKER_IP:8082
-/vis/widgets => http://LOCAL_IOBROKER_IP:8082
-/vis-2/widgets => http://LOCAL_IOBROKER_IP:8082
-/icons-mfd-svg => http://LOCAL_IOBROKER_IP:8082
-/icons-material-png => http://LOCAL_IOBROKER_IP:8082
+
+### Direkter Test per npm-Paket
+
+Für einen direkten Test kann das Paket auch lokal installiert werden:
+
+```bash
+cd /opt/iobroker
+
+iobroker stop admin.0
+npm install @nexowatt/iobroker.admin --omit=dev
+iobroker upload admin
+iobroker start admin.0
 ```
-(Adjust paths/ports for your environment.)
 
-#### 3. Configure mappings in the Admin Reverse Proxy tab
+---
 
-Enter the same paths so that Intro / Instances pages rewrite adapter links correctly. Also add paths for all adapters running as web extension (like rest-api, ...). Obviously, you only need to configure what you are actually using. Here are some examples:
+## Veröffentlichung auf npm
 
-| Global path | Instance     | Instance path behind proxy |
-|-------------|--------------|----------------------------|
-| `/`         | `web.0`      | `/web/`                    |
-|             | `welcome.0`  | `/welcome/`                |
-|             | `rest-api.0` | `/web/rest-api/`           |
-|             | `esphome.0`  | `/esphome/`                |
+Dieses Paket ist für eine öffentliche npm-Veröffentlichung vorbereitet, bleibt aber proprietär lizenziert.
 
-> If you keep Admin on `/` you usually do not need to list `admin.0`, but adding it does not hurt and can make intent explicit.
-
-After saving, the Intro screen rewrites links so that all web‑served adapters open under the correct prefixed paths:
-
-<img src="assets/revproxy_admin.png" alt="Admin Intro page after reverse proxy mapping" width="640" />
-
-#### 4. Limitations & compatibility
-
-* Admin root requirement: As stated above, full relocation of Admin itself under a sub‑path (e.g. `/admin/`) is not yet supported.
-* Adapter path awareness: Not every adapter UI is currently path‑aware. While generic `localLink` rewriting covers many cases, some UIs still assume they are hosted at the domain root. Known examples:
-  * `vis` (classic) – NOT fully working behind a sub‑path today.
-  * `vis-2` – generally more path tolerant, but custom widgets or legacy resources may still use absolute paths.
-  * Any adapter serving hard‑coded absolute URLs (starting with `/`) may need manual fixes until updated upstream. Please open issues in the respective adapter repositories to notify maintainers.
-* Mixed content: If you terminate TLS at the proxy (HTTPS) but contact adapters over HTTP internally, make sure all external links are rewritten to HTTPS to avoid browser mixed-content blocks.
-* WebSocket forwarding: Ensure `Upgrade` and `Connection` headers are passed through. In Nginx, this typically means adding:
+```bash
+npm login
+npm publish --access public
 ```
+
+Wichtig:
+
+- Der npm-Paketname ist `@nexowatt/iobroker.admin`.
+- Der technische Adaptername in `io-package.json` bleibt `admin`.
+- Für jedes Release muss die Version in `package.json` und `io-package.json` erhöht werden.
+- Eine bereits veröffentlichte npm-Version kann nicht erneut unter derselben Version veröffentlicht werden.
+
+---
+
+## Technischer Adaptername
+
+Der technische Adaptername darf nicht in `EOS Admin` oder `eos-admin` geändert werden, wenn der vorhandene Admin auf NexoWatt-Systemen ersetzt werden soll.
+
+Richtig:
+
+```json
+{
+  "common": {
+    "name": "admin",
+    "titleLang": {
+      "de": "NexoWatt EOS Admin",
+      "en": "NexoWatt EOS Admin"
+    }
+  }
+}
+```
+
+Das sichtbare Branding wird über Titel, Icons, Manifest, Login-Design und EOS-Overlay gesetzt. Die interne Adapter-ID bleibt aus Kompatibilitätsgründen `admin`.
+
+---
+
+## Reverse Proxy und 404-Vermeidung
+
+Für stabile Funktion muss die Admin-Oberfläche vom Web-Root des Hosts erreichbar sein. Bei Reverse-Proxys müssen HTTP/HTTPS und WebSocket-Verbindungen weitergeleitet werden.
+
+Typische Nginx-Header:
+
+```nginx
 proxy_set_header Upgrade $http_upgrade;
 proxy_set_header Connection "upgrade";
 ```
-(or checking the websocket support box, if using proxy manager)
-* Trailing slashes: Often a trailing slash in the mapped path (e.g. `/web/`) and location are required for path unaware adapters. 
-Then nginx does path rewriting, which makes most cases like the welcome adapter above work, because it only sees a / path -> correctly serves its index.html.
 
-#### 5. Quick troubleshooting checklist
+Bei 404-Fehlern nach Login oder beim Laden von JS/CSS-Dateien prüfen:
 
-| Symptom                            | Likely cause                         | Action                                                                                                                                                       |
-|------------------------------------|--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Blank or partial Admin UI          | Admin mounted under sub‑path only    | Keep Admin at `/` (see limitation)                                                                                                                           |
-| Adapter link opens wrong host/port | Missing entry in Reverse Proxy tab   | Add mapping row and save                                                                                                                                     |
-| 404 for adapter JS/CSS             | Missing trailing slash in location   | Add trailing slash to location and mapping                                                                                                                   |
-| WebSocket errors in console        | Proxy not forwarding upgrade headers | Add `proxy_set_header Upgrade` / `Connection` headers                                                                                                        |
-| other (loading) issue              | Adapter not path‑aware               | Keep on root or wait for adapter update. Please open an issue in the adapters repository so the maintainers are aware about it and the issue can be tracked. |
+| Symptom | Wahrscheinliche Ursache | Maßnahme |
+|---|---|---|
+| leere oder unvollständige Oberfläche | Admin nur unter Unterpfad eingebunden | Admin am Web-Root bereitstellen |
+| 404 bei JS/CSS | falscher Reverse-Proxy-Pfad oder fehlender Slash | Pfad und abschließenden Slash prüfen |
+| WebSocket-Fehler | Upgrade-Header fehlen | WebSocket-Unterstützung aktivieren |
+| altes Design sichtbar | Browsercache | `Strg + F5` oder Inkognito-Fenster |
 
-## Used icons
+---
 
-This project uses icons from [Flaticon](https://www.flaticon.com/).
+## Entwicklung und Prüfung
 
-ioBroker GmbH has a valid license for all used icons.
-The icons may not be reused in other projects without the proper flaticon license or flaticon subscription.
+Paketprüfung:
+
+```bash
+npm run check:eos-package
+```
+
+TGZ lokal erzeugen:
+
+```bash
+npm pack
+```
+
+Der Publish-Check prüft unter anderem:
+
+- npm-Paketname `@nexowatt/iobroker.admin`
+- `publishConfig.access = public`
+- `private = false`
+- technische Adapter-ID `admin`
+- gleiche Version in `package.json` und `io-package.json`
+- vorhandene EOS-CSS/JS/Logo-Dateien
+- vorhandene Lizenzdateien
+- keine fehlenden `adminWww/index.html`-Assets
+
+---
 
 ## Changelog
-<!--
-	### **WORK IN PROGRESS**
--->
-### 7.9.2 (2026-06-15)
-- (@GermanBluefox) AI must be enabled first in the settings to be used in the admin interface
 
-### 7.9.1 (2026-06-12)
-- (@GermanBluefox) Added AI assistant to the admin interface
+### 7.9.17 – NexoWatt README Update
 
-### 7.9.0 (2026-06-11)
-- (@GermanBluefox) Added the central credentials manager 
-- (@GermanBluefox) Added the possibility of installation of packages on specific hosts
+- README vollständig auf **NexoWatt EOS Admin** ausgerichtet.
+- Alte upstream-lastige Projektbeschreibung, öffentliche Upstream-Badges und missverständlicher MIT-Lizenzblock aus der Haupt-README entfernt.
+- Hinweise zu proprietärer Nutzung trotz öffentlicher npm-Bereitstellung ergänzt.
+- Installationsweg über NexoWatt Repository und `packetName` dokumentiert.
+- Direkte npm-Testinstallation, Publish-Hinweise und Reverse-Proxy-/404-Hinweise ergänzt.
 
-### 7.8.29 (2026-05-30)
-- (@GermanBluefox) Corrected JSON config for the select component with grouped options
+### 7.9.16 – Public npm / Proprietary License
 
-### 7.8.27 (2026-05-25)
-- (@GermanBluefox) Updated packages
+- npm-Paketname auf `@nexowatt/iobroker.admin` gesetzt.
+- Öffentliche npm-Veröffentlichung über `publishConfig.access = public` vorbereitet.
+- Proprietäre NexoWatt-Lizenzhinweise geschärft.
+- Technische Adapter-ID bleibt `admin` für Vendor-Repository-Mapping.
 
-## License
+### Ältere Änderungen
 
-The MIT License (MIT)
+Weitere technische Upstream-Historie befindet sich in `CHANGELOG_OLD.md` und in den jeweiligen Upstream-/Drittanbieter-Hinweisen.
 
-Copyright (c) 2014-2026 bluefox <dogafox@gmail.com>
+---
+
+## Markenhinweis
+
+NexoWatt, NexoWatt EOS, Energy Operation System, die NexoWatt Logos sowie die NexoWatt-spezifischen UI- und Branding-Elemente sind Eigentum von NexoWatt oder stehen NexoWatt zur exklusiven Nutzung zur Verfügung.
