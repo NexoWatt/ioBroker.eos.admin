@@ -1,6 +1,6 @@
 {
     "name": "iobroker.admin",
-    "description": "The adapter opens a webserver for the ioBroker admin UI.",
+    "description": "NexoWatt EOS proprietary administration interface for Energy Operation System",
     "version": "7.9.2",
     "contributors": [
         "bluefox <dogafox@gmail.com>",
@@ -17,7 +17,7 @@
         "type": "git",
         "url": "https://github.com/ioBroker/ioBroker.admin"
     },
-    "license": "MIT",
+    "license": "UNLICENSED",
     "keywords": [
         "ioBroker",
         "setup"
@@ -90,7 +90,11 @@
         "adminWww/",
         "public/",
         "io-package.json",
-        "LICENSE"
+        "LICENSE",
+        "THIRD_PARTY_NOTICES.md",
+        "NEXOWATT_PROPRIETARY_LICENSE.md",
+        "admin/LICENSE-NEXOWATT.md",
+        "adminWww/LICENSE-NEXOWATT.md"
     ],
     "scripts": {
         "npm": "npm i -f && cd src-admin && npm i -f",
@@ -122,5 +126,10 @@
         "release-major": "release-script major --yes",
         "update-packages": "npx -y npm-check-updates --upgrade && cd src-admin && npx -y npm-check-updates --upgrade"
     },
-    "author": "bluefox <dogafox@gmail.com>"
+    "author": "bluefox <dogafox@gmail.com>",
+    "private": true,
+    "copyright": "Copyright (c) 2026 NexoWatt. NexoWatt EOS branding and modifications are proprietary.",
+    "publishConfig": {
+        "access": "restricted"
+    }
 }

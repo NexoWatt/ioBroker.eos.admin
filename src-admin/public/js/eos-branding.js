@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v18-header-logo-position-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v13-settings-no-logout';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -12,7 +12,6 @@
     })();
     const asset = path => new URL(path.replace(/^\.\//, ''), ASSET_BASE).href;
     const LOGO = asset('img/eos/nexowatt-192.png');
-    const HEADER_LOGO = asset('img/eos/nexowatt-header-192.png');
     const PNG_LOGO = asset('img/eos/nexowatt-192.png');
     const LOGIN_MOTTO = EOS_MEANING;
 
@@ -114,7 +113,6 @@
     const patchImage = img => {
         const src = img.getAttribute('src') || '';
         const alt = img.getAttribute('alt') || '';
-        const inHeaderBadge = !!img.closest('.eos-brand-badge');
         const inBrandArea = !!img.closest('.eos-login-card, .eos-native-drawer-header, .eos-system-brand, .eos-brand-badge');
         const cleanSrc = src.split(/[?#]/)[0];
         const isBrandLogo = /(?:^|\/)(?:admin\.svg|admin\.png|logo192\.png|logo\.svg)$/i.test(cleanSrc) || (inBrandArea && /iobroker|admin|nexowatt|eos|logo/i.test(alt));
@@ -123,7 +121,7 @@
 
         // Only replace real brand surfaces. Do not stamp the NexoWatt logo onto instance/module placeholders.
         if ((inBrandArea || (isBrandLogo && !isAdapterIcon)) && !(!inBrandArea && isNeutralPlaceholder)) {
-            img.setAttribute('src', inHeaderBadge ? HEADER_LOGO : LOGO);
+            img.setAttribute('src', LOGO);
             img.setAttribute('alt', BRAND);
         }
     };
@@ -237,146 +235,66 @@
         });
     });
 
-    // No custom logout/token manipulation in EOS overlay. Session expiration and automatic logout remain native.
+    const logout = () => {
+        const nativeLogout = Array.from(document.querySelectorAll('a,button')).find(el => /^(abmelden|logout)$/i.test((el.textContent || '').trim()) && !el.classList.contains('eos-direct-logout'));
+        if (nativeLogout) { nativeLogout.click(); return; }
+        safe(() => {
+            ['App.refreshToken', 'App.accessToken', 'App.token', 'tokens', 'iobroker.admin.token'].forEach(key => {
+                window.localStorage && window.localStorage.removeItem(key);
+                window.sessionStorage && window.sessionStorage.removeItem(key);
+            });
+        });
+        const cleanRoot = ASSET_BASE.replace(/\/?$/, '/');
+        window.location.assign(cleanRoot);
+    };
 
     const ensureBrandBadge = toolbar => {
         if (!toolbar) return;
         document.querySelectorAll('.eos-brand-badge').forEach(existing => {
             if (!toolbar.contains(existing)) existing.remove();
         });
-        let badge = toolbar.querySelector('.eos-brand-badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'eos-brand-badge eos-system-brand';
-            const firstButton = toolbar.querySelector('button');
-            toolbar.insertBefore(badge, firstButton || toolbar.firstChild || null);
-        }
-        badge.classList.add('eos-system-brand');
+        if (toolbar.querySelector('.eos-brand-badge')) return;
+        const badge = document.createElement('span');
+        badge.className = 'eos-brand-badge eos-system-brand';
         badge.innerHTML = `
-            <span class="eos-brand-badge-mark"><img class="eos-brand-badge-logo" src="${HEADER_LOGO}" alt="${BRAND}" /></span>
+            <img class="eos-brand-badge-logo" src="${LOGO}" alt="${BRAND}" />
             <span class="eos-brand-badge-copy"><strong>${BRAND}</strong><small>${EOS_MEANING}</small></span>
             <span class="eos-brand-led"></span>
         `;
+        const firstButton = toolbar.querySelector('button');
+        toolbar.insertBefore(badge, firstButton || toolbar.firstChild || null);
     };
 
     const ensureLogoutButton = () => {
-        // v15: the custom EOS logout button remains disabled/removed.
-        // Native logout entries are hidden because they caused broken redirects in this branded shell.
+        // v13: the custom EOS logout button is intentionally disabled/removed.
+        // The native session handling stays untouched to avoid broken redirects/404s.
         removeLogoutButton();
     };
-
-
-    const isLogoutLikeText = value => {
-        const text = normalize(value || '').replace(/[_-]+/g, ' ');
-        if (!text) return false;
-        if (text === 'abmelden' || text === 'logout' || text === 'ra logout') return true;
-        // Only match compact controls. Do not match containers that contain the whole menu text.
-        return text.length <= 40 && /(^|\s)(abmelden|logout|ra logout)(\s|$)/.test(text);
-    };
-
-    const isLogoutHref = value => /(?:^|[/?#])logout(?:[/?#=&]|$)|ra_logout/i.test(String(value || ''));
-
-    const hardHideNode = el => {
-        if (!el || el === document.body || el === document.documentElement) return;
-        el.classList.add('eos-hidden-logout');
-        el.setAttribute('data-eos-logout-hidden', 'true');
-        el.setAttribute('aria-hidden', 'true');
-        el.setAttribute('tabindex', '-1');
-        ['display','visibility','opacity','width','min-width','max-width','height','min-height','max-height','margin','padding','border','overflow','pointer-events'].forEach(prop => {
-            const value = {
-                display: 'none', visibility: 'hidden', opacity: '0', width: '0', 'min-width': '0', 'max-width': '0',
-                height: '0', 'min-height': '0', 'max-height': '0', margin: '0', padding: '0', border: '0',
-                overflow: 'hidden', 'pointer-events': 'none'
-            }[prop];
-            el.style.setProperty(prop, value, 'important');
-        });
-    };
-
-    const hideNativeLogoutNav = () => safe(() => {
-        const candidates = Array.from(document.querySelectorAll(
-            '.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root,' +
-            '.eos-drawer a, .eos-drawer button, .eos-drawer .MuiListItem-root, .eos-drawer .MuiListItemButton-root,' +
-            '.eos-scroll-nav a, .eos-scroll-nav button, .eos-scroll-nav .MuiListItem-root, .eos-scroll-nav .MuiListItemButton-root,' +
-            'nav a, nav button, nav .MuiListItem-root, nav .MuiListItemButton-root'
-        ));
-
-        candidates.forEach(el => {
-            const values = [
-                el.textContent,
-                el.getAttribute && el.getAttribute('aria-label'),
-                el.getAttribute && el.getAttribute('title'),
-                el.getAttribute && el.getAttribute('data-name'),
-                el.getAttribute && el.getAttribute('data-value'),
-            ];
-            const href = el.getAttribute && el.getAttribute('href');
-            if (!values.some(isLogoutLikeText) && !isLogoutHref(href)) return;
-
-            const item = el.closest('.MuiListItem-root, li') || el.closest('.MuiListItemButton-root, a, button, [role="button"]') || el;
-            hardHideNode(item);
-            hardHideNode(el);
-            // In the horizontal EOS rail the native logout item is not needed and caused visual overlap.
-            // Removing it is safer than relying on MUI style precedence.
-            if (!item.closest('.eos-native-drawer-header')) {
-                safe(() => item.remove());
-            }
-        });
-    });
-
-    const cleanCollapseSlot = header => safe(() => {
-        if (!header) return;
-        const buttons = Array.from(header.querySelectorAll('button, [role="button"]'));
-        const collapseButton = buttons.find(button => {
-            const text = button.textContent || '';
-            const label = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('title') || ''}`;
-            return !isLogoutLikeText(text) && !isLogoutLikeText(label);
-        }) || buttons[0];
-
-        if (!collapseButton) return;
-        collapseButton.classList.add('eos-collapse-button');
-
-        let slot = header.querySelector(':scope > .eos-collapse-slot');
-        if (!slot) {
-            slot = document.createElement('span');
-            slot.className = 'eos-collapse-slot';
-            header.insertBefore(slot, header.firstChild || null);
-        }
-        if (!slot.contains(collapseButton)) slot.appendChild(collapseButton);
-
-        Array.from(header.children).forEach(child => {
-            if (child !== slot) {
-                child.classList.add('eos-collapse-hidden');
-                hardHideNode(child);
-            }
-        });
-        Array.from(header.querySelectorAll('a, img, .MuiAvatar-root, .MuiAvatar-img, .eos-native-title, .MuiTypography-root')).forEach(el => {
-            if (!slot.contains(el)) {
-                el.classList.add('eos-collapse-hidden');
-                hardHideNode(el);
-            }
-        });
-    });
 
     const patchDrawerHeader = drawer => safe(() => {
         if (!drawer) return;
         drawer.classList.add('eos-drawer');
         drawer.querySelectorAll('.eos-drawer-identity').forEach(el => el.remove());
-
         const directChildren = Array.from(drawer.children).filter(el => el.nodeType === 1);
-        const isListLike = el => el.classList?.contains('MuiList-root') || el.querySelector?.('.MuiListItemButton-root');
-        let header = drawer.querySelector(':scope > .eos-native-drawer-header');
-        if (!header) {
-            header = directChildren.find(el => !isListLike(el) && el.querySelector && el.querySelector('button') && (el.querySelector('img') || el.querySelector('.MuiAvatar-root') || el.querySelector('a')))
-                || directChildren.find(el => !isListLike(el) && el.querySelector && (el.querySelector('button') || el.querySelector('img') || el.querySelector('.MuiAvatar-root')));
-        }
-        if (header) {
-            header.classList.add('eos-native-drawer-header');
-            cleanCollapseSlot(header);
+        const header = directChildren.find(el => el.querySelector && el.querySelector('button') && (el.querySelector('img') || el.querySelector('.MuiAvatar-root') || el.querySelector('a')))
+            || directChildren.find(el => el.querySelector && (el.querySelector('button') || el.querySelector('img')));
+        if (!header) return;
+        header.classList.add('eos-native-drawer-header');
+        const img = header.querySelector('img');
+        if (img) patchImage(img);
+        const avatarImg = header.querySelector('.MuiAvatar-img');
+        if (avatarImg) patchImage(avatarImg);
+        const logoArea = header.querySelector('a')?.parentElement || header.firstElementChild || header;
+        if (logoArea && !logoArea.querySelector('.eos-native-title')) {
+            const title = document.createElement('span');
+            title.className = 'eos-native-title';
+            title.innerHTML = `<strong>${BRAND}</strong><small>${EOS_MEANING}</small>`;
+            const link = logoArea.querySelector('a');
+            if (link && link.nextSibling) logoArea.insertBefore(title, link.nextSibling);
+            else logoArea.appendChild(title);
         }
         const list = drawer.querySelector('.MuiList-root');
-        if (list) {
-            list.classList.add('eos-scroll-nav');
-            hideNativeLogoutNav();
-        }
+        if (list) list.classList.add('eos-scroll-nav');
     });
 
     const patchShell = () => safe(() => {
@@ -395,7 +313,6 @@
             ensureBrandBadge(toolbar);
         }
         patchDrawerHeader(document.querySelector('.MuiDrawer-paper'));
-        hideNativeLogoutNav();
         removeLogoutButton();
     });
 
@@ -556,10 +473,8 @@
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
-        hideNativeLogoutNav();
         patchTextNodes(document.body || document.documentElement);
         patchAttributes(document.body || document.documentElement);
-        hideNativeLogoutNav();
     };
 
     const scopePatch = () => {
@@ -572,13 +487,11 @@
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
-        hideNativeLogoutNav();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
             patchTextNodes(scope);
             patchAttributes(scope);
         }
-        hideNativeLogoutNav();
     };
 
     const scheduleFullPatch = delay => {

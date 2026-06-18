@@ -1,15 +1,16 @@
 {
-  "name": "NexoWatt EOS admin UI v18",
-  "base": "v17 accepted header + horizontal navigation layout",
-  "created": "2026-06-17T19:25:00Z",
+  "name": "NexoWatt EOS admin UI v15",
+  "base": "v14 accepted UI with logo/overlap fixes",
+  "created": "2026-06-18T00:00:00Z",
   "changes": [
-    "keeps the accepted v17 layout with full header and horizontal navigation",
-    "moves the inner NexoWatt logo tile slightly higher inside the header brand card",
-    "does not change adapter cards, navigation, login, logout or auth/session logic",
-    "leaves upstream React/Vite runtime bundles untouched"
+    "marks package.json as private and UNLICENSED to prevent accidental public npm publication",
+    "sets io-package license metadata to NexoWatt Proprietary / paid",
+    "adds proprietary NexoWatt license notice while retaining upstream MIT third-party notice",
+    "updates visible license dialog text to NexoWatt EOS proprietary notice",
+    "keeps v14 UI layout and assets unchanged except cache busting"
   ],
-  "generated": "2026-06-17T00:00:00Z",
-  "eosUiVersion": "v18-header-logo-position-fix",
-  "layout": "full-width header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=18"
+  "eosUiVersion": "v15-private-license",
+  "layout": "v14 full header + horizontal navigation rail + full-width content",
+  "cacheBust": "v=15",
+  "license": "NexoWatt Proprietary / UNLICENSED package metadata"
 }

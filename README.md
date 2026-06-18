@@ -1,3 +1,11 @@
+# NexoWatt EOS Admin Interface
+
+> **Private / proprietary NexoWatt package.** This repository/package is intended only for NexoWatt-authorized systems. Do not publish, redistribute or provide this adapter to third parties without written permission from NexoWatt.
+
+For license details see `LICENSE`, `NEXOWATT_PROPRIETARY_LICENSE.md` and `THIRD_PARTY_NOTICES.md`.
+
+---
+
 <img src="admin/admin.svg" width="100" height="100" />
 
 # ioBroker.admin

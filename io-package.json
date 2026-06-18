@@ -162,10 +162,13 @@
       "admin",
       "setup",
       "energy",
-      "management"
+      "management",
+      "proprietary",
+      "private",
+      "licensed"
     ],
     "compact": true,
-    "readme": "https://github.com/ioBroker/ioBroker.admin/blob/master/README.md",
+    "readme": "NexoWatt EOS private repository documentation",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -177,8 +180,9 @@
     ],
     "type": "general",
     "licenseInformation": {
-      "license": "MIT",
-      "type": "free"
+      "license": "NexoWatt Proprietary",
+      "type": "paid",
+      "link": "/adapter/admin/LICENSE-NEXOWATT.md"
     },
     "logTransporter": true,
     "stopBeforeUpdate": true,
@@ -226,7 +230,8 @@
     "adminUI": {
       "config": "json"
     },
-    "tier": 1
+    "tier": 1,
+    "license": "NexoWatt Proprietary"
   },
   "native": {
     "autoUpdate": 24,

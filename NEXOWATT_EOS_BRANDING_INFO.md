@@ -24,9 +24,11 @@ Siehe `docs/NEXOWATT_EOS_UI_REFINED_V5_DE.md`.
 - Gestaltet die System-/Basiseinstellungen mit EOS-Feldkarten und besser lesbaren Eingabeflächen.
 - Cache-Busting: `v=13`.
 
+## v15 Private License
 
-## v18 Header-logo position fix
-
-- Hebt die innere NexoWatt-Logo-Kachel im Header minimal an.
-- Lässt das akzeptierte v17-Layout ansonsten unverändert.
-- Cache-Busting: `v=18`.
+- `package.json` ist auf `private: true` und `license: "UNLICENSED"` gesetzt.
+- `io-package.json` kennzeichnet den Adapter als `NexoWatt Proprietary` / lizenzpflichtig.
+- Root-`LICENSE` enthält die proprietären NexoWatt-Bedingungen und bewahrt zusätzlich den Upstream-MIT-Hinweis.
+- `THIRD_PARTY_NOTICES.md` dokumentiert die weitergeltenden Hinweise für Upstream-/Drittanbieterbestandteile.
+- Der sichtbare Lizenzdialog zeigt jetzt den NexoWatt EOS Proprietary License Notice.
+- Cache-Busting: `v=15`.
