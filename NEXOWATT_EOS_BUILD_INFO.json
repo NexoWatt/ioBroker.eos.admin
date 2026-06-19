@@ -14,7 +14,8 @@
   "layout": "v14/v16 accepted full header + horizontal navigation rail + full-width content",
   "cacheBust": "v=15",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.17",
+  "version": "7.9.20",
   "variant": "v17-readme-aligned-public-npm-proprietary",
-  "notes": "README aligned for NexoWatt EOS public npm / proprietary license distribution."
+  "notes": "Adds hardened login-timeout/ttl normalization for admin settings save/restart.",
+  "eosVersion": "v20"
 }

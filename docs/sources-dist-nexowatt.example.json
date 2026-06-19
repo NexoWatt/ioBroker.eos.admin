@@ -1,7 +1,7 @@
 {
   "admin": {
     "name": "admin",
-    "version": "7.9.17",
+    "version": "7.9.18",
     "packetName": "@nexowatt/iobroker.admin",
     "title": "NexoWatt EOS",
     "desc": {

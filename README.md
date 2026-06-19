@@ -60,6 +60,67 @@ Hinweis: Bestandteile, die auf Upstream- oder Drittanbieter-Komponenten basieren
 
 ---
 
+
+## Aktueller Repository-Fix
+
+Wenn die Oberfläche ein Update für `admin` anzeigt, das Update aber nicht auf den NexoWatt EOS Admin wechselt, ist fast immer der Repository-Eintrag unvollständig. Der Eintrag muss zwingend `packetName` enthalten:
+
+```json
+{
+  "admin": {
+    "name": "admin",
+    "version": "7.9.20",
+    "packetName": "@nexowatt/iobroker.admin"
+  }
+}
+```
+
+Ohne `packetName` sieht ioBroker zwar eine höhere Version für `admin`, versucht aber nicht zuverlässig das NexoWatt npm-Paket zu installieren. Für einen manuellen Notfall-Fix kann der npm-Alias verwendet werden:
+
+```bash
+cd /opt/iobroker
+iobroker stop admin.0
+npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20" --omit=dev
+iobroker upload admin
+iobroker start admin.0
+```
+
+## Update über das NexoWatt Repository
+
+Damit ein bestehender offizieller Admin wirklich auf den NexoWatt EOS Admin aktualisiert wird, müssen drei Dinge gleichzeitig stimmen:
+
+1. Das aktive ioBroker Repository muss das NexoWatt Repository sein.
+2. Der Repository-Eintrag `admin` muss `packetName: "@nexowatt/iobroker.admin"` enthalten.
+3. Die Repository-Version muss höher sein als die auf dem System installierte `admin`-Version.
+
+Beispiel für den Admin-Eintrag im NexoWatt Repository:
+
+```json
+{
+  "admin": {
+    "name": "admin",
+    "version": "7.9.20",
+    "packetName": "@nexowatt/iobroker.admin",
+    "title": "NexoWatt EOS Admin",
+    "desc": {
+      "de": "NexoWatt EOS Administrationsoberfläche",
+      "en": "NexoWatt EOS administration interface"
+    },
+    "meta": "https://repo.nexowatt.de/iobroker/admin/io-package.json",
+    "icon": "https://repo.nexowatt.de/iobroker/admin/admin.png"
+  }
+}
+```
+
+Nach dem Update muss der Admin-Dateispeicher neu hochgeladen werden:
+
+```bash
+iobroker upload admin
+iobroker restart admin.0
+```
+
+Wenn die Oberfläche danach noch alt aussieht, liegt es meistens an Browser-/Admin-Dateicache. Dann einmal hart neu laden: `Strg + F5`.
+
 ## Installation auf NexoWatt-Systemen
 
 ### Empfohlener Weg: NexoWatt Repository
@@ -70,7 +131,7 @@ Die Installation sollte über das NexoWatt-Repository erfolgen. Im Repository-Ei
 {
   "admin": {
     "name": "admin",
-    "version": "7.9.17",
+    "version": "7.9.20",
     "packetName": "@nexowatt/iobroker.admin",
     "title": "NexoWatt EOS Admin",
     "desc": {
@@ -112,7 +173,7 @@ Für einen direkten Test kann das Paket auch lokal installiert werden:
 cd /opt/iobroker
 
 iobroker stop admin.0
-npm install @nexowatt/iobroker.admin --omit=dev
+npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20" --omit=dev
 iobroker upload admin
 iobroker start admin.0
 ```
@@ -210,13 +271,14 @@ Der Publish-Check prüft unter anderem:
 
 ## Changelog
 
-### 7.9.17 – NexoWatt README Update
+### 7.9.20 – Repository Update Fix
 
-- README vollständig auf **NexoWatt EOS Admin** ausgerichtet.
-- Alte upstream-lastige Projektbeschreibung, öffentliche Upstream-Badges und missverständlicher MIT-Lizenzblock aus der Haupt-README entfernt.
-- Hinweise zu proprietärer Nutzung trotz öffentlicher npm-Bereitstellung ergänzt.
-- Installationsweg über NexoWatt Repository und `packetName` dokumentiert.
-- Direkte npm-Testinstallation, Publish-Hinweise und Reverse-Proxy-/404-Hinweise ergänzt.
+- Version für neues Repository-Update auf `7.9.20` erhöht.
+- Repository-Workflow mit Pflichtfeld `packetName: "@nexowatt/iobroker.admin"` dokumentiert.
+- Direkte Notfallinstallation über npm-Alias `iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20` dokumentiert.
+- `tools/nexowatt-generate-repo-entry.cjs` erzeugt jetzt einen vollständigen Admin-Repository-Eintrag.
+- `tools/nexowatt-patch-repo.cjs` ergänzt ein bestehendes NexoWatt-Repository automatisch um den korrekten Admin-Eintrag.
+- Cache-Busting für EOS Branding auf `v=20` erhöht.
 
 ### 7.9.16 – Public npm / Proprietary License
 
@@ -234,3 +296,24 @@ Weitere technische Upstream-Historie befindet sich in `CHANGELOG_OLD.md` und in 
 ## Markenhinweis
 
 NexoWatt, NexoWatt EOS, Energy Operation System, die NexoWatt Logos sowie die NexoWatt-spezifischen UI- und Branding-Elemente sind Eigentum von NexoWatt oder stehen NexoWatt zur exklusiven Nutzung zur Verfügung.
+
+## CLI-Recovery bei Admin-Timeout / ERR_EMPTY_RESPONSE
+
+Wenn nach dem Speichern der Admin-Einstellungen die Oberfläche nicht mehr antwortet, kann der Login-Timeout per CLI zurückgesetzt werden:
+
+```bash
+cd /opt/iobroker
+iobroker set admin.0 --ttl 3600 --enabled true
+iobroker restart admin.0
+```
+
+Falls der Adapter durch ein fehlgeschlagenes Update nicht sauber installiert ist:
+
+```bash
+cd /opt/iobroker
+iobroker stop admin.0
+npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20" --omit=dev
+iobroker upload admin
+iobroker start admin.0
+```
+

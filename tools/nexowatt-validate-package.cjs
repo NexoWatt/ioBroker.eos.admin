@@ -21,6 +21,7 @@ if (pkg.license !== 'UNLICENSED') fail('package.json license must remain UNLICEN
 if (!pkg.publishConfig || pkg.publishConfig.access !== 'public') fail('publishConfig.access must be public');
 if (!ioPkg.common || ioPkg.common.name !== 'admin') fail('io-package.json common.name must remain admin');
 if (ioPkg.common.license !== 'NexoWatt Proprietary') fail('io-package.json common.license must remain NexoWatt Proprietary');
+if (pkg.version !== ioPkg.common.version) fail(`package.json version (${pkg.version}) must match io-package.json common.version (${ioPkg.common.version})`);
 
 const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
 if (!readme.includes('NexoWatt EOS Admin')) fail('README.md must describe NexoWatt EOS Admin');
@@ -45,6 +46,8 @@ if (readme.includes('The MIT License (MIT)') && !readme.includes('THIRD_PARTY_NO
 });
 
 const index = fs.readFileSync(path.join(root, 'adminWww/index.html'), 'utf8');
+if (!/eos-branding\.css\?v=20/.test(index)) fail('adminWww/index.html must load eos-branding.css with v=20 cache busting');
+if (!/eos-branding\.js\?v=20/.test(index)) fail('adminWww/index.html must load eos-branding.js with v=20 cache busting');
 const refs = [...index.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map(match => match[1]);
 for (const ref of refs) {
   if (/^(https?:|data:|blob:|mailto:|#)/i.test(ref)) continue;

@@ -35,6 +35,14 @@ const ONE_HOUR_MS = 3_600_000;
 const ERROR_PERMISSION = 'permissionError';
 const CURRENT_MAX_MAJOR_NODEJS = 22;
 const CURRENT_MAX_MAJOR_NPM = 10;
+
+function normalizeLoginTimeout(value, fallback = 3_600) {
+    const ttl = Math.round(Number(value));
+    if (!Number.isFinite(ttl) || ttl < 120) {
+        return fallback;
+    }
+    return Math.min(ttl, 31_536_000); // 1 year hard limit
+}
 let socket;
 let webServer;
 let lastRepoUpdate;
@@ -911,7 +919,7 @@ class Admin extends adapter_core_1.Adapter {
         const settings = {
             language: this.config.language,
             defaultUser: this.config.defaultUser,
-            ttl: this.config.ttl,
+            ttl: normalizeLoginTimeout(this.config.ttl),
             secure: this.config.secure,
             auth: this.config.auth,
             port: this.config.port,

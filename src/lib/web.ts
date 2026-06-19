@@ -437,7 +437,8 @@ export default class Web {
             this.server.app = express();
             this.server.app.use(compression());
 
-            this.settings.ttl = Math.round(this.settings.ttl) || 3_600;
+            const ttl = Math.round(Number(this.settings.ttl));
+            this.settings.ttl = Number.isFinite(ttl) && ttl >= 120 ? Math.min(ttl, 31_536_000) : 3_600;
             this.settings.accessAllowedConfigs ||= [];
             this.settings.accessAllowedTabs ||= [];
 
