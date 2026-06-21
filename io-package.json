@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "admin",
-    "version": "7.9.20",
+    "version": "7.9.22",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,14 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.22": {
+        "en": "NexoWatt repository warning removed: the active nexowatt repository is treated as the official EOS repository.",
+        "de": "NexoWatt-Repository-Hinweis entfernt: Das aktive Repository nexowatt wird als offizielles EOS-Repository behandelt."
+      },
+      "7.9.21": {
+        "en": "Repository update fix: documents packetName vendor mapping and keeps EOS branding cache-busting current.",
+        "de": "Repository-Update-Fix: dokumentiert das packetName-Vendor-Mapping und aktualisiert das EOS Cache-Busting."
+      },
       "7.9.20": {
         "en": "Hardened Admin settings save handling: sanitizes login timeout and keeps MCP disabled unless explicitly configured.",
         "de": "Speichern der Admin-Einstellungen gehärtet: Login-Timeout wird bereinigt und MCP bleibt deaktiviert, sofern nicht ausdrücklich konfiguriert."

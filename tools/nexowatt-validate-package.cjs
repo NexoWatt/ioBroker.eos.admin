@@ -46,8 +46,8 @@ if (readme.includes('The MIT License (MIT)') && !readme.includes('THIRD_PARTY_NO
 });
 
 const index = fs.readFileSync(path.join(root, 'adminWww/index.html'), 'utf8');
-if (!/eos-branding\.css\?v=20/.test(index)) fail('adminWww/index.html must load eos-branding.css with v=20 cache busting');
-if (!/eos-branding\.js\?v=20/.test(index)) fail('adminWww/index.html must load eos-branding.js with v=20 cache busting');
+if (!/eos-branding\.css\?v=22/.test(index)) fail('adminWww/index.html must load eos-branding.css with v=22 cache busting');
+if (!/eos-branding\.js\?v=22/.test(index)) fail('adminWww/index.html must load eos-branding.js with v=22 cache busting');
 const refs = [...index.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map(match => match[1]);
 for (const ref of refs) {
   if (/^(https?:|data:|blob:|mailto:|#)/i.test(ref)) continue;

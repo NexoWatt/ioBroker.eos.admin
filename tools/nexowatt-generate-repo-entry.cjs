@@ -21,23 +21,23 @@ if (pkg.version !== ioPkg.common.version) {
 const defaultBaseUrl = `https://unpkg.com/${pkg.name}@${pkg.version}`;
 const baseUrl = (process.argv[2] || defaultBaseUrl).replace(/\/$/, '');
 const common = ioPkg.common;
+const iconUrl = /\/admin$/i.test(baseUrl) ? `${baseUrl}/admin.png` : `${baseUrl}/admin/admin.png`;
 const entry = {
   admin: {
-    ...common,
     name: 'admin',
     version: pkg.version,
     packetName: pkg.name,
     title: 'NexoWatt EOS Admin',
-    titleLang: common.titleLang,
+    titleLang: {
+      de: 'NexoWatt EOS Admin',
+      en: 'NexoWatt EOS Admin'
+    },
     desc: common.desc || {
       de: 'NexoWatt EOS Administrationsoberfläche für Energy Operation System Installationen.',
       en: 'NexoWatt EOS administration interface for Energy Operation System installations.'
     },
     meta: `${baseUrl}/io-package.json`,
-    icon: `${baseUrl}/admin/admin.png`,
-    extIcon: `${baseUrl}/admin/admin.png`,
-    readme: `${baseUrl}/README.md`,
-    repoVendorTime: new Date().toISOString()
+    icon: iconUrl
   }
 };
 

@@ -414,10 +414,15 @@ class AdaptersList extends Component<AdaptersListProps, AdaptersListState> {
         return items;
     }
 
+    private shouldShowRepositoryWarning(stableRepo: boolean, repoName: string): boolean {
+        // NexoWatt is our official EOS repository. Do not show the upstream "use at own risk" warning for it.
+        return !stableRepo && String(repoName || '').toLowerCase() !== 'nexowatt';
+    }
+
     renderTileView(stableRepo: boolean, repoName: string, context: AdaptersContext): JSX.Element {
         return (
             <>
-                {!stableRepo ? (
+                {this.shouldShowRepositoryWarning(stableRepo, repoName) ? (
                     <Box sx={{ marginX: 2, marginTop: 1, width: 'calc(100% - 32px)' }}>
                         <InfoBox type={'warning'}>{this.props.context.t('Active repo is "%s"', repoName)}</InfoBox>
                     </Box>
@@ -430,7 +435,7 @@ class AdaptersList extends Component<AdaptersListProps, AdaptersListState> {
     renderTableView(stableRepo: boolean, repoName: string, context: AdaptersContext): JSX.Element {
         return (
             <TabContent>
-                {!stableRepo ? (
+                {this.shouldShowRepositoryWarning(stableRepo, repoName) ? (
                     <Box sx={{ marginX: 2, marginTop: 1, width: 'calc(100% - 32px)' }}>
                         <InfoBox type={'warning'}>{this.props.context.t('Active repo is "%s"', repoName)}</InfoBox>
                     </Box>

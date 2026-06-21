@@ -80,7 +80,7 @@ Ohne `packetName` sieht ioBroker zwar eine höhere Version für `admin`, versuch
 ```bash
 cd /opt/iobroker
 iobroker stop admin.0
-npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20" --omit=dev
+npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.22" --omit=dev
 iobroker upload admin
 iobroker start admin.0
 ```
@@ -173,7 +173,7 @@ Für einen direkten Test kann das Paket auch lokal installiert werden:
 cd /opt/iobroker
 
 iobroker stop admin.0
-npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20" --omit=dev
+npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.22" --omit=dev
 iobroker upload admin
 iobroker start admin.0
 ```
@@ -271,11 +271,18 @@ Der Publish-Check prüft unter anderem:
 
 ## Changelog
 
+### 7.9.22
+
+- Treats the `nexowatt` repository as the official NexoWatt EOS repository.
+- Removes the upstream “use at own risk” warning for the active NexoWatt repository.
+- Keeps repository warnings for other non-official/non-stable repositories.
+
+
 ### 7.9.20 – Repository Update Fix
 
 - Version für neues Repository-Update auf `7.9.20` erhöht.
 - Repository-Workflow mit Pflichtfeld `packetName: "@nexowatt/iobroker.admin"` dokumentiert.
-- Direkte Notfallinstallation über npm-Alias `iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20` dokumentiert.
+- Direkte Notfallinstallation über npm-Alias `iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.22` dokumentiert.
 - `tools/nexowatt-generate-repo-entry.cjs` erzeugt jetzt einen vollständigen Admin-Repository-Eintrag.
 - `tools/nexowatt-patch-repo.cjs` ergänzt ein bestehendes NexoWatt-Repository automatisch um den korrekten Admin-Eintrag.
 - Cache-Busting für EOS Branding auf `v=20` erhöht.
@@ -312,8 +319,25 @@ Falls der Adapter durch ein fehlgeschlagenes Update nicht sauber installiert ist
 ```bash
 cd /opt/iobroker
 iobroker stop admin.0
-npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.20" --omit=dev
+npm install "iobroker.admin@npm:@nexowatt/iobroker.admin@7.9.22" --omit=dev
 iobroker upload admin
 iobroker start admin.0
 ```
 
+
+
+## NexoWatt Repository Update-Hinweis v22
+
+Damit ioBroker den NexoWatt EOS Admin wirklich als Ersatz für den technischen Adapter `admin` installiert, muss der Eintrag im aktiven NexoWatt Repository unter dem Key `admin` stehen und zusätzlich `packetName` enthalten:
+
+```json
+{
+  "admin": {
+    "name": "admin",
+    "version": "7.9.22",
+    "packetName": "@nexowatt/iobroker.admin"
+  }
+}
+```
+
+Wenn das Repository automatisch aus `io-package.json` generiert wird, muss `packetName` danach erneut in die Repository-Datei gepatcht werden. Das Feld gehört in das Repository, nicht in `io-package.json`.

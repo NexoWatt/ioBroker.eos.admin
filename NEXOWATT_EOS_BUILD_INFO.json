@@ -1,21 +1,20 @@
 {
-  "name": "NexoWatt EOS admin UI v17",
-  "base": "v16 public npm proprietary package",
+  "name": "NexoWatt EOS admin UI v22",
+  "base": "v21 repo packetName enforced",
   "created": "2026-06-18T00:00:00Z",
   "changes": [
-    "replaces upstream-style README with NexoWatt EOS Admin README",
-    "documents public npm distribution with proprietary NexoWatt license restrictions",
-    "documents NexoWatt repository installation using packetName @nexowatt/iobroker.admin",
-    "keeps technical adapter id common.name=admin for replacement compatibility",
-    "removes upstream npm badges and MIT license section from README",
-    "updates admin/README.md asset documentation and npm package metadata branding"
+    "treats active repository nexowatt as official NexoWatt EOS repository",
+    "removes the upstream use-at-own-risk warning for nexowatt in adapter/module and host views",
+    "keeps warning behavior for other non-stable repositories",
+    "adds runtime fallback to hide cached nexowatt repository warning banners",
+    "bumps package and io-package versions to 7.9.22 and cache busting to v=22"
   ],
-  "eosUiVersion": "v17-readme-branding",
+  "eosUiVersion": "v22-official-nexowatt-repo-warning-fix",
   "layout": "v14/v16 accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=15",
+  "cacheBust": "v=22",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.20",
-  "variant": "v17-readme-aligned-public-npm-proprietary",
-  "notes": "Adds hardened login-timeout/ttl normalization for admin settings save/restart.",
-  "eosVersion": "v20"
+  "version": "7.9.22",
+  "variant": "v22-official-nexowatt-repo-warning-fix",
+  "notes": "Suppresses the upstream non-stable repository warning when the active repository is the official NexoWatt repository named nexowatt.",
+  "eosVersion": "v22"
 }

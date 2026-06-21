@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v14-logo-collapse-overlap-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v22-official-nexowatt-repo-warning-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -480,6 +480,38 @@
         });
     });
 
+
+    const hideOfficialNexoWattRepoWarning = () => safe(() => {
+        const body = document.body || document.documentElement;
+        if (!body || !/repo|repository|nexowatt|gefahr|risk/i.test(body.textContent || '')) return;
+        const warningTextPattern = /(WARNUNG:\s*)?(Aktuelles Repository ist|Current repository is)\s+["“”']?nexowatt["“”']?.*(Benutzung auf eigene Gefahr|Use at own risk)?/i;
+        const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                const text = node.nodeValue || '';
+                return warningTextPattern.test(text) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            }
+        });
+        const hits = [];
+        let node;
+        while ((node = walker.nextNode())) hits.push(node);
+        hits.forEach(textNode => {
+            let target = textNode.parentElement;
+            const box = target && target.closest('.MuiBox-root, .MuiAlert-root, [role="alert"]');
+            if (box && warningTextPattern.test(box.textContent || '')) target = box;
+            else {
+                for (let i = 0; i < 5 && target && target.parentElement; i += 1) {
+                    const txt = (target.textContent || '').trim();
+                    if (warningTextPattern.test(txt) && txt.length < 220) break;
+                    target = target.parentElement;
+                }
+            }
+            if (!target || !warningTextPattern.test(target.textContent || '')) return;
+            target.classList.add('eos-hidden-nexowatt-repo-warning');
+            target.setAttribute('aria-hidden', 'true');
+            target.style.display = 'none';
+        });
+    });
+
     const patchDocumentMeta = () => safe(() => {
         document.title = BRAND_LONG;
         const theme = document.querySelector('meta[name="theme-color"]');
@@ -501,6 +533,7 @@
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
         hideNativeLogoutNav();
+        hideOfficialNexoWattRepoWarning();
         patchTextNodes(document.body || document.documentElement);
         patchAttributes(document.body || document.documentElement);
     };
@@ -516,6 +549,7 @@
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
         hideNativeLogoutNav();
+        hideOfficialNexoWattRepoWarning();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
             patchTextNodes(scope);
