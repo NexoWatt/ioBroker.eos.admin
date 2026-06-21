@@ -23,7 +23,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.25",
+    "version": "7.9.26",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -133,3 +133,9 @@ LICENSE
 NEXOWATT_PROPRIETARY_LICENSE.md
 THIRD_PARTY_NOTICES.md
 ```
+
+
+### 7.9.26
+
+- Header-Logo links optisch verstärkt und leicht nach oben gesetzt.
+- Benutzername/Kontoanzeige oben rechts kontrastreicher dargestellt.

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v25-admin-visibility-acl-guard';
+    window.NEXOWATT_EOS_UI_VERSION = 'v26-header-identity-polish';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

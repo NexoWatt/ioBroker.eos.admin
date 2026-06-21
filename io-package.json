@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.25",
+    "version": "7.9.26",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.26": {
+        "en": "Visual polish: strengthened the NexoWatt EOS header logo and improved account-name contrast in the top bar.",
+        "de": "Optischer Feinschliff: NexoWatt-EOS-Headerlogo deutlicher sichtbar und Kontoname in der oberen Leiste kontrastreicher."
+      },
       "7.9.25": {
         "en": "EOS visibility guard: the legacy admin adapter is hidden for non-administrators and protected system components stay updateable.",
         "de": "EOS-Sichtbarkeitsschutz: der alte Admin-Adapter wird für Nicht-Administratoren ausgeblendet und geschützte Systemkomponenten bleiben updatefähig."
