@@ -11,7 +11,7 @@ const entry = {
     titleLang: io.common.titleLang,
     desc: io.common.desc,
     meta: `${base}/io-package.json`,
-    icon: `${base}/admin.png`
+    icon: /unpkg\.com\/iobroker\.eos-admin@/i.test(base) ? `${base}/admin/admin.png` : `${base}/admin.png`
   }
 };
 console.log(JSON.stringify(entry, null, 2));

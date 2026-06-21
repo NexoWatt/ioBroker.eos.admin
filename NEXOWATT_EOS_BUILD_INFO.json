@@ -1,20 +1,21 @@
 {
-  "name": "NexoWatt EOS Admin standalone UI v23",
-  "base": "v22 official repository warning fix",
-  "created": "2026-06-18T00:00:00Z",
+  "name": "NexoWatt EOS Admin standalone UI v25",
+  "base": "v24 security guard",
+  "created": "2026-06-21T12:00:00Z",
   "changes": [
-    "converts adapter to standalone eos-admin package",
-    "uses npm package iobroker.eos-admin",
-    "sets frontend adapterName to eos-admin",
-    "sets safe parallel default port 8091",
-    "keeps NexoWatt EOS UI design and proprietary license"
+    "keeps eos-admin as standalone adapter",
+    "keeps legacy admin.0 disabled on local fallback port",
+    "restricts legacy admin visibility to EOS administrator groups",
+    "hides legacy admin rows/cards for installer and customer users in the EOS UI",
+    "restricts protected adapter delete controls for non-admin users",
+    "keeps EOS Admin updateable by using dontDelete=true and nondeletable=false"
   ],
-  "eosUiVersion": "v23-standalone-eos-admin",
-  "layout": "v14/v16 accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=23",
+  "eosUiVersion": "v25-role-visibility-security",
+  "layout": "accepted full header + horizontal navigation rail + full-width content",
+  "cacheBust": "v=25",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.23",
-  "variant": "v23-standalone-eos-admin",
-  "notes": "Standalone adapter avoids update conflicts with official ioBroker admin adapter. Run on port 8091 in parallel or move to 8081 after disabling admin.0.",
-  "eosVersion": "v23"
+  "version": "7.9.25",
+  "variant": "v25-role-visibility-security",
+  "notes": "Only administrator groups can see or maintain the legacy admin adapter. Installer/customer users see the EOS Admin surface only.",
+  "eosVersion": "v25"
 }

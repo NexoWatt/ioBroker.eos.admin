@@ -1098,6 +1098,11 @@ export default abstract class AdapterGeneric<
     }
 
     delete(deleteCustom?: boolean): void {
+        const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockAdapterDelete?: (adapterName: string) => boolean } }).NEXOWATT_EOS_SECURITY;
+        if (security?.shouldBlockAdapterDelete?.(this.props.adapterName)) {
+            window.alert('Dieser Adapter ist durch NexoWatt EOS geschützt. Nur die Administrator-Gruppe darf ihn löschen.');
+            return;
+        }
         this.props.context.executeCommand(
             `del ${this.props.adapterName}${deleteCustom ? ' --custom' : ''}${this.props.context.expertMode ? ' --debug' : ''}`,
         );

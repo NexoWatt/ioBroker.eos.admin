@@ -2199,7 +2199,63 @@ html.eos-app .eos-hidden-logout * {
     }
 }
 
-/* v22: NexoWatt is the official EOS repository, so the upstream custom-repo warning is hidden. */
+/* v23: NexoWatt is the official EOS repository, so the upstream custom-repo warning is hidden. */
 .eos-hidden-nexowatt-repo-warning {
     display: none !important;
 }
+
+
+/* NexoWatt EOS security visibility */
+.eos-hidden-legacy-admin {
+    display: none !important;
+}
+
+.eos-hide-legacy-admin-active [data-id="admin"],
+.eos-hide-legacy-admin-active [data-id="admin.0"],
+.eos-hide-legacy-admin-active [data-name="admin"] {
+    display: none !important;
+}
+
+/* v25: role-aware EOS security UI guard */
+html.eos-security-nonadmin .eos-hidden-legacy-admin {
+    display: none !important;
+}
+
+html.eos-security-nonadmin .eos-protected-adapter-row .eos-protected-delete-control,
+html.eos-security-nonadmin .eos-protected-delete-control {
+    opacity: 0.28 !important;
+    pointer-events: none !important;
+    filter: grayscale(1) !important;
+}
+
+html.eos-security-nonadmin .eos-protected-delete-dialog .eos-protected-delete-control {
+    display: none !important;
+}
+
+html.eos-security-nonadmin .eos-security-admin-only-field {
+    display: none !important;
+}
+
+.eos-security-restricted-note {
+    margin: 10px 0 18px !important;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(45, 255, 182, 0.26) !important;
+    background: rgba(4, 18, 28, 0.78) !important;
+    color: rgba(232, 255, 248, 0.95) !important;
+    box-shadow: 0 0 22px rgba(0, 229, 168, 0.13) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.eos-security-restricted-note strong {
+    color: #53ffd0 !important;
+    font-weight: 800 !important;
+}
+
+.eos-security-restricted-note span {
+    color: rgba(219, 246, 240, 0.78) !important;
+    font-size: 0.9rem !important;
+}
+

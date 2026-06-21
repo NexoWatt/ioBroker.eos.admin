@@ -23,7 +23,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.23",
+    "version": "7.9.25",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -82,6 +82,25 @@ http://DEINE-IP:8081
 ```
 
 Den offiziellen `admin`-Adapter erst löschen, wenn der Zugriff über `eos-admin.0` zuverlässig funktioniert.
+
+
+## EOS Rollen- und Löschschutz
+
+Ab Version `7.9.25` überwacht der EOS Admin sensible Systembereiche direkt:
+
+- Der alte `admin`-Adapter und `admin.0` werden für Benutzer außerhalb der konfigurierten EOS-Admin-Gruppen ausgeblendet.
+- `admin.0` bleibt durch den Security Guard deaktiviert und auf `127.0.0.1:18081` verschoben, solange die Legacy-Admin-Sperre aktiv ist.
+- Geschützte Adapter können vom Installateur- oder Endkundenbereich nicht gelöscht werden. Die Löschbuttons werden für Nicht-Administratoren ausgeblendet beziehungsweise deaktiviert.
+- Die Schutzliste wird vom Administrator im Bereich **EOS security** gepflegt. Updates bleiben möglich, weil `nondeletable=false` bleibt. `eos-admin` nutzt zusätzlich `dontDelete=true`; andere geschützte Adapter werden über Administrator-ACLs geschützt, damit der Admin sie weiterhin warten kann.
+
+Standardmäßig geschützt:
+
+```text
+eos-admin
+backitup
+```
+
+Administratoren können weitere Adapter in der Tabelle `Protected adapters` ergänzen. Die sichtbaren Admin-Gruppen werden über `EOS admin groups` definiert, standardmäßig `administrator`.
 
 ## Updates
 

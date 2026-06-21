@@ -1,41 +1,30 @@
 #!/usr/bin/env node
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const pkg = require('../package.json');
+const io = require('../io-package.json');
 
-const root = path.resolve(__dirname, '..');
-const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const ioPkg = JSON.parse(fs.readFileSync(path.join(root, 'io-package.json'), 'utf8'));
-
-if (pkg.name !== '@nexowatt/iobroker.admin') {
+if (pkg.name !== 'iobroker.eos-admin') {
   throw new Error(`Unexpected package name: ${pkg.name}`);
 }
-if (!ioPkg.common || ioPkg.common.name !== 'admin') {
-  throw new Error('io-package.json common.name must remain admin for the admin replacement workflow');
+if (!io.common || io.common.name !== 'eos-admin') {
+  throw new Error('io-package.json common.name must be eos-admin for the standalone EOS Admin adapter');
 }
-if (pkg.version !== ioPkg.common.version) {
-  throw new Error(`Version mismatch: package.json=${pkg.version}, io-package=${ioPkg.common.version}`);
+if (pkg.version !== io.common.version) {
+  throw new Error(`Version mismatch: package.json=${pkg.version}, io-package=${io.common.version}`);
 }
 
 const defaultBaseUrl = `https://unpkg.com/${pkg.name}@${pkg.version}`;
 const baseUrl = (process.argv[2] || defaultBaseUrl).replace(/\/$/, '');
-const common = ioPkg.common;
 const iconUrl = /\/admin$/i.test(baseUrl) ? `${baseUrl}/admin.png` : `${baseUrl}/admin/admin.png`;
+
 const entry = {
-  admin: {
-    name: 'admin',
+  'eos-admin': {
+    name: 'eos-admin',
     version: pkg.version,
-    packetName: pkg.name,
     title: 'NexoWatt EOS Admin',
-    titleLang: {
-      de: 'NexoWatt EOS Admin',
-      en: 'NexoWatt EOS Admin'
-    },
-    desc: common.desc || {
-      de: 'NexoWatt EOS Administrationsoberfläche für Energy Operation System Installationen.',
-      en: 'NexoWatt EOS administration interface for Energy Operation System installations.'
-    },
+    titleLang: io.common.titleLang,
+    desc: io.common.desc,
     meta: `${baseUrl}/io-package.json`,
     icon: iconUrl
   }

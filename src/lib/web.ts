@@ -145,6 +145,8 @@ interface WebOptions {
 interface AdminAdapter extends ioBroker.Adapter {
     secret: string;
     config: AdminAdapterConfig;
+    getSession: (id: string, callback: (token?: InternalStorageToken | null) => void) => void;
+    getObjectViewAsync: (design: string, search: string, params: ioBroker.GetObjectViewParams) => Promise<ioBroker.GetObjectViewResult>;
 }
 
 /** Webserver class */
@@ -425,8 +427,276 @@ export default class Web {
         }
     }
 
+    private normalizeEosGroupId(value: unknown): string | null {
+        if (typeof value !== 'string') {
+            return null;
+        }
+        let group = value.trim();
+        if (!group) {
+            return null;
+        }
+        if (!group.startsWith('system.group.')) {
+            group = `system.group.${group.replace(/^group\./, '')}`;
+        }
+        return /^system\.group\.[a-z0-9_.-]+$/i.test(group) ? group : null;
+    }
+
+    private normalizeEosUserId(value: unknown): string | null {
+        if (!value) {
+            return null;
+        }
+        let user = typeof value === 'string' ? value : String((value as { id?: unknown; _id?: unknown; user?: unknown; name?: unknown }).id || (value as { _id?: unknown })._id || (value as { user?: unknown }).user || (value as { name?: unknown }).name || '');
+        user = user.trim();
+        if (!user) {
+            return null;
+        }
+        if (!user.startsWith('system.user.')) {
+            user = `system.user.${user.replace(/^user\./, '')}`;
+        }
+        return /^system\.user\.[a-z0-9_.-]+$/i.test(user) ? user : null;
+    }
+
+    private normalizeEosAdapterName(value: unknown): string | null {
+        if (typeof value !== 'string') {
+            return null;
+        }
+        let adapter = value.trim().toLowerCase();
+        if (!adapter) {
+            return null;
+        }
+        adapter = adapter.replace(/^system\.adapter\./, '').replace(/^iobroker\./, '').replace(/^@nexowatt\/iobroker\./, '').replace(/^@nexowatt\//, '');
+        adapter = adapter.replace(/\.\d+$/, '');
+        return /^[a-z0-9_-]+$/.test(adapter) ? adapter : null;
+    }
+
+    private getEosSecurityAdminGroups(): string[] {
+        const configured = this.settings.eosAdminOnlyGroups || this.settings.eosSecurityAdminGroups;
+        const groups = new Set<string>();
+        const add = (value: unknown): void => {
+            if (!value) {
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach(add);
+                return;
+            }
+            if (typeof value === 'object') {
+                const row = value as { group?: unknown; id?: unknown; name?: unknown; enabled?: unknown };
+                if (row.enabled === false) {
+                    return;
+                }
+                add(row.group || row.id || row.name);
+                return;
+            }
+            const group = this.normalizeEosGroupId(String(value));
+            if (group) {
+                groups.add(group);
+            }
+        };
+        add(configured);
+        groups.add('system.group.administrator');
+        return [...groups].sort();
+    }
+
+    private getEosProtectedAdapterNames(): string[] {
+        const names = new Set<string>(['eos-admin']);
+        const add = (value: unknown): void => {
+            if (!value) {
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach(add);
+                return;
+            }
+            if (typeof value === 'object') {
+                const row = value as { adapter?: unknown; name?: unknown; enabled?: unknown };
+                if (row.enabled === false) {
+                    return;
+                }
+                add(row.adapter || row.name);
+                return;
+            }
+            const adapter = this.normalizeEosAdapterName(String(value));
+            if (adapter) {
+                names.add(adapter);
+            }
+        };
+        if (this.settings.eosProtectAdapterDeletion !== false) {
+            add(this.settings.eosProtectedAdapters);
+        }
+        return [...names].sort();
+    }
+
+    private readAccessTokenFromRequest(req: Request): string | null {
+        const cookieHeader = req.headers.cookie || '';
+        const accessCookie = cookieHeader
+            .split(';')
+            .map(cookie => cookie.trim())
+            .find(cookie => cookie.startsWith('access_token='));
+        let token = accessCookie ? accessCookie.split('=').slice(1).join('=') : '';
+        if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+            token = req.headers.authorization.substring('Bearer '.length);
+        }
+        if (!token && req.query?.token) {
+            token = req.query.token as string;
+        }
+        if (!token) {
+            return null;
+        }
+        try {
+            return decodeURIComponent(token);
+        } catch {
+            return token;
+        }
+    }
+
+    private readSession(id: string): Promise<InternalStorageToken | null | undefined> {
+        return new Promise(resolve => this.adapter.getSession(id, token => resolve(token)));
+    }
+
+    private async readEosCurrentUser(req: Request): Promise<string | null> {
+        const requestUser = (req as Request & { user?: unknown }).user;
+        const fromRequest = this.normalizeEosUserId(requestUser);
+        if (fromRequest) {
+            return fromRequest;
+        }
+        if (!this.settings.auth) {
+            return this.normalizeEosUserId(this.settings.defaultUser) || 'system.user.admin';
+        }
+        const token = this.readAccessTokenFromRequest(req);
+        if (!token) {
+            return null;
+        }
+        const candidates = new Set<string>();
+        candidates.add(token);
+        candidates.add(token.startsWith('a:') ? token : `a:${token}`);
+        if (token.length > 1) {
+            candidates.add(`a:${token[1]}`);
+        }
+        for (const id of candidates) {
+            const session = await this.readSession(id).catch(() => null);
+            const user = this.normalizeEosUserId(session?.user);
+            if (user) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    private async getEosGroupsForUser(userId: string): Promise<string[]> {
+        const groups = new Set<string>();
+        try {
+            const result = await this.adapter.getObjectViewAsync('system', 'group', {
+                startkey: 'system.group.',
+                endkey: 'system.group.香',
+            });
+            for (const row of result.rows) {
+                const group = (row.value || row.doc) as ioBroker.GroupObject;
+                const members = Array.isArray(group?.common?.members) ? group.common.members : [];
+                if (members.includes(userId as ioBroker.ObjectIDs.User)) {
+                    groups.add(row.id);
+                }
+            }
+        } catch (e) {
+            this.adapter.log.debug(`Cannot resolve EOS security groups for ${userId}: ${e instanceof Error ? e.message : e}`);
+        }
+        return [...groups].sort();
+    }
+
+    private async sendEosSecuritySession(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+        const userId = await this.readEosCurrentUser(req);
+        const groups = userId ? await this.getEosGroupsForUser(userId) : [];
+        const adminGroups = this.getEosSecurityAdminGroups();
+        const isAdministrator = userId === 'system.user.admin' || groups.includes('system.group.administrator');
+        const isEosAdminGroup = isAdministrator || groups.some(group => adminGroups.includes(group));
+
+        res.status(200).json({
+            user: userId,
+            groups,
+            adminGroups,
+            isAdministrator,
+            isEosAdminGroup,
+            isAdmin: isEosAdminGroup,
+            hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
+            hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
+            restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false,
+            legacyAdminAdapter: 'admin',
+            legacyAdminInstance: 'admin.0',
+            protectedAdapters: this.getEosProtectedAdapterNames(),
+        });
+    }
+
     resetIndexHtml(): void {
         this.indexHTML = '';
+    }
+
+
+    private extractAccessToken(req: Request): string | null {
+        const cookies = req.headers.cookie?.split(';').find(c => c.trim().startsWith('access_token='));
+        let tokenCookie = cookies?.split('=')[1] || null;
+        if (!tokenCookie && req.headers.authorization?.startsWith('Bearer ')) {
+            tokenCookie = req.headers.authorization.split(' ')[1];
+        } else if (!tokenCookie && req.query?.token) {
+            tokenCookie = req.query.token as string;
+        }
+        return tokenCookie || null;
+    }
+
+    private async getSessionUser(req: Request): Promise<string | null> {
+        if (!this.settings.auth) {
+            return 'system.user.admin';
+        }
+        const tokenCookie = this.extractAccessToken(req);
+        if (!tokenCookie) {
+            return null;
+        }
+        return new Promise(resolve => {
+            void this.adapter.getSession(`a:${tokenCookie[1]}`, (token: InternalStorageToken): void => {
+                const user = token?.user ? String(token.user) : '';
+                resolve(user ? (user.startsWith('system.user.') ? user : `system.user.${user}`) : null);
+            });
+        });
+    }
+
+    private async getGroupsForUser(userId: string | null): Promise<string[]> {
+        if (!userId) {
+            return [];
+        }
+        try {
+            const groups = await this.adapter.getForeignObjectsAsync('system.group.*', 'group');
+            return Object.values(groups || {})
+                .filter(group => Array.isArray(group?.common?.members) && group.common.members.includes(userId as any))
+                .map(group => group._id)
+                .filter((id): id is string => !!id);
+        } catch (e) {
+            this.adapter.log.debug(`Cannot read groups for NexoWatt security context: ${e.message}`);
+            return [];
+        }
+    }
+
+    private async getNexowattSecurityContext(req: Request): Promise<Record<string, unknown>> {
+        const user = await this.getSessionUser(req);
+        const groups = await this.getGroupsForUser(user);
+        const adminOnlyGroups = Array.isArray((this.adapter.config as any).eosAdminOnlyGroups)
+            ? (this.adapter.config as any).eosAdminOnlyGroups
+                .filter((entry: any) => entry && entry.enabled !== false)
+                .map((entry: any) => String(entry.group || entry.id || entry.name || '').trim())
+                .filter((group: string) => !!group)
+                .map((group: string) => group.startsWith('system.group.') ? group : `system.group.${group.replace(/^group\./, '')}`)
+            : ['system.group.administrator'];
+        const isAdminGroup = user === 'system.user.admin' || adminOnlyGroups.some((group: string) => groups.includes(group));
+        const hideLegacyAdmin = (this.adapter.config as any).eosHideLegacyAdminForNonAdmins !== false && !isAdminGroup;
+        return {
+            user,
+            groups,
+            adminOnlyGroups,
+            isAdminGroup,
+            hideLegacyAdmin,
+            protectedAdapters: (this.adapter.config as any).eosProtectedAdapters || [],
+        };
     }
 
     /**
@@ -563,6 +833,24 @@ export default class Web {
                     res.json({ error: 'Cannot find session' });
                 });
 
+                this.server.app.get(/.*\/nexowatt\/security\/(?:context|session)$/, (req: Request, res: Response): void => {
+                    void this.sendEosSecuritySession(req, res).catch(e => {
+                        this.adapter.log.warn(`Cannot create NexoWatt security context: ${e instanceof Error ? e.message : e}`);
+                        res.status(200).json({
+                            user: null,
+                            groups: [],
+                            adminGroups: ['system.group.administrator'],
+                            isAdministrator: false,
+                            isEosAdminGroup: false,
+                            isAdmin: false,
+                            hideLegacyAdminForNonAdmins: true,
+                            hideLegacyAdminFromNonAdmins: true,
+                            restrictProtectedAdapterControls: true,
+                            protectedAdapters: ['eos-admin'],
+                        });
+                    });
+                });
+
                 this.server.app.get('/logout', (req: Request, res: Response): void => {
                     const isDev = req.url.includes('?dev');
                     let origin = req.url.split('origin=')[1];
@@ -640,6 +928,27 @@ export default class Web {
             } else {
                 this.server.app.get('/logout', (_req: Request, res: Response): void => res.redirect('/'));
             }
+
+            const sendSecuritySession = (req: Request, res: Response): void => {
+                void this.sendEosSecuritySession(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot read EOS security session: ${e instanceof Error ? e.message : e}`);
+                    res.status(200).json({
+                        user: null,
+                        groups: [],
+                        adminGroups: ['system.group.administrator'],
+                        isAdministrator: false,
+                        isEosAdminGroup: false,
+                        isAdmin: false,
+                        hideLegacyAdminForNonAdmins: true,
+                        hideLegacyAdminFromNonAdmins: true,
+                        restrictProtectedAdapterControls: true,
+                        protectedAdapters: ['eos-admin'],
+                    });
+                });
+            };
+            this.server.app.get('/eos/security/status', sendSecuritySession);
+            this.server.app.get('/nexowatt/security/session', sendSecuritySession);
+            this.server.app.get('/nexowatt/security/context', sendSecuritySession);
 
             this.server.app.get('/iobroker_check.html', (_req: Request, res: Response): void => {
                 res.status(200).send('ioBroker');

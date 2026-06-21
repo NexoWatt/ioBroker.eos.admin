@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v22-official-nexowatt-repo-warning-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v25-admin-visibility-acl-guard';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -64,6 +64,14 @@
         scopePatchScheduled: false,
         pendingScopes: new Set(),
         lastFullPatch: 0,
+        securityPolicy: {
+            loaded: false,
+            isAdmin: false,
+            hideLegacyAdminForNonAdmins: true,
+            restrictProtectedAdapterControls: true,
+            protectedAdapters: ['eos-admin', 'backitup'],
+        },
+        securityFetchStarted: false,
     };
 
     const safe = fn => {
@@ -163,6 +171,210 @@
         };
     };
 
+    const normalizeIdentifier = value => String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/^iobroker\./, '')
+        .replace(/^system\.adapter\./, '')
+        .replace(/\.\d+$/, '')
+        .replace(/[^a-z0-9_.-]+/g, ' ')
+        .trim();
+
+    const adapterPattern = adapter => {
+        const escaped = String(adapter || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`(?:^|[^a-z0-9_-])${escaped}(?:$|[^a-z0-9_-])`, 'i');
+    };
+
+    const textOfElement = el => {
+        if (!el) return '';
+        const attrs = ['data-adapter-name', 'data-adapter', 'data-id', 'id', 'title', 'aria-label', 'alt', 'href', 'src'];
+        const values = [el.textContent || ''];
+        attrs.forEach(attr => {
+            if (el.getAttribute && el.hasAttribute(attr)) values.push(el.getAttribute(attr) || '');
+        });
+        return values.join(' ');
+    };
+
+    const securityEndpointUrls = () => [
+        new URL('nexowatt/security/context', ASSET_BASE).href,
+        new URL('nexowatt/security/session', ASSET_BASE).href,
+        new URL('eos/security/status', ASSET_BASE).href,
+    ];
+
+    const normalizeSecurityPolicy = policy => {
+        const protectedAdapters = new Set(['eos-admin', 'backitup']);
+        (Array.isArray(policy?.protectedAdapters) ? policy.protectedAdapters : []).forEach(item => {
+            const adapter = typeof item === 'string' ? normalizeIdentifier(item) : normalizeIdentifier(item?.adapter || item?.name);
+            if (adapter) protectedAdapters.add(adapter);
+        });
+        const isAdmin = !!(policy?.isAdmin || policy?.isAdminGroup || policy?.isEosAdminGroup || policy?.isAdministrator);
+        return {
+            loaded: true,
+            user: policy?.user || null,
+            groups: Array.isArray(policy?.groups) ? policy.groups : [],
+            isAdmin,
+            hideLegacyAdminForNonAdmins: policy?.hideLegacyAdminForNonAdmins !== false && policy?.hideLegacyAdminFromNonAdmins !== false,
+            restrictProtectedAdapterControls: policy?.restrictProtectedAdapterControls !== false,
+            protectedAdapters: [...protectedAdapters].sort(),
+        };
+    };
+
+    const applySecurityClasses = () => {
+        const policy = state.securityPolicy;
+        document.documentElement.classList.toggle('eos-security-loaded', !!policy.loaded);
+        document.documentElement.classList.toggle('eos-security-admin', !!policy.isAdmin);
+        document.documentElement.classList.toggle('eos-security-nonadmin', policy.loaded && !policy.isAdmin);
+    };
+
+    const fetchSecurityPolicy = async () => {
+        if (state.securityFetchStarted) return;
+        state.securityFetchStarted = true;
+        for (const url of securityEndpointUrls()) {
+            try {
+                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+                if (!response.ok) continue;
+                const json = await response.json();
+                if (!json || json.error) continue;
+                state.securityPolicy = normalizeSecurityPolicy(json);
+                applySecurityClasses();
+                scheduleFullPatch(0);
+                return;
+            } catch (e) {
+                // Security endpoint may be unavailable during login or old cache. Fallback below.
+            }
+        }
+        state.securityPolicy = normalizeSecurityPolicy({ isAdmin: false, protectedAdapters: ['eos-admin', 'backitup'] });
+        applySecurityClasses();
+        scheduleFullPatch(0);
+    };
+
+    const isAdminUser = () => !!state.securityPolicy?.isAdmin;
+
+    const isLegacyAdminContainer = el => {
+        const text = textOfElement(el);
+        if (/\badmin\.0\b/i.test(text) || /\bsystem\.adapter\.admin\.0\b/i.test(text)) return true;
+        const candidates = Array.from(el.querySelectorAll ? el.querySelectorAll('*') : []);
+        candidates.push(el);
+        return candidates.some(node => {
+            const value = textOfElement(node).trim();
+            return /^admin$/i.test(value) || /^iobroker\.admin$/i.test(value) || /^system\.adapter\.admin$/i.test(value);
+        });
+    };
+
+    const containerMentionsAdapter = (container, adapter) => {
+        if (!container || !adapter) return false;
+        const normalized = normalizeIdentifier(adapter);
+        if (!normalized) return false;
+        if (normalized === 'admin') return isLegacyAdminContainer(container);
+        const pattern = adapterPattern(normalized);
+        if (pattern.test(textOfElement(container))) return true;
+        return Array.from(container.querySelectorAll ? container.querySelectorAll('[title],[aria-label],[data-adapter-name],[data-adapter],[data-id]') : [])
+            .some(el => pattern.test(textOfElement(el)));
+    };
+
+    const getSecurityContainers = () => Array.from(document.querySelectorAll([
+        '#app-paper .MuiCard-root',
+        '#app-paper tr.MuiTableRow-root',
+        '#app-paper tr',
+        '#app-paper .MuiAccordion-root',
+        '#app-paper [role="row"]',
+        '#app-paper .MuiListItem-root',
+        '#app-paper .MuiListItemButton-root',
+    ].join(','))).filter(el => !el.closest('.MuiDialog-paper'));
+
+    const isDeleteControl = el => {
+        const text = normalize(el.textContent || el.getAttribute?.('title') || el.getAttribute?.('aria-label') || '');
+        const title = normalize(el.getAttribute?.('title') || el.closest?.('[title]')?.getAttribute('title') || '');
+        const svg = el.querySelector?.('svg[data-testid*="Delete"], svg[data-testid*="Remove"], svg[data-testid*="Clear"]');
+        return !!svg || /\b(delete|remove|uninstall|del|loschen|entfernen|deinstallieren)\b/.test(`${text} ${title}`);
+    };
+
+    const lockDeleteControls = container => {
+        Array.from(container.querySelectorAll('button, [role="button"], a')).forEach(control => {
+            if (!isDeleteControl(control)) return;
+            control.classList.add('eos-protected-delete-control');
+            control.setAttribute('aria-disabled', 'true');
+            control.setAttribute('title', 'Nur Administratoren dürfen geschützte EOS-Systemmodule löschen');
+            if ('disabled' in control) control.disabled = true;
+            control.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }, true);
+        });
+    };
+
+    const protectDeleteDialogs = () => {
+        if (isAdminUser() || state.securityPolicy.restrictProtectedAdapterControls === false) return;
+        const protectedAdapters = state.securityPolicy.protectedAdapters || [];
+        Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"]')).forEach(dialog => {
+            const text = textOfElement(dialog);
+            if (!/(delete|remove|loschen|entfernen|deinstallieren|del\s+)/i.test(text)) return;
+            const protectedHit = protectedAdapters.some(adapter => containerMentionsAdapter(dialog, adapter));
+            if (!protectedHit) return;
+            dialog.classList.add('eos-protected-delete-dialog');
+            Array.from(dialog.querySelectorAll('button')).forEach(button => {
+                const label = normalize(button.textContent || button.getAttribute('aria-label') || '');
+                if (/^(ok|ja|yes|delete|remove|loschen|entfernen|deinstallieren)$/.test(label)) {
+                    button.disabled = true;
+                    button.classList.add('eos-protected-delete-control');
+                }
+            });
+        });
+    };
+
+    const hideSecuritySettingsForNonAdmin = () => {
+        if (isAdminUser()) return;
+        Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"]')).forEach(dialog => {
+            const dialogText = textOfElement(dialog);
+            if (!/(eos security|nexowatt security|legacy admin|alter admin|protected adapters|geschutzte adapter|eos admin groups)/i.test(dialogText)) return;
+            dialog.classList.add('eos-security-settings-restricted');
+            const needles = /(eos security|nexowatt security|legacy admin|alter admin|protected adapters|geschutzte adapter|eos admin groups|lock legacy admin|hide legacy admin|restrict protected adapter)/i;
+            Array.from(dialog.querySelectorAll('label, legend, h2, h3, h4, .MuiTypography-root, .MuiFormLabel-root')).forEach(label => {
+                if (!needles.test(label.textContent || '')) return;
+                const row = label.closest('.MuiGrid2-root, .MuiGrid-root, .MuiFormControl-root, .MuiBox-root, .MuiPaper-root') || label.parentElement;
+                if (row && row !== dialog) row.classList.add('eos-security-admin-only-field');
+            });
+            if (!dialog.querySelector('.eos-security-restricted-note')) {
+                const note = document.createElement('div');
+                note.className = 'eos-security-restricted-note';
+                note.innerHTML = '<strong>EOS Systemschutz aktiv</strong><span>Diese Sicherheitseinstellungen sind nur für Administratoren sichtbar und änderbar.</span>';
+                const content = dialog.querySelector('.MuiDialogContent-root') || dialog;
+                content.insertBefore(note, content.firstElementChild || null);
+            }
+        });
+    };
+
+    const applySecurityUiGuard = () => safe(() => {
+        const policy = state.securityPolicy;
+        applySecurityClasses();
+        if (!policy.loaded) return;
+        if (isAdminUser()) {
+            document.querySelectorAll('.eos-hidden-legacy-admin, .eos-protected-adapter-row').forEach(el => {
+                el.classList.remove('eos-hidden-legacy-admin', 'eos-protected-adapter-row');
+                el.removeAttribute('aria-hidden');
+            });
+            return;
+        }
+
+        const containers = getSecurityContainers();
+        containers.forEach(container => {
+            if (policy.hideLegacyAdminForNonAdmins !== false && isLegacyAdminContainer(container)) {
+                container.classList.add('eos-hidden-legacy-admin');
+                container.setAttribute('aria-hidden', 'true');
+                return;
+            }
+            if (policy.restrictProtectedAdapterControls !== false) {
+                const protectedHit = (policy.protectedAdapters || []).some(adapter => adapter !== 'admin' && containerMentionsAdapter(container, adapter));
+                if (protectedHit) {
+                    container.classList.add('eos-protected-adapter-row');
+                    lockDeleteControls(container);
+                }
+            }
+        });
+        protectDeleteDialogs();
+        hideSecuritySettingsForNonAdmin();
+    });
 
     const isLoginView = () => safe(() => {
         const hasApp = !!document.getElementById('app-paper');
@@ -534,6 +746,7 @@
         ensureSettingsDialogClasses();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
+        applySecurityUiGuard();
         patchTextNodes(document.body || document.documentElement);
         patchAttributes(document.body || document.documentElement);
     };
@@ -550,6 +763,7 @@
         ensureSettingsDialogClasses();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
+        applySecurityUiGuard();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
             patchTextNodes(scope);
@@ -605,11 +819,13 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             fullPatch();
+            fetchSecurityPolicy();
             installObserver();
             [250, 1000, 2500, 5000].forEach(scheduleFullPatch);
         }, { once: true });
     } else {
         fullPatch();
+        fetchSecurityPolicy();
         installObserver();
         [250, 1000, 2500, 5000].forEach(scheduleFullPatch);
     }

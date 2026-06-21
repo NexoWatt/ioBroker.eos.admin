@@ -2203,3 +2203,84 @@ html.eos-app .eos-hidden-logout * {
 .eos-hidden-nexowatt-repo-warning {
     display: none !important;
 }
+
+
+/* NexoWatt EOS security visibility */
+.eos-hidden-legacy-admin {
+    display: none !important;
+}
+
+.eos-hide-legacy-admin-active [data-id="admin"],
+.eos-hide-legacy-admin-active [data-id="admin.0"],
+.eos-hide-legacy-admin-active [data-name="admin"] {
+    display: none !important;
+}
+
+/* v25: role-aware EOS security UI guard */
+html.eos-security-nonadmin .eos-hidden-legacy-admin {
+    display: none !important;
+}
+
+html.eos-security-nonadmin .eos-protected-adapter-row .eos-protected-delete-control,
+html.eos-security-nonadmin .eos-protected-delete-control {
+    opacity: 0.28 !important;
+    pointer-events: none !important;
+    filter: grayscale(1) !important;
+}
+
+html.eos-security-nonadmin .eos-protected-delete-dialog .eos-protected-delete-control {
+    display: none !important;
+}
+
+html.eos-security-nonadmin .eos-security-admin-only-field {
+    display: none !important;
+}
+
+.eos-security-restricted-note {
+    margin: 10px 0 18px !important;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(45, 255, 182, 0.26) !important;
+    background: rgba(4, 18, 28, 0.78) !important;
+    color: rgba(232, 255, 248, 0.95) !important;
+    box-shadow: 0 0 22px rgba(0, 229, 168, 0.13) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.eos-security-restricted-note strong {
+    color: #53ffd0 !important;
+    font-weight: 800 !important;
+}
+
+.eos-security-restricted-note span {
+    color: rgba(219, 246, 240, 0.78) !important;
+    font-size: 0.9rem !important;
+}
+
+
+/* NexoWatt EOS v25 security visibility guard */
+.eos-security-hidden,
+.eos-security-hidden-delete {
+    display: none !important;
+}
+.eos-security-protected-adapter {
+    position: relative;
+}
+.eos-security-protected-adapter::after {
+    content: 'EOS geschützt';
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 2;
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: rgba(225, 255, 246, .88);
+    background: rgba(5, 22, 28, .72);
+    border: 1px solid rgba(55, 230, 180, .22);
+    pointer-events: none;
+}
