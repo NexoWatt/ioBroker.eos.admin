@@ -107,7 +107,7 @@ class AdminUpdater extends Component<AdminUpdaterProps, AdminUpdaterState> {
 
         await this.props.socket.upgradeAdapterWithWebserver(this.props.host, {
             version: this.props.version,
-            adapterName: 'admin',
+            adapterName: 'eos-admin',
             port,
             useHttps,
             certPublicName,

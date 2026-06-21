@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v22-official-nexowatt-repo-warning-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v23-official-nexowatt-repo-warning-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

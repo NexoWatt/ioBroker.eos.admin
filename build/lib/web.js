@@ -126,7 +126,7 @@ class Web {
     LOGIN_PAGE = '/index.html?login';
     /** URL to the JSON config schema */
     JSON_CONFIG_SCHEMA_URL = 
-    // 'https://raw.githubusercontent.com/ioBroker/ioBroker.admin/master/packages/jsonConfig/schemas/jsonConfig.json';
+    // 'https://raw.githubusercontent.com/ioBroker/NexoWatt EOS Admin/master/packages/jsonConfig/schemas/jsonConfig.json';
     'https://raw.githubusercontent.com/ioBroker/json-config/main/schemas/jsonConfig.json';
     store = null;
     indexHTML;
@@ -751,7 +751,7 @@ class Web {
             if (!(0, node_fs_1.existsSync)(this.wwwDir)) {
                 this.server.app.use('/', (_req, res) => {
                     res.header('Content-Type', 'text/plain');
-                    res.status(404).send('This adapter cannot be installed directly from GitHub.<br>You must install it from npm.<br>Write for that <i>"npm install iobroker.admin"</i> in according directory.');
+                    res.status(404).send('This adapter cannot be installed directly from GitHub.<br>You must install it from npm.<br>Write for that <i>"npm install iobroker.eos-admin"</i> in according directory.');
                 });
             }
             else {

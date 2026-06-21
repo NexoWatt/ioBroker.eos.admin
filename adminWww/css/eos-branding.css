@@ -2199,7 +2199,7 @@ html.eos-app .eos-hidden-logout * {
     }
 }
 
-/* v22: NexoWatt is the official EOS repository, so the upstream custom-repo warning is hidden. */
+/* v23: NexoWatt is the official EOS repository, so the upstream custom-repo warning is hidden. */
 .eos-hidden-nexowatt-repo-warning {
     display: none !important;
 }

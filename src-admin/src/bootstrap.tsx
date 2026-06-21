@@ -31,7 +31,7 @@ declare global {
     }
 }
 
-window.adapterName = 'admin';
+window.adapterName = 'eos-admin';
 window.USE_OAUTH2 = true;
 
 console.log(`iobroker.${window.adapterName}@${version.version}`);

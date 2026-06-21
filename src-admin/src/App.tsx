@@ -999,7 +999,7 @@ class App extends Router<AppProps, AppState> {
                 protocol: window.location.protocol as 'http:' | 'https:',
                 host: window.location.hostname,
 
-                name: 'admin',
+                name: 'eos-admin',
                 admin5only: true,
                 port: App.getPort(),
                 autoSubscribes: ['system.adapter.*'], // Do not subscribe on '*' and really we don't need a 'system.adapter.*' either. Every tab must subscribe itself to everything that it needs
@@ -1515,7 +1515,7 @@ class App extends Router<AppProps, AppState> {
         const maxCount = 200;
         for (let instance = 0; instance < maxCount; instance++) {
             try {
-                const adminAlive = await this.socket.getState(`system.adapter.admin.${instance}.alive`);
+                const adminAlive = await this.socket.getState(`system.adapter.eos-admin.${instance}.alive`);
                 if (adminAlive?.val) {
                     return instance;
                 }
@@ -2432,18 +2432,18 @@ class App extends Router<AppProps, AppState> {
                                 onClick={() => {
                                     if (window.sidebar) {
                                         // Firefox
-                                        window.sidebar.addPanel('ioBroker.admin', this.state.showRedirect, '');
+                                        window.sidebar.addPanel('NexoWatt EOS Admin', this.state.showRedirect, '');
                                     } else if (window.opera && window.print) {
                                         // Opera
                                         const elem = document.createElement('a');
                                         elem.setAttribute('href', this.state.showRedirect);
-                                        elem.setAttribute('title', 'ioBroker.admin');
+                                        elem.setAttribute('title', 'NexoWatt EOS Admin');
                                         elem.setAttribute('rel', 'sidebar');
                                         elem.click(); // this.title=document.title;
                                     } else if (document.all) {
                                         // ie
                                         // @ts-expect-error ignore
-                                        window.external.AddFavorite(this.state.showRedirect, 'ioBroker.admin');
+                                        window.external.AddFavorite(this.state.showRedirect, 'NexoWatt EOS Admin');
                                     }
                                 }}
                             >
@@ -2977,7 +2977,7 @@ class App extends Router<AppProps, AppState> {
                 <h1 style={{ color: '#F00' }}>Error in GUI!</h1>
                 Please open the browser console (F12), copy error text from there and create the issue on{' '}
                 <a
-                    href="https://github.com/ioBroker/ioBroker.admin/issues"
+                    href="https://github.com/ioBroker/NexoWatt EOS Admin/issues"
                     target="_blank"
                     rel="noreferrer"
                 >

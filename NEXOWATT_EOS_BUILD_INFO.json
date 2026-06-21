@@ -1,20 +1,20 @@
 {
-  "name": "NexoWatt EOS admin UI v22",
-  "base": "v21 repo packetName enforced",
+  "name": "NexoWatt EOS Admin standalone UI v23",
+  "base": "v22 official repository warning fix",
   "created": "2026-06-18T00:00:00Z",
   "changes": [
-    "treats active repository nexowatt as official NexoWatt EOS repository",
-    "removes the upstream use-at-own-risk warning for nexowatt in adapter/module and host views",
-    "keeps warning behavior for other non-stable repositories",
-    "adds runtime fallback to hide cached nexowatt repository warning banners",
-    "bumps package and io-package versions to 7.9.22 and cache busting to v=22"
+    "converts adapter to standalone eos-admin package",
+    "uses npm package iobroker.eos-admin",
+    "sets frontend adapterName to eos-admin",
+    "sets safe parallel default port 8091",
+    "keeps NexoWatt EOS UI design and proprietary license"
   ],
-  "eosUiVersion": "v22-official-nexowatt-repo-warning-fix",
+  "eosUiVersion": "v23-standalone-eos-admin",
   "layout": "v14/v16 accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=22",
+  "cacheBust": "v=23",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.22",
-  "variant": "v22-official-nexowatt-repo-warning-fix",
-  "notes": "Suppresses the upstream non-stable repository warning when the active repository is the official NexoWatt repository named nexowatt.",
-  "eosVersion": "v22"
+  "version": "7.9.23",
+  "variant": "v23-standalone-eos-admin",
+  "notes": "Standalone adapter avoids update conflicts with official ioBroker admin adapter. Run on port 8091 in parallel or move to 8081 after disabling admin.0.",
+  "eosVersion": "v23"
 }

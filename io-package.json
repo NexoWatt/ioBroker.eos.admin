@@ -1,7 +1,7 @@
 {
   "common": {
-    "name": "admin",
-    "version": "7.9.22",
+    "name": "eos-admin",
+    "version": "7.9.23",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -133,11 +133,15 @@
         "pl": "Rozszerzony plik konfiguracyjny JSON do adaptera fregata",
         "uk": "Розширений налаштування JSON для адаптера фригату",
         "zh-cn": "JSON 护卫舰适配器扩展配置"
+      },
+      "7.9.23": {
+        "en": "Standalone EOS Admin adapter: uses eos-admin as technical adapter name to avoid replacement conflicts with the official admin adapter.",
+        "de": "Eigenständiger EOS-Admin-Adapter: nutzt eos-admin als technischen Adapternamen, um Ersatz-/Update-Konflikte mit dem offiziellen admin-Adapter zu vermeiden."
       }
     },
     "desc": {
-      "en": "NexoWatt EOS administration interface for Energy Operation System installations.",
-      "de": "NexoWatt EOS Administrationsoberfläche für Energy Operation System Installationen."
+      "en": "NexoWatt EOS administration interface as a standalone adapter for Energy Operation System installations.",
+      "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter für Energy Operation System Installationen."
     },
     "docs": {
       "en": "docs/en/admin.md",
@@ -216,20 +220,20 @@
       "_default": {
         "link": "%protocol%://%bind%:%port%",
         "name": {
-          "en": "NexoWatt EOS",
-          "de": "NexoWatt EOS",
-          "ru": "NexoWatt EOS",
-          "pt": "NexoWatt EOS",
-          "pl": "NexoWatt EOS",
-          "fr": "NexoWatt EOS",
-          "nl": "NexoWatt EOS",
-          "it": "NexoWatt EOS",
-          "es": "NexoWatt EOS",
-          "uk": "NexoWatt EOS",
-          "zh-cn": "NexoWatt EOS"
+          "en": "NexoWatt EOS Admin",
+          "de": "NexoWatt EOS Admin",
+          "ru": "NexoWatt EOS Admin",
+          "pt": "NexoWatt EOS Admin",
+          "pl": "NexoWatt EOS Admin",
+          "fr": "NexoWatt EOS Admin",
+          "nl": "NexoWatt EOS Admin",
+          "it": "NexoWatt EOS Admin",
+          "es": "NexoWatt EOS Admin",
+          "uk": "NexoWatt EOS Admin",
+          "zh-cn": "NexoWatt EOS Admin"
         },
-        "pro": "admin/index.html",
-        "icon": "admin/img/eos/eos-logo.svg",
+        "pro": "eos-admin/index.html",
+        "icon": "eos-admin/img/eos/eos-logo.svg",
         "color": "#020914",
         "order": 5,
         "intro": true
@@ -249,7 +253,7 @@
   },
   "native": {
     "autoUpdate": 24,
-    "port": 8081,
+    "port": 8091,
     "auth": false,
     "secure": false,
     "bind": "0.0.0.0",

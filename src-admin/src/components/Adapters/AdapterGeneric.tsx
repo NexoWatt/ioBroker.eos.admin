@@ -1105,7 +1105,7 @@ export default abstract class AdapterGeneric<
 
     async update(version: string): Promise<void> {
         if (
-            this.props.adapterName === 'admin' &&
+            this.props.adapterName === 'eos-admin' &&
             this.props.context.adminHost === this.props.context.currentHost &&
             (await this.props.context.socket.checkFeatureSupported('ADAPTER_WEBSERVER_UPGRADE'))
         ) {

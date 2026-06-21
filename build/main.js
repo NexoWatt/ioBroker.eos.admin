@@ -1277,8 +1277,8 @@ class Admin extends adapter_core_1.Adapter {
         // allow only one admin instance to check the versions for every host
         if (this.instance !== 0) {
             const objs = await this.getObjectViewAsync('system', 'instance', {
-                startkey: 'system.adapter.admin.',
-                endkey: 'system.adapter.admin.\u9999',
+                startkey: 'system.adapter.eos-admin.',
+                endkey: 'system.adapter.eos-admin.\u9999',
             });
             let min = null;
             // find the lowest active instance on the same host

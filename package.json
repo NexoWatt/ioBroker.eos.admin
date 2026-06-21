@@ -1,7 +1,7 @@
 {
-  "name": "@nexowatt/iobroker.admin",
-  "description": "NexoWatt EOS Admin interface for Energy Operation System",
-  "version": "7.9.22",
+  "name": "iobroker.eos-admin",
+  "description": "NexoWatt EOS Admin standalone interface for Energy Operation System",
+  "version": "7.9.23",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -16,8 +16,10 @@
   "keywords": [
     "nexowatt",
     "eos",
+    "eos-admin",
     "energy-operation-system",
     "admin",
+    "standalone",
     "energy",
     "proprietary",
     "licensed",
@@ -98,7 +100,9 @@
     "tools/nexowatt-validate-package.cjs",
     "README.md",
     "tools/nexowatt-generate-repo-entry.cjs",
-    "tools/nexowatt-patch-repo.cjs"
+    "tools/nexowatt-patch-repo.cjs",
+    "NEXOWATT_EOS_STANDALONE.md",
+    "tools/nexowatt-generate-eos-admin-repo-entry.cjs"
   ],
   "scripts": {
     "npm": "npm i -f && cd src-admin && npm i -f",
@@ -135,8 +139,5 @@
   },
   "author": "NexoWatt",
   "private": false,
-  "copyright": "Copyright (c) 2026 NexoWatt. NexoWatt EOS branding and modifications are proprietary.",
-  "publishConfig": {
-    "access": "public"
-  }
+  "copyright": "Copyright (c) 2026 NexoWatt. NexoWatt EOS branding and modifications are proprietary."
 }

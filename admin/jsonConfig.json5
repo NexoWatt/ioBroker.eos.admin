@@ -220,7 +220,7 @@
                 _image: {
                     type: 'staticImage',
                     tooltip: "Read about Let's Encrypt certificates",
-                    href: 'https://github.com/ioBroker/ioBroker.admin/blob/master/README.md#lets-encrypt-certificates',
+                    href: './README.md#lets-encrypt-zertifikate',
                     src: '../../img/le.png',
                     style: {
                         width: 200,
@@ -322,7 +322,7 @@
             items: {
                 _explanation: {
                     type: 'staticText',
-                    text: 'You can use admin behind a reverse proxy.',
+                    text: 'You can use EOS Admin behind a reverse proxy.',
                 },
                 reverseProxy: {
                     xs: 12,

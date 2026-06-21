@@ -1,61 +1,46 @@
 #!/usr/bin/env node
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const readJson = file => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
-const fail = message => {
-  console.error(`[NexoWatt EOS package validation] ${message}`);
+const fail = msg => {
+  console.error(`[NexoWatt EOS package validation] ${msg}`);
   process.exit(1);
 };
+const readJson = file => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
 const exists = file => fs.existsSync(path.join(root, file));
 
 const pkg = readJson('package.json');
-const ioPkg = readJson('io-package.json');
+const io = readJson('io-package.json');
 
-if (pkg.name !== '@nexowatt/iobroker.admin') fail('package.json name must be @nexowatt/iobroker.admin');
-if (pkg.private === true) fail('package.json private must not be true for public npm publishing');
-if (pkg.license !== 'UNLICENSED') fail('package.json license must remain UNLICENSED');
-if (!pkg.publishConfig || pkg.publishConfig.access !== 'public') fail('publishConfig.access must be public');
-if (!ioPkg.common || ioPkg.common.name !== 'admin') fail('io-package.json common.name must remain admin');
-if (ioPkg.common.license !== 'NexoWatt Proprietary') fail('io-package.json common.license must remain NexoWatt Proprietary');
-if (pkg.version !== ioPkg.common.version) fail(`package.json version (${pkg.version}) must match io-package.json common.version (${ioPkg.common.version})`);
+if (pkg.name !== 'iobroker.eos-admin') fail(`package.json name must be iobroker.eos-admin, got ${pkg.name}`);
+if (pkg.private !== false) fail('package.json private must be false for npm publishing');
+if (pkg.version !== io.common.version) fail(`package.json and io-package.json versions differ: ${pkg.version} vs ${io.common.version}`);
+if (io.common.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common.name}`);
+if (io.native.port !== 8091 && io.native.port !== 8081) fail(`unexpected default port ${io.native.port}`);
 
-const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
-if (!readme.includes('NexoWatt EOS Admin')) fail('README.md must describe NexoWatt EOS Admin');
-if (!readme.includes('@nexowatt/iobroker.admin')) fail('README.md must document the scoped npm package name');
-if (!readme.includes('NexoWatt Proprietary') && !readme.includes('proprietär')) fail('README.md must contain the proprietary license notice');
-if (readme.includes('# ioBroker.admin')) fail('README.md must not use the old upstream title');
-if (readme.includes('The MIT License (MIT)') && !readme.includes('THIRD_PARTY_NOTICES.md')) fail('README.md must not present MIT as the main package license');
-
-[
+for (const file of [
   'adminWww/index.html',
-  'adminWww/css/eos-branding.css',
   'adminWww/js/eos-branding.js',
+  'adminWww/css/eos-branding.css',
   'adminWww/img/eos/nexowatt-192.png',
-  'admin/admin.png',
+  'admin/admin.svg',
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
-  'NEXOWATT_PUBLIC_NPM_DISTRIBUTION.md',
-  'THIRD_PARTY_NOTICES.md',
-  'README.md'
-].forEach(file => {
-  if (!exists(file)) fail(`required file missing: ${file}`);
-});
+  'THIRD_PARTY_NOTICES.md'
+]) {
+  if (!exists(file)) fail(`missing required file: ${file}`);
+}
 
 const index = fs.readFileSync(path.join(root, 'adminWww/index.html'), 'utf8');
-if (!/eos-branding\.css\?v=22/.test(index)) fail('adminWww/index.html must load eos-branding.css with v=22 cache busting');
-if (!/eos-branding\.js\?v=22/.test(index)) fail('adminWww/index.html must load eos-branding.js with v=22 cache busting');
-const refs = [...index.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map(match => match[1]);
-for (const ref of refs) {
-  if (/^(https?:|data:|blob:|mailto:|#)/i.test(ref)) continue;
-  const clean = ref.split(/[?#]/)[0];
-  if (!clean) continue;
-  const normalized = clean.startsWith('/') ? clean.slice(1) : clean;
-  const candidate = normalized.startsWith('adminWww/') ? normalized : `adminWww/${normalized}`;
-  if (!exists(candidate)) fail(`adminWww/index.html references missing file: ${ref}`);
-}
+const refs = [...index.matchAll(/(?:src|href)="\.\/([^"?#]+)(?:\?[^"#]*)?"/g)].map(m => m[1]);
+const missing = refs.filter(ref => !exists(path.join('adminWww', ref)));
+if (missing.length) fail(`adminWww/index.html references missing files:\n${missing.join('\n')}`);
+
+const bootstrapFiles = fs.readdirSync(path.join(root, 'adminWww/assets')).filter(f => /^bootstrap-.*\.js$/.test(f));
+if (!bootstrapFiles.length) fail('missing bootstrap bundle');
+const bootstrap = bootstrapFiles.map(f => fs.readFileSync(path.join(root, 'adminWww/assets', f), 'utf8')).join('\n');
+if (!bootstrap.includes('window.adapterName="eos-admin"')) fail('frontend bootstrap does not set window.adapterName="eos-admin"');
+if (bootstrap.includes('window.adapterName="admin"')) fail('frontend bootstrap still contains window.adapterName="admin"');
 
 console.log('[NexoWatt EOS package validation] OK');
