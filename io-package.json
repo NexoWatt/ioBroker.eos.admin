@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.31",
+    "version": "7.9.32",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -161,6 +161,10 @@
         "pl": "Rozszerzony plik konfiguracyjny JSON do adaptera fregata",
         "uk": "Розширений налаштування JSON для адаптера фригату",
         "zh-cn": "JSON 护卫舰适配器扩展配置"
+      },
+      "7.9.32": {
+        "en": "Fixed the EOS navigation compact toggle: the decorative left tile was removed while the arrow button remains visible and usable.",
+        "de": "EOS Navigationsumschalter korrigiert: Die dekorative linke Kachel wurde entfernt, der Pfeilbutton bleibt sichtbar und nutzbar."
       }
     },
     "desc": {

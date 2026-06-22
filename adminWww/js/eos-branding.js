@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v31-ui-cleanup-ai-ready';
+    window.NEXOWATT_EOS_UI_VERSION = 'v32-nav-toggle-tile-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -1045,6 +1045,44 @@
         }, true);
     });
 
+
+    const ensureStandaloneNavToggle = () => safe(() => {
+        const html = document.documentElement;
+        if (!html.classList.contains('eos-app') || html.classList.contains('eos-login')) {
+            document.getElementById('eos-standalone-nav-toggle')?.remove();
+            return;
+        }
+        let button = document.getElementById('eos-standalone-nav-toggle');
+        if (!button) {
+            button = document.createElement('button');
+            button.id = 'eos-standalone-nav-toggle';
+            button.type = 'button';
+            button.className = 'eos-standalone-nav-toggle';
+            button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.8 5.4 8.2 12l6.6 6.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            const toggle = event => {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation?.();
+                const compact = !document.documentElement.classList.contains('eos-nav-compact');
+                document.documentElement.classList.toggle('eos-nav-compact', compact);
+                safe(() => localStorage.setItem('nexowatt:eosNavCompact', compact ? '1' : '0'));
+                button.setAttribute('aria-pressed', compact ? 'true' : 'false');
+                button.setAttribute('title', compact ? 'Navigation normal anzeigen' : 'Navigation kompakt anzeigen');
+                button.setAttribute('aria-label', compact ? 'Navigation normal anzeigen' : 'Navigation kompakt anzeigen');
+            };
+            button.addEventListener('click', toggle, true);
+            button.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') toggle(event);
+            }, true);
+            document.body.appendChild(button);
+        }
+        const compact = document.documentElement.classList.contains('eos-nav-compact') || safe(() => localStorage.getItem('nexowatt:eosNavCompact') === '1');
+        document.documentElement.classList.toggle('eos-nav-compact', !!compact);
+        button.setAttribute('aria-pressed', compact ? 'true' : 'false');
+        button.setAttribute('title', compact ? 'Navigation normal anzeigen' : 'Navigation kompakt anzeigen');
+        button.setAttribute('aria-label', compact ? 'Navigation normal anzeigen' : 'Navigation kompakt anzeigen');
+    });
+
     const patchDocumentMeta = () => safe(() => {
         document.title = BRAND_LONG;
         const theme = document.querySelector('meta[name="theme-color"]');
@@ -1063,6 +1101,7 @@
         patchLogin();
         patchShell();
         applyNavCompactPreference();
+        ensureStandaloneNavToggle();
         installAssistDelegatedClick();
         ensureEosAssist();
         ensureRightsHelper();
@@ -1083,6 +1122,7 @@
         patchLogin();
         patchShell();
         applyNavCompactPreference();
+        ensureStandaloneNavToggle();
         installAssistDelegatedClick();
         ensureEosAssist();
         ensureRightsHelper();

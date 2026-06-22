@@ -3138,3 +3138,97 @@ html.eos-app .eos-native-logout-hidden * {
     html.eos-app .eos-native-drawer-header button,
     html.eos-app .eos-native-drawer-header .MuiIconButton-root { width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; }
 }
+
+
+/* === NexoWatt EOS v32: keep arrow button, remove empty left tile ============
+   The previous patch hid the native arrow together with the decorative tile on
+   some render paths. This patch removes only the empty native tile and creates
+   one independent compact-toggle button, positioned clearly left of the menu.
+   The navigation still has two states only: normal and compact. It never fully
+   disappears. */
+:root { --eos-nav-toggle-slot: 78px; }
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer,
+html.eos-app.eos-nav-compact .MuiDrawer-paper,
+html.eos-app.eos-nav-compact .eos-drawer {
+    padding-left: var(--eos-nav-toggle-slot) !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Hide the decorative native tile only. The real button is injected below. */
+html.eos-app .eos-native-drawer-header,
+html.eos-app .eos-nav-toggle-shell {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: hidden !important;
+}
+
+html.eos-app .eos-standalone-nav-toggle {
+    position: fixed !important;
+    left: 24px !important;
+    top: calc(var(--eos-shell-top) + var(--eos-header-height) + var(--eos-nav-gap) + 14px) !important;
+    z-index: 2500 !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(110, 255, 211, 0.65) !important;
+    background: radial-gradient(circle at 50% 50%, rgba(0,255,136,.22), rgba(0,0,0,.92) 74%) !important;
+    color: #f4fffb !important;
+    box-shadow: 0 0 16px rgba(0,255,136,.28), inset 0 0 12px rgba(0,255,136,.12) !important;
+    cursor: pointer !important;
+    outline: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+html.eos-app .eos-standalone-nav-toggle:hover,
+html.eos-app .eos-standalone-nav-toggle:focus-visible {
+    border-color: rgba(0, 255, 136, .95) !important;
+    box-shadow: 0 0 22px rgba(0,255,136,.42), inset 0 0 16px rgba(0,255,136,.18) !important;
+    transform: translateY(-1px) !important;
+}
+html.eos-app .eos-standalone-nav-toggle svg {
+    width: 22px !important;
+    height: 22px !important;
+    display: block !important;
+    transition: transform .16s ease !important;
+}
+html.eos-app.eos-nav-compact .eos-standalone-nav-toggle svg {
+    transform: rotate(180deg) !important;
+}
+html.eos-login .eos-standalone-nav-toggle,
+html:not(.eos-app) .eos-standalone-nav-toggle {
+    display: none !important;
+}
+@media (max-width: 720px) {
+    :root { --eos-nav-toggle-slot: 66px; }
+    html.eos-app .eos-standalone-nav-toggle {
+        left: 14px !important;
+        top: calc(var(--eos-shell-top) + var(--eos-header-height) + var(--eos-nav-gap) + 10px) !important;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        border-radius: 14px !important;
+    }
+}
