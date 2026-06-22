@@ -828,7 +828,7 @@ class Admin extends adapter_core_1.Adapter {
         }
         let changed = false;
         obj.common = obj.common || {};
-        // v28: do not use common.dontDelete for EOS protection because it can block adapter upgrades.
+        // v29: do not use common.dontDelete for EOS protection because it can block adapter upgrades.
         if (obj.common.dontDelete === true) {
             delete obj.common.dontDelete;
             changed = true;

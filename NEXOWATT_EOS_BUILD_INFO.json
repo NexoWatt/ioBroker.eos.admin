@@ -12,9 +12,9 @@
   ],
   "eosUiVersion": "v25-role-visibility-security",
   "layout": "accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=28",
+  "cacheBust": "v=29",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.28",
+  "version": "7.9.29",
   "variant": "standalone-eos-admin-update-fix",
   "notes": [
     "stopBeforeUpdate=false",
@@ -24,8 +24,8 @@
     "delete protection handled by ACL/UI guard"
   ],
   "eosVersion": "v25",
-  "build": "v28-update-self-fix",
+  "build": "v29-update-self-fix",
   "updated": "2026-06-22T16:45:00Z",
-  "release": "v28-update-safe",
-  "uiVersion": "v28-update-safe"
+  "release": "v29-update-safe",
+  "uiVersion": "v29-update-safe"
 }

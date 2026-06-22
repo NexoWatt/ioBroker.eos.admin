@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "eos-admin",
-        "version": "7.9.28",
+        "version": "7.9.29",
         "titleLang": {
             "en": "NexoWatt EOS Admin",
             "de": "NexoWatt EOS Admin",
@@ -18,7 +18,11 @@
         "connectionType": "local",
         "dataSource": "push",
         "news": {
-            "7.9.28": {
+            "7.9.29": {
+                "en": "Hotfix: restores the missing iobroker.mcp runtime dependency and prevents EOS Admin from crashing when MCP is unavailable.",
+                "de": "Hotfix: stellt die fehlende iobroker.mcp-Laufzeitabhängigkeit wieder her und verhindert, dass EOS Admin abstürzt, wenn MCP nicht verfügbar ist."
+            },
+            "7.9.29": {
                 "en": "Self-update hardening: EOS Admin now uses its own webserver upgrade path, update-all skips the running EOS shell, and object-level delete locks are cleared so updates stay possible.",
                 "de": "Self-Update gehärtet: EOS Admin nutzt nun den eigenen Webserver-Updatepfad, Update-Alle überspringt die laufende EOS-Oberfläche und objektbasierte Löschsperren werden entfernt, damit Updates möglich bleiben."
             },
@@ -190,7 +194,7 @@
         "icon": "admin.svg",
         "messagebox": true,
         "enabled": true,
-        "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.28/admin/admin.png",
+        "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.29/admin/admin.png",
         "keywords": [
             "NexoWatt",
             "EOS",
@@ -201,7 +205,7 @@
             "licensed"
         ],
         "compact": true,
-        "readme": "https://unpkg.com/iobroker.eos-admin@7.9.28/README.md",
+        "readme": "https://unpkg.com/iobroker.eos-admin@7.9.29/README.md",
         "authors": [
             "bluefox <bluefox@ccu.io>",
             "hobbyquaker <hq@ccu.io>"
@@ -270,7 +274,7 @@
         "nondeletable": false,
         "allowAdapterUpdate": true,
         "allowAdapterDelete": false,
-        "meta": "https://unpkg.com/iobroker.eos-admin@7.9.28/io-package.json",
+        "meta": "https://unpkg.com/iobroker.eos-admin@7.9.29/io-package.json",
         "npmPackage": "iobroker.eos-admin"
     },
     "native": {

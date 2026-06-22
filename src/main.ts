@@ -1058,7 +1058,7 @@ class Admin extends Adapter {
         let changed = false;
         obj.common = obj.common || {};
 
-        // v28: keep adapters updateable. Do not set common.dontDelete here.
+        // v29: keep adapters updateable. Do not set common.dontDelete here.
         // Protected business adapters are protected by administrator-only ACLs and EOS UI policy.
         // Older builds set dontDelete on eos-admin; remove the stale flag so upgrades can run.
         if ((obj.common as Record<string, unknown>).dontDelete === true) {

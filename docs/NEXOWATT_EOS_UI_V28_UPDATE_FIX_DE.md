@@ -1,4 +1,4 @@
-# NexoWatt EOS Admin v28 Update-Fix
+# NexoWatt EOS Admin v29 Update-Fix
 
 Diese Version behebt den Update-Stopp des eigenständigen `eos-admin` Adapters.
 
@@ -40,4 +40,4 @@ iobroker restart eos-admin.0
 
 ## Löschschutz
 
-Der harte Objekt-Flag `dontDelete` wird in v28 bewusst entfernt, weil er den Updatepfad blockieren kann. Der Schutz gegen Löschen erfolgt über EOS-Admin-Rechte, ACL/Guard und ausgeblendete Löschaktionen für Nicht-Administratoren. `nondeletable` bleibt `false`, damit Updates immer möglich bleiben.
+Der harte Objekt-Flag `dontDelete` wird in v29 bewusst entfernt, weil er den Updatepfad blockieren kann. Der Schutz gegen Löschen erfolgt über EOS-Admin-Rechte, ACL/Guard und ausgeblendete Löschaktionen für Nicht-Administratoren. `nondeletable` bleibt `false`, damit Updates immer möglich bleiben.

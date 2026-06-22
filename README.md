@@ -23,7 +23,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.28",
+    "version": "7.9.29",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -134,7 +134,7 @@ NEXOWATT_PROPRIETARY_LICENSE.md
 THIRD_PARTY_NOTICES.md
 ```
 
-### 7.9.28
+### 7.9.29
 
 - Self-Update über die EOS-Oberfläche repariert: der gebaute Adapter-Bundle nutzt jetzt `eos-admin` statt `admin` für den Webserver-Updatepfad.
 - `eos-admin` wird im Update-Alle-Dialog übersprungen, damit sich die laufende Oberfläche nicht selbst über den normalen Terminal-Befehl beendet.
@@ -146,9 +146,9 @@ THIRD_PARTY_NOTICES.md
 - Benutzername/Kontoanzeige oben rechts kontrastreicher dargestellt.
 
 
-## v28 Update-Fix
+## v29 Update-Fix
 
-Version `7.9.28` entfernt den harten `common.dontDelete`-Schutz vom `eos-admin` Adapterobjekt. Dieser harte Objekt-Flag kann den ioBroker-Upgrade-Ablauf stören. Der EOS Admin bleibt für Installateur-/Endkundenrollen geschützt, bleibt aber updatefähig, weil der Schutz jetzt über ACLs, UI-Regeln und den Security Guard läuft.
+Version `7.9.29` entfernt den harten `common.dontDelete`-Schutz vom `eos-admin` Adapterobjekt. Dieser harte Objekt-Flag kann den ioBroker-Upgrade-Ablauf stören. Der EOS Admin bleibt für Installateur-/Endkundenrollen geschützt, bleibt aber updatefähig, weil der Schutz jetzt über ACLs, UI-Regeln und den Security Guard läuft.
 
 Empfohlene Reparatur auf bestehenden Anlagen:
 
@@ -163,9 +163,9 @@ iobroker upload eos-admin
 iobroker restart eos-admin.0
 ```
 
-## v7.9.28 update reliability note
+## v7.9.29 update reliability note
 
-This release fixes the EOS Admin self-update path. Previous standalone builds could still route the `eos-admin` update through the normal adapter command dialog in the prebuilt frontend bundle. Because EOS Admin is the active web interface, that path can terminate the running web process during the update. Version 7.9.28 routes the `eos-admin` adapter card update through the webserver update flow and excludes `eos-admin` from bulk update-all operations. The repository metadata must also keep `stopBeforeUpdate: false` and valid `meta`/`icon` URLs.
+This release fixes the EOS Admin self-update path. Previous standalone builds could still route the `eos-admin` update through the normal adapter command dialog in the prebuilt frontend bundle. Because EOS Admin is the active web interface, that path can terminate the running web process during the update. Version 7.9.29 routes the `eos-admin` adapter card update through the webserver update flow and excludes `eos-admin` from bulk update-all operations. The repository metadata must also keep `stopBeforeUpdate: false` and valid `meta`/`icon` URLs.
 
 If an older installation has stale update-blocking object flags, repair them once with:
 

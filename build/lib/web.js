@@ -19,7 +19,13 @@ const fileUpload = require("express-fileupload");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const iobroker_mcp_1 = require("iobroker.mcp");
+let iobroker_mcp_1;
+try {
+    iobroker_mcp_1 = require("iobroker.mcp");
+}
+catch (error) {
+    iobroker_mcp_1 = null;
+}
 let AdapterStore;
 /** Content of a socket-io file */
 let socketIoFile;
@@ -1260,7 +1266,7 @@ class Web {
             });
             this.settings.port = parseInt(this.settings.port, 10) || 8081;
             serverPort = this.settings.port;
-            if (!this.settings.disableMcp) {
+            if (!this.settings.disableMcp && iobroker_mcp_1?.McpServer) {
                 // Start MCP server
                 this.mcpServer = new iobroker_mcp_1.McpServer(this.server.server, {
                     defaultUser: this.settings.defaultUser,
@@ -1277,6 +1283,9 @@ class Web {
                         language: systemConfig.common.language,
                     },
                 }, this.server.app);
+            }
+            else if (!this.settings.disableMcp) {
+                this.adapter.log.warn('EOS MCP server disabled because optional dependency "iobroker.mcp" is not installed.');
             }
             this.adapter.getPort(this.settings.port, !this.settings.bind || this.settings.bind === '0.0.0.0' ? undefined : this.settings.bind || undefined, port => {
                 serverPort = port;
