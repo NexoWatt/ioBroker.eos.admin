@@ -14,8 +14,9 @@
   "layout": "accepted full header + horizontal navigation rail + full-width content",
   "cacheBust": "v=25",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.25",
+  "version": "7.9.27",
   "variant": "v25-role-visibility-security",
-  "notes": "Only administrator groups can see or maintain the legacy admin adapter. Installer/customer users see the EOS Admin surface only.",
-  "eosVersion": "v25"
+  "notes": "Black logo background, safe compact nav toggle, EOS Assist guidance.",
+  "eosVersion": "v25",
+  "uiVersion": "v27-header-logo-nav-assist"
 }

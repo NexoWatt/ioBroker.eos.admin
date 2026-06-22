@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v26-header-identity-polish';
+    window.NEXOWATT_EOS_UI_VERSION = 'v27-header-logo-nav-assist';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -279,6 +279,10 @@
         '#app-paper tr',
         '#app-paper .MuiAccordion-root',
         '#app-paper [role="row"]',
+        '#app-paper [role="treeitem"]',
+        '#app-paper .MuiDataGrid-row',
+        '#app-paper .MuiTreeItem-root',
+        '#app-paper .MuiFormControlLabel-root',
         '#app-paper .MuiListItem-root',
         '#app-paper .MuiListItemButton-root',
     ].join(','))).filter(el => !el.closest('.MuiDialog-paper'));
@@ -486,6 +490,44 @@
         removeLogoutButton();
     };
 
+    const NAV_COMPACT_KEY = 'nexowatt.eos.navCompact';
+
+    const setNavCompact = value => safe(() => {
+        const active = !!value;
+        document.documentElement.classList.toggle('eos-nav-compact', active);
+        window.localStorage && window.localStorage.setItem(NAV_COMPACT_KEY, active ? '1' : '0');
+    });
+
+    const restoreNavCompact = () => safe(() => {
+        const saved = window.localStorage && window.localStorage.getItem(NAV_COMPACT_KEY);
+        if (saved === '1') document.documentElement.classList.add('eos-nav-compact');
+        if (saved === '0') document.documentElement.classList.remove('eos-nav-compact');
+    });
+
+    const bindCompactNavToggle = header => safe(() => {
+        if (!header) return;
+        restoreNavCompact();
+        const controls = Array.from(header.querySelectorAll('button, .MuiIconButton-root, [role="button"]'));
+        controls.forEach(control => {
+            if (control.dataset.eosCompactToggleBound === '1') return;
+            control.dataset.eosCompactToggleBound = '1';
+            control.setAttribute('title', 'Menü kompakt/erweitert anzeigen');
+            control.setAttribute('aria-label', 'Menü kompakt/erweitert anzeigen');
+            const toggle = event => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                setNavCompact(!document.documentElement.classList.contains('eos-nav-compact'));
+                scheduleFullPatch(0);
+                return false;
+            };
+            control.addEventListener('click', toggle, true);
+            control.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') toggle(event);
+            }, true);
+        });
+    });
+
     const hideNativeLogoutNav = () => safe(() => {
         const candidates = Array.from(document.querySelectorAll('.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root, .MuiDrawer-paper [role=\"button\"]'));
         candidates.forEach(el => {
@@ -514,6 +556,7 @@
         }
         if (header) {
             header.classList.add('eos-native-drawer-header');
+            bindCompactNavToggle(header);
             const img = header.querySelector('img');
             if (img) patchImage(img);
             const avatarImg = header.querySelector('.MuiAvatar-img');
@@ -816,6 +859,7 @@
     });
 
     forceLoginGlobals();
+    restoreNavCompact();
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             fullPatch();
