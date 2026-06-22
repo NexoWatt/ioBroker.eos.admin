@@ -14,7 +14,7 @@
   "layout": "accepted full header + horizontal navigation rail + full-width content",
   "cacheBust": "v=29",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.29",
+  "version": "7.9.30",
   "variant": "standalone-eos-admin-update-fix",
   "notes": [
     "stopBeforeUpdate=false",
@@ -27,5 +27,6 @@
   "build": "v29-update-self-fix",
   "updated": "2026-06-22T16:45:00Z",
   "release": "v29-update-safe",
-  "uiVersion": "v29-update-safe"
+  "uiVersion": "v30-nav-assist-security-polish",
+  "adapter": "eos-admin"
 }

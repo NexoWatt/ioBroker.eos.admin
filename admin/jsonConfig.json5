@@ -163,27 +163,27 @@
                 disableMcp: {
                     type: 'checkbox',
                     newLine: true,
-                    label: 'Disable Assistent',
+                    label: 'EOS Assist deaktivieren',
                     sx: 12,
                 }
             },
         },
         eosSecurityTab: {
             type: 'panel',
-            label: 'EOS security',
+            label: 'EOS Sicherheit',
             items: {
                 _eosSecurityInfo: {
                     type: 'staticText',
                     newLine: true,
-                    text: 'EOS security keeps the legacy admin disabled, hides it from installer/end-customer users and protects selected system adapters. Updates stay possible because nondeletable is not used.',
+                    text: 'EOS Sicherheit sperrt den alten Admin-Zugang, blendet ihn für Installateur- und Endkundenrollen aus und schützt ausgewählte Systemadapter. Updates bleiben möglich, weil keine harte nondeletable-Sperre verwendet wird.',
                     xs: 12,
                     sm: 12,
                 },
                 eosLockLegacyAdmin: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Alten admin.0 sperren',
-                    help: 'Hält den alten admin.0 deaktiviert und verschiebt ihn auf den lokalen Fallback-Bind/Port. Nur Administratoren sollten diese Sperre für Wartung deaktivieren.',
+                    label: 'Alten Admin-Zugang sperren',
+                    help: 'Hält admin.0 deaktiviert und bindet ihn nur lokal auf den Fallback-Port. Nur Administratoren dürfen diese Sperre für Wartung kurz deaktivieren.',
                     xs: 12,
                     sm: 12,
                     md: 6,
@@ -191,7 +191,7 @@
                 },
                 eosLegacyAdminLockBind: {
                     type: 'text',
-                    label: 'Bind-Adresse für gesperrten alten Admin',
+                    label: 'Lokale Bind-Adresse des alten Admin',
                     hidden: '!data.eosLockLegacyAdmin',
                     xs: 12,
                     sm: 12,
@@ -200,7 +200,7 @@
                 },
                 eosLegacyAdminLockPort: {
                     type: 'port',
-                    label: 'Fallback-Port für alten Admin',
+                    label: 'Lokaler Fallback-Port des alten Admin',
                     hidden: '!data.eosLockLegacyAdmin',
                     min: 1,
                     xs: 12,
@@ -211,8 +211,8 @@
                 eosHideLegacyAdminFromNonAdmins: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Alten Admin für Installateur-/Endkundenbenutzer ausblenden',
-                    help: 'Nur Benutzer der EOS-Administratorgruppen können den alten admin-Adapter und die Instanz admin.0 sehen oder bewusst entsperren.',
+                    label: 'Alten Admin vor Installateur und Endkunde ausblenden',
+                    help: 'Nur Benutzer der EOS-Administratorgruppen sehen den alten admin-Adapter und admin.0. Installateur- und Endkundenrollen sehen diesen Bereich nicht.',
                     xs: 12,
                     sm: 12,
                     md: 8,
@@ -221,8 +221,8 @@
                 eosSecurityAdminGroups: {
                     newLine: true,
                     type: 'table',
-                    label: 'EOS-Administratorgruppen',
-                    help: 'Nur Mitglieder dieser Gruppen dürfen gesperrte EOS-Systembereiche sehen und warten. Die Gruppe administrator ist immer enthalten.',
+                    label: 'EOS Administratorgruppen',
+                    help: 'Nur Mitglieder dieser Gruppen dürfen gesperrte EOS-Systembereiche sehen und warten. system.group.administrator ist immer enthalten.',
                     xs: 12,
                     sm: 12,
                     items: [
@@ -237,7 +237,7 @@
                         },
                         {
                             type: 'text',
-                            title: 'Hinweis',
+                            title: 'Beschreibung',
                             attr: 'note',
                             width: '55%',
                             filter: false,
@@ -256,8 +256,8 @@
                 eosProtectAdapterDeletion: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Ausgewählte Adapter vor Löschung schützen',
-                    help: 'Schützt ausgewählte Adapter für Installateur-/Endkundenbenutzer über Administrator-ACLs und EOS-UI-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.',
+                    label: 'Systemadapter vor Löschen schützen',
+                    help: 'Schützt ausgewählte Adapter vor Löschen, Stoppen und kritischen Änderungen durch Installateur- und Endkundenrollen. Updates bleiben möglich.',
                     xs: 12,
                     sm: 12,
                     md: 8,
@@ -266,8 +266,8 @@
                 eosApplyAdminOnlyAclToProtectedAdapters: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Nur Administratoren dürfen geschützte Adapter ändern',
-                    help: 'Setzt Administrator-ACLs auf die geschützte Adapterliste. Installateur-/Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen; Administratoren können sie weiterhin updaten und warten.',
+                    label: 'Geschützte Adapter nur durch Administratoren ändern lassen',
+                    help: 'Setzt Administratorrechte auf die Schutzliste. Installateur- und Endkundenrollen können diese Adapter nicht stoppen, aktivieren oder löschen; Administratoren können sie weiterhin aktualisieren und warten.',
                     hidden: '!data.eosProtectAdapterDeletion',
                     xs: 12,
                     sm: 12,
@@ -277,14 +277,14 @@
                 eosProtectedAdapters: {
                     newLine: true,
                     type: 'table',
-                    label: 'Geschützte Adapter',
+                    label: 'Geschützte Systemadapter',
                     hidden: '!data.eosProtectAdapterDeletion',
                     xs: 12,
                     sm: 12,
                     items: [
                         {
                             type: 'text',
-                            title: 'Adaptername',
+                            title: 'Adapter',
                             attr: 'adapter',
                             width: '30%',
                             filter: false,
@@ -293,7 +293,7 @@
                         },
                         {
                             type: 'text',
-                            title: 'Hinweis',
+                            title: 'Beschreibung',
                             attr: 'note',
                             width: '55%',
                             filter: false,

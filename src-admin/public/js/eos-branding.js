@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v27-logo-nav-assist-polish';
+    window.NEXOWATT_EOS_UI_VERSION = 'v30-nav-assist-security-polish';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -329,21 +329,40 @@
     };
 
     const hideSecuritySettingsForNonAdmin = () => {
-        if (isAdminUser()) return;
+        const securityNeedles = /(nexowatt\s+sicherheit|eos\s+security|eos\s+systemschutz|legacy\s+admin|alter\s+admin|gesch(?:u|ü)tzte\s+(system)?adapter|administratorgruppen|protected\s+adapters|admin\s+groups)/i;
+        const markAdminOnly = el => {
+            if (!el || isAdminUser()) return;
+            el.dataset.eosSecurityAdminOnly = 'true';
+            el.classList.add('eos-security-admin-only-field');
+            el.setAttribute('aria-hidden', 'true');
+        };
+        if (isAdminUser()) {
+            document.querySelectorAll('[data-eos-security-admin-only="true"], .eos-security-admin-only-field').forEach(el => {
+                el.removeAttribute('data-eos-security-admin-only');
+                el.classList.remove('eos-security-admin-only-field');
+                el.removeAttribute('aria-hidden');
+            });
+            return;
+        }
+        Array.from(document.querySelectorAll('[role="tab"], .MuiTab-root, button, [role="button"]')).forEach(tab => {
+            if (!securityNeedles.test(textOfElement(tab))) return;
+            const inDialog = !!tab.closest('.MuiDialog-paper, [role="dialog"]');
+            if (inDialog) markAdminOnly(tab);
+        });
         Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"]')).forEach(dialog => {
             const dialogText = textOfElement(dialog);
-            if (!/(eos security|nexowatt security|legacy admin|alter admin|protected adapters|geschutzte adapter|eos admin groups)/i.test(dialogText)) return;
+            if (!securityNeedles.test(dialogText)) return;
             dialog.classList.add('eos-security-settings-restricted');
-            const needles = /(eos security|nexowatt security|legacy admin|alter admin|protected adapters|geschutzte adapter|eos admin groups|lock legacy admin|hide legacy admin|restrict protected adapter)/i;
-            Array.from(dialog.querySelectorAll('label, legend, h2, h3, h4, .MuiTypography-root, .MuiFormLabel-root')).forEach(label => {
-                if (!needles.test(label.textContent || '')) return;
-                const row = label.closest('.MuiGrid2-root, .MuiGrid-root, .MuiFormControl-root, .MuiBox-root, .MuiPaper-root') || label.parentElement;
-                if (row && row !== dialog) row.classList.add('eos-security-admin-only-field');
+            Array.from(dialog.querySelectorAll('label, legend, h2, h3, h4, .MuiTypography-root, .MuiFormLabel-root, .MuiTab-root, [role="tab"], .MuiGrid-root, .MuiGrid2-root, .MuiFormControl-root')).forEach(el => {
+                if (!securityNeedles.test(textOfElement(el))) return;
+                const row = el.closest('.MuiGrid2-root, .MuiGrid-root, .MuiFormControl-root, .MuiBox-root, .MuiPaper-root, [role="tabpanel"]') || el.parentElement;
+                if (row && row !== dialog) markAdminOnly(row);
+                markAdminOnly(el);
             });
             if (!dialog.querySelector('.eos-security-restricted-note')) {
                 const note = document.createElement('div');
                 note.className = 'eos-security-restricted-note';
-                note.innerHTML = '<strong>EOS Systemschutz aktiv</strong><span>Diese Sicherheitseinstellungen sind nur für Administratoren sichtbar und änderbar.</span>';
+                note.innerHTML = '<strong>EOS Systemschutz</strong><span>Dieser Bereich ist nur für Administratoren sichtbar. Geschützte Adapter und der alte Admin werden zentral durch NexoWatt EOS verwaltet.</span>';
                 const content = dialog.querySelector('.MuiDialogContent-root') || dialog;
                 content.insertBefore(note, content.firstElementChild || null);
             }
@@ -492,16 +511,17 @@
     };
 
     const hideNativeLogoutNav = () => safe(() => {
-        const candidates = Array.from(document.querySelectorAll('.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root, .MuiDrawer-paper [role=\"button\"]'));
+        const candidates = Array.from(document.querySelectorAll('.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root, .MuiDrawer-paper [role="button"], nav a, nav button, nav [role="button"]'));
         candidates.forEach(el => {
-            const text = normalize(el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '');
-            const href = String(el.getAttribute('href') || '');
-            const isLogout = /^(abmelden|logout|ra_logout)$/.test(text) || /(?:^|[/?#])logout(?:[/?#]|$)/i.test(href);
+            const text = normalize(`${el.textContent || ''} ${el.getAttribute?.('aria-label') || ''} ${el.getAttribute?.('title') || ''}`);
+            const href = String(el.getAttribute?.('href') || '');
+            const isLogout = /(?:^|\b)(abmelden|logout|ra_logout)(?:\b|$)/.test(text) || /(?:^|[/?#])logout(?:[/?#]|$)/i.test(href);
             if (!isLogout) return;
-            const item = el.closest('.MuiListItem-root, li') || el.closest('.MuiListItemButton-root, a, button') || el;
-            item.classList.add('eos-hidden-logout');
+            const item = el.closest('.MuiListItem-root, li, .MuiButtonBase-root, .MuiListItemButton-root') || el.closest('a, button, [role="button"]') || el;
+            item.classList.add('eos-hidden-logout', 'eos-native-logout-hidden');
             item.setAttribute('aria-hidden', 'true');
             item.setAttribute('tabindex', '-1');
+            if (item.style) item.style.display = 'none';
         });
     });
 
@@ -806,57 +826,133 @@
         const hasApp = !!document.getElementById('app-paper');
         if (!hasApp || isLoginView()) {
             document.getElementById('eos-assist-root')?.remove();
+            document.querySelectorAll('.eos-assist-launcher,.eos-assist-panel:not(#eos-assist-root .eos-assist-panel)').forEach(el => el.remove());
             return;
         }
+
         let root = document.getElementById('eos-assist-root');
         if (!root) {
             root = document.createElement('section');
             root.id = 'eos-assist-root';
             root.className = 'eos-assist-root';
+            root.innerHTML = `
+                <button class="eos-assist-button" type="button" aria-expanded="false">
+                    <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>Einrichtungshilfe</small>
+                </button>
+                <div class="eos-assist-panel" role="dialog" aria-label="EOS Assist Einrichtungshilfe">
+                    <div class="eos-assist-head">
+                        <span class="eos-assist-logo"><img src="${LOGO}" alt="NexoWatt EOS" /></span>
+                        <div><strong class="eos-assist-title"></strong><span class="eos-assist-text"></span></div>
+                        <button type="button" class="eos-assist-close" aria-label="EOS Assist schließen">×</button>
+                    </div>
+                    <div class="eos-assist-steps"></div>
+                    <div class="eos-assist-actions">
+                        <button type="button" data-question="Wie richte ich dieses Modul ein?">Modul einrichten</button>
+                        <button type="button" data-question="Wie prüfe ich Fehler in den Logs?">Fehler prüfen</button>
+                        <button type="button" data-question="Welche Rechte braucht der Installateur?">Rechte erklären</button>
+                        <button type="button" data-question="Was muss ich vor einem Update beachten?">Update-Check</button>
+                    </div>
+                    <label class="eos-assist-input-label">Was möchtest du einrichten?</label>
+                    <div class="eos-assist-input-row"><input class="eos-assist-input" placeholder="z. B. Wallbox, PV, Modbus, Rechte..." /><button type="button" class="eos-assist-send">Fragen</button></div>
+                    <div class="eos-assist-answer"></div>
+                    <div class="eos-assist-foot">Lokale Bedienhilfe ohne Cloud. Eine echte KI-Anbindung kann später über einen NexoWatt-Dienst ergänzt werden.</div>
+                </div>
+            `;
             document.body.appendChild(root);
         }
+
         const ctx = assistContext();
-        root.classList.toggle('eos-assist-open', !!state.assistOpen);
-        root.innerHTML = `
-            <button class="eos-assist-button" type="button" aria-expanded="${state.assistOpen ? 'true' : 'false'}">
-                <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>Einrichtungshilfe</small>
-            </button>
-            <div class="eos-assist-panel" role="dialog" aria-label="EOS Assist Einrichtungshilfe">
-                <div class="eos-assist-head">
-                    <div><strong>${ctx.title}</strong><span>${ctx.text}</span></div>
-                    <button type="button" class="eos-assist-close" aria-label="EOS Assist schließen">×</button>
-                </div>
-                <div class="eos-assist-steps">${ctx.steps.map(step => `<span>${step}</span>`).join('')}</div>
-                <label class="eos-assist-input-label">Was möchtest du einrichten?</label>
-                <div class="eos-assist-input-row"><input class="eos-assist-input" placeholder="z. B. Wallbox, PV, Modbus, Rechte..." /><button type="button" class="eos-assist-send">Fragen</button></div>
-                <div class="eos-assist-answer">${assistAnswer('')}</div>
-            </div>
-        `;
-        const openButton = root.querySelector('.eos-assist-button');
-        const closeButton = root.querySelector('.eos-assist-close');
+        const button = root.querySelector('.eos-assist-button');
         const input = root.querySelector('.eos-assist-input');
-        const send = root.querySelector('.eos-assist-send');
         const answer = root.querySelector('.eos-assist-answer');
-        openButton?.addEventListener('click', event => {
-            event.preventDefault();
-            state.assistOpen = !state.assistOpen;
-            root.classList.toggle('eos-assist-open', state.assistOpen);
-            openButton.setAttribute('aria-expanded', state.assistOpen ? 'true' : 'false');
-            if (state.assistOpen) setTimeout(() => input?.focus(), 40);
-        });
-        closeButton?.addEventListener('click', event => {
-            event.preventDefault();
-            state.assistOpen = false;
-            root.classList.remove('eos-assist-open');
-            openButton?.setAttribute('aria-expanded', 'false');
-        });
-        const ask = () => {
-            if (answer) answer.textContent = assistAnswer(input?.value || '');
-        };
-        send?.addEventListener('click', ask);
-        input?.addEventListener('keydown', event => {
-            if (event.key === 'Enter') ask();
-        });
+        root.querySelector('.eos-assist-title').textContent = ctx.title;
+        root.querySelector('.eos-assist-text').textContent = ctx.text;
+        root.querySelector('.eos-assist-steps').innerHTML = ctx.steps.map(step => `<span>${step}</span>`).join('');
+        if (answer && !answer.textContent) answer.textContent = assistAnswer('');
+        root.classList.toggle('eos-assist-open', !!state.assistOpen);
+        button?.setAttribute('aria-expanded', state.assistOpen ? 'true' : 'false');
+
+        if (!root.dataset.eosAssistBound) {
+            root.dataset.eosAssistBound = 'true';
+            root.addEventListener('click', event => {
+                const target = event.target?.closest?.('button');
+                if (!target || !root.contains(target)) return;
+                if (target.classList.contains('eos-assist-button')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    state.assistOpen = !state.assistOpen;
+                    root.classList.toggle('eos-assist-open', state.assistOpen);
+                    target.setAttribute('aria-expanded', state.assistOpen ? 'true' : 'false');
+                    if (state.assistOpen) setTimeout(() => root.querySelector('.eos-assist-input')?.focus(), 50);
+                    return;
+                }
+                if (target.classList.contains('eos-assist-close')) {
+                    event.preventDefault();
+                    state.assistOpen = false;
+                    root.classList.remove('eos-assist-open');
+                    root.querySelector('.eos-assist-button')?.setAttribute('aria-expanded', 'false');
+                    return;
+                }
+                if (target.classList.contains('eos-assist-send')) {
+                    event.preventDefault();
+                    const value = root.querySelector('.eos-assist-input')?.value || '';
+                    const out = root.querySelector('.eos-assist-answer');
+                    if (out) out.textContent = assistAnswer(value);
+                    return;
+                }
+                if (target.hasAttribute('data-question')) {
+                    event.preventDefault();
+                    const question = target.getAttribute('data-question') || '';
+                    const field = root.querySelector('.eos-assist-input');
+                    if (field) field.value = question;
+                    const out = root.querySelector('.eos-assist-answer');
+                    if (out) out.textContent = assistAnswer(question);
+                }
+            }, true);
+            root.addEventListener('keydown', event => {
+                if (event.key !== 'Enter' || !event.target?.classList?.contains('eos-assist-input')) return;
+                const out = root.querySelector('.eos-assist-answer');
+                if (out) out.textContent = assistAnswer(event.target.value || '');
+            }, true);
+        }
+    });
+
+
+
+    const installAssistDelegatedClick = () => safe(() => {
+        if (window.__NEXOWATT_EOS_ASSIST_BRANDING_CLICK__) return;
+        window.__NEXOWATT_EOS_ASSIST_BRANDING_CLICK__ = true;
+        document.addEventListener('click', event => {
+            const target = event.target?.closest?.('.eos-assist-button,.eos-assist-close,.eos-assist-send');
+            if (!target) return;
+            const root = document.getElementById('eos-assist-root') || target.closest('.eos-assist-root');
+            if (!root) return;
+            const input = root.querySelector('.eos-assist-input');
+            const answer = root.querySelector('.eos-assist-answer');
+            if (target.matches('.eos-assist-button')) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation?.();
+                state.assistOpen = !root.classList.contains('eos-assist-open');
+                root.classList.toggle('eos-assist-open', state.assistOpen);
+                target.setAttribute('aria-expanded', state.assistOpen ? 'true' : 'false');
+                if (state.assistOpen) setTimeout(() => input?.focus(), 40);
+            } else if (target.matches('.eos-assist-close')) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation?.();
+                state.assistOpen = false;
+                root.classList.remove('eos-assist-open');
+                root.querySelector('.eos-assist-button')?.setAttribute('aria-expanded', 'false');
+            } else if (target.matches('.eos-assist-send')) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation?.();
+                if (answer) answer.textContent = assistAnswer(input?.value || '');
+                state.assistOpen = true;
+                root.classList.add('eos-assist-open');
+            }
+        }, true);
     });
 
     const patchDocumentMeta = () => safe(() => {
@@ -877,6 +973,7 @@
         patchLogin();
         patchShell();
         applyNavCompactPreference();
+        installAssistDelegatedClick();
         ensureEosAssist();
         ensureRightsHelper();
         ensurePermissionPresets();
@@ -896,6 +993,7 @@
         patchLogin();
         patchShell();
         applyNavCompactPreference();
+        installAssistDelegatedClick();
         ensureEosAssist();
         ensureRightsHelper();
         ensurePermissionPresets();

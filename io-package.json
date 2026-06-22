@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "eos-admin",
-        "version": "7.9.29",
+        "version": "7.9.30",
         "titleLang": {
             "en": "NexoWatt EOS Admin",
             "de": "NexoWatt EOS Admin",
@@ -18,9 +18,9 @@
         "connectionType": "local",
         "dataSource": "push",
         "news": {
-            "7.9.29": {
-                "en": "Hotfix: restores the missing iobroker.mcp runtime dependency and prevents EOS Admin from crashing when MCP is unavailable.",
-                "de": "Hotfix: stellt die fehlende iobroker.mcp-Laufzeitabhängigkeit wieder her und verhindert, dass EOS Admin abstürzt, wenn MCP nicht verfügbar ist."
+            "7.9.30": {
+                "en": "UI polish: moves the compact navigation button further left, improves the black NexoWatt logo badge, fixes EOS Assist opening and hides EOS Security from non-admin users.",
+                "de": "UI-Feinschliff: Kompakt-Navigationspfeil weiter nach links gesetzt, schwarzes NexoWatt-Logo verbessert, EOS Assist Öffnen repariert und EOS Security für Nicht-Administratoren ausgeblendet."
             },
             "7.9.29": {
                 "en": "Self-update hardening: EOS Admin now uses its own webserver upgrade path, update-all skips the running EOS shell, and object-level delete locks are cleared so updates stay possible.",
@@ -194,7 +194,7 @@
         "icon": "admin.svg",
         "messagebox": true,
         "enabled": true,
-        "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.29/admin/admin.png",
+        "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.30/admin/admin.png",
         "keywords": [
             "NexoWatt",
             "EOS",
@@ -205,7 +205,7 @@
             "licensed"
         ],
         "compact": true,
-        "readme": "https://unpkg.com/iobroker.eos-admin@7.9.29/README.md",
+        "readme": "https://unpkg.com/iobroker.eos-admin@7.9.30/README.md",
         "authors": [
             "bluefox <bluefox@ccu.io>",
             "hobbyquaker <hq@ccu.io>"
@@ -274,7 +274,7 @@
         "nondeletable": false,
         "allowAdapterUpdate": true,
         "allowAdapterDelete": false,
-        "meta": "https://unpkg.com/iobroker.eos-admin@7.9.29/io-package.json",
+        "meta": "https://unpkg.com/iobroker.eos-admin@7.9.30/io-package.json",
         "npmPackage": "iobroker.eos-admin"
     },
     "native": {
@@ -337,7 +337,9 @@
             }
         ],
         "eosAdminOnlyGroup": "system.group.administrator",
-        "eosApplyAdminOnlyAclToProtectedAdapters": true
+        "eosApplyAdminOnlyAclToProtectedAdapters": true,
+        "eosAssistantEnabled": true,
+        "eosAssistantAdminOnly": false
     },
     "notifications": [
         {

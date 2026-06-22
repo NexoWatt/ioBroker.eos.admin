@@ -1,10 +1,18 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v27-security-visibility-guard';
+    const VERSION = 'v30-security-admin-only-polish';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
-    const SECURITY_URL = '/nexowatt/security/session';
+    const ASSET_BASE = (() => {
+        const script = document.currentScript?.src || document.querySelector('script[src*="eos-security-ui.js"]')?.src || window.location.href;
+        return new URL('../', script).href;
+    })();
+    const SECURITY_URLS = [
+        new URL('nexowatt/security/session', ASSET_BASE).href,
+        new URL('eos/security/status', ASSET_BASE).href,
+        '/nexowatt/security/session',
+    ];
 
     const state = {
         loaded: false,
@@ -21,6 +29,7 @@
     };
 
     const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+    const normalizeFlat = value => normalize(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const normalizeAdapter = value => {
         let adapter = String(value || '').trim().toLowerCase();
         adapter = adapter.replace(/^system\.adapter\./, '').replace(/^iobroker\./, '').replace(/^@nexowatt\/iobroker\./, '').replace(/^@nexowatt\//, '');
@@ -30,11 +39,6 @@
 
     const isAdminUser = () => !!(state.policy?.isAdmin || state.policy?.isEosAdminGroup || state.policy?.isAdministrator);
     const protectedAdapters = () => new Set((state.policy?.protectedAdapters || []).map(normalizeAdapter).filter(Boolean));
-
-    const isLegacyAdminId = value => {
-        const text = String(value || '').toLowerCase();
-        return text === LEGACY_ADMIN || text === LEGACY_ADMIN_INSTANCE || text === 'system.adapter.admin' || text === 'system.adapter.admin.0';
-    };
 
     const isProtectedAdapter = value => {
         const adapter = normalizeAdapter(value);
@@ -59,11 +63,7 @@
         },
     };
 
-    const closestPanel = el => {
-        if (!el || !el.closest) return null;
-        return el.closest('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root, .MuiBox-root');
-    };
-
+    const closestPanel = el => el?.closest?.('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root, .MuiBox-root') || null;
     const markHidden = el => {
         if (!el || el.classList?.contains('eos-security-keep-visible')) return;
         el.classList.add('eos-security-hidden');
@@ -80,7 +80,7 @@
     };
 
     const elementTextMatchesLegacyAdmin = el => {
-        const text = normalize(el?.textContent || '').toLowerCase();
+        const text = normalizeFlat(el?.textContent || '');
         if (!text) return false;
         if (text.includes('eos-admin') || text.includes('eos admin')) return false;
         return /\badmin\.0\b/.test(text) || /system\.adapter\.admin(?:\.0)?\b/.test(text) || /\biobroker\.admin\b/.test(text);
@@ -96,7 +96,7 @@
             if (elementHasLegacyAdminIcon(el) || elementTextMatchesLegacyAdmin(el)) candidates.add(el);
         });
         candidates.forEach(el => {
-            const text = normalize(el.textContent || '').toLowerCase();
+            const text = normalizeFlat(el.textContent || '');
             if (text.includes('eos-admin') || text.includes('eos admin')) return;
             markHidden(el);
         });
@@ -106,14 +106,13 @@
         if (!state.policy?.restrictProtectedAdapterControls || isAdminUser()) return;
         const protectedSet = protectedAdapters();
         if (!protectedSet.size) return;
-
         document.querySelectorAll('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root').forEach(panel => {
             let adapter = '';
             const icon = panel.querySelector('img[src*="/adapter/"], img[src*="adapter/"]');
             const src = icon ? String(icon.getAttribute('src') || '') : '';
             const match = src.match(/adapter\/([^\/]+)\//i);
             if (match) adapter = normalizeAdapter(match[1]);
-            const text = normalize(panel.textContent || '').toLowerCase();
+            const text = normalizeFlat(panel.textContent || '');
             if (!adapter) {
                 for (const protectedName of protectedSet) {
                     if (new RegExp(`\\b${protectedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\.\\d+)?\\b`, 'i').test(text)) {
@@ -125,8 +124,8 @@
             if (!adapter || !protectedSet.has(adapter)) return;
             panel.classList.add('eos-security-protected-adapter');
             panel.querySelectorAll('button,[role="button"],a').forEach(button => {
-                const label = normalize(`${button.textContent || ''} ${button.getAttribute('title') || ''} ${button.getAttribute('aria-label') || ''}`).toLowerCase();
-                if (/löschen|delete|remove|deinstall|uninstall/.test(label)) {
+                const label = normalizeFlat(`${button.textContent || ''} ${button.getAttribute('title') || ''} ${button.getAttribute('aria-label') || ''}`);
+                if (/loschen|delete|remove|deinstall|uninstall/.test(label)) {
                     button.classList.add('eos-security-hidden-delete');
                     button.setAttribute('disabled', 'disabled');
                     button.setAttribute('aria-disabled', 'true');
@@ -134,23 +133,84 @@
                 }
             });
         });
-
         document.querySelectorAll('[role="menuitem"], .MuiMenuItem-root').forEach(item => {
-            const text = normalize(item.textContent || '').toLowerCase();
-            if (/löschen|delete|remove|deinstall|uninstall/.test(text)) {
-                // Context menus cannot always be mapped back to the originating card. For protected NexoWatt systems,
-                // deletion through pop-up menus is blocked by the command guard and visually hidden for non-admin users.
+            const text = normalizeFlat(item.textContent || '');
+            if (/loschen|delete|remove|deinstall|uninstall/.test(text)) {
                 item.classList.add('eos-security-hidden-delete');
                 item.style.display = 'none';
             }
         });
     };
 
+    const replaceTextNodes = () => {
+        const map = new Map([
+            ['EOS security', 'EOS Sicherheit'],
+            ['EOS Security', 'EOS Sicherheit'],
+            ['Disable Assistent', 'EOS Assist deaktivieren'],
+            ['Disable Assistant', 'EOS Assist deaktivieren'],
+            ['NexoWatt security', 'NexoWatt Sicherheit'],
+            ['Protected adapters', 'Geschützte Systemadapter'],
+            ['Legacy admin', 'Alter Admin-Zugang'],
+        ]);
+        const walker = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+            let value = node.nodeValue || '';
+            let changed = false;
+            for (const [from, to] of map) {
+                if (value.includes(from)) {
+                    value = value.split(from).join(to);
+                    changed = true;
+                }
+            }
+            if (changed) node.nodeValue = value;
+        }
+    };
+
+    const securityTextPattern = /(eos\s*(security|sicherheit)|nexowatt\s*sicherheit|alter admin-zugang|alten admin|admin\.0 sperren|geschuetzte systemadapter|geschützte systemadapter|eos administratorgruppen|administratorgruppen)/i;
+
+    const hideEosSecuritySettingsForNonAdmins = () => {
+        if (isAdminUser()) return;
+        const dialogs = Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"], form'));
+        dialogs.forEach(dialog => {
+            // Hide the EOS Security tab itself.
+            const tabs = Array.from(dialog.querySelectorAll('[role="tab"], .MuiTab-root, button, .MuiButtonBase-root'));
+            let activeSecurityTab = false;
+            tabs.forEach(tab => {
+                const txt = normalize(tab.textContent || tab.getAttribute('aria-label') || tab.getAttribute('title') || '');
+                if (/^\s*EOS\s*(Security|Sicherheit)\s*$/i.test(txt)) {
+                    if (tab.getAttribute('aria-selected') === 'true' || tab.classList.contains('Mui-selected')) activeSecurityTab = true;
+                    tab.classList.add('eos-security-admin-only-field');
+                    tab.setAttribute('aria-hidden', 'true');
+                    tab.style.display = 'none';
+                }
+            });
+            if (activeSecurityTab) {
+                const nextTab = tabs.find(tab => tab.style.display !== 'none' && !tab.classList.contains('eos-security-admin-only-field'));
+                if (nextTab) setTimeout(() => nextTab.click(), 0);
+            }
+            // Hide all field groups belonging to the EOS Security panel if the panel is still rendered.
+            Array.from(dialog.querySelectorAll('.MuiFormControl-root, .MuiGrid-root, .MuiTableContainer-root, .MuiTable-root, [role="tabpanel"], fieldset, section, .MuiBox-root')).forEach(el => {
+                const txt = normalize(el.textContent || '');
+                if (!txt || txt.length > 2200) return;
+                if (securityTextPattern.test(txt)) {
+                    el.classList.add('eos-security-admin-only-field');
+                    el.setAttribute('aria-hidden', 'true');
+                    el.style.display = 'none';
+                }
+            });
+        });
+    };
+
     const applyPolicyToDom = () => {
-        document.documentElement.classList.toggle('eos-security-admin-user', isAdminUser());
-        document.documentElement.classList.toggle('eos-security-non-admin-user', !isAdminUser());
+        const admin = isAdminUser();
+        document.documentElement.classList.toggle('eos-security-admin-user', admin);
+        document.documentElement.classList.toggle('eos-security-non-admin-user', !admin);
+        document.documentElement.classList.toggle('eos-security-nonadmin', !admin);
+        replaceTextNodes();
         hideLegacyAdminPanels();
         hideProtectedDeleteControls();
+        hideEosSecuritySettingsForNonAdmins();
     };
 
     const scheduleApply = () => {
@@ -165,16 +225,20 @@
     };
 
     const loadPolicy = async () => {
-        try {
-            const response = await fetch(SECURITY_URL, { credentials: 'same-origin', cache: 'no-store' });
-            const policy = await response.json();
-            state.policy = { ...state.policy, ...policy };
-            state.loaded = true;
-        } catch (e) {
-            state.loaded = false;
-            state.policy = { ...state.policy, isAdmin: false, isEosAdminGroup: false, isAdministrator: false };
-            console.warn('[NexoWatt EOS] Cannot read security policy, using safe non-admin UI mode:', e);
+        for (const url of SECURITY_URLS) {
+            try {
+                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+                if (!response.ok) continue;
+                const policy = await response.json();
+                state.policy = { ...state.policy, ...policy };
+                state.loaded = true;
+                scheduleApply();
+                return;
+            } catch { /* try next */ }
         }
+        state.loaded = false;
+        state.policy = { ...state.policy, isAdmin: false, isEosAdminGroup: false, isAdministrator: false };
+        console.warn('[NexoWatt EOS] Cannot read security policy, using safe non-admin UI mode');
         scheduleApply();
     };
 
@@ -187,26 +251,19 @@
     document.addEventListener('click', event => {
         const target = event.target?.closest?.('button,[role="button"],a,[role="menuitem"],.MuiMenuItem-root');
         if (!target || isAdminUser()) return;
-        const label = normalize(`${target.textContent || ''} ${target.getAttribute?.('title') || ''} ${target.getAttribute?.('aria-label') || ''}`).toLowerCase();
-        if (/löschen|delete|remove|deinstall|uninstall/.test(label)) {
+        const label = normalizeFlat(`${target.textContent || ''} ${target.getAttribute?.('title') || ''} ${target.getAttribute?.('aria-label') || ''}`);
+        if (/loschen|delete|remove|deinstall|uninstall/.test(label)) {
             target.classList.add('eos-security-hidden-delete');
             target.style.display = 'none';
         }
     }, true);
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            loadPolicy();
-            installObserver();
-            [300, 1000, 2500, 5000].forEach(ms => window.setTimeout(scheduleApply, ms));
-        }, { once: true });
-    } else {
+    const start = () => {
         loadPolicy();
         installObserver();
         [300, 1000, 2500, 5000].forEach(ms => window.setTimeout(scheduleApply, ms));
-    }
-    window.addEventListener('hashchange', () => {
-        loadPolicy();
-        scheduleApply();
-    });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else start();
+    window.addEventListener('hashchange', () => { loadPolicy(); scheduleApply(); });
 })();
