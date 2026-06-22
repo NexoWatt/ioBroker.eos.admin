@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v30-security-admin-only-polish';
+    const VERSION = 'v31-security-text-polish';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const ASSET_BASE = (() => {
@@ -29,6 +29,21 @@
     };
 
     const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+
+    const fixMojibake = value => {
+        let text = String(value || '');
+        const map = new Map(Object.entries({
+            'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen', 'fÃ¼r': 'für', 'FÃ¼r': 'Für',
+            'kÃ¶nnen': 'können', 'KÃ¶nnen': 'Können', 'mÃ¶glich': 'möglich', 'MÃ¶glich': 'Möglich',
+            'LÃ¶schen': 'Löschen', 'lÃ¶schen': 'löschen', 'schÃ¼tzen': 'schützen', 'SchÃ¼tzen': 'Schützen',
+            'SchÃ¼tzt': 'Schützt', 'schÃ¼tzt': 'schützt', 'GeschÃ¼tzte': 'Geschützte', 'geschÃ¼tzte': 'geschützte',
+            'ausgewÃ¤hlte': 'ausgewählte', 'AusgewÃ¤hlte': 'Ausgewählte', 'Ã¤ndern': 'ändern', 'Ã„ndern': 'Ändern',
+            'Ã¼ber': 'über', 'Ãœber': 'Über', 'WÃ¤hle': 'Wähle', 'wÃ¤hle': 'wähle',
+            'ÃŸ': 'ß', 'Ã„': 'Ä', 'Ã–': 'Ö', 'Ãœ': 'Ü', 'Ã¤': 'ä', 'Ã¶': 'ö', 'Ã¼': 'ü'
+        }));
+        for (const [from, to] of map) if (text.includes(from)) text = text.split(from).join(to);
+        return text;
+    };
     const normalizeFlat = value => normalize(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const normalizeAdapter = value => {
         let adapter = String(value || '').trim().toLowerCase();
@@ -163,6 +178,8 @@
                     changed = true;
                 }
             }
+            const fixed = fixMojibake(value);
+            if (fixed !== value) { value = fixed; changed = true; }
             if (changed) node.nodeValue = value;
         }
     };

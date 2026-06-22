@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v30-nav-assist-security-polish';
+    window.NEXOWATT_EOS_UI_VERSION = 'v31-ui-cleanup-ai-ready';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -24,6 +24,29 @@
         [/ioBroker\s+admin/gi, BRAND],
         [/\bioBroker\b/gi, BRAND],
     ];
+
+
+    const MOJIBAKE_REPLACEMENTS = new Map(Object.entries({
+        'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen',
+        'fÃ¼r': 'für', 'FÃ¼r': 'Für',
+        'mÃ¼ssen': 'müssen', 'MÃ¼ssen': 'Müssen',
+        'kÃ¶nnen': 'können', 'KÃ¶nnen': 'Können',
+        'mÃ¶glich': 'möglich', 'MÃ¶glich': 'Möglich',
+        'LÃ¶schen': 'Löschen', 'lÃ¶schen': 'löschen',
+        'schÃ¼tzen': 'schützen', 'SchÃ¼tzen': 'Schützen',
+        'SchÃ¼tzt': 'Schützt', 'schÃ¼tzt': 'schützt',
+        'GeschÃ¼tzte': 'Geschützte', 'geschÃ¼tzte': 'geschützte',
+        'ausgewÃ¤hlte': 'ausgewählte', 'AusgewÃ¤hlte': 'Ausgewählte',
+        'Ã¤ndern': 'ändern', 'Ã„ndern': 'Ändern',
+        'Ã¼ber': 'über', 'Ãœber': 'Über',
+        'WÃ¤hle': 'Wähle', 'wÃ¤hle': 'wähle',
+        'Ã¶ffnen': 'öffnen', 'Ã–ffnen': 'Öffnen',
+        'schlieÃŸen': 'schließen', 'SchlieÃŸen': 'Schließen',
+        'GerÃ¤t': 'Gerät', 'gerÃ¤t': 'gerät',
+        'GerÃ¤te': 'Geräte', 'gerÃ¤te': 'geräte',
+        'ZugÃ¤nge': 'Zugänge', 'zugÃ¤nge': 'zugänge',
+        'ÃŸ': 'ß', 'Ã„': 'Ä', 'Ã–': 'Ö', 'Ãœ': 'Ü', 'Ã¤': 'ä', 'Ã¶': 'ö', 'Ã¼': 'ü'
+    }));
 
     const EXACT_LABELS = new Map(Object.entries({
         'Admin': BRAND,
@@ -82,6 +105,9 @@
     const replaceBrand = value => {
         if (!value || typeof value !== 'string') return value;
         let next = value;
+        for (const [from, to] of MOJIBAKE_REPLACEMENTS) {
+            if (next.includes(from)) next = next.split(from).join(to);
+        }
         for (const [pattern, replacement] of TEXT_REPLACEMENTS) next = next.replace(pattern, replacement);
         const compact = next.trim();
         if (EXACT_LABELS.has(compact)) next = next.replace(compact, EXACT_LABELS.get(compact));
@@ -511,17 +537,30 @@
     };
 
     const hideNativeLogoutNav = () => safe(() => {
-        const candidates = Array.from(document.querySelectorAll('.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root, .MuiDrawer-paper [role="button"], nav a, nav button, nav [role="button"]'));
+        const candidates = Array.from(document.querySelectorAll('.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper li, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root, .MuiDrawer-paper [role="button"], nav a, nav button, nav li, nav [role="button"]'));
         candidates.forEach(el => {
             const text = normalize(`${el.textContent || ''} ${el.getAttribute?.('aria-label') || ''} ${el.getAttribute?.('title') || ''}`);
             const href = String(el.getAttribute?.('href') || '');
             const isLogout = /(?:^|\b)(abmelden|logout|ra_logout)(?:\b|$)/.test(text) || /(?:^|[/?#])logout(?:[/?#]|$)/i.test(href);
             if (!isLogout) return;
-            const item = el.closest('.MuiListItem-root, li, .MuiButtonBase-root, .MuiListItemButton-root') || el.closest('a, button, [role="button"]') || el;
-            item.classList.add('eos-hidden-logout', 'eos-native-logout-hidden');
-            item.setAttribute('aria-hidden', 'true');
-            item.setAttribute('tabindex', '-1');
-            if (item.style) item.style.display = 'none';
+            const targets = new Set([
+                el,
+                el.closest('.MuiListItem-root'),
+                el.closest('li'),
+                el.closest('.MuiListItemButton-root'),
+                el.closest('.MuiButtonBase-root'),
+                el.closest('a, button, [role="button"]'),
+            ].filter(Boolean));
+            targets.forEach(item => {
+                item.classList.add('eos-hidden-logout', 'eos-native-logout-hidden');
+                item.setAttribute('aria-hidden', 'true');
+                item.setAttribute('tabindex', '-1');
+                if (item.style) {
+                    item.style.display = 'none';
+                    item.style.visibility = 'hidden';
+                    item.style.pointerEvents = 'none';
+                }
+            });
         });
     });
 
@@ -538,7 +577,7 @@
                 || directChildren.find(el => !isListLike(el) && el.querySelector && (el.querySelector('button') || el.querySelector('img') || el.querySelector('.MuiAvatar-root')));
         }
         if (header) {
-            header.classList.add('eos-native-drawer-header');
+            header.classList.add('eos-native-drawer-header', 'eos-nav-toggle-shell');
             const toggleButton = header.querySelector('button, .MuiIconButton-root, [role="button"]');
             if (toggleButton && !toggleButton.dataset.eosNavCompactToggle) {
                 toggleButton.dataset.eosNavCompactToggle = 'true';
@@ -559,6 +598,9 @@
                     if (event.key === 'Enter' || event.key === ' ') toggleCompact(event);
                 }, true);
             }
+            header.querySelectorAll('a,img,.MuiAvatar-root,.MuiAvatar-img,.eos-native-title').forEach(el => {
+                if (!el.closest?.('button')) el.classList.add('eos-nav-toggle-decor-hidden');
+            });
             const img = header.querySelector('img');
             if (img) patchImage(img);
             const avatarImg = header.querySelector('.MuiAvatar-img');
@@ -808,18 +850,65 @@
         };
     };
 
-    const assistAnswer = query => {
+    const configuredAssistEndpoint = () => safe(() => {
+        const globalEndpoint = typeof window.NEXOWATT_EOS_ASSIST_ENDPOINT === 'string' ? window.NEXOWATT_EOS_ASSIST_ENDPOINT.trim() : '';
+        const storedEndpoint = localStorage.getItem('nexowatt:eosAssistEndpoint') || '';
+        return globalEndpoint || storedEndpoint.trim();
+    }) || '';
+
+    const localAssistAnswer = query => {
         const q = normalize(query);
-        if (!q) return 'Beschreibe kurz, was eingerichtet werden soll, zum Beispiel: PV, Speicher, Wallbox, Modbus, Backup oder Benutzerrechte.';
-        if (/wallbox|evcs|lade|auto|ocpp/.test(q)) return 'Für Ladepunkte: zuerst OCPP/EVCS-Modul installieren, Verbindung zur Wallbox prüfen, Ladepunkt-ID setzen, danach Datenpunkte für Status, Leistung und Freigabe testen.';
-        if (/pv|solar|wechselrichter|sun2000|fronius|kostal|sma/.test(q)) return 'Für PV/Wechselrichter: IP-Adresse, Modbus/TCP oder Hersteller-API aktivieren, Abfrageintervall moderat setzen und danach Erzeugung, Bezug und Einspeisung in den Datenpunkten prüfen.';
-        if (/speicher|batterie|akku/.test(q)) return 'Für Speicher: Kommunikationsweg prüfen, Lade-/Entladeleistung und SoC-Datenpunkte kontrollieren und Grenzwerte erst setzen, wenn Livewerte plausibel sind.';
-        if (/modbus/.test(q)) return 'Für Modbus: Host/IP, Port 502, Unit-ID und Registertabelle prüfen. Danach erst lesen testen, dann Schreibrechte gezielt freischalten.';
-        if (/mqtt/.test(q)) return 'Für MQTT: Broker-Adresse, Zugangsdaten, Topic-Struktur und TLS prüfen. Danach mit einem Test-Topic starten und erst dann produktive Topics freigeben.';
-        if (/backup|sicherung|restore/.test(q)) return 'Für Sicherung: BackItUp aktiv halten, Zielpfad oder Cloud-Ziel prüfen, Test-Backup starten und Restore-Hinweise dokumentieren.';
-        if (/rechte|benutzer|installateur|kunde|admin/.test(q)) return 'Für Rechte: Benutzer in Rollen trennen. Installateure dürfen konfigurieren, aber geschützte EOS-Systemmodule nicht löschen. Endkunden bekommen nur Bedien- und Leserechte.';
-        if (/fehler|log|offline|404|timeout/.test(q)) return 'Bei Fehlern: zuerst Systemlogs öffnen, betroffene Instanz filtern, letzte Änderung prüfen, Dienst neu starten und danach Port/WebSocket/Repository prüfen.';
-        return 'Vorschlag: Starte mit dem passenden Modul, prüfe die Verbindung, kontrolliere die erzeugten Datenpunkte und sichere danach die Rechte. Für konkrete Hilfe nenne bitte Modulname und Zielgerät.';
+        if (!q) return 'Beschreibe kurz, was eingerichtet werden soll, zum Beispiel: Wallbox, PV, Speicher, Modbus, MQTT, Sicherung oder Benutzerrechte. EOS Assist zeigt mehrere Integrationswege und nicht nur einen einzelnen Adapter.';
+        if (/wallbox|evcs|lade|auto|ocpp|ladestation|charge/.test(q)) return [
+            'Wallbox / Ladepunkt: Es gibt mehrere mögliche Integrationswege. Empfehlung nach Priorität prüfen:',
+            '1. Herstelleradapter: nutzen, wenn ein stabiler Adapter für Hersteller/Modell vorhanden ist.',
+            '2. Modbus TCP/RTU: bevorzugt für lokale EMS-Werte wie Leistung, Strom, Freigabe, Zählerstand und Phasen.',
+            '3. OCPP: passend, wenn die Wallbox als Ladepunkt-Backend angebunden werden soll oder mehrere Ladepunkte zentral verwaltet werden.',
+            '4. HTTP/REST oder MQTT: sinnvoll bei offenen APIs, eigener Firmware oder Gateway-Lösungen.',
+            '5. Datenpunkt-Mapping: Fallback, wenn Werte bereits aus einem anderen System kommen.',
+            'Nächster Schritt: Hersteller, Modell, IP-Adresse und verfügbare Schnittstellen nennen. Dann kann EOS Assist den besten Weg vorschlagen.'
+        ].join('\n');
+        if (/keba|kecontact|mennekes|abl|alfen|easee|heidelberg|go-?e|openwb|zaptec|wallbe|duosida/.test(q)) return [
+            'Wallbox-Hersteller erkannt. Bitte nicht automatisch nur OCPP verwenden.',
+            'Prüfe zuerst: gibt es einen nativen Adapter oder eine lokale Modbus-/HTTP-Schnittstelle?',
+            'OCPP ist gut für Backend-/Ladepunktverwaltung; Modbus/HTTP ist oft besser für lokale EMS-Regelung und schnelle Leistungswerte.',
+            'Für EOS empfehle ich: lokale Schnittstelle für Regelung + OCPP nur, wenn Backend-Funktionen gebraucht werden.'
+        ].join('\n');
+        if (/pv|solar|wechselrichter|sun2000|fronius|kostal|sma|huawei|growatt|sungrow/.test(q)) return 'PV/Wechselrichter: Herstelleradapter oder Modbus TCP prüfen. Für EOS sind Erzeugung, Bezug, Einspeisung, Batterieladeleistung und Statusdaten wichtig. Erst Livewerte validieren, dann Optimierung aktivieren.';
+        if (/speicher|batterie|akku|soc/.test(q)) return 'Speicher: SoC, Lade-/Entladeleistung, Betriebsmodus und Grenzwerte prüfen. Schreibbefehle erst freigeben, wenn Lese-Datenpunkte stabil und plausibel sind.';
+        if (/modbus/.test(q)) return 'Modbus: IP/Port 502, Unit-ID, Registerliste, Datentyp und Byte-Reihenfolge prüfen. Erst nur lesen testen, danach Schreibrechte gezielt und mit Schutzliste freischalten.';
+        if (/mqtt/.test(q)) return 'MQTT: Broker, Authentifizierung, Topic-Struktur und TLS prüfen. Mit Test-Topic starten, dann produktive Topics in EOS-Datenpunkte mappen.';
+        if (/backup|sicherung|restore|backitup/.test(q)) return 'Sicherung: BackItUp aktiv halten, Zielpfad/Cloud-Ziel testen, Test-Backup erstellen und Restore-Ablauf dokumentieren. BackItUp bleibt Systemadapter und sollte geschützt sein.';
+        if (/rechte|benutzer|installateur|kunde|admin|sicherheit|security/.test(q)) return 'Rechte: Administratoren verwalten Systemschutz. Installateure dürfen konfigurieren, aber geschützte Systemadapter nicht löschen, stoppen oder kritisch ändern. Endkunden bekommen Bedien- und Leserechte.';
+        if (/fehler|log|offline|404|timeout|startet nicht|server/.test(q)) return 'Fehlersuche: Systemlogs filtern, betroffene Instanz prüfen, letzte Änderung identifizieren, Dienst neu starten und danach Port, WebSocket, Repository und Paketversion kontrollieren.';
+        return 'EOS Assist Empfehlung: Gerätetyp, Hersteller/Modell und verfügbare Schnittstellen nennen. Danach wird der beste Integrationsweg gewählt: nativer Adapter, Modbus, OCPP, HTTP/REST, MQTT oder Datenpunkt-Mapping.';
+    };
+
+    const requestRemoteAssist = async query => {
+        const endpoint = configuredAssistEndpoint();
+        if (!endpoint) return '';
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ query, route: window.location.hash || '', ui: 'nexowatt-eos-admin' }),
+            });
+            if (!response.ok) return '';
+            const data = await response.json().catch(() => ({}));
+            return String(data.answer || data.text || data.message || '').trim();
+        } catch { return ''; }
+    };
+
+    const assistAnswer = query => localAssistAnswer(query);
+
+    const sendAssistQuestion = async (root, query) => {
+        const out = root?.querySelector?.('.eos-assist-answer');
+        if (!out) return;
+        const endpoint = configuredAssistEndpoint();
+        if (endpoint) out.textContent = 'EOS Assist fragt die KI an ...';
+        const remote = endpoint ? await requestRemoteAssist(query) : '';
+        out.textContent = remote || localAssistAnswer(query);
     };
 
     const ensureEosAssist = () => safe(() => {
@@ -837,7 +926,7 @@
             root.className = 'eos-assist-root';
             root.innerHTML = `
                 <button class="eos-assist-button" type="button" aria-expanded="false">
-                    <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>Einrichtungshilfe</small>
+                    <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>KI-Hilfe</small>
                 </button>
                 <div class="eos-assist-panel" role="dialog" aria-label="EOS Assist Einrichtungshilfe">
                     <div class="eos-assist-head">
@@ -847,15 +936,16 @@
                     </div>
                     <div class="eos-assist-steps"></div>
                     <div class="eos-assist-actions">
+                        <button type="button" data-question="Wallbox einrichten: Welche Wege gibt es?">Wallbox</button>
                         <button type="button" data-question="Wie richte ich dieses Modul ein?">Modul einrichten</button>
                         <button type="button" data-question="Wie prüfe ich Fehler in den Logs?">Fehler prüfen</button>
                         <button type="button" data-question="Welche Rechte braucht der Installateur?">Rechte erklären</button>
                         <button type="button" data-question="Was muss ich vor einem Update beachten?">Update-Check</button>
                     </div>
                     <label class="eos-assist-input-label">Was möchtest du einrichten?</label>
-                    <div class="eos-assist-input-row"><input class="eos-assist-input" placeholder="z. B. Wallbox, PV, Modbus, Rechte..." /><button type="button" class="eos-assist-send">Fragen</button></div>
+                    <div class="eos-assist-input-row"><input class="eos-assist-input" placeholder="z. B. Wallbox Keba Modbus, OCPP, PV, Rechte..." /><button type="button" class="eos-assist-send">Fragen</button></div>
                     <div class="eos-assist-answer"></div>
-                    <div class="eos-assist-foot">Lokale Bedienhilfe ohne Cloud. Eine echte KI-Anbindung kann später über einen NexoWatt-Dienst ergänzt werden.</div>
+                    <div class="eos-assist-foot">EOS Assist nutzt eine lokale Entscheidungslogik und ist für eine echte NexoWatt-KI-Anbindung vorbereitet.</div>
                 </div>
             `;
             document.body.appendChild(root);
@@ -897,7 +987,7 @@
                     event.preventDefault();
                     const value = root.querySelector('.eos-assist-input')?.value || '';
                     const out = root.querySelector('.eos-assist-answer');
-                    if (out) out.textContent = assistAnswer(value);
+                    sendAssistQuestion(root, value);
                     return;
                 }
                 if (target.hasAttribute('data-question')) {
@@ -906,13 +996,13 @@
                     const field = root.querySelector('.eos-assist-input');
                     if (field) field.value = question;
                     const out = root.querySelector('.eos-assist-answer');
-                    if (out) out.textContent = assistAnswer(question);
+                    sendAssistQuestion(root, question);
                 }
             }, true);
             root.addEventListener('keydown', event => {
                 if (event.key !== 'Enter' || !event.target?.classList?.contains('eos-assist-input')) return;
                 const out = root.querySelector('.eos-assist-answer');
-                if (out) out.textContent = assistAnswer(event.target.value || '');
+                sendAssistQuestion(root, event.target.value || '');
             }, true);
         }
     });
@@ -948,7 +1038,7 @@
                 event.preventDefault();
                 event.stopPropagation();
                 event.stopImmediatePropagation?.();
-                if (answer) answer.textContent = assistAnswer(input?.value || '');
+                sendAssistQuestion(root, input?.value || '');
                 state.assistOpen = true;
                 root.classList.add('eos-assist-open');
             }

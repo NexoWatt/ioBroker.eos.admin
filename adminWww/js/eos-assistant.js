@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    // v30: EOS Assist is rendered by eos-branding.js so it can share route/security state.
+    // v31: EOS Assist is rendered by eos-branding.js so it can share route/security state.
     // This file stays as a lightweight compatibility hook for cache-safe deployments.
-    window.NEXOWATT_EOS_ASSIST_VERSION = 'v30-integrated-with-eos-branding';
+    window.NEXOWATT_EOS_ASSIST_VERSION = 'v31-integrated-ai-ready';
 })();
