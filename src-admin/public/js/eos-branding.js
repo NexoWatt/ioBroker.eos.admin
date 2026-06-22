@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v27-header-logo-nav-assist';
+    window.NEXOWATT_EOS_UI_VERSION = 'v27-logo-nav-assist-polish';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -72,6 +72,7 @@
             protectedAdapters: ['eos-admin', 'backitup'],
         },
         securityFetchStarted: false,
+        assistOpen: false,
     };
 
     const safe = fn => {
@@ -490,44 +491,6 @@
         removeLogoutButton();
     };
 
-    const NAV_COMPACT_KEY = 'nexowatt.eos.navCompact';
-
-    const setNavCompact = value => safe(() => {
-        const active = !!value;
-        document.documentElement.classList.toggle('eos-nav-compact', active);
-        window.localStorage && window.localStorage.setItem(NAV_COMPACT_KEY, active ? '1' : '0');
-    });
-
-    const restoreNavCompact = () => safe(() => {
-        const saved = window.localStorage && window.localStorage.getItem(NAV_COMPACT_KEY);
-        if (saved === '1') document.documentElement.classList.add('eos-nav-compact');
-        if (saved === '0') document.documentElement.classList.remove('eos-nav-compact');
-    });
-
-    const bindCompactNavToggle = header => safe(() => {
-        if (!header) return;
-        restoreNavCompact();
-        const controls = Array.from(header.querySelectorAll('button, .MuiIconButton-root, [role="button"]'));
-        controls.forEach(control => {
-            if (control.dataset.eosCompactToggleBound === '1') return;
-            control.dataset.eosCompactToggleBound = '1';
-            control.setAttribute('title', 'Menü kompakt/erweitert anzeigen');
-            control.setAttribute('aria-label', 'Menü kompakt/erweitert anzeigen');
-            const toggle = event => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-                setNavCompact(!document.documentElement.classList.contains('eos-nav-compact'));
-                scheduleFullPatch(0);
-                return false;
-            };
-            control.addEventListener('click', toggle, true);
-            control.addEventListener('keydown', event => {
-                if (event.key === 'Enter' || event.key === ' ') toggle(event);
-            }, true);
-        });
-    });
-
     const hideNativeLogoutNav = () => safe(() => {
         const candidates = Array.from(document.querySelectorAll('.MuiDrawer-paper a, .MuiDrawer-paper button, .MuiDrawer-paper .MuiListItem-root, .MuiDrawer-paper .MuiListItemButton-root, .MuiDrawer-paper [role=\"button\"]'));
         candidates.forEach(el => {
@@ -556,7 +519,26 @@
         }
         if (header) {
             header.classList.add('eos-native-drawer-header');
-            bindCompactNavToggle(header);
+            const toggleButton = header.querySelector('button, .MuiIconButton-root, [role="button"]');
+            if (toggleButton && !toggleButton.dataset.eosNavCompactToggle) {
+                toggleButton.dataset.eosNavCompactToggle = 'true';
+                toggleButton.classList.add('eos-nav-compact-toggle');
+                toggleButton.setAttribute('title', 'Navigation kompakt/normal umschalten');
+                toggleButton.setAttribute('aria-label', 'Navigation kompakt/normal umschalten');
+                const toggleCompact = event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                    const compact = !document.documentElement.classList.contains('eos-nav-compact');
+                    document.documentElement.classList.toggle('eos-nav-compact', compact);
+                    safe(() => localStorage.setItem('nexowatt:eosNavCompact', compact ? '1' : '0'));
+                    toggleButton.setAttribute('aria-pressed', compact ? 'true' : 'false');
+                };
+                toggleButton.addEventListener('click', toggleCompact, true);
+                toggleButton.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') toggleCompact(event);
+                }, true);
+            }
             const img = header.querySelector('img');
             if (img) patchImage(img);
             const avatarImg = header.querySelector('.MuiAvatar-img');
@@ -767,6 +749,116 @@
         });
     });
 
+
+    const applyNavCompactPreference = () => safe(() => {
+        const compact = localStorage.getItem('nexowatt:eosNavCompact') === '1';
+        document.documentElement.classList.toggle('eos-nav-compact', compact);
+        document.querySelectorAll('.eos-nav-compact-toggle').forEach(button => {
+            button.setAttribute('aria-pressed', compact ? 'true' : 'false');
+            button.setAttribute('title', compact ? 'Navigation normal anzeigen' : 'Navigation kompakt anzeigen');
+        });
+    });
+
+    const assistContext = () => {
+        const routes = routeInfo();
+        if (routes.adapters) return {
+            title: 'Module einrichten',
+            text: 'Wähle zuerst das passende Modul, prüfe Version und Instanzstatus und öffne dann die Konfiguration über die drei Punkte oder das Werkzeug-Symbol.',
+            steps: ['Modul suchen', 'Instanz anlegen', 'Verbindung testen', 'Datenpunkte prüfen']
+        };
+        if (routes.instances) return {
+            title: 'Dienste prüfen',
+            text: 'Kontrolliere Status, Port, Speicherverbrauch und Logmeldungen. Gestoppte Dienste erst nach Ursache und Abhängigkeiten prüfen.',
+            steps: ['Status ansehen', 'Log öffnen', 'Konfiguration prüfen', 'Dienst neu starten']
+        };
+        if (routes.users) return {
+            title: 'Zugänge & Rechte',
+            text: 'Installateure und Endkunden sollten nur die Module sehen, die sie wirklich bedienen dürfen. Geschützte EOS-Module bleiben Administratoren vorbehalten.',
+            steps: ['Benutzer wählen', 'Rolle zuordnen', 'Rechteprofil setzen', 'Löschschutz prüfen']
+        };
+        if (routeInfo().intro) return {
+            title: 'EOS Cockpit',
+            text: 'Beginne mit Systemstatus, Hosts und gesicherten Basisdiensten. Danach Module Schritt für Schritt freischalten.',
+            steps: ['System prüfen', 'Sicherung prüfen', 'Module planen', 'Rechte vergeben']
+        };
+        return {
+            title: 'EOS Bedienhilfe',
+            text: 'Ich unterstütze dich beim Einrichten, Prüfen und Absichern deiner EOS-Module.',
+            steps: ['Ziel beschreiben', 'Modul auswählen', 'Parameter prüfen', 'Test starten']
+        };
+    };
+
+    const assistAnswer = query => {
+        const q = normalize(query);
+        if (!q) return 'Beschreibe kurz, was eingerichtet werden soll, zum Beispiel: PV, Speicher, Wallbox, Modbus, Backup oder Benutzerrechte.';
+        if (/wallbox|evcs|lade|auto|ocpp/.test(q)) return 'Für Ladepunkte: zuerst OCPP/EVCS-Modul installieren, Verbindung zur Wallbox prüfen, Ladepunkt-ID setzen, danach Datenpunkte für Status, Leistung und Freigabe testen.';
+        if (/pv|solar|wechselrichter|sun2000|fronius|kostal|sma/.test(q)) return 'Für PV/Wechselrichter: IP-Adresse, Modbus/TCP oder Hersteller-API aktivieren, Abfrageintervall moderat setzen und danach Erzeugung, Bezug und Einspeisung in den Datenpunkten prüfen.';
+        if (/speicher|batterie|akku/.test(q)) return 'Für Speicher: Kommunikationsweg prüfen, Lade-/Entladeleistung und SoC-Datenpunkte kontrollieren und Grenzwerte erst setzen, wenn Livewerte plausibel sind.';
+        if (/modbus/.test(q)) return 'Für Modbus: Host/IP, Port 502, Unit-ID und Registertabelle prüfen. Danach erst lesen testen, dann Schreibrechte gezielt freischalten.';
+        if (/mqtt/.test(q)) return 'Für MQTT: Broker-Adresse, Zugangsdaten, Topic-Struktur und TLS prüfen. Danach mit einem Test-Topic starten und erst dann produktive Topics freigeben.';
+        if (/backup|sicherung|restore/.test(q)) return 'Für Sicherung: BackItUp aktiv halten, Zielpfad oder Cloud-Ziel prüfen, Test-Backup starten und Restore-Hinweise dokumentieren.';
+        if (/rechte|benutzer|installateur|kunde|admin/.test(q)) return 'Für Rechte: Benutzer in Rollen trennen. Installateure dürfen konfigurieren, aber geschützte EOS-Systemmodule nicht löschen. Endkunden bekommen nur Bedien- und Leserechte.';
+        if (/fehler|log|offline|404|timeout/.test(q)) return 'Bei Fehlern: zuerst Systemlogs öffnen, betroffene Instanz filtern, letzte Änderung prüfen, Dienst neu starten und danach Port/WebSocket/Repository prüfen.';
+        return 'Vorschlag: Starte mit dem passenden Modul, prüfe die Verbindung, kontrolliere die erzeugten Datenpunkte und sichere danach die Rechte. Für konkrete Hilfe nenne bitte Modulname und Zielgerät.';
+    };
+
+    const ensureEosAssist = () => safe(() => {
+        const hasApp = !!document.getElementById('app-paper');
+        if (!hasApp || isLoginView()) {
+            document.getElementById('eos-assist-root')?.remove();
+            return;
+        }
+        let root = document.getElementById('eos-assist-root');
+        if (!root) {
+            root = document.createElement('section');
+            root.id = 'eos-assist-root';
+            root.className = 'eos-assist-root';
+            document.body.appendChild(root);
+        }
+        const ctx = assistContext();
+        root.classList.toggle('eos-assist-open', !!state.assistOpen);
+        root.innerHTML = `
+            <button class="eos-assist-button" type="button" aria-expanded="${state.assistOpen ? 'true' : 'false'}">
+                <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>Einrichtungshilfe</small>
+            </button>
+            <div class="eos-assist-panel" role="dialog" aria-label="EOS Assist Einrichtungshilfe">
+                <div class="eos-assist-head">
+                    <div><strong>${ctx.title}</strong><span>${ctx.text}</span></div>
+                    <button type="button" class="eos-assist-close" aria-label="EOS Assist schließen">×</button>
+                </div>
+                <div class="eos-assist-steps">${ctx.steps.map(step => `<span>${step}</span>`).join('')}</div>
+                <label class="eos-assist-input-label">Was möchtest du einrichten?</label>
+                <div class="eos-assist-input-row"><input class="eos-assist-input" placeholder="z. B. Wallbox, PV, Modbus, Rechte..." /><button type="button" class="eos-assist-send">Fragen</button></div>
+                <div class="eos-assist-answer">${assistAnswer('')}</div>
+            </div>
+        `;
+        const openButton = root.querySelector('.eos-assist-button');
+        const closeButton = root.querySelector('.eos-assist-close');
+        const input = root.querySelector('.eos-assist-input');
+        const send = root.querySelector('.eos-assist-send');
+        const answer = root.querySelector('.eos-assist-answer');
+        openButton?.addEventListener('click', event => {
+            event.preventDefault();
+            state.assistOpen = !state.assistOpen;
+            root.classList.toggle('eos-assist-open', state.assistOpen);
+            openButton.setAttribute('aria-expanded', state.assistOpen ? 'true' : 'false');
+            if (state.assistOpen) setTimeout(() => input?.focus(), 40);
+        });
+        closeButton?.addEventListener('click', event => {
+            event.preventDefault();
+            state.assistOpen = false;
+            root.classList.remove('eos-assist-open');
+            openButton?.setAttribute('aria-expanded', 'false');
+        });
+        const ask = () => {
+            if (answer) answer.textContent = assistAnswer(input?.value || '');
+        };
+        send?.addEventListener('click', ask);
+        input?.addEventListener('keydown', event => {
+            if (event.key === 'Enter') ask();
+        });
+    });
+
     const patchDocumentMeta = () => safe(() => {
         document.title = BRAND_LONG;
         const theme = document.querySelector('meta[name="theme-color"]');
@@ -784,6 +876,8 @@
         patchDocumentMeta();
         patchLogin();
         patchShell();
+        applyNavCompactPreference();
+        ensureEosAssist();
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
@@ -801,6 +895,8 @@
         normalizeBadAddressAfterLogin();
         patchLogin();
         patchShell();
+        applyNavCompactPreference();
+        ensureEosAssist();
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
@@ -859,7 +955,6 @@
     });
 
     forceLoginGlobals();
-    restoreNavCompact();
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             fullPatch();

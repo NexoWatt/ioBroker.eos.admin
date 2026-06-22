@@ -1032,7 +1032,8 @@ class Admin extends Adapter {
         const configured = normalizeProtectedAdapters(this.config.eosProtectedAdapters);
         const result = new Set<string>(configured);
 
-        // EOS Admin must always stay protected. This does not block updates because nondeletable is kept false.
+        // EOS Admin must always stay protected through ACL/UI policy, but never via common.dontDelete.
+        // dontDelete can interfere with the ioBroker upgrade flow because updates may replace adapter objects.
         result.add(EOS_ADMIN_ADAPTER_NAME);
 
         return [...result].sort();
@@ -1057,14 +1058,10 @@ class Admin extends Adapter {
         let changed = false;
         obj.common = obj.common || {};
 
-        if (options.keepDontDelete) {
-            if ((obj.common as Record<string, unknown>).dontDelete !== true) {
-                (obj.common as Record<string, unknown>).dontDelete = true;
-                changed = true;
-            }
-        } else if ((obj.common as Record<string, unknown>).dontDelete === true) {
-            // Protected business adapters should remain removable by administrator users.
-            // Non-admin users are blocked by the administrator-only object ACL below.
+        // v28: keep adapters updateable. Do not set common.dontDelete here.
+        // Protected business adapters are protected by administrator-only ACLs and EOS UI policy.
+        // Older builds set dontDelete on eos-admin; remove the stale flag so upgrades can run.
+        if ((obj.common as Record<string, unknown>).dontDelete === true) {
             delete (obj.common as Record<string, unknown>).dontDelete;
             changed = true;
         }
@@ -1110,7 +1107,7 @@ class Admin extends Adapter {
         const isEosAdmin = adapter === EOS_ADMIN_ADAPTER_NAME;
         const adminOnlyAcl = isEosAdmin || this.shouldApplyAdminOnlyAclToProtectedAdapters();
         let changed = await this.ensureObjectProtectionPolicy(`system.adapter.${adapter}`, {
-            keepDontDelete: isEosAdmin,
+            keepDontDelete: false,
             adminOnlyAcl,
         });
 
@@ -1122,7 +1119,7 @@ class Admin extends Adapter {
 
             for (const row of instances.rows) {
                 changed = (await this.ensureObjectProtectionPolicy(row.id, {
-                    keepDontDelete: isEosAdmin,
+                    keepDontDelete: false,
                     adminOnlyAcl,
                 })) || changed;
             }
@@ -1131,7 +1128,7 @@ class Admin extends Adapter {
         }
 
         if (changed) {
-            this.log.info(`EOS delete/ACL guard applied to adapter "${adapter}"`);
+            this.log.info(`EOS ACL/UI delete guard applied to adapter "${adapter}"`);
         }
     }
 

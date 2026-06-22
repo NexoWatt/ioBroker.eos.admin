@@ -23,7 +23,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.26",
+    "version": "7.9.28",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -91,7 +91,7 @@ Ab Version `7.9.25` überwacht der EOS Admin sensible Systembereiche direkt:
 - Der alte `admin`-Adapter und `admin.0` werden für Benutzer außerhalb der konfigurierten EOS-Admin-Gruppen ausgeblendet.
 - `admin.0` bleibt durch den Security Guard deaktiviert und auf `127.0.0.1:18081` verschoben, solange die Legacy-Admin-Sperre aktiv ist.
 - Geschützte Adapter können vom Installateur- oder Endkundenbereich nicht gelöscht werden. Die Löschbuttons werden für Nicht-Administratoren ausgeblendet beziehungsweise deaktiviert.
-- Die Schutzliste wird vom Administrator im Bereich **EOS security** gepflegt. Updates bleiben möglich, weil `nondeletable=false` bleibt. `eos-admin` nutzt zusätzlich `dontDelete=true`; andere geschützte Adapter werden über Administrator-ACLs geschützt, damit der Admin sie weiterhin warten kann.
+- Die Schutzliste wird vom Administrator im Bereich **EOS security** gepflegt. Updates bleiben möglich, weil `dontDelete=false` und `nondeletable=false` bleiben. Der Schutz läuft über Administrator-ACLs, EOS-UI-Regeln und den Security Guard.
 
 Standardmäßig geschützt:
 
@@ -134,8 +134,42 @@ NEXOWATT_PROPRIETARY_LICENSE.md
 THIRD_PARTY_NOTICES.md
 ```
 
+### 7.9.28
 
-### 7.9.26
+- Self-Update über die EOS-Oberfläche repariert: der gebaute Adapter-Bundle nutzt jetzt `eos-admin` statt `admin` für den Webserver-Updatepfad.
+- `eos-admin` wird im Update-Alle-Dialog übersprungen, damit sich die laufende Oberfläche nicht selbst über den normalen Terminal-Befehl beendet.
+- Objektbasierte Löschsperren (`dontDelete`/`nondeletable`) werden für EOS Admin entfernt, damit Updates nicht blockiert werden. Der Schutz bleibt über EOS-UI, Rollen und ACLs aktiv.
+
+### 7.9.27
 
 - Header-Logo links optisch verstärkt und leicht nach oben gesetzt.
 - Benutzername/Kontoanzeige oben rechts kontrastreicher dargestellt.
+
+
+## v28 Update-Fix
+
+Version `7.9.28` entfernt den harten `common.dontDelete`-Schutz vom `eos-admin` Adapterobjekt. Dieser harte Objekt-Flag kann den ioBroker-Upgrade-Ablauf stören. Der EOS Admin bleibt für Installateur-/Endkundenrollen geschützt, bleibt aber updatefähig, weil der Schutz jetzt über ACLs, UI-Regeln und den Security Guard läuft.
+
+Empfohlene Reparatur auf bestehenden Anlagen:
+
+```bash
+cd /opt/iobroker
+iobroker object set system.adapter.eos-admin common.dontDelete=false || true
+iobroker object set system.adapter.eos-admin common.nondeletable=false || true
+iobroker object set system.adapter.eos-admin.0 common.dontDelete=false || true
+iobroker object set system.adapter.eos-admin.0 common.nondeletable=false || true
+iobroker upgrade eos-admin https://iobroker.live/repo/repo-nexowatt.json
+iobroker upload eos-admin
+iobroker restart eos-admin.0
+```
+
+## v7.9.28 update reliability note
+
+This release fixes the EOS Admin self-update path. Previous standalone builds could still route the `eos-admin` update through the normal adapter command dialog in the prebuilt frontend bundle. Because EOS Admin is the active web interface, that path can terminate the running web process during the update. Version 7.9.28 routes the `eos-admin` adapter card update through the webserver update flow and excludes `eos-admin` from bulk update-all operations. The repository metadata must also keep `stopBeforeUpdate: false` and valid `meta`/`icon` URLs.
+
+If an older installation has stale update-blocking object flags, repair them once with:
+
+```bash
+cd /opt/iobroker
+node /opt/iobroker/node_modules/iobroker.eos-admin/tools/nexowatt-repair-eos-admin-update.cjs
+```

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v26-security-visibility-guard';
+    const VERSION = 'v27-security-visibility-guard';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const SECURITY_URL = '/nexowatt/security/session';

@@ -1038,7 +1038,7 @@ class App extends Router<AppProps, AppState> {
                                     disableMcp: false,
                                 };
 
-                                if (this.state.cmd && this.state.cmd.match(/ admin(@[-.\w]+)?$/)) {
+                                if (this.state.cmd && /\b(?:admin|eos-admin)(?:@[-.\w]+)?(?:\s+--debug)?$/.test(this.state.cmd)) {
                                     // close the command dialog after reconnecting (maybe admin was restarted, and the update is now finished)
                                     newState.commandRunning = false;
                                     newState.forceUpdateAdapters = this.state.forceUpdateAdapters + 1;

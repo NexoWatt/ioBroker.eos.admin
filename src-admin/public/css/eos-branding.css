@@ -2449,312 +2449,201 @@ html.eos-app .MuiAppBar-root .MuiToolbar-root img[alt*="user" i] {
 }
 
 
-/* === NexoWatt EOS v27: black logo plate + safe compact navigation =========
-   The horizontal rail must never disappear completely. The collapse control is
-   used as a two-stage compact toggle and gets its own non-overlapping left slot. */
+/* === NexoWatt EOS v27: logo contrast, compact nav, EOS Assist ============
+   Der Pfeil ist kein Voll-Schließen mehr: er schaltet nur zwischen normaler
+   und kompakter Navigationsstufe um. Das Logo bekommt einen schwarzen Grund,
+   damit das NexoWatt-Zeichen sauberer und hochwertiger wirkt. */
 html.eos-app .eos-brand-badge {
-    grid-template-columns: 78px minmax(172px, 1fr) 12px !important;
-    min-width: 332px !important;
-    width: 332px !important;
+    grid-template-columns: 78px minmax(170px, 1fr) 12px !important;
     padding-left: 6px !important;
     background:
-        radial-gradient(circle at 39px 31px, rgba(0, 255, 136, 0.18), transparent 46px),
-        linear-gradient(135deg, rgba(0, 36, 28, 0.86), rgba(2, 9, 20, 0.95) 62%, rgba(0, 0, 0, 0.82)) !important;
+        radial-gradient(circle at 38px 29px, rgba(0, 255, 136, 0.18), transparent 44px),
+        linear-gradient(135deg, rgba(4, 18, 26, 0.98), rgba(0, 7, 12, 0.84) 52%, rgba(0, 32, 26, 0.50)) !important;
 }
 
 html.eos-app .eos-brand-badge-mark {
-    width: 66px !important;
-    height: 66px !important;
-    min-width: 66px !important;
-    min-height: 66px !important;
-    transform: translateY(-2px) !important;
-    border-radius: 23px !important;
     background:
-        radial-gradient(circle at 50% 44%, rgba(0, 255, 136, 0.11), rgba(0, 13, 14, 0.86) 47%, rgba(0, 0, 0, 0.98) 100%) !important;
-    border: 1px solid rgba(97, 255, 213, 0.70) !important;
-    outline: 1px solid rgba(0, 0, 0, 0.82) !important;
+        radial-gradient(circle at 50% 44%, rgba(0, 255, 136, 0.16), rgba(0, 0, 0, 0.96) 58%, #000000 100%) !important;
+    border-color: rgba(126, 255, 216, 0.84) !important;
     box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.035),
-        inset 0 0 28px rgba(0, 255, 136, 0.12),
-        0 0 0 3px rgba(0, 0, 0, 0.42),
-        0 0 22px rgba(0, 255, 136, 0.46),
-        0 0 46px rgba(0, 212, 255, 0.13) !important;
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 0 20px rgba(0, 255, 136, 0.18),
+        0 0 0 1px rgba(0, 0, 0, 0.55),
+        0 0 20px rgba(0, 255, 136, 0.62),
+        0 0 40px rgba(0, 212, 255, 0.20) !important;
+    transform: translateY(-5px) !important;
 }
 
 html.eos-app .eos-brand-badge-logo {
-    width: 58px !important;
-    height: 58px !important;
-    min-width: 58px !important;
-    min-height: 58px !important;
-    transform: translateY(-1px) !important;
     filter:
-        brightness(2.28)
+        brightness(2.35)
         contrast(1.22)
-        saturate(1.50)
-        drop-shadow(0 0 1px rgba(245, 255, 252, 0.96))
-        drop-shadow(0 0 11px rgba(0, 255, 136, 0.86))
-        drop-shadow(0 0 23px rgba(0, 212, 255, 0.28)) !important;
+        saturate(1.48)
+        drop-shadow(0 0 1px rgba(255, 255, 255, 0.95))
+        drop-shadow(0 0 11px rgba(0, 255, 136, 0.82))
+        drop-shadow(0 0 22px rgba(0, 212, 255, 0.28)) !important;
 }
 
-/* Dedicated collapse/compact slot: left of the horizontal menu, no overlap with
-   the first menu action. The native full-close action is intercepted in JS. */
+/* Drawer/rail stays visible. The native arrow becomes a compact-mode toggle. */
 html.eos-app .MuiDrawer-paper,
 html.eos-app .eos-drawer {
-    position: fixed !important;
-    padding-left: 82px !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    padding-left: 86px !important;
 }
 
 html.eos-app .eos-native-drawer-header {
     position: absolute !important;
     left: 12px !important;
     top: 8px !important;
-    right: auto !important;
-    bottom: auto !important;
     flex: 0 0 58px !important;
     width: 58px !important;
     min-width: 58px !important;
     max-width: 58px !important;
+    height: 56px !important;
+    min-height: 56px !important;
     margin: 0 !important;
     z-index: 4 !important;
-    background: linear-gradient(145deg, rgba(0, 255, 136, 0.17), rgba(0, 25, 32, 0.88)) !important;
-    border: 1px solid rgba(0, 255, 136, 0.42) !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 0 18px rgba(0, 255, 136, 0.10) !important;
+    background: rgba(0, 0, 0, 0.38) !important;
+    border-color: rgba(0, 255, 136, 0.38) !important;
+    box-shadow: inset 0 0 16px rgba(0, 255, 136, 0.10), 0 0 20px rgba(0, 255, 136, 0.10) !important;
 }
 
-html.eos-app .eos-native-drawer-header button,
-html.eos-app .eos-native-drawer-header .MuiIconButton-root,
-html.eos-app .eos-native-drawer-header [role="button"] {
+html.eos-app .eos-native-drawer-header > div:first-child {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    padding: 4px 6px !important;
+}
+
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle {
     width: 46px !important;
     height: 46px !important;
     min-width: 46px !important;
     min-height: 46px !important;
     border-radius: 16px !important;
-    background: rgba(0, 0, 0, 0.28) !important;
-    border: 1px solid rgba(0, 255, 136, 0.24) !important;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.18), rgba(0, 0, 0, 0.72)) !important;
+    border: 1px solid rgba(0, 255, 136, 0.44) !important;
+    box-shadow: 0 0 16px rgba(0, 255, 136, 0.18) !important;
 }
 
-html.eos-app .eos-native-drawer-header button::after,
-html.eos-app .eos-native-drawer-header .MuiIconButton-root::after,
-html.eos-app .eos-native-drawer-header [role="button"]::after {
-    content: 'kompakt';
-    position: absolute;
-    left: 50%;
-    bottom: -13px;
-    transform: translateX(-50%);
-    font-size: 7px;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: rgba(208, 255, 239, .62);
-    pointer-events: none;
-}
-
-html.eos-nav-compact .eos-native-drawer-header button::after,
-html.eos-nav-compact .eos-native-drawer-header .MuiIconButton-root::after,
-html.eos-nav-compact .eos-native-drawer-header [role="button"]::after {
-    content: 'menü';
+html.eos-app.eos-nav-compact .eos-native-drawer-header .eos-nav-compact-toggle svg,
+html.eos-app.eos-nav-compact .eos-native-drawer-header button.eos-nav-compact-toggle svg {
+    transform: rotate(180deg) !important;
 }
 
 html.eos-app .eos-scroll-nav,
 html.eos-app .MuiDrawer-paper .MuiList-root {
     margin-left: 0 !important;
-    padding-left: 0 !important;
 }
 
-/* Stronger removal of the native logout tile in the horizontal rail. */
-html.eos-app .eos-hidden-logout,
-html.eos-app .eos-hidden-logout *,
-html.eos-app .MuiDrawer-paper a[href*="logout"],
-html.eos-app .MuiDrawer-paper button[aria-label*="logout" i],
-html.eos-app .MuiDrawer-paper button[aria-label*="abmelden" i] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-/* Compact mode keeps the rail visible but reduces the menu to icon buttons. */
-html.eos-nav-compact.eos-app .MuiDrawer-paper,
-html.eos-nav-compact.eos-app .eos-drawer {
-    height: 66px !important;
-    min-height: 66px !important;
-    max-height: 66px !important;
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
-    padding-left: 78px !important;
-}
-
-html.eos-nav-compact.eos-app .eos-native-drawer-header {
-    top: 6px !important;
-    width: 54px !important;
-    min-width: 54px !important;
-    max-width: 54px !important;
-    height: 52px !important;
-    min-height: 52px !important;
-}
-
-html.eos-nav-compact.eos-app .eos-native-drawer-header button,
-html.eos-nav-compact.eos-app .eos-native-drawer-header .MuiIconButton-root,
-html.eos-nav-compact.eos-app .eos-native-drawer-header [role="button"] {
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
-    min-height: 42px !important;
-}
-
-html.eos-nav-compact.eos-app .MuiDrawer-paper .MuiListItemButton-root,
-html.eos-nav-compact.eos-app .MuiDrawer-paper .MuiButtonBase-root.MuiListItemButton-root {
-    width: 54px !important;
-    min-width: 54px !important;
-    max-width: 54px !important;
-    height: 50px !important;
-    min-height: 50px !important;
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemButton-root,
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiButtonBase-root.MuiListItemButton-root {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
     padding: 0 !important;
     justify-content: center !important;
     gap: 0 !important;
 }
 
-html.eos-nav-compact.eos-app .MuiDrawer-paper .MuiListItemIcon-root {
-    min-width: 0 !important;
-    margin: 0 !important;
-    display: inline-flex !important;
-    justify-content: center !important;
-}
-
-html.eos-nav-compact.eos-app .MuiDrawer-paper .MuiListItemText-root,
-html.eos-nav-compact.eos-app .MuiDrawer-paper .MuiListItemButton-root .MuiTypography-root,
-html.eos-nav-compact.eos-app .MuiDrawer-paper .MuiListItemButton-root span:not(.MuiBadge-badge) {
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemText-root,
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemButton-root .MuiTypography-root,
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiButtonBase-root.MuiListItemButton-root .MuiTypography-root {
+    display: none !important;
     max-width: 0 !important;
-    width: 0 !important;
-    min-width: 0 !important;
     opacity: 0 !important;
     overflow: hidden !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemIcon-root {
+    min-width: 0 !important;
     margin: 0 !important;
-    padding: 0 !important;
 }
 
-html.eos-nav-compact.eos-app #app-paper,
-html.eos-nav-compact.eos-app main,
-html.eos-nav-compact.eos-app .MuiContainer-root {
-    /* content keeps its normal vertical rhythm; the rail is still present */
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiBadge-root .MuiBadge-badge {
+    transform: scale(0.88) translate(42%, -42%) !important;
 }
 
-@media (max-width: 1220px) {
-    html.eos-app .eos-brand-badge {
-        min-width: 88px !important;
-        width: 88px !important;
-        padding-left: 7px !important;
-    }
-    html.eos-app .eos-brand-badge-mark {
-        background: radial-gradient(circle at 50% 44%, rgba(0, 255, 136, 0.10), rgba(0, 0, 0, 0.98) 70%) !important;
-    }
-    html.eos-app .MuiDrawer-paper,
-    html.eos-app .eos-drawer {
-        padding-left: 74px !important;
-    }
-    html.eos-app .eos-native-drawer-header {
-        left: 9px !important;
-    }
+/* EOS Assist: leichte Bedienhilfe als Vorbereitung für eine spätere echte KI. */
+.eos-assist-root {
+    position: fixed !important;
+    right: 26px !important;
+    bottom: 24px !important;
+    z-index: 1700 !important;
+    font-family: inherit !important;
 }
 
-/* === NexoWatt EOS v27: local setup assistant ============================== */
-.eos-assist-launcher {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    z-index: 1900;
-    height: 54px;
-    min-width: 54px;
-    border: 1px solid rgba(0, 255, 136, .55);
-    border-radius: 18px;
-    background: linear-gradient(135deg, #00ff88, #00d4ff);
-    color: #02101d;
-    font-weight: 950;
-    letter-spacing: .02em;
-    box-shadow: 0 16px 34px rgba(0,0,0,.42), 0 0 26px rgba(0,255,136,.28);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 0 16px;
+.eos-assist-button {
+    display: grid !important;
+    grid-template-columns: 12px auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 8px !important;
+    align-items: center !important;
+    min-width: 156px !important;
+    padding: 10px 14px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(0, 255, 136, 0.44) !important;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.19), rgba(0, 212, 255, 0.10) 62%, rgba(0, 0, 0, 0.64)) !important;
+    color: #f3fffb !important;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38), 0 0 24px rgba(0, 255, 136, 0.18) !important;
+    cursor: pointer !important;
 }
 
-.eos-assist-launcher span:first-child { font-size: 21px; }
+.eos-assist-button strong { grid-column: 2; font-weight: 900; font-size: 13px; line-height: 1; }
+.eos-assist-button small { grid-column: 2; color: rgba(226, 255, 247, .72); font-size: 10px; line-height: 1.1; }
+.eos-assist-dot { grid-row: 1 / span 2; width: 10px; height: 10px; border-radius: 999px; background: #16ff98; box-shadow: 0 0 12px rgba(0, 255, 136, .9); }
 
 .eos-assist-panel {
-    position: fixed;
-    right: 24px;
-    bottom: 88px;
-    z-index: 1901;
-    width: min(430px, calc(100vw - 32px));
-    max-height: min(720px, calc(100vh - 116px));
-    display: none;
-    flex-direction: column;
-    border-radius: 24px;
-    overflow: hidden;
-    border: 1px solid rgba(0,255,136,.42);
+    position: absolute !important;
+    right: 0 !important;
+    bottom: calc(100% + 12px) !important;
+    width: min(420px, calc(100vw - 36px)) !important;
+    padding: 16px !important;
+    border-radius: 22px !important;
+    border: 1px solid rgba(0, 255, 136, 0.32) !important;
     background:
-        radial-gradient(circle at 18% 0%, rgba(0,255,136,.16), transparent 38%),
-        linear-gradient(180deg, rgba(8, 30, 45, .98), rgba(2, 9, 20, .98));
-    box-shadow: 0 26px 72px rgba(0,0,0,.58), 0 0 34px rgba(0,255,136,.14);
-    color: var(--eos-text);
+        radial-gradient(circle at 18% 0%, rgba(0, 255, 136, .12), transparent 44%),
+        linear-gradient(180deg, rgba(8, 29, 44, 0.98), rgba(2, 9, 20, 0.98)) !important;
+    color: #f3fffb !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,.52), 0 0 26px rgba(0,255,136,.13) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(10px) scale(.98) !important;
+    transition: opacity .16s ease, transform .16s ease !important;
 }
 
-.eos-assist-open .eos-assist-panel { display: flex; }
-
-.eos-assist-head {
-    display: grid;
-    grid-template-columns: 48px 1fr 40px;
-    gap: 12px;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid rgba(0,255,136,.22);
-    background: rgba(0,0,0,.22);
+.eos-assist-root.eos-assist-open .eos-assist-panel {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
 }
 
-.eos-assist-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    display: grid;
-    place-items: center;
-    background: #000;
-    border: 1px solid rgba(111,255,215,.62);
-    box-shadow: inset 0 0 18px rgba(0,255,136,.12), 0 0 18px rgba(0,255,136,.24);
-}
-.eos-assist-logo img { width: 42px; height: 42px; object-fit: contain; filter: brightness(1.9) saturate(1.35) drop-shadow(0 0 8px rgba(0,255,136,.65)); }
+.eos-assist-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.eos-assist-head strong { display: block; font-size: 16px; font-weight: 950; margin-bottom: 5px; }
+.eos-assist-head span { display: block; color: rgba(226, 245, 255, .76); font-size: 12px; line-height: 1.35; }
+.eos-assist-close { width: 32px; height: 32px; border-radius: 12px; border: 1px solid rgba(0,255,136,.26); background: rgba(0,0,0,.34); color: #fff; cursor: pointer; }
+.eos-assist-steps { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
+.eos-assist-steps span { padding: 5px 9px; border-radius: 999px; background: rgba(0,255,136,.10); border: 1px solid rgba(0,255,136,.18); color: rgba(237,255,250,.90); font-size: 11px; font-weight: 750; }
+.eos-assist-input-label { display: block; color: rgba(226,245,255,.78); font-size: 11px; margin: 0 0 6px; font-weight: 750; }
+.eos-assist-input-row { display: flex; gap: 8px; }
+.eos-assist-input { flex: 1; min-width: 0; border-radius: 14px; border: 1px solid rgba(98,190,255,.28); background: rgba(0,7,13,.62); color: #f3fffb; padding: 10px 12px; outline: none; }
+.eos-assist-send { border: 0; border-radius: 14px; padding: 0 13px; background: linear-gradient(135deg, #00ff88, #00d4ff); color: #001019; font-weight: 900; cursor: pointer; }
+.eos-assist-answer { margin-top: 12px; padding: 12px 13px; border-radius: 16px; border: 1px solid rgba(0,212,255,.20); background: rgba(0,0,0,.28); color: rgba(238,255,250,.90); font-size: 12px; line-height: 1.42; }
 
-.eos-assist-head strong { display:block; font-size: 16px; font-weight: 950; }
-.eos-assist-head small { display:block; margin-top: 3px; color: rgba(226,246,255,.70); font-weight: 700; letter-spacing: .03em; }
-.eos-assist-close { border:0; background: rgba(255,255,255,.06); color: #fff; border-radius: 14px; height: 40px; cursor:pointer; font-size:20px; }
-
-.eos-assist-body { padding: 15px; overflow: auto; display:flex; flex-direction:column; gap: 12px; }
-.eos-assist-card { border-radius: 18px; border: 1px solid rgba(123,204,255,.16); background: rgba(3,15,26,.70); padding: 13px; }
-.eos-assist-card strong { color: #efffff; }
-.eos-assist-card p { margin: 7px 0 0; color: rgba(226,246,255,.76); line-height: 1.42; }
-.eos-assist-actions { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.eos-assist-actions button,
-.eos-assist-send {
-    border: 1px solid rgba(0,255,136,.30);
-    background: rgba(0,255,136,.09);
-    color: #eefcff;
-    border-radius: 13px;
-    min-height: 38px;
-    font-weight: 800;
-    cursor: pointer;
-}
-.eos-assist-actions button:hover,
-.eos-assist-send:hover { background: rgba(0,255,136,.16); }
-.eos-assist-input-row { display:grid; grid-template-columns: 1fr 84px; gap: 8px; }
-.eos-assist-input { min-height: 40px; border-radius: 14px; border: 1px solid rgba(123,204,255,.22); background: rgba(2,9,20,.78); color: #fff; padding: 0 12px; outline: none; }
-.eos-assist-answer { white-space: pre-line; font-size: 13px; line-height: 1.45; color: rgba(237,251,255,.90); }
-.eos-assist-answer ul { margin: 8px 0 0 18px; padding: 0; }
-.eos-assist-answer li { margin: 4px 0; }
-.eos-assist-foot { color: rgba(226,246,255,.55); font-size: 11px; padding-top: 2px; }
-
-@media (max-width: 760px) {
-    .eos-assist-launcher { right: 14px; bottom: 14px; padding: 0 12px; }
-    .eos-assist-panel { right: 14px; bottom: 78px; }
-    .eos-assist-actions { grid-template-columns: 1fr; }
+@media (max-width: 720px) {
+    html.eos-app .MuiDrawer-paper,
+    html.eos-app .eos-drawer { padding-left: 68px !important; }
+    html.eos-app .eos-native-drawer-header { left: 8px !important; width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+    html.eos-app .eos-native-drawer-header > div:first-child { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+    html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+    html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle { width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; }
+    .eos-assist-root { right: 14px !important; bottom: 16px !important; }
+    .eos-assist-button { min-width: 54px !important; width: 54px !important; height: 54px !important; border-radius: 18px !important; grid-template-columns: 1fr !important; padding: 0 !important; place-items: center !important; }
+    .eos-assist-button strong, .eos-assist-button small { display: none !important; }
+    .eos-assist-dot { grid-column: 1; grid-row: 1; width: 14px; height: 14px; }
 }

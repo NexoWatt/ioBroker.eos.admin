@@ -491,14 +491,6 @@ class Web {
             legacyAdminAdapter: 'admin',
             legacyAdminInstance: 'admin.0',
             protectedAdapters: this.getEosProtectedAdapterNames(),
-            eosAssistantEnabled: this.settings.eosAssistantEnabled !== false,
-            eosAssistantMode: this.settings.eosAssistantMode || 'local',
-            eosAssistantAdminOnly: this.settings.eosAssistantAdminOnly === true,
-            assistant: {
-                enabled: this.settings.eosAssistantEnabled !== false,
-                mode: this.settings.eosAssistantMode || 'local',
-                adminOnly: this.settings.eosAssistantAdminOnly === true,
-            },
         });
     }
 
@@ -729,10 +721,6 @@ class Web {
                         hideLegacyAdminFromNonAdmins: true,
                         restrictProtectedAdapterControls: true,
                         protectedAdapters: ['eos-admin'],
-                        eosAssistantEnabled: true,
-                        eosAssistantMode: 'local',
-                        eosAssistantAdminOnly: false,
-                        assistant: { enabled: true, mode: 'local', adminOnly: false },
                     });
                 });
             };

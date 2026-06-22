@@ -8,15 +8,24 @@
     "restricts legacy admin visibility to EOS administrator groups",
     "hides legacy admin rows/cards for installer and customer users in the EOS UI",
     "restricts protected adapter delete controls for non-admin users",
-    "keeps EOS Admin updateable by using dontDelete=true and nondeletable=false"
+    "keeps EOS Admin updateable by keeping dontDelete=false and nondeletable=false"
   ],
   "eosUiVersion": "v25-role-visibility-security",
   "layout": "accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=25",
+  "cacheBust": "v=28",
   "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.27",
-  "variant": "v25-role-visibility-security",
-  "notes": "Black logo background, safe compact nav toggle, EOS Assist guidance.",
+  "version": "7.9.28",
+  "variant": "standalone-eos-admin-update-fix",
+  "notes": [
+    "stopBeforeUpdate=false",
+    "allowAdapterUpdate=true",
+    "allowAdapterDelete=false for non-admin UI flows",
+    "dontDelete=false and nondeletable=false for upgrade safety",
+    "delete protection handled by ACL/UI guard"
+  ],
   "eosVersion": "v25",
-  "uiVersion": "v27-header-logo-nav-assist"
+  "build": "v28-update-self-fix",
+  "updated": "2026-06-22T16:45:00Z",
+  "release": "v28-update-safe",
+  "uiVersion": "v28-update-safe"
 }

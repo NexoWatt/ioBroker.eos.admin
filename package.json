@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin standalone interface for Energy Operation System",
-  "version": "7.9.27",
+  "version": "7.9.28",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -41,7 +41,6 @@
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
     "express-session": "^1.19.0",
-    "iobroker.mcp": "^1.0.0",
     "json5": "^2.2.3",
     "mime": "^3.0.0",
     "semver": "^7.8.3"
@@ -102,7 +101,8 @@
     "tools/nexowatt-generate-repo-entry.cjs",
     "tools/nexowatt-patch-repo.cjs",
     "NEXOWATT_EOS_STANDALONE.md",
-    "tools/nexowatt-generate-eos-admin-repo-entry.cjs"
+    "tools/nexowatt-generate-eos-admin-repo-entry.cjs",
+    "tools/nexowatt-repair-eos-admin-update.cjs"
   ],
   "scripts": {
     "npm": "npm i -f && cd src-admin && npm i -f",
@@ -135,7 +135,8 @@
     "update-packages": "npx -y npm-check-updates --upgrade && cd src-admin && npx -y npm-check-updates --upgrade",
     "check:eos-package": "node tools/nexowatt-validate-package.cjs",
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
-    "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs"
+    "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
+    "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs"
   },
   "author": "NexoWatt",
   "private": false,

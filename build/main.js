@@ -828,13 +828,8 @@ class Admin extends adapter_core_1.Adapter {
         }
         let changed = false;
         obj.common = obj.common || {};
-        if (options.keepDontDelete) {
-            if (obj.common.dontDelete !== true) {
-                obj.common.dontDelete = true;
-                changed = true;
-            }
-        }
-        else if (obj.common.dontDelete === true && id !== `system.adapter.${EOS_ADMIN_ADAPTER_NAME}`) {
+        // v28: do not use common.dontDelete for EOS protection because it can block adapter upgrades.
+        if (obj.common.dontDelete === true) {
             delete obj.common.dontDelete;
             changed = true;
         }
@@ -870,7 +865,7 @@ class Admin extends adapter_core_1.Adapter {
         const isEosAdmin = adapter === EOS_ADMIN_ADAPTER_NAME;
         const adminOnlyAcl = isEosAdmin || this.shouldApplyAdminOnlyAclToProtectedAdapters();
         let changed = await this.ensureObjectProtectionPolicy(`system.adapter.${adapter}`, {
-            keepDontDelete: isEosAdmin,
+            keepDontDelete: false,
             adminOnlyAcl,
         });
         try {
@@ -880,7 +875,7 @@ class Admin extends adapter_core_1.Adapter {
             });
             for (const row of instances.rows) {
                 changed = (await this.ensureObjectProtectionPolicy(row.id, {
-                    keepDontDelete: isEosAdmin,
+                    keepDontDelete: false,
                     adminOnlyAcl,
                 })) || changed;
             }
@@ -889,7 +884,7 @@ class Admin extends adapter_core_1.Adapter {
             this.log.warn(`Cannot protect instances of adapter "${adapter}": ${e instanceof Error ? e.message : e}`);
         }
         if (changed) {
-            this.log.info(`EOS delete/ACL guard applied to adapter "${adapter}"`);
+            this.log.info(`EOS ACL/UI delete guard applied to adapter "${adapter}"`);
         }
     }
     async ensureLegacyAdminLocked() {
