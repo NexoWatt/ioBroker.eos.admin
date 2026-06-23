@@ -3232,3 +3232,58 @@ html:not(.eos-app) .eos-standalone-nav-toggle {
         border-radius: 14px !important;
     }
 }
+
+
+/* === NexoWatt EOS v33: Assist button spacing ==============================
+   Keep the EOS Assist accessible, but reserve the bottom-right corner for the
+   native page settings pencil / floating action buttons and scroll controls. */
+:root {
+    --eos-assist-safe-right: 118px;
+    --eos-assist-safe-bottom: 22px;
+}
+html.eos-app .eos-assist-root,
+html.eos-app #eos-assist-root {
+    right: var(--eos-assist-safe-right) !important;
+    bottom: var(--eos-assist-safe-bottom) !important;
+    z-index: 1680 !important;
+}
+html.eos-app .eos-assist-root .eos-assist-panel,
+html.eos-app #eos-assist-root .eos-assist-panel {
+    right: 0 !important;
+    bottom: calc(100% + 12px) !important;
+}
+/* Keep common page settings / FAB elements clickable above the assist. */
+html.eos-app [aria-label*="Einstellung"],
+html.eos-app [title*="Einstellung"],
+html.eos-app [aria-label*="Settings"],
+html.eos-app [title*="Settings"],
+html.eos-app .MuiFab-root,
+html.eos-app button[class*="Fab"],
+html.eos-app button[class*="fab"] {
+    z-index: 1800 !important;
+}
+@media (max-width: 1100px) {
+    :root { --eos-assist-safe-right: 104px; }
+}
+@media (max-width: 720px) {
+    :root {
+        --eos-assist-safe-right: 86px;
+        --eos-assist-safe-bottom: 16px;
+    }
+    html.eos-app .eos-assist-root .eos-assist-button,
+    html.eos-app #eos-assist-root .eos-assist-button {
+        min-width: 54px !important;
+        width: 54px !important;
+        height: 54px !important;
+        border-radius: 18px !important;
+        grid-template-columns: 1fr !important;
+        padding: 0 !important;
+        place-items: center !important;
+    }
+    html.eos-app .eos-assist-root .eos-assist-button strong,
+    html.eos-app .eos-assist-root .eos-assist-button small,
+    html.eos-app #eos-assist-root .eos-assist-button strong,
+    html.eos-app #eos-assist-root .eos-assist-button small {
+        display: none !important;
+    }
+}

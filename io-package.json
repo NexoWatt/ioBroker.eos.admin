@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.32",
+    "version": "7.9.33",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -162,9 +162,9 @@
         "uk": "Розширений налаштування JSON для адаптера фригату",
         "zh-cn": "JSON 护卫舰适配器扩展配置"
       },
-      "7.9.32": {
-        "en": "Fixed the EOS navigation compact toggle: the decorative left tile was removed while the arrow button remains visible and usable.",
-        "de": "EOS Navigationsumschalter korrigiert: Die dekorative linke Kachel wurde entfernt, der Pfeilbutton bleibt sichtbar und nutzbar."
+      "7.9.33": {
+        "en": "Moved the EOS Assist launcher left so it no longer covers the page settings pencil or bottom-right slider controls.",
+        "de": "EOS Assist weiter nach links verschoben, damit Seiten-Einstellstift und Slider unten rechts nicht mehr verdeckt werden."
       }
     },
     "desc": {
