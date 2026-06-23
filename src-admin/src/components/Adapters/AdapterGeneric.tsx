@@ -1109,15 +1109,9 @@ export default abstract class AdapterGeneric<
     }
 
     async update(version: string): Promise<void> {
-        if (
-            this.props.adapterName === 'eos-admin' &&
-            this.props.context.adminHost === this.props.context.currentHost &&
-            (await this.props.context.socket.checkFeatureSupported('ADAPTER_WEBSERVER_UPGRADE'))
-        ) {
-            this.props.context.setAdminUpgradeTo(version);
-            return;
-        }
-
+        // NexoWatt EOS v34: The standalone eos-admin adapter is updated via the normal
+        // ioBroker upgrade command. The original admin webserver self-update path is unreliable
+        // for a separate adapter and can leave the UI hanging.
         this.props.context.executeCommand(
             `upgrade ${this.props.adapterName}@${version}${this.props.context.expertMode ? ' --debug' : ''}`,
         );

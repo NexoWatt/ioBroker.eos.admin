@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.33",
+    "version": "7.9.34",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.34": {
+        "en": "Fixed repository metadata for reliable EOS Admin updates and enforced hard logout after the configured login timeout.",
+        "de": "Repository-Metadaten für zuverlässige EOS-Admin-Updates korrigiert und harte Abmeldung nach der eingestellten Abmeldezeit erzwungen."
+      },
       "7.9.31": {
         "en": "UI cleanup: fixes EOS Security German text encoding, removes the logout tile next to the compact navigation arrow, and expands EOS Assist with AI-ready multi-path setup guidance.",
         "de": "UI-Feinschliff: korrigiert deutsche EOS-Sicherheitsbeschriftungen, entfernt die Abmelden-Kachel neben dem Kompaktpfeil und erweitert EOS Assist um KI-bereite Mehrwege-Einrichtungshilfe."
@@ -161,10 +165,6 @@
         "pl": "Rozszerzony plik konfiguracyjny JSON do adaptera fregata",
         "uk": "Розширений налаштування JSON для адаптера фригату",
         "zh-cn": "JSON 护卫舰适配器扩展配置"
-      },
-      "7.9.33": {
-        "en": "Moved the EOS Assist launcher left so it no longer covers the page settings pencil or bottom-right slider controls.",
-        "de": "EOS Assist weiter nach links verschoben, damit Seiten-Einstellstift und Slider unten rechts nicht mehr verdeckt werden."
       }
     },
     "desc": {
@@ -202,7 +202,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.30/admin/admin.png",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.34/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -213,7 +213,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.30/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.34/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -282,7 +282,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.30/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.34/io-package.json",
     "npmPackage": "iobroker.eos-admin"
   },
   "native": {

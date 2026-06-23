@@ -1464,28 +1464,16 @@ class App extends Router<AppProps, AppState> {
 
     onSessionExpiration = (expireAt: number): Promise<boolean> => {
         return new Promise<boolean>(resolve => {
-            const tokens = Connection.readTokens();
-            if (
-                (this.doNotAskSessionExpiration && Date.now() < this.doNotAskSessionExpiration) ||
-                tokens.refresh_token_expires_in.getTime() > Date.now()
-            ) {
-                resolve(true);
-            } else {
-                this.setState({ askForTokenRefresh: { expireAt, resolve, doNotAsk: false } }, () => {
-                    this.expireInSecInterval ||= setInterval(() => {
-                        if (Date.now() >= this.state.askForTokenRefresh.expireAt) {
-                            clearInterval(this.expireInSecInterval);
-                            this.expireInSecInterval = null;
-                            // On session expiration will be called only if the connection is the owner of the token
-                            Connection.deleteTokensStatic();
-                            window.location.reload();
-                        } else {
-                            // redraw timer
-                            this.forceUpdate();
-                        }
-                    }, 1_000);
-                });
+            const delay = Math.max(0, expireAt - Date.now() + 500);
+            if (this.expireInSecInterval) {
+                clearInterval(this.expireInSecInterval);
+                this.expireInSecInterval = null;
             }
+            this.expireInSecInterval = setTimeout(() => {
+                Connection.deleteTokensStatic();
+                window.location.href = './index.html?login&eosLogout=timeout';
+            }, delay) as unknown as ReturnType<typeof setInterval>;
+            resolve(false);
         });
     };
 

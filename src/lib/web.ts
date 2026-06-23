@@ -544,11 +544,24 @@ export default class Web {
             return null;
         }
         try {
-            return decodeURIComponent(token);
+            token = decodeURIComponent(token);
         } catch {
-            return token;
+            // keep raw token
         }
+        token = token.trim();
+        if (token.startsWith('Bearer ')) {
+            token = token.substring('Bearer '.length).trim();
+        }
+        if (token.startsWith('s:')) {
+            token = token.substring(2);
+        }
+        // Express signed cookies are encoded as s:<token>.<signature>. ioBroker tokens are not JWTs.
+        if (token.includes('.') && !token.startsWith('eyJ')) {
+            token = token.substring(0, token.indexOf('.'));
+        }
+        return token || null;
     }
+
 
     private readSession(id: string): Promise<InternalStorageToken | null | undefined> {
         return new Promise(resolve => this.adapter.getSession(id, token => resolve(token)));
@@ -646,19 +659,7 @@ export default class Web {
     }
 
     private async getSessionUser(req: Request): Promise<string | null> {
-        if (!this.settings.auth) {
-            return 'system.user.admin';
-        }
-        const tokenCookie = this.extractAccessToken(req);
-        if (!tokenCookie) {
-            return null;
-        }
-        return new Promise(resolve => {
-            void this.adapter.getSession(`a:${tokenCookie[1]}`, (token: InternalStorageToken): void => {
-                const user = token?.user ? String(token.user) : '';
-                resolve(user ? (user.startsWith('system.user.') ? user : `system.user.${user}`) : null);
-            });
-        });
+        return this.readEosCurrentUser(req);
     }
 
     private async getGroupsForUser(userId: string | null): Promise<string[]> {
@@ -784,11 +785,42 @@ export default class Web {
                 this.server.app.use(bodyParser.urlencoded({ extended: true }));
                 this.server.app.use(bodyParser.json());
 
+                // NexoWatt EOS: enforce the configured login timeout as a hard logout.
+                // We remove refresh tokens from OAuth responses so the admin client cannot silently extend sessions.
+                const eosHardLogout = (this.adapter.config as any).nexowattHardLogout !== false;
+                if (eosHardLogout) {
+                    this.server.app.use('/oauth/token', (req: Request, res: Response, next: NextFunction): void => {
+                        const grantType = String((req.body as Record<string, unknown> | undefined)?.grant_type || '');
+                        if (req.method === 'POST' && grantType === 'refresh_token') {
+                            res.status(401).json({
+                                error: 'invalid_grant',
+                                error_description: 'EOS session expired. Please log in again.',
+                                eosHardLogout: true,
+                            });
+                            return;
+                        }
+                        const originalJson = res.json.bind(res);
+                        res.json = ((body?: any): Response => {
+                            if (body && typeof body === 'object' && body.access_token && body.expires_in) {
+                                const expiresIn = Math.max(
+                                    1,
+                                    Math.round(Number(body.expires_in) || Number(this.settings.ttl) || 3600),
+                                );
+                                body.refresh_token = '';
+                                body.refresh_token_expires_in = expiresIn;
+                                body.eosHardLogout = true;
+                            }
+                            return originalJson(body);
+                        }) as Response['json'];
+                        next();
+                    });
+                }
+
                 this.oauth2Model = createOAuth2Server(this.adapter, {
                     app: this.server.app,
                     secure: this.settings.secure,
                     accessLifetime: this.settings.ttl,
-                    refreshLifetime: 60 * 60 * 24 * 7, // 1 week (Maybe adjustable?)
+                    refreshLifetime: this.settings.ttl,
                     noBasicAuth: this.settings.noBasicAuth,
                     loginPage: (req: Request): string => {
                         const isDev = req.url.includes('?dev');
@@ -809,28 +841,55 @@ export default class Web {
                 });
 
                 this.server.app.get('/session', (req: Request, res: Response): void => {
-                    if (req.headers.cookie) {
-                        const cookies = req.headers.cookie.split(';').find(c => c.trim().startsWith('access_token='));
-                        let tokenCookie = cookies?.split('=')[1];
-                        if (!tokenCookie && req.headers.authorization?.startsWith('Bearer ')) {
-                            tokenCookie = req.headers.authorization.split(' ')[1];
-                        } else if (!tokenCookie && req.query?.token) {
-                            tokenCookie = req.query.token as string;
-                        }
+                    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-                        if (tokenCookie) {
-                            void this.adapter.getSession(`a:${tokenCookie[1]}`, (token: InternalStorageToken): void => {
-                                if (!token?.user) {
-                                    res.json({ expireInSec: 0 });
-                                } else {
-                                    res.json({ expireInSec: Math.round((token.aExp - Date.now()) / 1000) });
-                                }
-                            });
-                            return;
-                        }
+                    if (!this.settings.auth) {
+                        res.json({ expireInSec: Math.max(120, this.settings.ttl || 3600), hardLogout: true, auth: false });
+                        return;
                     }
 
-                    res.json({ error: 'Cannot find session' });
+                    const tokenValue = this.readAccessTokenFromRequest(req);
+                    if (!tokenValue) {
+                        res.json({ expireInSec: 0, hardLogout: true, error: 'Cannot find session token' });
+                        return;
+                    }
+
+                    const candidates = new Set<string>();
+                    candidates.add(tokenValue);
+                    candidates.add(tokenValue.startsWith('a:') ? tokenValue : `a:${tokenValue}`);
+                    if (tokenValue.length > 1) candidates.add(`a:${tokenValue[1]}`);
+
+                    const ids = Array.from(candidates);
+                    const readNext = (index: number): void => {
+                        const id = ids[index];
+                        if (!id) {
+                            res.json({ expireInSec: 0, hardLogout: true, error: 'Cannot find session' });
+                            return;
+                        }
+                        void this.adapter.getSession(id, (token: InternalStorageToken): void => {
+                            if (!token?.user) {
+                                readNext(index + 1);
+                                return;
+                            }
+                            const now = Date.now();
+                            const expirations = [
+                                Number((token as Record<string, unknown>).aExp),
+                                Number((token as Record<string, unknown>).rExp),
+                                Number((token as Record<string, unknown>).expire),
+                                Number((token as Record<string, unknown>).expires),
+                                Number((token as Record<string, unknown>).expiresAt),
+                            ].filter(value => Number.isFinite(value) && value > 0);
+                            const expiresAt = expirations.length ? Math.min(...expirations) : now + (this.settings.ttl || 3600) * 1000;
+                            res.json({
+                                expireInSec: Math.max(0, Math.floor((expiresAt - now) / 1000)),
+                                hardLogout: true,
+                                user: token.user,
+                            });
+                        });
+                    };
+
+                    readNext(0);
                 });
 
                 this.server.app.get(/.*\/nexowatt\/security\/(?:context|session)$/, (req: Request, res: Response): void => {
@@ -860,6 +919,13 @@ export default class Web {
                             origin = origin.substring(0, pos);
                         }
                     }
+
+                    // NexoWatt EOS v34: hard logout must remove browser tokens/cookies before redirecting.
+                    for (const cookieName of ['access_token', 'refresh_token', 'connect.sid', 'io', 'ioBroker.sid', 'eos-admin.sid']) {
+                        res.clearCookie(cookieName, { path: '/' });
+                    }
+                    const sessionReq = req as Request & { session?: { destroy?: (callback?: (err?: Error) => void) => void } };
+                    sessionReq.session?.destroy?.(() => undefined);
 
                     if (isDev) {
                         res.redirect('http://127.0.0.1:3000/index.html?login');

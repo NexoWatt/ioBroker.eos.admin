@@ -140,10 +140,12 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
     onStartUpdate(): void {
         this.setState({ inProcess: true }, () => {
             this.props.onSetCommandRunning(true);
-            this.processList = [...this.state.selected].map(adapter => ({
-                adapter,
-                version: this.props.repository[adapter]?.version,
-            }));
+            this.processList = [...this.state.selected]
+                .sort((a, b) => (a === 'eos-admin' ? 1 : b === 'eos-admin' ? -1 : a.localeCompare(b)))
+                .map(adapter => ({
+                    adapter,
+                    version: this.props.repository[adapter]?.version,
+                }));
 
             this.updateAdapters(() => {
                 this.setState({ inProcess: false, finished: true }, () => {

@@ -510,6 +510,78 @@
         window.location.assign(cleanRoot);
     };
 
+
+    let hardLogoutTimer = 0;
+    let hardLogoutPollTimer = 0;
+    let hardLogoutInstalled = false;
+
+    const clearAuthStorage = () => safe(() => {
+        const storageKeys = [
+            'App.refreshToken', 'App.accessToken', 'App.token', 'tokens', 'iobroker.admin.token',
+            'access_token', 'refresh_token', 'oidc_id_token', 'oidc_access_token', 'oidc_refresh_token'
+        ];
+        storageKeys.forEach(key => {
+            window.localStorage?.removeItem(key);
+            window.sessionStorage?.removeItem(key);
+            window._localStorage?.removeItem?.(key);
+        });
+        ['access_token', 'refresh_token', 'connect.sid', 'io', 'sid'].forEach(name => {
+            document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax`;
+            document.cookie = `${name}=; Max-Age=0; path=${new URL(ASSET_BASE).pathname || '/'}; SameSite=Lax`;
+        });
+    });
+
+    const hardLogout = () => {
+        clearAuthStorage();
+        const loginUrl = new URL('index.html?login', ASSET_BASE);
+        loginUrl.searchParams.set('eosLogout', 'timeout');
+        window.location.replace(loginUrl.href);
+    };
+
+    const scheduleHardLogoutCheck = delay => {
+        if (hardLogoutPollTimer) window.clearTimeout(hardLogoutPollTimer);
+        hardLogoutPollTimer = window.setTimeout(checkHardLogoutSession, Math.max(1000, delay || 15000));
+    };
+
+    async function checkHardLogoutSession() {
+        if (isLoginView() || !document.getElementById('app-paper')) {
+            scheduleHardLogoutCheck(10000);
+            return;
+        }
+        try {
+            const response = await fetch(new URL('session', ASSET_BASE).href, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { accept: 'application/json' },
+            });
+            const data = await response.json().catch(() => ({}));
+            const expireInSec = Number(data?.expireInSec);
+            if (Number.isFinite(expireInSec) && expireInSec <= 0) {
+                hardLogout();
+                return;
+            }
+            if (Number.isFinite(expireInSec) && expireInSec > 0) {
+                if (hardLogoutTimer) window.clearTimeout(hardLogoutTimer);
+                hardLogoutTimer = window.setTimeout(hardLogout, Math.max(1200, expireInSec * 1000 + 500));
+                scheduleHardLogoutCheck(Math.min(Math.max(5000, expireInSec * 500), 30000));
+                return;
+            }
+        } catch (_) {
+            // Network reconnects happen during updates/restarts. Do not log out on a transient request failure.
+        }
+        scheduleHardLogoutCheck(30000);
+    }
+
+    const installHardLogoutWatchdog = () => {
+        if (hardLogoutInstalled) return;
+        hardLogoutInstalled = true;
+        window.addEventListener('focus', () => checkHardLogoutSession(), { passive: true });
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) checkHardLogoutSession();
+        }, { passive: true });
+        scheduleHardLogoutCheck(2500);
+    };
+
     const ensureBrandBadge = toolbar => {
         if (!toolbar) return;
         document.querySelectorAll('.eos-brand-badge').forEach(existing => {
@@ -1104,6 +1176,7 @@
         ensureStandaloneNavToggle();
         installAssistDelegatedClick();
         ensureEosAssist();
+        installHardLogoutWatchdog();
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
@@ -1125,6 +1198,7 @@
         ensureStandaloneNavToggle();
         installAssistDelegatedClick();
         ensureEosAssist();
+        installHardLogoutWatchdog();
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();

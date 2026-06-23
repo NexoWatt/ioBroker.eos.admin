@@ -22,6 +22,15 @@ if (io.common.stopBeforeUpdate !== false) fail('io-package common.stopBeforeUpda
 if (io.common.dontDelete === true) fail('io-package common.dontDelete must not be true because it blocks clean updates');
 if (io.common.nondeletable === true) fail('io-package common.nondeletable must not be true because it blocks updates');
 
+const expectedBase = `https://unpkg.com/iobroker.eos-admin@${pkg.version}`;
+for (const [field, expected] of Object.entries({
+  extIcon: `${expectedBase}/admin/admin.svg`,
+  readme: `${expectedBase}/README.md`,
+  meta: `${expectedBase}/io-package.json`,
+})) {
+  if (io.common[field] !== expected) fail(`io-package common.${field} must be ${expected}, got ${io.common[field]}`);
+}
+
 for (const file of [
   'adminWww/index.html',
   'adminWww/js/eos-branding.js',
@@ -45,5 +54,10 @@ if (!bootstrapFiles.length) fail('missing bootstrap bundle');
 const bootstrap = bootstrapFiles.map(f => fs.readFileSync(path.join(root, 'adminWww/assets', f), 'utf8')).join('\n');
 if (!bootstrap.includes('window.adapterName="eos-admin"')) fail('frontend bootstrap does not set window.adapterName="eos-admin"');
 if (bootstrap.includes('window.adapterName="admin"')) fail('frontend bootstrap still contains window.adapterName="admin"');
+
+const webBuild = fs.readFileSync(path.join(root, 'build/lib/web.js'), 'utf8');
+if (!webBuild.includes("body.refresh_token = '';")) fail('build/lib/web.js does not remove OAuth refresh tokens for hard logout');
+if (!webBuild.includes("grantType === 'refresh_token'")) fail('build/lib/web.js does not reject refresh_token grants');
+if (!webBuild.includes('refreshLifetime: this.settings.ttl')) fail('build/lib/web.js does not bind refresh lifetime to ttl');
 
 console.log('[NexoWatt EOS package validation] OK');
