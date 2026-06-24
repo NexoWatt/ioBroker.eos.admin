@@ -175,7 +175,7 @@
                 _eosSecurityInfo: {
                     type: 'staticText',
                     newLine: true,
-                    text: 'EOS Sicherheit sperrt den alten Admin-Zugang, blendet ihn für Installateur- und Endkundenrollen aus und schützt ausgewählte Systemadapter. Updates bleiben möglich, weil keine harte nondeletable-Sperre verwendet wird.',
+                    text: 'EOS Sicherheit sperrt den alten Admin-Zugang, blendet ihn f\u00fcr Installateur- und Endkundenrollen aus und sch\u00fctzt ausgew\u00e4hlte Systemadapter. Updates bleiben m\u00f6glich, weil keine harte nondeletable-Sperre verwendet wird.',
                     xs: 12,
                     sm: 12,
                 },
@@ -222,7 +222,7 @@
                     newLine: true,
                     type: 'table',
                     label: 'EOS Administratorgruppen',
-                    help: 'Nur Mitglieder dieser Gruppen dürfen gesperrte EOS-Systembereiche sehen und warten. system.group.administrator ist immer enthalten.',
+                    help: 'Nur Mitglieder dieser Gruppen d\u00fcrfen gesperrte EOS-Systembereiche sehen und warten. system.group.administrator ist immer enthalten.',
                     xs: 12,
                     sm: 12,
                     items: [
@@ -256,8 +256,8 @@
                 eosProtectAdapterDeletion: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Systemadapter vor Löschen schützen',
-                    help: 'Schützt ausgewählte Adapter vor Löschen, Stoppen und kritischen Änderungen durch Installateur- und Endkundenrollen. Updates bleiben möglich.',
+                    label: 'Systemadapter vor L\u00f6schen sch\u00fctzen',
+                    help: 'Schützt ausgewählte Adapter in der EOS Oberfläche vor Löschen, Stoppen und kritischen Änderungen durch Installateur- und Endkundenrollen. Adaptereigene Funktionen und Updates bleiben möglich.',
                     xs: 12,
                     sm: 12,
                     md: 8,
@@ -266,9 +266,10 @@
                 eosApplyAdminOnlyAclToProtectedAdapters: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Geschützte Adapter nur durch Administratoren ändern lassen',
-                    help: 'Setzt Administratorrechte auf die Schutzliste. Installateur- und Endkundenrollen können diese Adapter nicht stoppen, aktivieren oder löschen; Administratoren können sie weiterhin aktualisieren und warten.',
+                    label: 'Strengen ACL-Schutz f\u00fcr gesch\u00fctzte Adapter aktivieren',
+                    help: 'Optionaler harter ACL-Schutz. Standardm\u00e4\u00dfig sch\u00fctzt EOS nur die Oberfl\u00e4che, damit Adapter wie BackItUp weiterhin uneingeschr\u00e4nkt laufen und Updates m\u00f6glich bleiben.',
                     hidden: '!data.eosProtectAdapterDeletion',
+                    default: false,
                     xs: 12,
                     sm: 12,
                     md: 8,
@@ -277,7 +278,7 @@
                 eosProtectedAdapters: {
                     newLine: true,
                     type: 'table',
-                    label: 'Geschützte Systemadapter',
+                    label: 'Gesch\u00fctzte Systemadapter',
                     hidden: '!data.eosProtectAdapterDeletion',
                     xs: 12,
                     sm: 12,

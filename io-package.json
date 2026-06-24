@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.36",
+    "version": "7.9.37",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,9 +18,9 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.36": {
-        "en": "Restores official admin session handling, fixes bad login redirect paths, and enables full native adapter configuration compatibility without EOS overlays blocking adapter UI actions.",
-        "de": "Stellt die offizielle Admin-Sitzungslogik wieder her, korrigiert fehlerhafte Login-Redirect-Pfade und aktiviert volle native Adapter-Konfigurationskompatibilität ohne blockierende EOS-Overlays."
+      "7.9.37": {
+        "en": "Fixes notification dialog closing/acknowledgement handling, keeps BackItUp untouched by EOS object protection, and repairs German EOS Security text encoding on settings pages.",
+        "de": "Korrigiert das Schließen/Bestätigen von Benachrichtigungen, lässt BackItUp von EOS-Objektschutz unverändert und repariert deutsche EOS-Sicherheitsbeschriftungen in den Einstellungen."
       },
       "7.9.35": {
         "en": "Fixes EOS Admin login redirect/logout origin handling and restores reliable interaction with adapter instance configuration dialogs.",
@@ -206,7 +206,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.36/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.37/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -217,7 +217,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.36/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.37/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -286,7 +286,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.36/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.37/io-package.json",
     "npmPackage": "iobroker.eos-admin"
   },
   "native": {
@@ -349,9 +349,10 @@
       }
     ],
     "eosAdminOnlyGroup": "system.group.administrator",
-    "eosApplyAdminOnlyAclToProtectedAdapters": true,
+    "eosApplyAdminOnlyAclToProtectedAdapters": false,
     "eosAssistantEnabled": true,
-    "eosAssistantAdminOnly": false
+    "eosAssistantAdminOnly": false,
+    "eosStrictProtectedAdapterAcl": false
   },
   "notifications": [
     {

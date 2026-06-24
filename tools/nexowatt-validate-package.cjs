@@ -62,5 +62,8 @@ if (!webBuild.includes('Follow upstream admin semantics again')) fail('build/lib
 if (index.includes('eos-hard-logout.js')) fail('adminWww/index.html must not load the removed custom hard-logout timer');
 if (!branding.includes('isAdapterConfigSurface')) fail('eos-branding.js lacks native adapter config safe-mode detection');
 if (!branding.includes('Adapter UIs must remain 100% functional')) fail('eos-branding.js lacks native adapter config interaction guard');
+if (!branding.includes('v37 eos notification close compatibility')) fail('eos-branding.js lacks v37 notification close guard');
+const mainBuild = fs.readFileSync(path.join(root, 'build/main.js'), 'utf8');
+if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks v37 BackItUp compatibility guard');
 
 console.log('[NexoWatt EOS package validation] OK');

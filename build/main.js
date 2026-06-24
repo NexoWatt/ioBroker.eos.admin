@@ -737,7 +737,8 @@ class Admin extends adapter_core_1.Adapter {
         return this.config.eosHideLegacyAdminFromNonAdmins !== false && this.config.eosHideLegacyAdminForNonAdmins !== false && this.config.nexowattHideLegacyAdminForNonAdmins !== false;
     }
     shouldApplyAdminOnlyAclToProtectedAdapters() {
-        return this.config.eosApplyAdminOnlyAclToProtectedAdapters !== false;
+        const config = this.config;
+        return config.eosStrictProtectedAdapterAcl === true && this.config.eosApplyAdminOnlyAclToProtectedAdapters === true;
     }
     getAdminOnlyGroup() {
         const configuredGroups = normalizeAdminOnlyGroups(this.config.eosAdminOnlyGroups || this.config.eosSecurityAdminGroups);
@@ -837,8 +838,8 @@ class Admin extends adapter_core_1.Adapter {
             obj.common.nondeletable = false;
             changed = true;
         }
+        const targetAcl = this.getAdminOnlyAcl();
         if (options.adminOnlyAcl) {
-            const targetAcl = this.getAdminOnlyAcl();
             const acl = (obj.acl ||= {});
             if (acl.owner !== targetAcl.owner) {
                 acl.owner = targetAcl.owner;
@@ -853,6 +854,10 @@ class Admin extends adapter_core_1.Adapter {
                 changed = true;
             }
         }
+        else if (obj.acl && obj.acl.owner === targetAcl.owner && obj.acl.ownerGroup === targetAcl.ownerGroup && obj.acl.object === targetAcl.object) {
+            delete obj.acl;
+            changed = true;
+        }
         if (changed) {
             await this.setForeignObjectAsync(id, obj);
         }
@@ -863,7 +868,12 @@ class Admin extends adapter_core_1.Adapter {
             return;
         }
         const isEosAdmin = adapter === EOS_ADMIN_ADAPTER_NAME;
-        const adminOnlyAcl = isEosAdmin || this.shouldApplyAdminOnlyAclToProtectedAdapters();
+        const adminOnlyAcl = isEosAdmin || (this.shouldApplyAdminOnlyAclToProtectedAdapters() && adapter !== 'backitup');
+        // v37 BackItUp/runtime-adapter compatibility: keep default protection UI/role based.
+        // Do not rewrite common/ACL of runtime adapters unless explicitly configured.
+        if (!isEosAdmin && !adminOnlyAcl) {
+            return;
+        }
         let changed = await this.ensureObjectProtectionPolicy(`system.adapter.${adapter}`, {
             keepDontDelete: false,
             adminOnlyAcl,

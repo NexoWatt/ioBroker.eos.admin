@@ -3321,7 +3321,7 @@ html.eos-app #eos-assist-root {
 }
 
 
-/* === NexoWatt EOS v36: native adapter configuration safe mode =============
+/* === NexoWatt EOS v37: native adapter configuration safe mode =============
    Custom adapter configuration pages (React/HTML/jsonConfig) must be fully
    controlled by the adapter itself. EOS shell decoration is disabled inside the
    content area so buttons such as "Gerät hinzufügen" and "Gerät bearbeiten" stay
@@ -3370,4 +3370,102 @@ html.eos-app.eos-adapter-config-surface #app-paper .eos-protected-adapter-row {
     opacity: 1 !important;
     filter: none !important;
     pointer-events: auto !important;
+}
+
+/* === NexoWatt EOS v37: notification close compatibility ==================
+   Toasts/snackbars/alerts must stay above EOS decoration and their close
+   actions must remain clickable on all routes. */
+html.eos-app .MuiSnackbar-root,
+html.eos-app .SnackbarItem-root,
+html.eos-app .SnackbarItem-wrappedRoot,
+html.eos-app .notistack-Snackbar,
+html.eos-app .Toastify__toast-container,
+html.eos-app .Toastify__toast,
+html.eos-app [role="alert"],
+html.eos-app .MuiAlert-root {
+    pointer-events: auto !important;
+    z-index: 5200 !important;
+}
+html.eos-app .MuiSnackbar-root button,
+html.eos-app .SnackbarItem-root button,
+html.eos-app .notistack-Snackbar button,
+html.eos-app .Toastify__toast button,
+html.eos-app .MuiAlert-root button,
+html.eos-app [role="alert"] button,
+html.eos-app button[aria-label="close"],
+html.eos-app button[aria-label="Close"],
+html.eos-app button[title="Schließen"],
+html.eos-app button[title="Close"] {
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 5201 !important;
+}
+html.eos-app .MuiSnackbar-root svg,
+html.eos-app .SnackbarItem-root svg,
+html.eos-app .MuiAlert-root svg,
+html.eos-app [role="alert"] svg {
+    pointer-events: none !important;
+}
+
+/* v37: BackItUp-safe mode. EOS keeps delete/stop controls protected in the UI,
+   but does not force adapter-object ACLs for runtime adapters by default. */
+html.eos-app .eos-backitup-safe-note { color: rgba(226,245,255,.78); }
+
+/* v37: native Admin notifications must always be closable. */
+html.eos-app .MuiSnackbar-root,
+html.eos-app .MuiAlert-root,
+html.eos-app .MuiSnackbarContent-root,
+html.eos-app [role="alert"],
+html.eos-app .Toastify__toast,
+html.eos-app .notistack-Snackbar,
+html.eos-app .eos-notification-safe {
+    pointer-events: auto !important;
+    z-index: 5200 !important;
+}
+html.eos-app .MuiSnackbar-root button,
+html.eos-app .MuiAlert-root button,
+html.eos-app .MuiSnackbarContent-root button,
+html.eos-app [role="alert"] button,
+html.eos-app .Toastify__toast button,
+html.eos-app .notistack-Snackbar button,
+html.eos-app .eos-notification-safe button,
+html.eos-app .eos-notification-safe [role="button"],
+html.eos-app .eos-notification-safe a,
+html.eos-app .eos-notification-safe .MuiIconButton-root {
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+html.eos-app .eos-notification-safe .eos-protected-delete-control,
+html.eos-app .eos-notification-safe .eos-security-hidden-delete {
+    display: inline-flex !important;
+    pointer-events: auto !important;
+}
+
+
+/* v37 notification dialog safety: notification dialogs must stay fully native/clickable. */
+html.eos-app .eos-notification-dialog-root,
+html.eos-app .MuiModal-root:has(#notifications-dialog-close),
+html.eos-app .MuiDialog-root:has(#notifications-dialog-close) {
+    pointer-events: auto !important;
+    z-index: 4300 !important;
+}
+html.eos-app .eos-notification-dialog,
+html.eos-app .MuiDialog-paper:has(#notifications-dialog-close) {
+    pointer-events: auto !important;
+    z-index: 4301 !important;
+}
+html.eos-app .eos-notification-dialog button,
+html.eos-app .eos-notification-dialog [role="button"],
+html.eos-app .MuiDialog-paper:has(#notifications-dialog-close) button,
+html.eos-app .MuiDialog-paper:has(#notifications-dialog-close) [role="button"] {
+    pointer-events: auto !important;
+    visibility: visible !important;
+}
+
+/* v37: security text must never show mojibake-like fragments after runtime repair. */
+html.eos-app .eos-security-admin-only-field,
+html.eos-app .eos-settings-dialog {
+    unicode-bidi: plaintext;
 }

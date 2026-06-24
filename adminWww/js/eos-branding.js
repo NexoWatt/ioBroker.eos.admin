@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v36-native-config-session-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v37-notification-backitup-security-text-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -47,6 +47,46 @@
         'ZugÃ¤nge': 'Zugänge', 'zugÃ¤nge': 'zugänge',
         'ÃŸ': 'ß', 'Ã„': 'Ä', 'Ã–': 'Ö', 'Ãœ': 'Ü', 'Ã¤': 'ä', 'Ã¶': 'ö', 'Ã¼': 'ü'
     }));
+
+
+
+    const decodeMojibakeChunk = chunk => {
+        try {
+            const bytes = Uint8Array.from(Array.from(chunk, char => char.charCodeAt(0) & 0xff));
+            const decoded = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+            return decoded && decoded !== chunk ? decoded : chunk;
+        } catch (_) {
+            return chunk;
+        }
+    };
+
+    const repairMojibake = value => {
+        let text = String(value || '');
+        // Repair common UTF-8-as-Latin1 fragments, including double-encoded strings
+        // such as dÃƒÂ¼rfen, LÃƒÂ¶schen, geschÃƒÂ¼tzt.
+        for (let i = 0; i < 3 && /(?:Ã.|Â.|â.|�)/.test(text); i += 1) {
+            const repaired = text.replace(/[\u00C2-\u00F4][\u0080-\u00BF\u00A0-\u00BF]+/g, decodeMojibakeChunk);
+            if (repaired === text) break;
+            text = repaired;
+        }
+        const hardMap = new Map(Object.entries({
+            'dÃƒÂ¼rfen': 'dürfen', 'dÃ¼rfen': 'dürfen', 'DÃƒÂ¼rfen': 'Dürfen', 'DÃ¼rfen': 'Dürfen',
+            'fÃƒÂ¼r': 'für', 'fÃ¼r': 'für', 'FÃƒÂ¼r': 'Für', 'FÃ¼r': 'Für',
+            'kÃƒÂ¶nnen': 'können', 'kÃ¶nnen': 'können', 'KÃƒÂ¶nnen': 'Können', 'KÃ¶nnen': 'Können',
+            'mÃƒÂ¶glich': 'möglich', 'mÃ¶glich': 'möglich', 'MÃƒÂ¶glich': 'Möglich', 'MÃ¶glich': 'Möglich',
+            'LÃƒÂ¶schen': 'Löschen', 'LÃ¶schen': 'Löschen', 'lÃƒÂ¶schen': 'löschen', 'lÃ¶schen': 'löschen',
+            'schÃƒÂ¼tzen': 'schützen', 'schÃ¼tzen': 'schützen', 'SchÃƒÂ¼tzen': 'Schützen', 'SchÃ¼tzen': 'Schützen',
+            'GeschÃƒÂ¼tzte': 'Geschützte', 'GeschÃ¼tzte': 'Geschützte', 'geschÃƒÂ¼tzte': 'geschützte', 'geschÃ¼tzte': 'geschützte',
+            'ausgewÃƒÂ¤hlte': 'ausgewählte', 'ausgewÃ¤hlte': 'ausgewählte', 'AusgewÃƒÂ¤hlte': 'Ausgewählte', 'AusgewÃ¤hlte': 'Ausgewählte',
+            'ÃƒÂ¤ndern': 'ändern', 'Ã¤ndern': 'ändern', 'ÃƒÅ“ber': 'Über', 'Ãœber': 'Über', 'ÃƒÂ¼ber': 'über', 'Ã¼ber': 'über',
+            'GerÃƒÂ¤t': 'Gerät', 'GerÃ¤t': 'Gerät', 'GerÃƒÂ¤te': 'Geräte', 'GerÃ¤te': 'Geräte',
+            'schlieÃƒÅ¸en': 'schließen', 'schlieÃŸen': 'schließen', 'ÃƒÅ¸': 'ß', 'ÃŸ': 'ß',
+            'ÃƒÂ¤': 'ä', 'Ã¤': 'ä', 'ÃƒÂ¶': 'ö', 'Ã¶': 'ö', 'ÃƒÂ¼': 'ü', 'Ã¼': 'ü',
+            'Ãƒâ€ž': 'Ä', 'Ã„': 'Ä', 'Ãƒâ€“': 'Ö', 'Ã–': 'Ö', 'ÃƒÅ“': 'Ü', 'Ãœ': 'Ü', 'Â ': ' ', 'Â': ''
+        }));
+        for (const [from, to] of hardMap) if (text.includes(from)) text = text.split(from).join(to);
+        return text;
+    };
 
     const EXACT_LABELS = new Map(Object.entries({
         'Admin': BRAND,
@@ -104,11 +144,13 @@
 
     const replaceBrand = value => {
         if (!value || typeof value !== 'string') return value;
-        let next = value;
+        let next = repairMojibake(value);
         for (const [from, to] of MOJIBAKE_REPLACEMENTS) {
             if (next.includes(from)) next = next.split(from).join(to);
         }
+        next = repairMojibake(next);
         for (const [pattern, replacement] of TEXT_REPLACEMENTS) next = next.replace(pattern, replacement);
+        next = repairMojibake(next);
         const compact = next.trim();
         if (EXACT_LABELS.has(compact)) next = next.replace(compact, EXACT_LABELS.get(compact));
         return next;
@@ -143,6 +185,32 @@
         });
         let node;
         while ((node = walker.nextNode())) patchTextNode(node);
+    });
+
+
+    const patchMojibakeTextNode = node => {
+        if (!node || node.nodeType !== Node.TEXT_NODE || !node.nodeValue) return;
+        if (skipElement(node.parentElement)) return;
+        const before = node.nodeValue;
+        const after = repairMojibake(before);
+        if (after !== before) node.nodeValue = after;
+    };
+
+    const patchMojibakeTextNodes = root => safe(() => {
+        if (!root) return;
+        if (root.nodeType === Node.TEXT_NODE) {
+            patchMojibakeTextNode(root);
+            return;
+        }
+        if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_NODE) return;
+        if (skipElement(root)) return;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                return skipElement(node.parentElement) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+            }
+        });
+        let node;
+        while ((node = walker.nextNode())) patchMojibakeTextNode(node);
     });
 
     const patchImage = img => {
@@ -335,6 +403,26 @@
         });
     };
 
+
+    const releaseNotificationControls = () => safe(() => {
+        // v37: notification/snackbar close buttons belong to the native Admin UI.
+        // They must never be disabled or covered by EOS security/layout layers.
+        document.querySelectorAll('.MuiSnackbar-root, .MuiAlert-root, .MuiSnackbarContent-root, [role="alert"], .Toastify__toast, .notistack-Snackbar').forEach(box => {
+            box.classList.add('eos-notification-safe');
+            box.style.pointerEvents = 'auto';
+            box.querySelectorAll('button, [role="button"], a, .MuiIconButton-root, svg').forEach(control => {
+                control.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete');
+                control.removeAttribute('disabled');
+                control.removeAttribute('aria-disabled');
+                if ('disabled' in control) control.disabled = false;
+                control.style.pointerEvents = 'auto';
+                control.style.display = '';
+                control.style.visibility = '';
+                control.style.opacity = '';
+            });
+        });
+    });
+
     const protectDeleteDialogs = () => {
         if (isAdminUser() || state.securityPolicy.restrictProtectedAdapterControls === false) return;
         const protectedAdapters = state.securityPolicy.protectedAdapters || [];
@@ -398,6 +486,7 @@
     const applySecurityUiGuard = () => safe(() => {
         const policy = state.securityPolicy;
         applySecurityClasses();
+        releaseNotificationControls();
         // Do not apply EOS security decoration inside native adapter configuration pages.
         // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
         if (isAdapterConfigSurface()) return;
@@ -747,6 +836,7 @@
         }
         patchDrawerHeader(document.querySelector('.MuiDrawer-paper'));
         hideNativeLogoutNav();
+        patchNotifications();
         removeLogoutButton();
     });
 
@@ -867,6 +957,26 @@
     });
 
 
+    
+
+    const ensureNotificationDialogClasses = () => safe(() => {
+        document.querySelectorAll('.MuiDialog-root, .MuiModal-root, [role="presentation"]').forEach(root => {
+            const paper = root.querySelector?.('.MuiDialog-paper, [role="dialog"]');
+            if (!paper) return;
+            const txt = normalize(paper.textContent || '');
+            if (!/(benachrichtigungen|notifications|acknowledge|bestätigen|schließen|close)/i.test(txt) && !paper.querySelector('#notifications-dialog-close')) return;
+            root.classList.add('eos-notification-dialog-root');
+            paper.classList.add('eos-notification-dialog');
+            paper.querySelectorAll('button, [role="button"], a, .MuiButtonBase-root, .MuiIconButton-root').forEach(control => {
+                control.style.pointerEvents = 'auto';
+                control.style.userSelect = 'auto';
+                if (control.getAttribute('aria-disabled') === 'true' && /schließen|close/i.test(control.textContent || control.getAttribute('aria-label') || control.getAttribute('title') || '')) {
+                    control.removeAttribute('aria-disabled');
+                }
+            });
+        });
+    });
+
     const ensureSettingsDialogClasses = () => safe(() => {
         const dialogs = Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"]'));
         dialogs.forEach(dialog => {
@@ -919,6 +1029,28 @@
         });
     });
 
+
+
+
+    const patchNotifications = () => safe(() => {
+        const selectors = [
+            '.MuiSnackbar-root', '.SnackbarItem-root', '.SnackbarItem-wrappedRoot', '.notistack-Snackbar',
+            '.Toastify__toast-container', '.Toastify__toast', '.MuiAlert-root', '[role="alert"]'
+        ];
+        document.querySelectorAll(selectors.join(',')).forEach(node => {
+            node.classList.add('eos-notification-surface');
+            if (node.style) {
+                node.style.pointerEvents = 'auto';
+                if (!node.closest('.MuiDialog-root')) node.style.zIndex = '5200';
+            }
+            node.querySelectorAll('button,[role="button"],a').forEach(control => {
+                control.classList.add('eos-notification-action');
+                control.style.pointerEvents = 'auto';
+                control.style.visibility = 'visible';
+                control.style.opacity = '1';
+            });
+        });
+    });
 
     const applyNavCompactPreference = () => safe(() => {
         const compact = localStorage.getItem('nexowatt:eosNavCompact') === '1';
@@ -1223,10 +1355,17 @@
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
+        ensureNotificationDialogClasses();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
+        patchNotifications();
         applySecurityUiGuard();
         if (isAdapterConfigSurface()) {
+            // Adapter-owned configuration pages must not be rebranded or structurally patched.
+            // We still repair broken UTF-8/mojibake text because jsonConfig labels can be
+            // rendered through different legacy paths. This is text-only and does not touch
+            // adapter controls, React state, events or attributes.
+            patchMojibakeTextNodes(document.getElementById('app-paper'));
             ['.MuiAppBar-root', '.MuiDrawer-paper', 'nav', '.eos-brand-badge', '.eos-top-toolbar'].forEach(selector => {
                 document.querySelectorAll(selector).forEach(scope => {
                     patchTextNodes(scope);
@@ -1255,12 +1394,17 @@
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
+        ensureNotificationDialogClasses();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
+        patchNotifications();
         applySecurityUiGuard();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
-            if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) continue;
+            if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) {
+                patchMojibakeTextNodes(scope);
+                continue;
+            }
             patchTextNodes(scope);
             patchAttributes(scope);
         }
@@ -1291,14 +1435,17 @@
         const observer = new MutationObserver(mutations => {
             for (const mutation of mutations) {
                 if (mutation.type === 'characterData') {
-                    patchTextNode(mutation.target);
+                    if (isAdapterConfigSurface() && mutation.target?.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(mutation.target);
+                    else patchTextNode(mutation.target);
                     continue;
                 }
                 if (mutation.type !== 'childList') continue;
                 mutation.addedNodes.forEach(node => {
                     if (!node) return;
-                    if (node.nodeType === Node.TEXT_NODE) patchTextNode(node);
-                    else if (node.nodeType === Node.ELEMENT_NODE) state.pendingScopes.add(node);
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        if (isAdapterConfigSurface() && node.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(node);
+                        else patchTextNode(node);
+                    } else if (node.nodeType === Node.ELEMENT_NODE) state.pendingScopes.add(node);
                 });
             }
             if (state.pendingScopes.size) scheduleScopePatch();
@@ -1326,4 +1473,22 @@
     }
     window.addEventListener('load', () => scheduleFullPatch(0), { once: true });
     window.addEventListener('hashchange', () => scheduleFullPatch(0));
+})();
+
+
+// v37 eos notification close compatibility: never let EOS overlays block native notification dialogs.
+(() => {
+    const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+    document.addEventListener('click', event => {
+        const target = event.target?.closest?.('button, [role="button"], a, .MuiButtonBase-root, .MuiIconButton-root');
+        if (!target) return;
+        const dialog = target.closest?.('.eos-notification-dialog, .MuiDialog-paper, [role="dialog"]');
+        if (!dialog || !/benachrichtigungen|notifications|acknowledge|bestätigen|schließen|close/i.test(dialog.textContent || '')) return;
+        const label = normalize(`${target.textContent || ''} ${target.getAttribute?.('aria-label') || ''} ${target.getAttribute?.('title') || ''}`);
+        if (/schließen|close|bestätigen|acknowledge/i.test(label)) {
+            target.style.pointerEvents = 'auto';
+            // Do not prevent React handlers; only stop EOS-specific bubbling side effects.
+            event.stopPropagation();
+        }
+    }, true);
 })();

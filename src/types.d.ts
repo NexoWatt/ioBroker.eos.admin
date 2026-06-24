@@ -54,6 +54,8 @@ export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
     eosHideLegacyAdminForNonAdmins?: boolean;
     /** Apply administrator-only ACLs to selected protected adapters. */
     eosApplyAdminOnlyAclToProtectedAdapters?: boolean;
+    /** Optional hard ACL mode for protected adapters. Disabled by default because adapter-owned runtime/config behaviour must remain untouched. */
+    eosStrictProtectedAdapterAcl?: boolean;
     /** Hide protected adapter delete controls for non-admin groups. */
     eosRestrictProtectedAdapterControls?: boolean;
     /** Adapter names configured by the EOS administrator as protected system components. */

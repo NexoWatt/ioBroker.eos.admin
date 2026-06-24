@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v31-security-text-polish';
+    const VERSION = 'v37-security-notification-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const ASSET_BASE = (() => {
@@ -34,14 +34,24 @@
         let text = String(value || '');
         const map = new Map(Object.entries({
             'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen', 'fÃ¼r': 'für', 'FÃ¼r': 'Für',
-            'kÃ¶nnen': 'können', 'KÃ¶nnen': 'Können', 'mÃ¶glich': 'möglich', 'MÃ¶glich': 'Möglich',
-            'LÃ¶schen': 'Löschen', 'lÃ¶schen': 'löschen', 'schÃ¼tzen': 'schützen', 'SchÃ¼tzen': 'Schützen',
-            'SchÃ¼tzt': 'Schützt', 'schÃ¼tzt': 'schützt', 'GeschÃ¼tzte': 'Geschützte', 'geschÃ¼tzte': 'geschützte',
+            'mÃ¼ssen': 'müssen', 'MÃ¼ssen': 'Müssen', 'kÃ¶nnen': 'können', 'KÃ¶nnen': 'Können',
+            'mÃ¶glich': 'möglich', 'MÃ¶glich': 'Möglich', 'LÃ¶schen': 'Löschen', 'lÃ¶schen': 'löschen',
+            'schÃ¼tzen': 'schützen', 'SchÃ¼tzen': 'Schützen', 'SchÃ¼tzt': 'Schützt', 'schÃ¼tzt': 'schützt',
+            'GeschÃ¼tzte': 'Geschützte', 'geschÃ¼tzte': 'geschützte', 'GeschÃ¼tzter': 'Geschützter',
             'ausgewÃ¤hlte': 'ausgewählte', 'AusgewÃ¤hlte': 'Ausgewählte', 'Ã¤ndern': 'ändern', 'Ã„ndern': 'Ändern',
             'Ã¼ber': 'über', 'Ãœber': 'Über', 'WÃ¤hle': 'Wähle', 'wÃ¤hle': 'wähle',
-            'ÃŸ': 'ß', 'Ã„': 'Ä', 'Ã–': 'Ö', 'Ãœ': 'Ü', 'Ã¤': 'ä', 'Ã¶': 'ö', 'Ã¼': 'ü'
+            'Ã¶ffnen': 'öffnen', 'Ã–ffnen': 'Öffnen', 'schlieÃŸen': 'schließen', 'SchlieÃŸen': 'Schließen',
+            'GerÃ¤t': 'Gerät', 'GerÃ¤te': 'Geräte', 'GerÃ¤teliste': 'Geräteliste',
+            'ÃŸ': 'ß', 'Ã„': 'Ä', 'Ã–': 'Ö', 'Ãœ': 'Ü', 'Ã¤': 'ä', 'Ã¶': 'ö', 'Ã¼': 'ü', 'Â': ''
         }));
         for (const [from, to] of map) if (text.includes(from)) text = text.split(from).join(to);
+        // Generic Latin1-as-UTF8 repair for labels injected by older bundles. Guard against false positives.
+        if (/[ÃÂ]/.test(text)) {
+            try {
+                const repaired = decodeURIComponent(escape(text));
+                if (/[äöüÄÖÜß]/.test(repaired) && !/[ÃÂ]/.test(repaired)) text = repaired;
+            } catch { /* keep mapped text */ }
+        }
         return text;
     };
     const normalizeFlat = value => normalize(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -220,18 +230,38 @@
     };
 
     const applyPolicyToDom = () => {
-        if (isAdapterConfigSurface()) return;
+        // Text repair is safe and must also run on adapter config pages.
+        replaceTextNodes();
         const admin = isAdminUser();
         document.documentElement.classList.toggle('eos-security-admin-user', admin);
         document.documentElement.classList.toggle('eos-security-non-admin-user', !admin);
         document.documentElement.classList.toggle('eos-security-nonadmin', !admin);
-        replaceTextNodes();
+        releaseNotificationControls();
+        if (isAdapterConfigSurface()) return;
         hideLegacyAdminPanels();
         hideProtectedDeleteControls();
         hideEosSecuritySettingsForNonAdmins();
     };
 
     const isAdapterConfigSurface = () => document.documentElement.classList.contains('eos-adapter-config-surface') || /Instanzeinstellungen:|Instance settings:|Geräteliste|Gerät hinzufügen|Gerät bearbeiten/i.test(document.body?.textContent || '');
+
+    const releaseNotificationControls = () => {
+        // Never block notification/toast close actions. These controls are owned by
+        // the native Admin UI and must remain clickable regardless of EOS security rules.
+        document.querySelectorAll('.MuiSnackbar-root, .MuiAlert-root, .MuiSnackbarContent-root, [role="alert"], .Toastify__toast, .notistack-Snackbar').forEach(box => {
+            box.classList.add('eos-notification-safe');
+            box.style.pointerEvents = 'auto';
+            box.querySelectorAll('button, [role="button"], a, .MuiIconButton-root').forEach(control => {
+                control.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete');
+                control.removeAttribute('disabled');
+                control.removeAttribute('aria-disabled');
+                if ('disabled' in control) control.disabled = false;
+                control.style.pointerEvents = 'auto';
+                control.style.display = '';
+                control.style.visibility = '';
+            });
+        });
+    };
 
     const scheduleApply = () => {
         if (state.scheduled) return;

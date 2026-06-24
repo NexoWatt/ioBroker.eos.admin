@@ -938,7 +938,13 @@ class Admin extends Adapter {
     }
 
     private shouldApplyAdminOnlyAclToProtectedAdapters(): boolean {
-        return this.config.eosApplyAdminOnlyAclToProtectedAdapters !== false;
+        // v37: Do not apply hard object ACLs to runtime/business adapters by default.
+        // BackItUp and adapter-specific configuration pages can break when their adapter/instance
+        // objects are restricted too aggressively. Delete/stop protection is enforced by EOS UI
+        // policy and backend guards, while hard ACLs remain reserved for the legacy admin and
+        // eos-admin itself.
+        const config = this.config as Record<string, unknown>;
+        return config.eosStrictProtectedAdapterAcl === true && this.config.eosApplyAdminOnlyAclToProtectedAdapters === true;
     }
 
     private getAdminOnlyGroup(): string {
@@ -1072,8 +1078,9 @@ class Admin extends Adapter {
             changed = true;
         }
 
+        const targetAcl = this.getAdminOnlyAcl();
+
         if (options.adminOnlyAcl) {
-            const targetAcl = this.getAdminOnlyAcl();
             const acl = (obj.acl ||= {}) as Record<string, unknown>;
 
             if (acl.owner !== targetAcl.owner) {
@@ -1090,6 +1097,14 @@ class Admin extends Adapter {
                 acl.object = targetAcl.object;
                 changed = true;
             }
+        } else if (obj.acl
+            && (obj.acl as Record<string, unknown>).owner === targetAcl.owner
+            && (obj.acl as Record<string, unknown>).ownerGroup === targetAcl.ownerGroup
+            && (obj.acl as Record<string, unknown>).object === targetAcl.object) {
+            // v37 repair: remove stale EOS admin-only ACLs from runtime adapters such as
+            // BackItUp. Those ACLs can disturb adapter internals and adapter-owned config UIs.
+            delete (obj as ioBroker.AnyObject).acl;
+            changed = true;
         }
 
         if (changed) {
@@ -1105,7 +1120,15 @@ class Admin extends Adapter {
         }
 
         const isEosAdmin = adapter === EOS_ADMIN_ADAPTER_NAME;
-        const adminOnlyAcl = isEosAdmin || this.shouldApplyAdminOnlyAclToProtectedAdapters();
+        const adminOnlyAcl = isEosAdmin || (this.shouldApplyAdminOnlyAclToProtectedAdapters() && adapter !== 'backitup');
+
+        // v37 BackItUp/runtime-adapter compatibility:
+        // default EOS protection is UI/role based. Do not rewrite common/ACL of runtime adapters
+        // such as backitup unless the admin explicitly enables ACL protection for protected adapters.
+        if (!isEosAdmin && !adminOnlyAcl) {
+            return;
+        }
+
         let changed = await this.ensureObjectProtectionPolicy(`system.adapter.${adapter}`, {
             keepDontDelete: false,
             adminOnlyAcl,

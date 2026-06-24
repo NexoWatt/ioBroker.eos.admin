@@ -63,10 +63,10 @@
   "Read about Let's Encrypt certificates": "Mehr über Let's Encrypt-Zertifikate lesen",
   "Reverse proxy": "Reverse-Proxy",
   "Run as": "Ausführen als",
-  "Schützt ausgewählte Adapter für Installateur-/Endkundenbenutzer über Administrator-ACLs und EOS-UI-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.": "Schützt ausgewählte Adapter für Installateur- und Endkundenbenutzer über Administratorrechte und EOS-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.",
+  "Schützt ausgewählte Adapter in der EOS Oberfläche vor kritischen Aktionen durch Installateur- und Endkundenrollen. Adaptereigene Funktionen und Updates bleiben möglich.": "Schützt ausgewählte Adapter für Installateur- und Endkundenbenutzer über Administratorrechte und EOS-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.",
   "Secure(HTTPS)": "Verschlüsselte Verbindung (HTTPS)",
   "Set certificates or load it first in the system settings (right top).": "Zertifikate wählen bzw. Zertifikate in den Systemeinstellungen (oben rechts) hinterlegen.",
-  "Setzt Administrator-ACLs auf die geschützte Adapterliste. Installateur-/Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen; Administratoren können sie weiterhin updaten und warten.": "Setzt Administratorrechte auf die geschützte Adapterliste. Installateur- und Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen. Administratoren können sie weiterhin updaten und warten.",
+  "Blendet kritische Aktionen für Installateur- und Endkundenrollen aus. Harte ACL-Sperren werden nicht auf Runtime-Adapter gesetzt, damit BackItUp und adaptereigene Konfigurationen stabil bleiben.": "Setzt Administratorrechte auf die geschützte Adapterliste. Installateur- und Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen. Administratoren können sie weiterhin updaten und warten.",
   "Sperr-Adresse des alten Admins": "Sperr-Adresse des alten Admins",
   "Sperr-Port des alten Admins": "Sperr-Port des alten Admins",
   "Tab": "Registerkarte",
@@ -108,5 +108,9 @@
   "tooltip_secure": "SSL Verschlüsselung aktivieren. Die Admin-Oberfläche ist unter https:// und nicht mehr unter http:// erreichbar",
   "tooltip_thresholdValue": "Wenn der Browser in 3 Sekunden zu viele Ereignisse empfängt, wird das Aktualisieren der Daten vorübergehend beendet",
   "tooltip_ttl": "Nach dieser Zeit wird ein inaktiver Benutzer ausgeloggt.",
-  "users permissions": "Benutzerberechtigungen"
+  "users permissions": "Benutzerberechtigungen",
+  "Systemadapter vor Löschen schützen": "Systemadapter vor Löschen schützen",
+  "Strengen ACL-Schutz für geschützte Adapter aktivieren": "Strengen ACL-Schutz für geschützte Adapter aktivieren",
+  "Schützt ausgewählte Adapter in der EOS Oberfläche vor Löschen, Stoppen und kritischen Änderungen durch Installateur- und Endkundenrollen. Adaptereigene Funktionen und Updates bleiben möglich.": "Schützt ausgewählte Adapter in der EOS Oberfläche vor Löschen, Stoppen und kritischen Änderungen durch Installateur- und Endkundenrollen. Adaptereigene Funktionen und Updates bleiben möglich.",
+  "Optionaler harter ACL-Schutz. Standardmäßig schützt EOS nur die Oberfläche, damit Adapter wie BackItUp weiterhin uneingeschränkt laufen und Updates möglich bleiben.": "Optionaler harter ACL-Schutz. Standardmäßig schützt EOS nur die Oberfläche, damit Adapter wie BackItUp weiterhin uneingeschränkt laufen und Updates möglich bleiben."
 }

@@ -63,10 +63,10 @@
   "Read about Let's Encrypt certificates": "阅读让我们加密证书",
   "Reverse proxy": "反向代理",
   "Run as": "运行身份",
-  "Schützt ausgewählte Adapter für Installateur-/Endkundenbenutzer über Administrator-ACLs und EOS-UI-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.": "Schützt ausgewählte Adapter für Installateur- und Endkundenbenutzer über Administratorrechte und EOS-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.",
+  "Schützt ausgewählte Adapter in der EOS Oberfläche vor kritischen Aktionen durch Installateur- und Endkundenrollen. Adaptereigene Funktionen und Updates bleiben möglich.": "Schützt ausgewählte Adapter für Installateur- und Endkundenbenutzer über Administratorrechte und EOS-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.",
   "Secure(HTTPS)": "安全（HTTPS）",
   "Set certificates or load it first in the system settings (right top).": "设置证书或者在系统设置中加载证书（右上角）。",
-  "Setzt Administrator-ACLs auf die geschützte Adapterliste. Installateur-/Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen; Administratoren können sie weiterhin updaten und warten.": "Setzt Administratorrechte auf die geschützte Adapterliste. Installateur- und Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen. Administratoren können sie weiterhin updaten und warten.",
+  "Blendet kritische Aktionen für Installateur- und Endkundenrollen aus. Harte ACL-Sperren werden nicht auf Runtime-Adapter gesetzt, damit BackItUp und adaptereigene Konfigurationen stabil bleiben.": "Setzt Administratorrechte auf die geschützte Adapterliste. Installateur- und Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen. Administratoren können sie weiterhin updaten und warten.",
   "Sperr-Adresse des alten Admins": "Sperr-Adresse des alten Admins",
   "Sperr-Port des alten Admins": "Sperr-Port des alten Admins",
   "Tab": "标签页",
@@ -108,5 +108,7 @@
   "tooltip_secure": "启用SSL协议。admin界面将通过https://而不是http://访问",
   "tooltip_thresholdValue": "如果浏览器在3秒内收到太多事件，将停止刷新",
   "tooltip_ttl": "登录超时时间。超时后用户将自动注销。",
-  "users permissions": "用户权限"
+  "users permissions": "用户权限",
+  "Systemadapter vor Löschen schützen": "Protect system adapters from deletion",
+  "Strengen ACL-Schutz für geschützte Adapter aktivieren": "Enable strict ACL protection for protected adapters"
 }

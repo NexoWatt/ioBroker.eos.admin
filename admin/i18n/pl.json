@@ -63,10 +63,10 @@
   "Read about Let's Encrypt certificates": "Przeczytaj o certyfikatach Let's Encrypt",
   "Reverse proxy": "Odwrotne proxy",
   "Run as": "Uruchom jako",
-  "Schützt ausgewählte Adapter für Installateur-/Endkundenbenutzer über Administrator-ACLs und EOS-UI-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.": "Schützt ausgewählte Adapter für Installateur- und Endkundenbenutzer über Administratorrechte und EOS-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.",
+  "Schützt ausgewählte Adapter in der EOS Oberfläche vor kritischen Aktionen durch Installateur- und Endkundenrollen. Adaptereigene Funktionen und Updates bleiben möglich.": "Schützt ausgewählte Adapter für Installateur- und Endkundenbenutzer über Administratorrechte und EOS-Regeln. dontDelete und nondeletable bleiben false, damit Updates weiter funktionieren.",
   "Secure(HTTPS)": "Bezpieczne (HTTPS)",
   "Set certificates or load it first in the system settings (right top).": "Ustaw certyfikaty lub załaduj najpierw w ustawieniach systemu (prawy górny).",
-  "Setzt Administrator-ACLs auf die geschützte Adapterliste. Installateur-/Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen; Administratoren können sie weiterhin updaten und warten.": "Setzt Administratorrechte auf die geschützte Adapterliste. Installateur- und Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen. Administratoren können sie weiterhin updaten und warten.",
+  "Blendet kritische Aktionen für Installateur- und Endkundenrollen aus. Harte ACL-Sperren werden nicht auf Runtime-Adapter gesetzt, damit BackItUp und adaptereigene Konfigurationen stabil bleiben.": "Setzt Administratorrechte auf die geschützte Adapterliste. Installateur- und Endkundenbenutzer können diese Adapter nicht stoppen, aktivieren oder löschen. Administratoren können sie weiterhin updaten und warten.",
   "Sperr-Adresse des alten Admins": "Sperr-Adresse des alten Admins",
   "Sperr-Port des alten Admins": "Sperr-Port des alten Admins",
   "Tab": "Strona karty",
@@ -108,5 +108,7 @@
   "tooltip_secure": "Włącz protokół SSL. Administrator będzie dostępny przez https: //, a nie http: //",
   "tooltip_thresholdValue": "jeśli przeglądarka otrzyma zbyt wiele zdarzeń w ciągu 3 sekund, aktualizacja zostanie zatrzymana",
   "tooltip_ttl": "Limit czasu logowania. Po tym czasie użytkownik zostanie automatycznie wylogowany.",
-  "users permissions": "uprawnienia użytkowników"
+  "users permissions": "uprawnienia użytkowników",
+  "Systemadapter vor Löschen schützen": "Protect system adapters from deletion",
+  "Strengen ACL-Schutz für geschützte Adapter aktivieren": "Enable strict ACL protection for protected adapters"
 }

@@ -352,6 +352,7 @@ const NotificationsDialog = ({
     }, [instances, notifications, panel]);
 
     const [currentScope, currentName] = panel.split('--');
+    const currentKey = currentScope && currentName ? `${currentScope}--${currentName}` : '';
     const entry: (Message & { host: string }) | null =
         currentScope && currentName ? messages[currentScope][currentName] : null;
 
@@ -526,12 +527,13 @@ const NotificationsDialog = ({
                     <Button
                         variant="contained"
                         autoFocus={Object.keys(messages[currentScope]).length !== 1}
-                        disabled={disabled.includes(currentName)}
-                        style={disabled.includes(currentName) ? { backgroundColor: 'silver' } : undefined}
+                        disabled={disabled.includes(currentKey)}
+                        style={disabled.includes(currentKey) ? { backgroundColor: 'silver' } : undefined}
                         sx={styles.buttonStyle}
-                        onClick={() => {
+                        onClick={event => {
+                            event.stopPropagation();
                             ackCallback(messages[currentScope][currentName].host, currentName);
-                            setDisabled([...disabled, currentName]);
+                            setDisabled([...disabled, currentKey]);
                         }}
                         color={Object.keys(messages[currentScope]).length !== 1 ? 'primary' : 'grey'}
                         startIcon={<CheckIcon />}
@@ -542,11 +544,12 @@ const NotificationsDialog = ({
                 {currentScope && currentName && Object.keys(messages[currentScope]).length === 1 && (
                     <Button
                         variant="contained"
-                        disabled={disabled.includes(currentName)}
+                        disabled={disabled.includes(currentKey)}
                         sx={styles.buttonStyle}
-                        style={disabled.includes(currentName) ? { backgroundColor: 'silver' } : undefined}
-                        onClick={() => {
-                            setDisabled([...disabled, currentName]);
+                        style={disabled.includes(currentKey) ? { backgroundColor: 'silver' } : undefined}
+                        onClick={event => {
+                            event.stopPropagation();
+                            setDisabled([...disabled, currentKey]);
                             ackCallback(messages[currentScope][currentName].host, currentName);
                             onClose();
                         }}
@@ -565,7 +568,10 @@ const NotificationsDialog = ({
                 <Button
                     id="notifications-dialog-close"
                     variant="contained"
-                    onClick={() => onClose()}
+                    onClick={event => {
+                        event.stopPropagation();
+                        onClose();
+                    }}
                     startIcon={<CloseIcon />}
                     color="grey"
                 >

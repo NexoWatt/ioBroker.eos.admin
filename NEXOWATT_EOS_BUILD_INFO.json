@@ -1,32 +1,11 @@
 {
-  "name": "NexoWatt EOS Admin standalone UI v25",
-  "base": "v24 security guard",
-  "created": "2026-06-21T12:00:00Z",
+  "version": "7.9.37",
+  "variant": "nexowatt-eos-ui-v37-notification-backitup-security-text-fix",
+  "base": "v36-native-config-session-fix",
   "changes": [
-    "keeps eos-admin as standalone adapter",
-    "keeps legacy admin.0 disabled on local fallback port",
-    "restricts legacy admin visibility to EOS administrator groups",
-    "hides legacy admin rows/cards for installer and customer users in the EOS UI",
-    "restricts protected adapter delete controls for non-admin users",
-    "keeps EOS Admin updateable by keeping dontDelete=false and nondeletable=false"
-  ],
-  "eosUiVersion": "v25-role-visibility-security",
-  "layout": "accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=29",
-  "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.30",
-  "variant": "standalone-eos-admin-update-fix",
-  "notes": [
-    "stopBeforeUpdate=false",
-    "allowAdapterUpdate=true",
-    "allowAdapterDelete=false for non-admin UI flows",
-    "dontDelete=false and nondeletable=false for upgrade safety",
-    "delete protection handled by ACL/UI guard"
-  ],
-  "eosVersion": "v25",
-  "build": "v29-update-self-fix",
-  "updated": "2026-06-22T16:45:00Z",
-  "release": "v29-update-safe",
-  "uiVersion": "v30-nav-assist-security-polish",
-  "adapter": "eos-admin"
+    "Benachrichtigungen/Toast-Schließen werden nicht mehr von EOS-Sicherheitsregeln blockiert",
+    "EOS-Sicherheitstexte werden auch in nativen Adapter-Konfigurationsseiten als UTF-8/Mojibake repariert",
+    "Protected adapter ACL hardening ist standardmäßig deaktiviert, damit BackItUp und Adapter-Konfigurationsseiten nicht gestört werden",
+    "Stale EOS admin-only ACLs auf runtime/protected Adaptern werden beim Guard-Lauf entfernt; EOS Admin und Legacy Admin bleiben gesondert geschützt"
+  ]
 }
