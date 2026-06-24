@@ -2,11 +2,11 @@
     'use strict';
 
     const LOG_PREFIX = '[NexoWatt EOS hard logout]';
-    const VERSION = '34';
+    const VERSION = '35';
     const MIN_POLL_MS = 15_000;
     const MAX_TIMER_MS = 2_147_000_000;
     const MIN_TTL_SEC = 5;
-    const STORAGE_KEY = `nexowatt:eos:hardLogoutAt:${location.host}:${location.pathname.split('/')[1] || 'root'}`;
+    const STORAGE_KEY = `nexowatt:eos:hardLogoutAt:${location.host}:root`;
     let logoutTimer = null;
     let pollTimer = null;
     let logoutStarted = false;
@@ -79,8 +79,10 @@
         }
         clearStoredTokens();
         clearAuthCookies();
-        const origin = encodeURIComponent((window.location.pathname || '/') + (window.location.search || '') + (window.location.hash || ''));
-        window.location.href = './logout?origin=' + origin + '&hard=1';
+        const logoutUrl = new URL('logout', window.location.origin + '/');
+        logoutUrl.searchParams.set('hard', '1');
+        logoutUrl.searchParams.set('ts', String(Date.now()));
+        window.location.replace(logoutUrl.href);
     }
 
     function scheduleHardLogout(deadline) {

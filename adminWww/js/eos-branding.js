@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v33-assist-position-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v35-login-config-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -448,12 +448,16 @@
     });
 
     const normalizeBadAddressAfterLogin = () => safe(() => {
-        if (!document.getElementById('app-paper')) return;
         const pathname = window.location.pathname || '';
-        if (/(?:\/login|\/logout|\/404\.html)$/i.test(pathname)) {
-            const clean = new URL(ASSET_BASE);
-            clean.hash = window.location.hash || '#/tab-intro';
+        const badPath = /(?:%2f%23|%252f%2523|\/login|\/logout|\/404(?:\.html)?)/i.test(pathname)
+            || /(?:^|[?&])(?:hard|origin)=/i.test(window.location.search || '');
+        if (!badPath) return;
+        const clean = new URL(ASSET_BASE);
+        clean.hash = window.location.hash && !/%23|hard=|login/i.test(window.location.hash) ? window.location.hash : '#/tab-intro';
+        if (document.getElementById('app-paper')) {
             window.history.replaceState(null, document.title, `${clean.pathname}${clean.search}${clean.hash}`);
+        } else if (/(?:%2f%23|%252f%2523)/i.test(pathname)) {
+            window.location.replace(`${clean.pathname}${clean.search}#/tab-intro`);
         }
     });
 
@@ -464,6 +468,20 @@
         document.documentElement.classList.toggle('eos-route-instances', routes.instances);
         document.documentElement.classList.toggle('eos-route-intro', routes.intro);
     };
+
+
+    const markAdapterConfigSurface = () => safe(() => {
+        const text = textOfElement(document.querySelector('#app-paper') || document.body).slice(0, 1500);
+        const isConfig = /Instanzeinstellungen:|Instance settings:|Gerät hinzufügen|Gerät bearbeiten|Adapterkonfiguration|json exportieren/i.test(text)
+            || /tab-instances/i.test(window.location.hash || '');
+        document.documentElement.classList.toggle('eos-adapter-config-surface', !!isConfig);
+        if (!isConfig) return;
+        // Do not let EOS decorative layers influence adapter specific buttons/dialogs.
+        document.querySelectorAll('#app-paper button, #app-paper [role="button"], #app-paper a, #app-paper input, #app-paper select, #app-paper textarea').forEach(control => {
+            if (control.closest('.eos-assist-root, #eos-assist-root, .eos-standalone-nav-toggle')) return;
+            control.style.pointerEvents = 'auto';
+        });
+    });
 
     const getLoginCard = () => {
         const input = document.querySelector('#username, input[name="username"], #password, input[type="password"]');
@@ -533,9 +551,10 @@
 
     const hardLogout = () => {
         clearAuthStorage();
-        const loginUrl = new URL('index.html?login', ASSET_BASE);
-        loginUrl.searchParams.set('eosLogout', 'timeout');
-        window.location.replace(loginUrl.href);
+        const logoutUrl = new URL('logout', window.location.origin + '/');
+        logoutUrl.searchParams.set('hard', '1');
+        logoutUrl.searchParams.set('ts', String(Date.now()));
+        window.location.replace(logoutUrl.href);
     };
 
     const scheduleHardLogoutCheck = delay => {
@@ -1172,6 +1191,7 @@
         patchDocumentMeta();
         patchLogin();
         patchShell();
+        markAdapterConfigSurface();
         applyNavCompactPreference();
         ensureStandaloneNavToggle();
         installAssistDelegatedClick();
@@ -1194,6 +1214,7 @@
         normalizeBadAddressAfterLogin();
         patchLogin();
         patchShell();
+        markAdapterConfigSurface();
         applyNavCompactPreference();
         ensureStandaloneNavToggle();
         installAssistDelegatedClick();

@@ -1,7 +1,7 @@
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.34",
+    "version": "7.9.35",
     "title": "NexoWatt EOS Admin",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
@@ -21,7 +21,7 @@
       "de": "Eigenständige NexoWatt EOS Administrationsoberfläche mit rollenbasierter Sichtbarkeit, Legacy-Admin-Sperre und geschützten Systemadaptern für Energy Operation System Installationen."
     },
     "news": {
-      "7.9.34": {
+      "7.9.35": {
         "en": "Repository metadata fix and hard session timeout: all repository links now point to the current package version and the configured login timeout forces a hard logout.",
         "de": "Repository-Metadaten-Fix und harte Sitzungsabmeldung: alle Repository-Links zeigen auf die aktuelle Paketversion und die konfigurierte Abmeldezeit erzwingt eine harte Abmeldung."
       },
@@ -170,9 +170,9 @@
         "zh-cn": "JSON 护卫舰适配器扩展配置"
       }
     },
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.34/io-package.json",
-    "icon": "https://unpkg.com/iobroker.eos-admin@7.9.34/admin/admin.png",
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.34/admin/admin.svg",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.35/io-package.json",
+    "icon": "https://unpkg.com/iobroker.eos-admin@7.9.35/admin/admin.png",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.35/admin/admin.svg",
     "type": "general",
     "mode": "daemon",
     "platform": "Javascript/Node.js",
@@ -195,7 +195,7 @@
     "stopBeforeUpdate": false,
     "dontDelete": false,
     "nondeletable": false,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.34/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.35/README.md",
     "npmPackage": "iobroker.eos-admin",
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false

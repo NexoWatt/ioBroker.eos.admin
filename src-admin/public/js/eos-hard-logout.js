@@ -2,7 +2,7 @@
     'use strict';
 
     const LOG_PREFIX = '[NexoWatt EOS hard logout]';
-    const VERSION = '34';
+    const VERSION = '35';
     const MIN_POLL_MS = 15_000;
     const MAX_TIMER_MS = 2_147_000_000;
     const MIN_TTL_SEC = 5;

@@ -700,6 +700,54 @@ export default class Web {
         };
     }
 
+
+    private getSafeLoginOrigin(req: Request): string | null {
+        let origin = '';
+        try {
+            const url = new URL(req.url, 'http://127.0.0.1');
+            origin = url.searchParams.get('origin') || '';
+        } catch {
+            const match = req.url.match(/[?&]origin=([^&]*)/);
+            origin = match?.[1] || '';
+        }
+        if (!origin) {
+            return null;
+        }
+        try {
+            origin = decodeURIComponent(origin);
+        } catch {
+            // keep raw value and validate below
+        }
+        origin = String(origin || '').trim();
+        // Reject encoded hashes/login/logout/404 and hard-timeout parameters. The old logic
+        // generated paths such as /%2F%23tab-adapters&hard=1/index.html?login.
+        if (!origin || /(?:%2f|%23|#|login|logout|404|hard=|undefined|null)/i.test(origin)) {
+            return null;
+        }
+        origin = origin.split('?')[0];
+        const pos = origin.lastIndexOf('/');
+        if (pos > 0) {
+            origin = origin.substring(0, pos);
+        } else if (pos === 0) {
+            origin = '';
+        }
+        if (!origin || origin === '.') {
+            return null;
+        }
+        if (/^https?:\/\//i.test(origin)) {
+            try {
+                const parsed = new URL(origin);
+                return parsed.pathname && parsed.pathname !== '/' ? parsed.pathname.replace(/\/+$/, '') : null;
+            } catch {
+                return null;
+            }
+        }
+        if (!origin.startsWith('/')) {
+            return null;
+        }
+        return origin.replace(/\/+$/, '') || null;
+    }
+
     /**
      * Initialize the server
      */
@@ -787,7 +835,7 @@ export default class Web {
 
                 // NexoWatt EOS: enforce the configured login timeout as a hard logout.
                 // We remove refresh tokens from OAuth responses so the admin client cannot silently extend sessions.
-                const eosHardLogout = (this.adapter.config as any).nexowattHardLogout !== false;
+                const eosHardLogout = false; // v35: keep OAuth refresh flow alive; EOS hard timeout is enforced client-side by an absolute deadline.
                 if (eosHardLogout) {
                     this.server.app.use('/oauth/token', (req: Request, res: Response, next: NextFunction): void => {
                         const grantType = String((req.body as Record<string, unknown> | undefined)?.grant_type || '');
@@ -824,13 +872,7 @@ export default class Web {
                     noBasicAuth: this.settings.noBasicAuth,
                     loginPage: (req: Request): string => {
                         const isDev = req.url.includes('?dev');
-                        let origin = req.url.split('origin=')[1];
-                        if (origin) {
-                            const pos = origin.lastIndexOf('/');
-                            if (pos !== -1) {
-                                origin = origin.substring(0, pos);
-                            }
-                        }
+                        const origin = this.getSafeLoginOrigin(req);
 
                         if (isDev) {
                             return 'http://127.0.0.1:3000/index.html?login';
@@ -912,15 +954,9 @@ export default class Web {
 
                 this.server.app.get('/logout', (req: Request, res: Response): void => {
                     const isDev = req.url.includes('?dev');
-                    let origin = req.url.split('origin=')[1];
-                    if (origin) {
-                        const pos = origin.lastIndexOf('/');
-                        if (pos !== -1) {
-                            origin = origin.substring(0, pos);
-                        }
-                    }
+                    const origin = this.getSafeLoginOrigin(req);
 
-                    // NexoWatt EOS v34: hard logout must remove browser tokens/cookies before redirecting.
+                    // NexoWatt EOS v35: hard logout must remove browser tokens/cookies before redirecting.
                     for (const cookieName of ['access_token', 'refresh_token', 'connect.sid', 'io', 'ioBroker.sid', 'eos-admin.sid']) {
                         res.clearCookie(cookieName, { path: '/' });
                     }
