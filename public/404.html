@@ -64,6 +64,18 @@
             color: #fff;
         }
     </style>
+
+<script id="NEXOWATT_EOS_BAD_PATH_FIX">
+(function () {
+  try {
+    var u = String(location.pathname + location.search + location.hash);
+    if (/(%2F%23|%252F%2523|hard=1|\/login\/|\/logout\/)/i.test(u)) {
+      location.replace('/index.html?login');
+    }
+  } catch (e) {}
+})();
+</script>
+
 </head>
 
 <body>

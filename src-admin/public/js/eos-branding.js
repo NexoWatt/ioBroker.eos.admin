@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v35-login-config-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v36-native-config-session-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -398,6 +398,9 @@
     const applySecurityUiGuard = () => safe(() => {
         const policy = state.securityPolicy;
         applySecurityClasses();
+        // Do not apply EOS security decoration inside native adapter configuration pages.
+        // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
+        if (isAdapterConfigSurface()) return;
         if (!policy.loaded) return;
         if (isAdminUser()) {
             document.querySelectorAll('.eos-hidden-legacy-admin, .eos-protected-adapter-row').forEach(el => {
@@ -448,12 +451,16 @@
     });
 
     const normalizeBadAddressAfterLogin = () => safe(() => {
-        if (!document.getElementById('app-paper')) return;
         const pathname = window.location.pathname || '';
-        if (/(?:\/login|\/logout|\/404\.html)$/i.test(pathname)) {
-            const clean = new URL(ASSET_BASE);
-            clean.hash = window.location.hash || '#/tab-intro';
+        const badPath = /(?:%2f%23|%252f%2523|\/login|\/logout|\/404(?:\.html)?)/i.test(pathname)
+            || /(?:^|[?&])(?:hard|origin)=/i.test(window.location.search || '');
+        if (!badPath) return;
+        const clean = new URL(ASSET_BASE);
+        clean.hash = window.location.hash && !/%23|hard=|login/i.test(window.location.hash) ? window.location.hash : '#/tab-intro';
+        if (document.getElementById('app-paper')) {
             window.history.replaceState(null, document.title, `${clean.pathname}${clean.search}${clean.hash}`);
+        } else if (/(?:%2f%23|%252f%2523)/i.test(pathname)) {
+            window.location.replace(`${clean.pathname}${clean.search}#/tab-intro`);
         }
     });
 
@@ -464,6 +471,37 @@
         document.documentElement.classList.toggle('eos-route-instances', routes.instances);
         document.documentElement.classList.toggle('eos-route-intro', routes.intro);
     };
+
+
+    const isAdapterConfigSurface = () => document.documentElement.classList.contains('eos-adapter-config-surface');
+
+    const markAdapterConfigSurface = () => safe(() => {
+        const app = document.querySelector('#app-paper') || document.body;
+        const text = textOfElement(app).slice(0, 3500);
+        const isConfig = /Instanzeinstellungen:|Instance settings:|Gerät hinzufügen|Gerät bearbeiten|Geräteliste|Adapterkonfiguration|json exportieren|json importieren|Speichern und schließen|Save and close/i.test(text);
+        document.documentElement.classList.toggle('eos-adapter-config-surface', !!isConfig);
+        if (!isConfig) return;
+
+        // Native adapter configuration UIs are owned by the adapter. EOS must never
+        // block, rewrite or intercept their controls. This is critical for custom
+        // React/HTML configuration pages such as nexowatt-devices.
+        document.querySelectorAll('#app-paper button, #app-paper [role="button"], #app-paper a, #app-paper input, #app-paper select, #app-paper textarea, #app-paper [tabindex]').forEach(control => {
+            if (control.closest('.eos-assist-root, #eos-assist-root, .eos-standalone-nav-toggle')) return;
+            control.style.pointerEvents = 'auto';
+            control.removeAttribute('aria-disabled');
+        });
+        document.querySelectorAll('#app-paper .eos-protected-delete-control, #app-paper .eos-security-hidden-delete, #app-paper .eos-protected-adapter-row').forEach(el => {
+            el.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete', 'eos-protected-adapter-row');
+            el.removeAttribute('aria-disabled');
+            if (el.style) {
+                el.style.pointerEvents = '';
+                el.style.display = '';
+                el.style.visibility = '';
+                el.style.opacity = '';
+            }
+            if ('disabled' in el && !el.dataset.eosOriginalDisabled) el.disabled = false;
+        });
+    });
 
     const getLoginCard = () => {
         const input = document.querySelector('#username, input[name="username"], #password, input[type="password"]');
@@ -508,6 +546,76 @@
         });
         const cleanRoot = ASSET_BASE.replace(/\/?$/, '/');
         window.location.assign(cleanRoot);
+    };
+
+
+    let hardLogoutTimer = 0;
+    let hardLogoutPollTimer = 0;
+    let hardLogoutInstalled = false;
+
+    const clearAuthStorage = () => safe(() => {
+        const storageKeys = [
+            'App.refreshToken', 'App.accessToken', 'App.token', 'tokens', 'iobroker.admin.token',
+            'access_token', 'refresh_token', 'oidc_id_token', 'oidc_access_token', 'oidc_refresh_token'
+        ];
+        storageKeys.forEach(key => {
+            window.localStorage?.removeItem(key);
+            window.sessionStorage?.removeItem(key);
+            window._localStorage?.removeItem?.(key);
+        });
+        ['access_token', 'refresh_token', 'connect.sid', 'io', 'sid'].forEach(name => {
+            document.cookie = `${name}=; Max-Age=0; path=/; SameSite=Lax`;
+            document.cookie = `${name}=; Max-Age=0; path=${new URL(ASSET_BASE).pathname || '/'}; SameSite=Lax`;
+        });
+    });
+
+    const hardLogout = () => {
+        clearAuthStorage();
+        const logoutUrl = new URL('logout', window.location.origin + '/');
+        logoutUrl.searchParams.set('hard', '1');
+        logoutUrl.searchParams.set('ts', String(Date.now()));
+        window.location.replace(logoutUrl.href);
+    };
+
+    const scheduleHardLogoutCheck = delay => {
+        if (hardLogoutPollTimer) window.clearTimeout(hardLogoutPollTimer);
+        hardLogoutPollTimer = window.setTimeout(checkHardLogoutSession, Math.max(1000, delay || 15000));
+    };
+
+    async function checkHardLogoutSession() {
+        if (isLoginView() || !document.getElementById('app-paper')) {
+            scheduleHardLogoutCheck(10000);
+            return;
+        }
+        try {
+            const response = await fetch(new URL('session', ASSET_BASE).href, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { accept: 'application/json' },
+            });
+            const data = await response.json().catch(() => ({}));
+            const expireInSec = Number(data?.expireInSec);
+            if (Number.isFinite(expireInSec) && expireInSec <= 0) {
+                hardLogout();
+                return;
+            }
+            if (Number.isFinite(expireInSec) && expireInSec > 0) {
+                if (hardLogoutTimer) window.clearTimeout(hardLogoutTimer);
+                hardLogoutTimer = window.setTimeout(hardLogout, Math.max(1200, expireInSec * 1000 + 500));
+                scheduleHardLogoutCheck(Math.min(Math.max(5000, expireInSec * 500), 30000));
+                return;
+            }
+        } catch (_) {
+            // Network reconnects happen during updates/restarts. Do not log out on a transient request failure.
+        }
+        scheduleHardLogoutCheck(30000);
+    }
+
+    const installHardLogoutWatchdog = () => {
+        // v36: disabled. Upstream ioBroker Admin session handling is used again so
+        // the configured admin TTL is respected and native adapter config pages are
+        // not interrupted by duplicate EOS timers.
+        hardLogoutInstalled = true;
     };
 
     const ensureBrandBadge = toolbar => {
@@ -918,6 +1026,11 @@
             document.querySelectorAll('.eos-assist-launcher,.eos-assist-panel:not(#eos-assist-root .eos-assist-panel)').forEach(el => el.remove());
             return;
         }
+        if (isAdapterConfigSurface()) {
+            const existing = document.getElementById('eos-assist-root');
+            if (existing) existing.classList.add('eos-assist-config-hidden');
+            return;
+        }
 
         let root = document.getElementById('eos-assist-root');
         if (!root) {
@@ -951,6 +1064,7 @@
             document.body.appendChild(root);
         }
 
+        root.classList.remove('eos-assist-config-hidden');
         const ctx = assistContext();
         const button = root.querySelector('.eos-assist-button');
         const input = root.querySelector('.eos-assist-input');
@@ -1100,18 +1214,29 @@
         patchDocumentMeta();
         patchLogin();
         patchShell();
+        markAdapterConfigSurface();
         applyNavCompactPreference();
         ensureStandaloneNavToggle();
         installAssistDelegatedClick();
         ensureEosAssist();
+        installHardLogoutWatchdog();
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
         applySecurityUiGuard();
-        patchTextNodes(document.body || document.documentElement);
-        patchAttributes(document.body || document.documentElement);
+        if (isAdapterConfigSurface()) {
+            ['.MuiAppBar-root', '.MuiDrawer-paper', 'nav', '.eos-brand-badge', '.eos-top-toolbar'].forEach(selector => {
+                document.querySelectorAll(selector).forEach(scope => {
+                    patchTextNodes(scope);
+                    patchAttributes(scope);
+                });
+            });
+        } else {
+            patchTextNodes(document.body || document.documentElement);
+            patchAttributes(document.body || document.documentElement);
+        }
     };
 
     const scopePatch = () => {
@@ -1121,10 +1246,12 @@
         normalizeBadAddressAfterLogin();
         patchLogin();
         patchShell();
+        markAdapterConfigSurface();
         applyNavCompactPreference();
         ensureStandaloneNavToggle();
         installAssistDelegatedClick();
         ensureEosAssist();
+        installHardLogoutWatchdog();
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
@@ -1133,6 +1260,7 @@
         applySecurityUiGuard();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
+            if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) continue;
             patchTextNodes(scope);
             patchAttributes(scope);
         }

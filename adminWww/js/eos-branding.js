@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v35-login-config-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v36-native-config-session-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -398,6 +398,9 @@
     const applySecurityUiGuard = () => safe(() => {
         const policy = state.securityPolicy;
         applySecurityClasses();
+        // Do not apply EOS security decoration inside native adapter configuration pages.
+        // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
+        if (isAdapterConfigSurface()) return;
         if (!policy.loaded) return;
         if (isAdminUser()) {
             document.querySelectorAll('.eos-hidden-legacy-admin, .eos-protected-adapter-row').forEach(el => {
@@ -470,16 +473,33 @@
     };
 
 
+    const isAdapterConfigSurface = () => document.documentElement.classList.contains('eos-adapter-config-surface');
+
     const markAdapterConfigSurface = () => safe(() => {
-        const text = textOfElement(document.querySelector('#app-paper') || document.body).slice(0, 1500);
-        const isConfig = /Instanzeinstellungen:|Instance settings:|Gerät hinzufügen|Gerät bearbeiten|Adapterkonfiguration|json exportieren/i.test(text)
-            || /tab-instances/i.test(window.location.hash || '');
+        const app = document.querySelector('#app-paper') || document.body;
+        const text = textOfElement(app).slice(0, 3500);
+        const isConfig = /Instanzeinstellungen:|Instance settings:|Gerät hinzufügen|Gerät bearbeiten|Geräteliste|Adapterkonfiguration|json exportieren|json importieren|Speichern und schließen|Save and close/i.test(text);
         document.documentElement.classList.toggle('eos-adapter-config-surface', !!isConfig);
         if (!isConfig) return;
-        // Do not let EOS decorative layers influence adapter specific buttons/dialogs.
-        document.querySelectorAll('#app-paper button, #app-paper [role="button"], #app-paper a, #app-paper input, #app-paper select, #app-paper textarea').forEach(control => {
+
+        // Native adapter configuration UIs are owned by the adapter. EOS must never
+        // block, rewrite or intercept their controls. This is critical for custom
+        // React/HTML configuration pages such as nexowatt-devices.
+        document.querySelectorAll('#app-paper button, #app-paper [role="button"], #app-paper a, #app-paper input, #app-paper select, #app-paper textarea, #app-paper [tabindex]').forEach(control => {
             if (control.closest('.eos-assist-root, #eos-assist-root, .eos-standalone-nav-toggle')) return;
             control.style.pointerEvents = 'auto';
+            control.removeAttribute('aria-disabled');
+        });
+        document.querySelectorAll('#app-paper .eos-protected-delete-control, #app-paper .eos-security-hidden-delete, #app-paper .eos-protected-adapter-row').forEach(el => {
+            el.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete', 'eos-protected-adapter-row');
+            el.removeAttribute('aria-disabled');
+            if (el.style) {
+                el.style.pointerEvents = '';
+                el.style.display = '';
+                el.style.visibility = '';
+                el.style.opacity = '';
+            }
+            if ('disabled' in el && !el.dataset.eosOriginalDisabled) el.disabled = false;
         });
     });
 
@@ -592,13 +612,10 @@
     }
 
     const installHardLogoutWatchdog = () => {
-        if (hardLogoutInstalled) return;
+        // v36: disabled. Upstream ioBroker Admin session handling is used again so
+        // the configured admin TTL is respected and native adapter config pages are
+        // not interrupted by duplicate EOS timers.
         hardLogoutInstalled = true;
-        window.addEventListener('focus', () => checkHardLogoutSession(), { passive: true });
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) checkHardLogoutSession();
-        }, { passive: true });
-        scheduleHardLogoutCheck(2500);
     };
 
     const ensureBrandBadge = toolbar => {
@@ -1009,6 +1026,11 @@
             document.querySelectorAll('.eos-assist-launcher,.eos-assist-panel:not(#eos-assist-root .eos-assist-panel)').forEach(el => el.remove());
             return;
         }
+        if (isAdapterConfigSurface()) {
+            const existing = document.getElementById('eos-assist-root');
+            if (existing) existing.classList.add('eos-assist-config-hidden');
+            return;
+        }
 
         let root = document.getElementById('eos-assist-root');
         if (!root) {
@@ -1042,6 +1064,7 @@
             document.body.appendChild(root);
         }
 
+        root.classList.remove('eos-assist-config-hidden');
         const ctx = assistContext();
         const button = root.querySelector('.eos-assist-button');
         const input = root.querySelector('.eos-assist-input');
@@ -1203,8 +1226,17 @@
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
         applySecurityUiGuard();
-        patchTextNodes(document.body || document.documentElement);
-        patchAttributes(document.body || document.documentElement);
+        if (isAdapterConfigSurface()) {
+            ['.MuiAppBar-root', '.MuiDrawer-paper', 'nav', '.eos-brand-badge', '.eos-top-toolbar'].forEach(selector => {
+                document.querySelectorAll(selector).forEach(scope => {
+                    patchTextNodes(scope);
+                    patchAttributes(scope);
+                });
+            });
+        } else {
+            patchTextNodes(document.body || document.documentElement);
+            patchAttributes(document.body || document.documentElement);
+        }
     };
 
     const scopePatch = () => {
@@ -1228,6 +1260,7 @@
         applySecurityUiGuard();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
+            if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) continue;
             patchTextNodes(scope);
             patchAttributes(scope);
         }

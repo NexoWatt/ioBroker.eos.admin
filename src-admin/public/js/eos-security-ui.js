@@ -220,6 +220,7 @@
     };
 
     const applyPolicyToDom = () => {
+        if (isAdapterConfigSurface()) return;
         const admin = isAdminUser();
         document.documentElement.classList.toggle('eos-security-admin-user', admin);
         document.documentElement.classList.toggle('eos-security-non-admin-user', !admin);
@@ -229,6 +230,8 @@
         hideProtectedDeleteControls();
         hideEosSecuritySettingsForNonAdmins();
     };
+
+    const isAdapterConfigSurface = () => document.documentElement.classList.contains('eos-adapter-config-surface') || /Instanzeinstellungen:|Instance settings:|Geräteliste|Gerät hinzufügen|Gerät bearbeiten/i.test(document.body?.textContent || '');
 
     const scheduleApply = () => {
         if (state.scheduled) return;
@@ -267,7 +270,7 @@
 
     document.addEventListener('click', event => {
         const target = event.target?.closest?.('button,[role="button"],a,[role="menuitem"],.MuiMenuItem-root');
-        if (!target || isAdminUser()) return;
+        if (!target || isAdminUser() || isAdapterConfigSurface()) return;
         const label = normalizeFlat(`${target.textContent || ''} ${target.getAttribute?.('title') || ''} ${target.getAttribute?.('aria-label') || ''}`);
         if (/loschen|delete|remove|deinstall|uninstall/.test(label)) {
             target.classList.add('eos-security-hidden-delete');

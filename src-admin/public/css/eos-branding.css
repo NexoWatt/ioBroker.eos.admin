@@ -3287,3 +3287,87 @@ html.eos-app button[class*="fab"] {
         display: none !important;
     }
 }
+
+
+/* === NexoWatt EOS v35: login redirect + adapter config interaction fix ======
+   Keep native adapter configuration pages fully clickable and reserve the bottom
+   right corner for adapter/page floating actions. */
+html.eos-app.eos-adapter-config-surface #app-paper button,
+html.eos-app.eos-adapter-config-surface #app-paper [role="button"],
+html.eos-app.eos-adapter-config-surface #app-paper a,
+html.eos-app.eos-adapter-config-surface #app-paper input,
+html.eos-app.eos-adapter-config-surface #app-paper select,
+html.eos-app.eos-adapter-config-surface #app-paper textarea {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-adapter-config-surface #app-paper .MuiButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiIconButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiMenuItem-root {
+    position: relative !important;
+    z-index: 12 !important;
+}
+html.eos-app .eos-assist-root,
+html.eos-app #eos-assist-root {
+    right: 150px !important;
+    bottom: 22px !important;
+}
+@media (max-width: 1100px) {
+    html.eos-app .eos-assist-root,
+    html.eos-app #eos-assist-root { right: 126px !important; }
+}
+@media (max-width: 720px) {
+    html.eos-app .eos-assist-root,
+    html.eos-app #eos-assist-root { right: 96px !important; }
+}
+
+
+/* === NexoWatt EOS v36: native adapter configuration safe mode =============
+   Custom adapter configuration pages (React/HTML/jsonConfig) must be fully
+   controlled by the adapter itself. EOS shell decoration is disabled inside the
+   content area so buttons such as "Gerät hinzufügen" and "Gerät bearbeiten" stay
+   clickable and dialogs/popovers are not hidden behind overlays. */
+html.eos-app.eos-adapter-config-surface #app-paper,
+html.eos-app.eos-adapter-config-surface #app-paper * {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-adapter-config-surface #app-paper button,
+html.eos-app.eos-adapter-config-surface #app-paper [role="button"],
+html.eos-app.eos-adapter-config-surface #app-paper a,
+html.eos-app.eos-adapter-config-surface #app-paper input,
+html.eos-app.eos-adapter-config-surface #app-paper select,
+html.eos-app.eos-adapter-config-surface #app-paper textarea,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiIconButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiMenuItem-root {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+html.eos-app.eos-adapter-config-surface .eos-assist-root,
+html.eos-app.eos-adapter-config-surface #eos-assist-root,
+html.eos-app.eos-adapter-config-surface .eos-assist-config-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+html.eos-app.eos-adapter-config-surface .MuiDialog-root,
+html.eos-app.eos-adapter-config-surface .MuiModal-root,
+html.eos-app.eos-adapter-config-surface .MuiPopover-root,
+html.eos-app.eos-adapter-config-surface .MuiMenu-root,
+html.eos-app.eos-adapter-config-surface .MuiDialog-container {
+    pointer-events: auto !important;
+    z-index: 4200 !important;
+}
+html.eos-app.eos-adapter-config-surface .MuiDialog-paper,
+html.eos-app.eos-adapter-config-surface .MuiPopover-paper,
+html.eos-app.eos-adapter-config-surface .MuiMenu-paper {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-adapter-config-surface #app-paper .eos-protected-delete-control,
+html.eos-app.eos-adapter-config-surface #app-paper .eos-security-hidden-delete,
+html.eos-app.eos-adapter-config-surface #app-paper .eos-protected-adapter-row {
+    display: revert !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    filter: none !important;
+    pointer-events: auto !important;
+}

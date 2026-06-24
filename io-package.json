@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.35",
+    "version": "7.9.36",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,9 +18,13 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.36": {
+        "en": "Restores official admin session handling, fixes bad login redirect paths, and enables full native adapter configuration compatibility without EOS overlays blocking adapter UI actions.",
+        "de": "Stellt die offizielle Admin-Sitzungslogik wieder her, korrigiert fehlerhafte Login-Redirect-Pfade und aktiviert volle native Adapter-Konfigurationskompatibilität ohne blockierende EOS-Overlays."
+      },
       "7.9.35": {
-        "en": "Fixed repository metadata for reliable EOS Admin updates and enforced hard logout after the configured login timeout.",
-        "de": "Repository-Metadaten für zuverlässige EOS-Admin-Updates korrigiert und harte Abmeldung nach der eingestellten Abmeldezeit erzwungen."
+        "en": "Fixes EOS Admin login redirect/logout origin handling and restores reliable interaction with adapter instance configuration dialogs.",
+        "de": "Korrigiert den EOS-Admin Login-/Logout-Redirect und stellt die Bedienung von Adapter-Instanzkonfigurationen wieder zuverlässig her."
       },
       "7.9.31": {
         "en": "UI cleanup: fixes EOS Security German text encoding, removes the logout tile next to the compact navigation arrow, and expands EOS Assist with AI-ready multi-path setup guidance.",
@@ -165,10 +169,6 @@
         "pl": "Rozszerzony plik konfiguracyjny JSON do adaptera fregata",
         "uk": "Розширений налаштування JSON для адаптера фригату",
         "zh-cn": "JSON 护卫舰适配器扩展配置"
-      },
-      "7.9.35": {
-        "en": "Fixes EOS Admin login redirect/logout origin handling and restores reliable interaction with adapter instance configuration dialogs.",
-        "de": "Korrigiert den EOS-Admin Login-/Logout-Redirect und stellt die Bedienung von Adapter-Instanzkonfigurationen wieder zuverlässig her."
       }
     },
     "desc": {
@@ -206,7 +206,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.35/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.36/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -217,7 +217,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.35/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.36/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -286,7 +286,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.35/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.36/io-package.json",
     "npmPackage": "iobroker.eos-admin"
   },
   "native": {

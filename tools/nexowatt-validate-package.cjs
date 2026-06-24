@@ -56,8 +56,11 @@ if (!bootstrap.includes('window.adapterName="eos-admin"')) fail('frontend bootst
 if (bootstrap.includes('window.adapterName="admin"')) fail('frontend bootstrap still contains window.adapterName="admin"');
 
 const webBuild = fs.readFileSync(path.join(root, 'build/lib/web.js'), 'utf8');
-if (!webBuild.includes("body.refresh_token = '';")) fail('build/lib/web.js does not remove OAuth refresh tokens for hard logout');
-if (!webBuild.includes("grantType === 'refresh_token'")) fail('build/lib/web.js does not reject refresh_token grants');
-if (!webBuild.includes('refreshLifetime: this.settings.ttl')) fail('build/lib/web.js does not bind refresh lifetime to ttl');
+const branding = fs.readFileSync(path.join(root, 'adminWww/js/eos-branding.js'), 'utf8');
+if (!webBuild.includes('refreshLifetime: 60 * 60 * 24 * 7')) fail('build/lib/web.js must keep upstream-compatible refresh lifetime');
+if (!webBuild.includes('Follow upstream admin semantics again')) fail('build/lib/web.js does not contain the v36 session compatibility fix');
+if (index.includes('eos-hard-logout.js')) fail('adminWww/index.html must not load the removed custom hard-logout timer');
+if (!branding.includes('isAdapterConfigSurface')) fail('eos-branding.js lacks native adapter config safe-mode detection');
+if (!branding.includes('Adapter UIs must remain 100% functional')) fail('eos-branding.js lacks native adapter config interaction guard');
 
 console.log('[NexoWatt EOS package validation] OK');
