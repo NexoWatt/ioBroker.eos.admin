@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v37-security-text-polish';
+    const VERSION = 'v38-popup-safe-security-polish';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const ASSET_BASE = (() => {
@@ -246,18 +246,19 @@
     const isAdapterConfigSurface = () => document.documentElement.classList.contains('eos-adapter-config-surface') || /Instanzeinstellungen:|Instance settings:|Geräteliste|Gerät hinzufügen|Gerät bearbeiten/i.test(document.body?.textContent || '');
 
     const releaseNotificationControls = () => {
-        // Never block notification/toast close actions. These controls are owned by
-        // the native Admin UI and must remain clickable regardless of EOS security rules.
-        document.querySelectorAll('.MuiSnackbar-root, .MuiAlert-root, .MuiSnackbarContent-root, [role="alert"], .Toastify__toast, .notistack-Snackbar').forEach(box => {
+        // v38: security UI must not modify generic dialogs or adapter popups.
+        // Only snackbar/toast surfaces are normalized for clickability.
+        const roots = [
+            '.MuiSnackbar-root', '.SnackbarItem-root', '.SnackbarItem-wrappedRoot',
+            '.notistack-Snackbar', '.Toastify__toast-container', '.Toastify__toast'
+        ].join(',');
+        document.querySelectorAll(roots).forEach(box => {
+            if (box.closest('.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,[role="dialog"]')) return;
             box.classList.add('eos-notification-safe');
             box.style.pointerEvents = 'auto';
             box.querySelectorAll('button, [role="button"], a, .MuiIconButton-root').forEach(control => {
                 control.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete');
-                control.removeAttribute('disabled');
-                control.removeAttribute('aria-disabled');
-                if ('disabled' in control) control.disabled = false;
                 control.style.pointerEvents = 'auto';
-                control.style.display = '';
                 control.style.visibility = '';
             });
         });
@@ -301,6 +302,8 @@
     document.addEventListener('click', event => {
         const target = event.target?.closest?.('button,[role="button"],a,[role="menuitem"],.MuiMenuItem-root');
         if (!target || isAdminUser() || isAdapterConfigSurface()) return;
+        // Native Admin dialogs, install/autocomplete poppers and adapter-owned menus must stay untouched.
+        if (target.closest?.('.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="dialog"],[role="listbox"],[role="menu"]')) return;
         const label = normalizeFlat(`${target.textContent || ''} ${target.getAttribute?.('title') || ''} ${target.getAttribute?.('aria-label') || ''}`);
         if (/loschen|delete|remove|deinstall|uninstall/.test(label)) {
             target.classList.add('eos-security-hidden-delete');

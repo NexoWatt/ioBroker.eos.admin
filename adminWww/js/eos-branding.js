@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v37-notification-backitup-security-text-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v38-popup-config-stability-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -405,21 +405,47 @@
 
 
     const releaseNotificationControls = () => safe(() => {
-        // v37: notification/snackbar close buttons belong to the native Admin UI.
-        // They must never be disabled or covered by EOS security/layout layers.
-        document.querySelectorAll('.MuiSnackbar-root, .MuiAlert-root, .MuiSnackbarContent-root, [role="alert"], .Toastify__toast, .notistack-Snackbar').forEach(box => {
+        // v38: Keep native snackbar/toast close buttons clickable without touching dialogs,
+        // poppers, menus or adapter-owned configuration surfaces. Earlier broad selectors
+        // changed generic dialogs and broke React click handlers.
+        const roots = [
+            '.MuiSnackbar-root',
+            '.SnackbarItem-root',
+            '.SnackbarItem-wrappedRoot',
+            '.notistack-Snackbar',
+            '.Toastify__toast-container',
+            '.Toastify__toast'
+        ].join(',');
+        document.querySelectorAll(roots).forEach(box => {
+            if (box.closest('.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,[role="dialog"]')) return;
             box.classList.add('eos-notification-safe');
             box.style.pointerEvents = 'auto';
-            box.querySelectorAll('button, [role="button"], a, .MuiIconButton-root, svg').forEach(control => {
+            box.querySelectorAll('button, [role="button"], a, .MuiIconButton-root').forEach(control => {
                 control.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete');
-                control.removeAttribute('disabled');
-                control.removeAttribute('aria-disabled');
-                if ('disabled' in control) control.disabled = false;
+                // Do not remove disabled states globally. Only restore pointer handling.
                 control.style.pointerEvents = 'auto';
-                control.style.display = '';
                 control.style.visibility = '';
                 control.style.opacity = '';
             });
+        });
+    });
+
+    const ensurePopupCompatibility = () => safe(() => {
+        // v38: All native Admin dialogs, adapter install/autocomplete poppers, menus and
+        // adapter-owned modals must stay above EOS decorative layers and keep their React
+        // event handlers untouched.
+        const selectors = [
+            '.MuiDialog-root', '.MuiModal-root', '.MuiPopover-root', '.MuiPopper-root',
+            '.MuiMenu-root', '.MuiAutocomplete-popper', '.MuiAutocomplete-listbox',
+            '[role="dialog"]', '[role="listbox"]', '[role="menu"]'
+        ].join(',');
+        document.querySelectorAll(selectors).forEach(el => {
+            el.classList.add('eos-native-popup-safe');
+            if (el.style) {
+                el.style.pointerEvents = 'auto';
+                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="listbox"],[role="menu"]');
+                if (isFloating && !el.closest('.MuiDialog-paper')) el.style.zIndex = '6500';
+            }
         });
     });
 
@@ -836,7 +862,8 @@
         }
         patchDrawerHeader(document.querySelector('.MuiDrawer-paper'));
         hideNativeLogoutNav();
-        patchNotifications();
+        releaseNotificationControls();
+        ensurePopupCompatibility();
         removeLogoutButton();
     });
 
@@ -1033,23 +1060,10 @@
 
 
     const patchNotifications = () => safe(() => {
-        const selectors = [
-            '.MuiSnackbar-root', '.SnackbarItem-root', '.SnackbarItem-wrappedRoot', '.notistack-Snackbar',
-            '.Toastify__toast-container', '.Toastify__toast', '.MuiAlert-root', '[role="alert"]'
-        ];
-        document.querySelectorAll(selectors.join(',')).forEach(node => {
-            node.classList.add('eos-notification-surface');
-            if (node.style) {
-                node.style.pointerEvents = 'auto';
-                if (!node.closest('.MuiDialog-root')) node.style.zIndex = '5200';
-            }
-            node.querySelectorAll('button,[role="button"],a').forEach(control => {
-                control.classList.add('eos-notification-action');
-                control.style.pointerEvents = 'auto';
-                control.style.visibility = 'visible';
-                control.style.opacity = '1';
-            });
-        });
+        // Kept for compatibility with older calls. v38 intentionally scopes this to
+        // snackbar/toast surfaces only; no dialogs, popovers or adapter config controls.
+        releaseNotificationControls();
+        ensurePopupCompatibility();
     });
 
     const applyNavCompactPreference = () => safe(() => {
@@ -1355,10 +1369,11 @@
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
-        ensureNotificationDialogClasses();
+        ensurePopupCompatibility();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
-        patchNotifications();
+        releaseNotificationControls();
+        ensurePopupCompatibility();
         applySecurityUiGuard();
         if (isAdapterConfigSurface()) {
             // Adapter-owned configuration pages must not be rebranded or structurally patched.
@@ -1394,10 +1409,11 @@
         ensureRightsHelper();
         ensurePermissionPresets();
         ensureSettingsDialogClasses();
-        ensureNotificationDialogClasses();
+        ensurePopupCompatibility();
         hideNativeLogoutNav();
         hideOfficialNexoWattRepoWarning();
-        patchNotifications();
+        releaseNotificationControls();
+        ensurePopupCompatibility();
         applySecurityUiGuard();
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
@@ -1473,22 +1489,4 @@
     }
     window.addEventListener('load', () => scheduleFullPatch(0), { once: true });
     window.addEventListener('hashchange', () => scheduleFullPatch(0));
-})();
-
-
-// v37 eos notification close compatibility: never let EOS overlays block native notification dialogs.
-(() => {
-    const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
-    document.addEventListener('click', event => {
-        const target = event.target?.closest?.('button, [role="button"], a, .MuiButtonBase-root, .MuiIconButton-root');
-        if (!target) return;
-        const dialog = target.closest?.('.eos-notification-dialog, .MuiDialog-paper, [role="dialog"]');
-        if (!dialog || !/benachrichtigungen|notifications|acknowledge|bestätigen|schließen|close/i.test(dialog.textContent || '')) return;
-        const label = normalize(`${target.textContent || ''} ${target.getAttribute?.('aria-label') || ''} ${target.getAttribute?.('title') || ''}`);
-        if (/schließen|close|bestätigen|acknowledge/i.test(label)) {
-            target.style.pointerEvents = 'auto';
-            // Do not prevent React handlers; only stop EOS-specific bubbling side effects.
-            event.stopPropagation();
-        }
-    }, true);
 })();

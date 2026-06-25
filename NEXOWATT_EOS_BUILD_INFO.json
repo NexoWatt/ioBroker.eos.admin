@@ -1,6 +1,6 @@
 {
-  "version": "7.9.37",
-  "variant": "nexowatt-eos-ui-v37-notification-backitup-security-text-fix",
+  "version": "7.9.38",
+  "variant": "nexowatt-eos-ui-v38-popup-config-stability-fix",
   "base": "v36-native-config-session-fix",
   "changes": [
     "Benachrichtigungen/Toast-Schließen werden nicht mehr von EOS-Sicherheitsregeln blockiert",

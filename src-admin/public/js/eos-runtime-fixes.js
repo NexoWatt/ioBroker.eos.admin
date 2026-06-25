@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v37-notification-backitup-security-text-fix';
+    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v38-popup-config-stability-fix';
 
     const MOJIBAKE_MAP = new Map(Object.entries({
         'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen',
@@ -78,9 +78,9 @@
 
     const isNotificationSurface = el => !!el?.closest?.([
         '.MuiSnackbar-root',
-        '.MuiAlert-root',
-        '[role="alert"]',
-        '[role="status"]',
+        '.SnackbarItem-root',
+        '.SnackbarItem-wrappedRoot',
+        '.notistack-Snackbar',
         '.Toastify__toast',
         '.eos-notification-safe'
     ].join(','));
@@ -107,9 +107,9 @@
         const base = root && root.nodeType ? root : document;
         const surfaces = Array.from(base.querySelectorAll?.([
             '.MuiSnackbar-root',
-            '.MuiAlert-root',
-            '[role="alert"]',
-            '[role="status"]',
+            '.SnackbarItem-root',
+            '.SnackbarItem-wrappedRoot',
+            '.notistack-Snackbar',
             '.Toastify__toast'
         ].join(',')) || []);
         if (base.nodeType === Node.ELEMENT_NODE && isNotificationSurface(base)) surfaces.push(base);

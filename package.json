@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin standalone interface with notification, BackItUp isolation and EOS Security text fixes",
-  "version": "7.9.37",
+  "version": "7.9.38",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
