@@ -40,7 +40,8 @@ repo['eos-admin'] = {
   dontDelete: false,
   nondeletable: false,
   readme: `${baseUrl}/README.md`,
-  npmPackage: 'iobroker.eos-admin',
+  packetName: 'iobroker.eos-admin',
+    npmPackage: 'iobroker.eos-admin',
   allowAdapterUpdate: true,
   allowAdapterDelete: false,
 };

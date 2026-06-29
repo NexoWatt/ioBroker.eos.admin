@@ -17,6 +17,9 @@ if (pkg.name !== 'iobroker.eos-admin') fail(`package.json name must be iobroker.
 if (pkg.private !== false) fail('package.json private must be false for npm publishing');
 if (pkg.version !== io.common.version) fail(`package.json and io-package.json versions differ: ${pkg.version} vs ${io.common.version}`);
 if (io.common.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common.name}`);
+
+if (io.common.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common.packetName}`);
+if (io.common.npmPackage !== 'iobroker.eos-admin') fail(`io-package common.npmPackage must be iobroker.eos-admin, got ${io.common.npmPackage}`);
 if (io.native.port !== 8091 && io.native.port !== 8081) fail(`unexpected default port ${io.native.port}`);
 if (io.common.stopBeforeUpdate !== false) fail('io-package common.stopBeforeUpdate must be false so EOS Admin can self-update from older UI builds');
 if (io.common.dontDelete === true) fail('io-package common.dontDelete must not be true because it blocks clean updates');

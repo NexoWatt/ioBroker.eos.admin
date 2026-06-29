@@ -28,6 +28,7 @@ const entry = {
     dontDelete: false,
     nondeletable: false,
     readme: `${base}/README.md`,
+    packetName: 'iobroker.eos-admin',
     npmPackage: 'iobroker.eos-admin',
     allowAdapterUpdate: true,
     allowAdapterDelete: false,
