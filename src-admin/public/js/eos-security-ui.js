@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v38-popup-safe-security-polish';
+    const VERSION = 'v39-object-state-tools';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const ASSET_BASE = (() => {

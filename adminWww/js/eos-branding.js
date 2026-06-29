@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v38-popup-config-stability-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v39-object-state-tools';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
