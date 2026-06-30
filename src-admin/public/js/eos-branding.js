@@ -1,11 +1,7 @@
 (() => {
     'use strict';
 
-<<<<<<< HEAD
     window.NEXOWATT_EOS_UI_VERSION = 'v41-delete-dp-write-fix';
-=======
-    window.NEXOWATT_EOS_UI_VERSION = 'v39-object-state-tools';
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -137,11 +133,7 @@
             isAdmin: false,
             hideLegacyAdminForNonAdmins: true,
             restrictProtectedAdapterControls: true,
-<<<<<<< HEAD
             protectedAdapters: CORE_PROTECTED_ADAPTERS,
-=======
-            protectedAdapters: ['eos-admin', 'backitup'],
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         },
         securityFetchStarted: false,
         assistOpen: false,
@@ -307,11 +299,7 @@
     ];
 
     const normalizeSecurityPolicy = policy => {
-<<<<<<< HEAD
         const protectedAdapters = new Set(CORE_PROTECTED_ADAPTERS);
-=======
-        const protectedAdapters = new Set(['eos-admin', 'backitup']);
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         (Array.isArray(policy?.protectedAdapters) ? policy.protectedAdapters : []).forEach(item => {
             const adapter = typeof item === 'string' ? normalizeIdentifier(item) : normalizeIdentifier(item?.adapter || item?.name);
             if (adapter) protectedAdapters.add(adapter);
@@ -352,11 +340,7 @@
                 // Security endpoint may be unavailable during login or old cache. Fallback below.
             }
         }
-<<<<<<< HEAD
         state.securityPolicy = normalizeSecurityPolicy({ isAdmin: false, protectedAdapters: CORE_PROTECTED_ADAPTERS });
-=======
-        state.securityPolicy = normalizeSecurityPolicy({ isAdmin: false, protectedAdapters: ['eos-admin', 'backitup'] });
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         applySecurityClasses();
         scheduleFullPatch(0);
     };
@@ -411,11 +395,7 @@
             if (!isDeleteControl(control)) return;
             control.classList.add('eos-protected-delete-control');
             control.setAttribute('aria-disabled', 'true');
-<<<<<<< HEAD
             control.setAttribute('title', 'Geschütztes EOS-Systemmodul darf nicht gelöscht werden');
-=======
-            control.setAttribute('title', 'Nur Administratoren dürfen geschützte EOS-Systemmodule löschen');
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
             if ('disabled' in control) control.disabled = true;
             control.addEventListener('click', event => {
                 event.preventDefault();
@@ -471,11 +451,7 @@
     });
 
     const protectDeleteDialogs = () => {
-<<<<<<< HEAD
         if (state.securityPolicy.restrictProtectedAdapterControls === false) return;
-=======
-        if (isAdminUser() || state.securityPolicy.restrictProtectedAdapterControls === false) return;
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         const protectedAdapters = state.securityPolicy.protectedAdapters || [];
         Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"]')).forEach(dialog => {
             const text = textOfElement(dialog);
@@ -542,7 +518,6 @@
         // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
         if (isAdapterConfigSurface()) return;
         if (!policy.loaded) return;
-<<<<<<< HEAD
 
         document.querySelectorAll('.eos-hidden-legacy-admin, .eos-protected-adapter-row').forEach(el => {
             el.classList.remove('eos-hidden-legacy-admin', 'eos-protected-adapter-row');
@@ -552,19 +527,6 @@
         const containers = getSecurityContainers();
         containers.forEach(container => {
             if (!isAdminUser() && policy.hideLegacyAdminForNonAdmins !== false && isLegacyAdminContainer(container)) {
-=======
-        if (isAdminUser()) {
-            document.querySelectorAll('.eos-hidden-legacy-admin, .eos-protected-adapter-row').forEach(el => {
-                el.classList.remove('eos-hidden-legacy-admin', 'eos-protected-adapter-row');
-                el.removeAttribute('aria-hidden');
-            });
-            return;
-        }
-
-        const containers = getSecurityContainers();
-        containers.forEach(container => {
-            if (policy.hideLegacyAdminForNonAdmins !== false && isLegacyAdminContainer(container)) {
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
                 container.classList.add('eos-hidden-legacy-admin');
                 container.setAttribute('aria-hidden', 'true');
                 return;

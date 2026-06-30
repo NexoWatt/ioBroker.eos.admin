@@ -507,11 +507,7 @@ export default class Web {
     }
 
     private getEosProtectedAdapterNames(): string[] {
-<<<<<<< HEAD
         const names = new Set<string>(CORE_PROTECTED_ADAPTER_NAMES);
-=======
-        const names = new Set<string>(['eos-admin']);
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         const add = (value: unknown): void => {
             if (!value) {
                 return;

@@ -1,11 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin interface with reliable repository update mapping and technical log preservation.",
-<<<<<<< HEAD
   "version": "7.9.41",
-=======
-  "version": "7.9.40",
->>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
