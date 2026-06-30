@@ -1,13 +1,21 @@
 {
-  "version": "7.9.45",
-  "variant": "nexowatt-eos-ui-v45-delete-services-hardfix",
-  "base": "v44-delete-services-fix",
-  "changes": [
-    "Mülleimer-Klicks in Dienste/Module werden nicht mehr durch EOS-DOM-Security abgefangen",
-    "Löschschutz nur noch für admin/eos-admin/backitup/nexowatt-devices/nexowatt-ui",
-    "Alte common.dontDelete/common.nondeletable und stale EOS-ACLs werden beim Start repariert",
-    "getAdapterInstances-Fehler blockiert den Löschdialog nicht mehr",
-    "Cache-Buster auf v45 erhöht"
+  "name": "NexoWatt EOS Admin",
+  "version": "7.9.47",
+  "variant": "nexowatt-eos-ui-v47-delete-logquiet-fix",
+  "createdAt": "2026-06-30T12:39:21Z",
+  "fixes": [
+    "stale delete-lock repair is executed only once per adapter process",
+    "protected core adapters are skipped by stale delete-lock repair to avoid repair/reapply loops",
+    "delete guard repair messages are debug-level and no longer fill normal logs",
+    "service/module deletion behavior from v7.9.45 is preserved"
   ],
-  "notes": "Hardfix: remove DOM delete click capture, keep source/bundle core-only delete guard, repair stale dontDelete/nondeletable and stale EOS ACL locks."
+  "protectedDeleteAdapters": [
+    "admin",
+    "eos-admin",
+    "backitup",
+    "nexowatt-devices",
+    "nexowatt-device",
+    "nexowatt-dev",
+    "nexowatt-ui"
+  ]
 }

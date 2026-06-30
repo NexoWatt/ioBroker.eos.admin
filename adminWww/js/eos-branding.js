@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v45-delete-services-hardfix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v47-delete-logquiet-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -308,7 +308,7 @@
     ];
 
     const normalizeSecurityPolicy = policy => {
-        // v45: delete protection is fixed to EOS core adapters. Dynamic policy entries
+        // v47: delete protection is fixed to EOS core adapters. Dynamic policy entries
         // from older settings are ignored, otherwise normal Dienste can be blocked.
         const protectedAdapters = new Set(CORE_PROTECTED_ADAPTERS);
         const isAdmin = !!(policy?.isAdmin || policy?.isAdminGroup || policy?.isEosAdminGroup || policy?.isAdministrator);
@@ -410,7 +410,7 @@
     };
 
     const unlockDeleteControls = () => safe(() => {
-        // v45: clean up classes/attributes created by older EOS delete guards. We do not
+        // v47: clean up classes/attributes created by older EOS delete guards. We do not
         // install capture listeners anymore; React handlers enforce the core protection list.
         document.querySelectorAll('#app-paper .eos-protected-delete-control, #app-paper .eos-security-hidden-delete, #app-paper [data-eos-delete-guard-bound="true"]').forEach(control => {
             control.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete');
@@ -426,7 +426,7 @@
     });
 
     const lockDeleteControls = container => {
-        // v45: Intentionally no DOM click blocking. Stale capture listeners and disabled
+        // v47: Intentionally no DOM click blocking. Stale capture listeners and disabled
         // attributes were the reason normal services could not be deleted via trash icon.
         unlockDeleteControls();
     };
@@ -478,7 +478,7 @@
     });
 
     const protectDeleteDialogs = () => {
-        // v45: Do not disable delete confirmation dialogs in the DOM. The delete command
+        // v47: Do not disable delete confirmation dialogs in the DOM. The delete command
         // guard is handled in React and keeps the fixed EOS core list protected.
         unlockDeleteControls();
     };

@@ -508,7 +508,7 @@ export default class Web {
     }
 
     private getEosProtectedAdapterNames(): string[] {
-        // v45: frontend delete protection is core-only. Ignore old eosProtectedAdapters
+        // v47: frontend delete protection is core-only. Ignore old eosProtectedAdapters
         // settings so normal installed adapters/instances remain deletable.
         return [...new Set<string>(CORE_PROTECTED_ADAPTER_NAMES)].sort();
     }

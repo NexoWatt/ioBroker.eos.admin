@@ -72,7 +72,7 @@ const normalizeEosAdapterName = (value: string): string => String(value || '')
 const isEosProtectedAdapter = (adapterName: string): boolean => {
     const adapter = normalizeEosAdapterName(adapterName);
 
-    // v45: Module deletion is blocked only for the fixed EOS core list.
+    // v47: Module deletion is blocked only for the fixed EOS core list.
     // Dynamic policy entries are ignored so stale settings cannot block normal adapters.
     return EOS_CORE_PROTECTED_ADAPTERS.has(adapter);
 };

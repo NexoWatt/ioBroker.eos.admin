@@ -164,6 +164,8 @@ class Admin extends adapter_core_1.Adapter {
     eosSecurityDebounce = null;
     /** Avoid concurrent policy writes while the guard corrects objects. */
     eosSecurityRunning = false;
+    /** v47: stale delete-lock cleanup is a one-shot migration, not a repeating guard. */
+    eosDeleteLockRepairFinished = false;
     constructor(options = {}) {
         options = {
             ...options,
@@ -816,7 +818,7 @@ class Admin extends adapter_core_1.Adapter {
         return configured || DEFAULT_LEGACY_ADMIN_LOCK_BIND;
     }
     getProtectedAdapterNames() {
-        // v45: delete protection is intentionally limited to the fixed EOS core list.
+        // v47: delete protection is intentionally limited to the fixed EOS core list.
         // Older installations may have stored additional entries in eosProtectedAdapters;
         // those must not make ordinary runtime adapters undeletable in Dienste/Module.
         const result = new Set([LEGACY_ADMIN_ADAPTER_NAME, ...CORE_PROTECTED_ADAPTER_NAMES]);
@@ -881,9 +883,15 @@ class Admin extends adapter_core_1.Adapter {
             .replace(/^system\.adapter\./, '')
             .replace(/\.\d+$/, '');
         const isProtected = protectedAdapters.has(adapter);
+        // v47: never "repair" the fixed protected core adapters here. On some systems
+        // ioBroker or another guard restores their delete flags immediately, which created
+        // a repair/reapply loop and filled the log every debounce cycle.
+        if (isProtected) {
+            return false;
+        }
         let changed = false;
         obj.common = obj.common || {};
-        // v45: old builds could leave common.dontDelete/common.nondeletable on normal
+        // v45/v47: old builds could leave common.dontDelete/common.nondeletable on normal
         // adapter or instance objects. Those flags block ioBroker del even if the UI allows it.
         if (obj.common.dontDelete === true) {
             delete obj.common.dontDelete;
@@ -936,7 +944,7 @@ class Admin extends adapter_core_1.Adapter {
             }
         }
         if (changed) {
-            this.log.info(`EOS delete guard repaired stale delete locks on ${changed} adapter/instance object(s)`);
+            this.log.debug(`EOS delete guard repaired stale delete locks on ${changed} adapter/instance object(s)`);
         }
     }
 
@@ -971,7 +979,7 @@ class Admin extends adapter_core_1.Adapter {
             this.log.warn(`Cannot protect instances of adapter "${adapter}": ${e instanceof Error ? e.message : e}`);
         }
         if (changed) {
-            this.log.info(`EOS ACL/UI delete guard applied to adapter "${adapter}"`);
+            this.log.debug(`EOS ACL/UI delete guard applied to adapter "${adapter}"`);
         }
     }
     async ensureLegacyAdminLocked() {
@@ -1015,7 +1023,10 @@ class Admin extends adapter_core_1.Adapter {
         try {
             await this.ensureLegacyAdminLocked();
             await this.ensureLegacyAdminVisibleOnlyToAdmins();
-            await this.repairStaleAdapterDeleteLocks();
+            if (!this.eosDeleteLockRepairFinished) {
+                this.eosDeleteLockRepairFinished = true;
+                await this.repairStaleAdapterDeleteLocks();
+            }
             if (this.config.eosProtectAdapterDeletion !== false) {
                 for (const adapter of this.getProtectedAdapterNames()) {
                     await this.ensureProtectedAdapter(adapter);

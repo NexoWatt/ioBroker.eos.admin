@@ -64,7 +64,7 @@ const normalizeEosAdapterName = (value: string): string => String(value || '')
 const isEosProtectedInstance = (instanceIdOrAdapter: string): boolean => {
     const adapter = normalizeEosAdapterName(instanceIdOrAdapter);
 
-    // v45: Dienste deletion is blocked only for the fixed EOS core list.
+    // v47: Dienste deletion is blocked only for the fixed EOS core list.
     // Do not use the dynamic security policy here; older configs may still contain
     // runtime adapters and would make normal instances undeletable.
     return EOS_CORE_PROTECTED_ADAPTERS.has(adapter);

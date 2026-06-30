@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v45-delete-services-hardfix';
+    const VERSION = 'v47-delete-logquiet-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -65,7 +65,7 @@
 
     const isAdminUser = () => !!(state.policy?.isAdmin || state.policy?.isEosAdminGroup || state.policy?.isAdministrator);
     const protectedAdapters = () => {
-        // v45: hard delete protection only for EOS core adapters. Dynamic/stale
+        // v47: hard delete protection only for EOS core adapters. Dynamic/stale
         // policy entries must never block ordinary installed adapters.
         return new Set([LEGACY_ADMIN, ...CORE_PROTECTED_ADAPTERS].map(normalizeAdapter).filter(Boolean));
     };
@@ -148,7 +148,7 @@
     };
 
     const releaseDeleteControls = () => {
-        // v45: undo markers from older EOS DOM guards. Only touch controls that were
+        // v47: undo markers from older EOS DOM guards. Only touch controls that were
         // marked by EOS scripts, not native Admin disabled states.
         document.querySelectorAll('.eos-security-hidden-delete, .eos-protected-delete-control, [data-eos-security-locked-delete="true"]').forEach(control => {
             control.classList?.remove('eos-security-hidden-delete', 'eos-protected-delete-control');
@@ -163,7 +163,7 @@
     };
 
     const hideProtectedDeleteControls = () => {
-        // v45: Do not hide or capture trash buttons in the DOM. The shipped React
+        // v47: Do not hide or capture trash buttons in the DOM. The shipped React
         // source/bundles already block protected EOS core adapters before executing
         // the ioBroker del command. DOM blocking caused stale/virtualized rows to make
         // normal services undeletable.
@@ -302,7 +302,7 @@
         state.observer.observe(document.documentElement, { childList: true, subtree: true });
     };
 
-    // v45: No global capture listener for delete buttons. Protected adapter deletion is
+    // v47: No global capture listener for delete buttons. Protected adapter deletion is
     // handled in the React delete handlers; global DOM interception broke normal Dienste.
 
     const start = () => {
