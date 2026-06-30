@@ -1,10 +1,10 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v41-delete-dp-write-fix';
+    const VERSION = 'v42-force-version-delete-dp-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
-    const CORE_PROTECTED_ADAPTERS = ['eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
+    const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-security-ui.js"]')?.src || window.location.href;
         return new URL('../', script).href;

@@ -178,3 +178,7 @@ node /opt/iobroker/node_modules/iobroker.eos-admin/tools/nexowatt-repair-eos-adm
 ## NexoWatt EOS v7.9.40 Update-Hinweis
 
 Diese Version korrigiert den Repository-Update-Pfad für den eigenständigen Adapter `eos-admin`. Der Repository-Eintrag muss `packetName: "iobroker.eos-admin"` enthalten, damit ioBroker beim Update nicht den falschen Paketpräfix verwendet. Technische Paketnamen in Befehls-/npm-Dialogen werden nicht mehr zu Branding-Text umgeschrieben, damit Fehlermeldungen eindeutig bleiben.
+
+## NexoWatt EOS v7.9.42 Force-Update-Hinweis
+
+Dieses Paket hebt die sichtbare Adapter-Version und die EOS-Frontend-Cache-Buster auf v7.9.42 an. Es enthält den Delete-/DP-Write-Fix aus v7.9.41 und sorgt dafür, dass Browser nicht weiter die v40-Hilfsskripte verwenden.

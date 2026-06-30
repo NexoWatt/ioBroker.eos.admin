@@ -14,7 +14,7 @@
     const LOGO = asset('img/eos/nexowatt-192.png');
     const PNG_LOGO = asset('img/eos/nexowatt-192.png');
     const LOGIN_MOTTO = EOS_MEANING;
-    const CORE_PROTECTED_ADAPTERS = ['eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
+    const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
 
     const TEXT_REPLACEMENTS = [
         [/NexoWatt\s+Energy\s+Management\s+System/gi, BRAND],

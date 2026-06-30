@@ -1,11 +1,11 @@
 {
-  "version": "7.9.41",
-  "variant": "nexowatt-eos-ui-v41-delete-dp-write-fix",
-  "base": "v40-update-packetname-fix",
+  "version": "7.9.42",
+  "variant": "nexowatt-eos-ui-v42-force-version-delete-dp-fix",
+  "base": "v41-delete-dp-write-fix",
   "changes": [
-    "Adapter-/Instanz-Löschschutz hart auf Admin/EOS Admin, BackItUp/Backup, NexoWatt Devices und NexoWatt UI begrenzt",
-    "Alle anderen installierten Adapter/Instanzen bleiben über Module/Dienste löschbar",
-    "Geschützte Adapter werden weiterhin nicht über common.dontDelete/nondeletable blockiert, damit Updates möglich bleiben",
-    "Beschreibbare Datenpunkte schreiben Werte als vollständiges ioBroker-State-Objekt mit ack=false/q=0; Button/Switch-DPs schreiben sofortige Befehle zuverlässiger"
+    "Version/Cache-Busting auf v7.9.42 erhöht, damit nach ZIP-Installation eindeutig sichtbar ist, ob das neue Paket läuft",
+    "AdminWww Index lädt EOS-Sicherheits- und Datenpunkt-Hilfsskripte mit neuem Query-String, damit keine v40 Browser-Caches weiterlaufen",
+    "Adapter-/Instanz-Löschschutz nur für Admin/EOS Admin, BackItUp/Backup, NexoWatt Devices und NexoWatt UI; alle anderen Instanzen bleiben löschbar",
+    "Beschreibbare Datenpunkte behalten den stabilisierten setState-Write mit ack=false/q=0 für Befehlswerte"
   ]
 }
