@@ -1,20 +1,11 @@
 {
-  "name": "NexoWatt EOS admin UI v17",
-  "base": "v16 public npm proprietary package",
-  "created": "2026-06-18T00:00:00Z",
+  "version": "7.9.41",
+  "variant": "nexowatt-eos-ui-v41-delete-dp-write-fix",
+  "base": "v40-update-packetname-fix",
   "changes": [
-    "replaces upstream-style README with NexoWatt EOS Admin README",
-    "documents public npm distribution with proprietary NexoWatt license restrictions",
-    "documents NexoWatt repository installation using packetName @nexowatt/iobroker.admin",
-    "keeps technical adapter id common.name=admin for replacement compatibility",
-    "removes upstream npm badges and MIT license section from README",
-    "updates admin/README.md asset documentation and npm package metadata branding"
-  ],
-  "eosUiVersion": "v17-readme-branding",
-  "layout": "v14/v16 accepted full header + horizontal navigation rail + full-width content",
-  "cacheBust": "v=15",
-  "license": "NexoWatt Proprietary / UNLICENSED package metadata / public npm access",
-  "version": "7.9.17",
-  "variant": "v17-readme-aligned-public-npm-proprietary",
-  "notes": "README aligned for NexoWatt EOS public npm / proprietary license distribution."
+    "Adapter-/Instanz-Löschschutz hart auf Admin/EOS Admin, BackItUp/Backup, NexoWatt Devices und NexoWatt UI begrenzt",
+    "Alle anderen installierten Adapter/Instanzen bleiben über Module/Dienste löschbar",
+    "Geschützte Adapter werden weiterhin nicht über common.dontDelete/nondeletable blockiert, damit Updates möglich bleiben",
+    "Beschreibbare Datenpunkte schreiben Werte als vollständiges ioBroker-State-Objekt mit ack=false/q=0; Button/Switch-DPs schreiben sofortige Befehle zuverlässiger"
+  ]
 }

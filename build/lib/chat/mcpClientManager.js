@@ -12,7 +12,13 @@ exports.McpClientManager = void 0;
  * This is the "A1" integration: the tools are served by iobroker.mcp, while the LLM orchestration
  * that drives these tools is added on top in the (still to come) chat orchestrator.
  */
-const iobroker_mcp_1 = require("iobroker.mcp");
+let iobroker_mcp_1;
+try {
+    iobroker_mcp_1 = require("iobroker.mcp");
+}
+catch (error) {
+    iobroker_mcp_1 = null;
+}
 class McpClientManager {
     adapter;
     options;
@@ -29,6 +35,9 @@ class McpClientManager {
             return Promise.resolve(this.mcp);
         }
         if (!(this.initPromise instanceof Promise)) {
+            if (!iobroker_mcp_1?.createInProcessMcp) {
+                return Promise.reject(new Error('Optional dependency "iobroker.mcp" is not installed. EOS Assist MCP tools are unavailable.'));
+            }
             this.initPromise = (0, iobroker_mcp_1.createInProcessMcp)({
                 adapter: this.adapter,
                 defaultUser: this.options.defaultUser || 'system.user.admin',

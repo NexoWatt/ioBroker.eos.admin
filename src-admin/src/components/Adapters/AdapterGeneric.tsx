@@ -59,6 +59,22 @@ import IsVisible from '../IsVisible';
 import { extractUrlLink, type RepoInfo } from './Utils';
 import sentryIcon from '../../assets/sentry.svg';
 
+const EOS_CORE_PROTECTED_ADAPTERS = new Set(['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui']);
+
+const normalizeEosAdapterName = (value: string): string => String(value || '')
+    .toLowerCase()
+    .replace(/^system\.adapter\./, '')
+    .replace(/^iobroker\./, '')
+    .replace(/^@nexowatt\/iobroker\./, '')
+    .replace(/^@nexowatt\//, '')
+    .replace(/\.\d+$/, '');
+
+const isEosProtectedAdapter = (adapterName: string): boolean => {
+    const adapter = normalizeEosAdapterName(adapterName);
+    const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { isProtectedAdapter?: (name: string) => boolean } }).NEXOWATT_EOS_SECURITY;
+    return EOS_CORE_PROTECTED_ADAPTERS.has(adapter) || !!security?.isProtectedAdapter?.(adapter);
+};
+
 export const genericStyles: Record<string, any> = {
     hidden: {
         display: 'none',
@@ -676,12 +692,10 @@ export default abstract class AdapterGeneric<
     }
 
     renderDeleteButton(): JSX.Element {
-        const allowAdapterDelete = this.props.context.repository[this.props.adapterName]
-            ? this.props.context.repository[this.props.adapterName].allowAdapterDelete
-            : true;
+        const isProtectedAdapter = isEosProtectedAdapter(this.props.adapterName);
 
         return (
-            <IsVisible value={!!this.installedVersion && allowAdapterDelete}>
+            <IsVisible value={!!this.installedVersion && !isProtectedAdapter}>
                 <Tooltip
                     title={this.props.context.t('Delete adapter')}
                     slotProps={{ popper: { sx: this.styles.tooltip } }}
@@ -1098,21 +1112,20 @@ export default abstract class AdapterGeneric<
     }
 
     delete(deleteCustom?: boolean): void {
+        const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockAdapterDelete?: (adapterName: string) => boolean } }).NEXOWATT_EOS_SECURITY;
+        if (isEosProtectedAdapter(this.props.adapterName) || security?.shouldBlockAdapterDelete?.(this.props.adapterName)) {
+            window.alert('Dieser Adapter ist ein geschütztes NexoWatt-EOS-Systemmodul und darf nicht gelöscht werden.');
+            return;
+        }
         this.props.context.executeCommand(
             `del ${this.props.adapterName}${deleteCustom ? ' --custom' : ''}${this.props.context.expertMode ? ' --debug' : ''}`,
         );
     }
 
     async update(version: string): Promise<void> {
-        if (
-            this.props.adapterName === 'admin' &&
-            this.props.context.adminHost === this.props.context.currentHost &&
-            (await this.props.context.socket.checkFeatureSupported('ADAPTER_WEBSERVER_UPGRADE'))
-        ) {
-            this.props.context.setAdminUpgradeTo(version);
-            return;
-        }
-
+        // NexoWatt EOS v34: The standalone eos-admin adapter is updated via the normal
+        // ioBroker upgrade command. The original admin webserver self-update path is unreliable
+        // for a separate adapter and can leave the UI hanging.
         this.props.context.executeCommand(
             `upgrade ${this.props.adapterName}@${version}${this.props.context.expertMode ? ' --debug' : ''}`,
         );

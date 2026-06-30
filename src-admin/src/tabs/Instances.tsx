@@ -51,6 +51,22 @@ import CustomSelectButton from '../components/CustomSelectButton';
 import InstanceFilterDialog from '../components/Instances/InstanceFilterDialog';
 import InstanceCategory from '../components/Instances/InstanceCategory';
 
+const EOS_CORE_PROTECTED_ADAPTERS = new Set(['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui']);
+
+const normalizeEosAdapterName = (value: string): string => String(value || '')
+    .toLowerCase()
+    .replace(/^system\.adapter\./, '')
+    .replace(/^iobroker\./, '')
+    .replace(/^@nexowatt\/iobroker\./, '')
+    .replace(/^@nexowatt\//, '')
+    .replace(/\.\d+$/, '');
+
+const isEosProtectedInstance = (instanceIdOrAdapter: string): boolean => {
+    const adapter = normalizeEosAdapterName(instanceIdOrAdapter.replace(/^system\.adapter\./, '').split('.')[0] || instanceIdOrAdapter);
+    const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockInstanceDelete?: (idOrAdapter: string) => boolean } }).NEXOWATT_EOS_SECURITY;
+    return EOS_CORE_PROTECTED_ADAPTERS.has(adapter) || !!security?.shouldBlockInstanceDelete?.(instanceIdOrAdapter);
+};
+
 const styles: Record<string, any> = {
     paper: {
         height: '100%',
@@ -779,9 +795,14 @@ class Instances extends Component<InstancesProps, InstancesState> {
     }
 
     onDeleteInstance = (instance: InstanceEntry, deleteCustom: boolean, deleteAdapter: boolean): void => {
+        const deleteTarget = deleteAdapter ? instance.id.split('.')[0] : instance.id;
+        if (isEosProtectedInstance(deleteTarget)) {
+            window.alert('Dieser Dienst ist ein geschütztes NexoWatt-EOS-Systemmodul und darf nicht gelöscht werden.');
+            return;
+        }
         this.setState({ deleting: instance.id }, () =>
             this.props.executeCommand(
-                `del ${deleteAdapter ? instance.id.split('.')[0] : instance.id}${deleteCustom ? ' --custom' : ''}${this.props.expertMode ? ' --debug' : ''}`,
+                `del ${deleteTarget}${deleteCustom ? ' --custom' : ''}${this.props.expertMode ? ' --debug' : ''}`,
             ),
         );
     };
@@ -844,9 +865,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 allowInstanceSettings: this.props.repository[instance.adapter]
                     ? this.props.repository[instance.adapter].allowInstanceSettings
                     : true,
-                allowInstanceDelete: this.props.repository[instance.adapter]
-                    ? this.props.repository[instance.adapter].allowInstanceDelete
-                    : true,
+                allowInstanceDelete: !isEosProtectedInstance(instance.id),
                 allowInstanceLink: this.props.repository[instance.adapter]
                     ? this.props.repository[instance.adapter].allowInstanceLink
                     : true,

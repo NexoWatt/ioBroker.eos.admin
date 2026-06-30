@@ -2027,3 +2027,1502 @@ html.eos-app .MuiDialog-paper:has(#base-settings-dialog-title) .MuiDialogActions
         min-height: 260px !important;
     }
 }
+
+
+/* === NexoWatt EOS v14: header logo visibility + nav overlap cleanup ======
+   Basis bleibt v13. Korrektur: Header-Logo deutlich sichtbar, Collapse-Pfeil
+   als eigener kleiner Slot vor der Navigation, kein Überlappen mit Cockpit,
+   und keine sichtbare Abmelden-Kachel mehr. */
+html.eos-app .eos-brand-badge {
+    display: grid !important;
+    grid-template-columns: 66px minmax(155px, 1fr) 10px !important;
+    align-items: center !important;
+    min-width: 292px !important;
+    width: 292px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    padding: 5px 14px 5px 6px !important;
+    column-gap: 12px !important;
+    overflow: visible !important;
+    isolation: isolate !important;
+}
+
+html.eos-app .eos-brand-badge-mark {
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    border-radius: 20px !important;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.18), rgba(2, 9, 20, 0.98) 72%) !important;
+    border: 1px solid rgba(0, 255, 136, 0.62) !important;
+    box-shadow:
+        inset 0 0 18px rgba(0, 255, 136, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 0 18px rgba(0, 255, 136, 0.38),
+        0 0 34px rgba(0, 212, 255, 0.12) !important;
+    z-index: 2 !important;
+}
+
+html.eos-app .eos-brand-badge-logo {
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    min-height: 50px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    mix-blend-mode: normal !important;
+    filter:
+        brightness(1.85)
+        contrast(1.08)
+        saturate(1.35)
+        drop-shadow(0 0 1px rgba(240, 255, 252, 0.70))
+        drop-shadow(0 0 10px rgba(0, 255, 136, 0.58)) !important;
+}
+
+html.eos-app .eos-brand-badge-copy {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    z-index: 2 !important;
+}
+
+html.eos-app .eos-brand-badge-copy strong,
+html.eos-app .eos-brand-badge-copy small {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Collapse slot in the horizontal nav: separate from Cockpit, no logo/text. */
+html.eos-app .eos-native-drawer-header {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 1 !important;
+    order: 0 !important;
+    flex: 0 0 58px !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 8px 0 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+html.eos-app .eos-native-drawer-header > div:first-child {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    overflow: visible !important;
+}
+
+html.eos-app .eos-native-drawer-header button,
+html.eos-app .eos-native-drawer-header .MuiIconButton-root,
+html.eos-app .eos-native-drawer-header [role="button"] {
+    position: relative !important;
+    inset: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    z-index: 3 !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    transform: none !important;
+}
+
+html.eos-app .eos-scroll-nav,
+html.eos-app .MuiDrawer-paper .MuiList-root {
+    order: 1 !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+html.eos-app .eos-scroll-nav > .MuiListItem-root:first-child,
+html.eos-app .eos-scroll-nav > li:first-child {
+    margin-left: 0 !important;
+}
+
+/* Remove the broken visible logout entry from the horizontal rail. */
+html.eos-app .eos-hidden-logout,
+html.eos-app .eos-hidden-logout * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+@media (max-width: 1220px) {
+    html.eos-app .eos-brand-badge {
+        min-width: 72px !important;
+        width: 72px !important;
+        grid-template-columns: 1fr !important;
+        justify-items: center !important;
+        padding: 5px !important;
+    }
+    html.eos-app .eos-brand-badge-mark {
+        width: 58px !important;
+        height: 58px !important;
+        min-width: 58px !important;
+    }
+    html.eos-app .eos-brand-badge-logo {
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+    }
+}
+
+/* v23: NexoWatt is the official EOS repository, so the upstream custom-repo warning is hidden. */
+.eos-hidden-nexowatt-repo-warning {
+    display: none !important;
+}
+
+
+/* NexoWatt EOS security visibility */
+.eos-hidden-legacy-admin {
+    display: none !important;
+}
+
+.eos-hide-legacy-admin-active [data-id="admin"],
+.eos-hide-legacy-admin-active [data-id="admin.0"],
+.eos-hide-legacy-admin-active [data-name="admin"] {
+    display: none !important;
+}
+
+/* v25: role-aware EOS security UI guard */
+html.eos-security-nonadmin .eos-hidden-legacy-admin {
+    display: none !important;
+}
+
+html.eos-security-nonadmin .eos-protected-adapter-row .eos-protected-delete-control,
+html.eos-security-nonadmin .eos-protected-delete-control {
+    opacity: 0.28 !important;
+    pointer-events: none !important;
+    filter: grayscale(1) !important;
+}
+
+html.eos-security-nonadmin .eos-protected-delete-dialog .eos-protected-delete-control {
+    display: none !important;
+}
+
+html.eos-security-nonadmin .eos-security-admin-only-field {
+    display: none !important;
+}
+
+.eos-security-restricted-note {
+    margin: 10px 0 18px !important;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(45, 255, 182, 0.26) !important;
+    background: rgba(4, 18, 28, 0.78) !important;
+    color: rgba(232, 255, 248, 0.95) !important;
+    box-shadow: 0 0 22px rgba(0, 229, 168, 0.13) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.eos-security-restricted-note strong {
+    color: #53ffd0 !important;
+    font-weight: 800 !important;
+}
+
+.eos-security-restricted-note span {
+    color: rgba(219, 246, 240, 0.78) !important;
+    font-size: 0.9rem !important;
+}
+
+
+/* NexoWatt EOS v25 security visibility guard */
+.eos-security-hidden,
+.eos-security-hidden-delete {
+    display: none !important;
+}
+.eos-security-protected-adapter {
+    position: relative;
+}
+.eos-security-protected-adapter::after {
+    content: 'EOS geschützt';
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 2;
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: rgba(225, 255, 246, .88);
+    background: rgba(5, 22, 28, .72);
+    border: 1px solid rgba(55, 230, 180, .22);
+    pointer-events: none;
+}
+
+/* === NexoWatt EOS v26: Header identity polish =============================
+   Header-Logo links stärker sichtbar, leicht nach oben gesetzt und sauber vom
+   Text getrennt. Benutzername rechts wird kontrastreich/weiß dargestellt. */
+html.eos-app .eos-top-toolbar {
+    overflow: visible !important;
+}
+
+html.eos-app .eos-brand-badge {
+    grid-template-columns: 76px minmax(170px, 1fr) 12px !important;
+    min-width: 326px !important;
+    width: 326px !important;
+    height: 62px !important;
+    min-height: 62px !important;
+    padding: 3px 16px 3px 5px !important;
+    column-gap: 13px !important;
+    align-items: center !important;
+    transform: translateY(-2px) !important;
+    background:
+        radial-gradient(circle at 26px 31px, rgba(0, 255, 136, 0.30), transparent 35px),
+        linear-gradient(135deg, rgba(0, 255, 136, 0.18), rgba(0, 212, 255, 0.075) 58%, rgba(2, 9, 20, 0.45)) !important;
+    border-color: rgba(0, 255, 136, 0.55) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.10),
+        inset 0 0 24px rgba(0, 255, 136, 0.08),
+        0 10px 24px rgba(0, 0, 0, 0.28),
+        0 0 22px rgba(0, 255, 136, 0.18) !important;
+}
+
+html.eos-app .eos-brand-badge-mark {
+    width: 64px !important;
+    height: 64px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    margin-left: -1px !important;
+    transform: translateY(-3px) !important;
+    border-radius: 22px !important;
+    background:
+        radial-gradient(circle at 48% 46%, rgba(45, 255, 188, 0.20), rgba(0, 22, 22, 0.92) 63%, rgba(1, 9, 17, 0.98) 100%) !important;
+    border: 1px solid rgba(111, 255, 215, 0.76) !important;
+    box-shadow:
+        inset 0 0 22px rgba(0, 255, 136, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 0 20px rgba(0, 255, 136, 0.54),
+        0 0 38px rgba(0, 212, 255, 0.17) !important;
+}
+
+html.eos-app .eos-brand-badge-logo {
+    width: 57px !important;
+    height: 57px !important;
+    min-width: 57px !important;
+    min-height: 57px !important;
+    opacity: 1 !important;
+    transform: translateY(-1px) !important;
+    filter:
+        brightness(2.18)
+        contrast(1.16)
+        saturate(1.42)
+        drop-shadow(0 0 1px rgba(245, 255, 252, 0.92))
+        drop-shadow(0 0 10px rgba(0, 255, 136, 0.78))
+        drop-shadow(0 0 20px rgba(0, 212, 255, 0.24)) !important;
+}
+
+html.eos-app .eos-brand-badge-copy {
+    padding-left: 1px !important;
+    min-width: 0 !important;
+}
+
+html.eos-app .eos-brand-badge-copy strong {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    line-height: 1.0 !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,.45), 0 0 10px rgba(0,255,136,.18) !important;
+}
+
+html.eos-app .eos-brand-badge-copy small {
+    color: rgba(239, 255, 250, 0.88) !important;
+    font-size: 7.9px !important;
+    line-height: 1.08 !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,.42) !important;
+}
+
+html.eos-app .eos-brand-led {
+    background: #18ff9a !important;
+    box-shadow: 0 0 12px rgba(0,255,136,.95), 0 0 24px rgba(0,212,255,.18) !important;
+}
+
+/* Right account/user area in the native app bar: keep names readable. */
+html.eos-app .MuiAppBar-root .MuiToolbar-root,
+html.eos-app .eos-top-toolbar {
+    color: #f4fbff !important;
+}
+
+html.eos-app .eos-top-toolbar > :not(.eos-brand-badge),
+html.eos-app .eos-top-toolbar > :not(.eos-brand-badge) *,
+html.eos-app .MuiAppBar-root .MuiToolbar-root .MuiTypography-root,
+html.eos-app .MuiAppBar-root .MuiToolbar-root a,
+html.eos-app .MuiAppBar-root .MuiToolbar-root button,
+html.eos-app .MuiAppBar-root .MuiToolbar-root span:not(.eos-brand-led):not(.eos-brand-badge-mark) {
+    color: #f4fbff !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,.55), 0 0 9px rgba(0,255,136,.14) !important;
+}
+
+html.eos-app .MuiAppBar-root .MuiToolbar-root .MuiAvatar-root,
+html.eos-app .MuiAppBar-root .MuiToolbar-root img[alt*="admin" i],
+html.eos-app .MuiAppBar-root .MuiToolbar-root img[alt*="user" i] {
+    opacity: 1 !important;
+    filter: brightness(1.25) saturate(1.25) drop-shadow(0 0 10px rgba(0,255,136,.42)) !important;
+}
+
+@media (max-width: 1220px) {
+    html.eos-app .eos-brand-badge {
+        min-width: 80px !important;
+        width: 80px !important;
+        grid-template-columns: 1fr !important;
+        justify-items: center !important;
+        padding: 4px 7px !important;
+        transform: translateY(-1px) !important;
+    }
+
+    html.eos-app .eos-brand-badge-mark {
+        width: 64px !important;
+        height: 64px !important;
+        min-width: 64px !important;
+        min-height: 64px !important;
+    }
+
+    html.eos-app .eos-brand-badge-logo {
+        width: 57px !important;
+        height: 57px !important;
+        min-width: 57px !important;
+        min-height: 57px !important;
+    }
+
+    html.eos-app .eos-brand-badge-copy,
+    html.eos-app .eos-brand-led {
+        display: none !important;
+    }
+}
+
+@media (max-width: 720px) {
+    html.eos-app .eos-brand-badge {
+        min-width: 64px !important;
+        width: 64px !important;
+        height: 56px !important;
+        min-height: 56px !important;
+    }
+
+    html.eos-app .eos-brand-badge-mark {
+        width: 52px !important;
+        height: 52px !important;
+        min-width: 52px !important;
+        min-height: 52px !important;
+        transform: translateY(-1px) !important;
+    }
+
+    html.eos-app .eos-brand-badge-logo {
+        width: 47px !important;
+        height: 47px !important;
+        min-width: 47px !important;
+        min-height: 47px !important;
+    }
+}
+
+
+/* === NexoWatt EOS v27: logo contrast, compact nav, EOS Assist ============
+   Der Pfeil ist kein Voll-Schließen mehr: er schaltet nur zwischen normaler
+   und kompakter Navigationsstufe um. Das Logo bekommt einen schwarzen Grund,
+   damit das NexoWatt-Zeichen sauberer und hochwertiger wirkt. */
+html.eos-app .eos-brand-badge {
+    grid-template-columns: 78px minmax(170px, 1fr) 12px !important;
+    padding-left: 6px !important;
+    background:
+        radial-gradient(circle at 38px 29px, rgba(0, 255, 136, 0.18), transparent 44px),
+        linear-gradient(135deg, rgba(4, 18, 26, 0.98), rgba(0, 7, 12, 0.84) 52%, rgba(0, 32, 26, 0.50)) !important;
+}
+
+html.eos-app .eos-brand-badge-mark {
+    background:
+        radial-gradient(circle at 50% 44%, rgba(0, 255, 136, 0.16), rgba(0, 0, 0, 0.96) 58%, #000000 100%) !important;
+    border-color: rgba(126, 255, 216, 0.84) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 0 20px rgba(0, 255, 136, 0.18),
+        0 0 0 1px rgba(0, 0, 0, 0.55),
+        0 0 20px rgba(0, 255, 136, 0.62),
+        0 0 40px rgba(0, 212, 255, 0.20) !important;
+    transform: translateY(-5px) !important;
+}
+
+html.eos-app .eos-brand-badge-logo {
+    filter:
+        brightness(2.35)
+        contrast(1.22)
+        saturate(1.48)
+        drop-shadow(0 0 1px rgba(255, 255, 255, 0.95))
+        drop-shadow(0 0 11px rgba(0, 255, 136, 0.82))
+        drop-shadow(0 0 22px rgba(0, 212, 255, 0.28)) !important;
+}
+
+/* Drawer/rail stays visible. The native arrow becomes a compact-mode toggle. */
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer {
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    padding-left: 86px !important;
+}
+
+html.eos-app .eos-native-drawer-header {
+    position: absolute !important;
+    left: 12px !important;
+    top: 8px !important;
+    flex: 0 0 58px !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    margin: 0 !important;
+    z-index: 4 !important;
+    background: rgba(0, 0, 0, 0.38) !important;
+    border-color: rgba(0, 255, 136, 0.38) !important;
+    box-shadow: inset 0 0 16px rgba(0, 255, 136, 0.10), 0 0 20px rgba(0, 255, 136, 0.10) !important;
+}
+
+html.eos-app .eos-native-drawer-header > div:first-child {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    padding: 4px 6px !important;
+}
+
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    border-radius: 16px !important;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.18), rgba(0, 0, 0, 0.72)) !important;
+    border: 1px solid rgba(0, 255, 136, 0.44) !important;
+    box-shadow: 0 0 16px rgba(0, 255, 136, 0.18) !important;
+}
+
+html.eos-app.eos-nav-compact .eos-native-drawer-header .eos-nav-compact-toggle svg,
+html.eos-app.eos-nav-compact .eos-native-drawer-header button.eos-nav-compact-toggle svg {
+    transform: rotate(180deg) !important;
+}
+
+html.eos-app .eos-scroll-nav,
+html.eos-app .MuiDrawer-paper .MuiList-root {
+    margin-left: 0 !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemButton-root,
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiButtonBase-root.MuiListItemButton-root {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    gap: 0 !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemText-root,
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemButton-root .MuiTypography-root,
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiButtonBase-root.MuiListItemButton-root .MuiTypography-root {
+    display: none !important;
+    max-width: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiListItemIcon-root {
+    min-width: 0 !important;
+    margin: 0 !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper .MuiBadge-root .MuiBadge-badge {
+    transform: scale(0.88) translate(42%, -42%) !important;
+}
+
+/* EOS Assist: leichte Bedienhilfe als Vorbereitung für eine spätere echte KI. */
+.eos-assist-root {
+    position: fixed !important;
+    right: 26px !important;
+    bottom: 24px !important;
+    z-index: 1700 !important;
+    font-family: inherit !important;
+}
+
+.eos-assist-button {
+    display: grid !important;
+    grid-template-columns: 12px auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 8px !important;
+    align-items: center !important;
+    min-width: 156px !important;
+    padding: 10px 14px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(0, 255, 136, 0.44) !important;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.19), rgba(0, 212, 255, 0.10) 62%, rgba(0, 0, 0, 0.64)) !important;
+    color: #f3fffb !important;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38), 0 0 24px rgba(0, 255, 136, 0.18) !important;
+    cursor: pointer !important;
+}
+
+.eos-assist-button strong { grid-column: 2; font-weight: 900; font-size: 13px; line-height: 1; }
+.eos-assist-button small { grid-column: 2; color: rgba(226, 255, 247, .72); font-size: 10px; line-height: 1.1; }
+.eos-assist-dot { grid-row: 1 / span 2; width: 10px; height: 10px; border-radius: 999px; background: #16ff98; box-shadow: 0 0 12px rgba(0, 255, 136, .9); }
+
+.eos-assist-panel {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: calc(100% + 12px) !important;
+    width: min(420px, calc(100vw - 36px)) !important;
+    padding: 16px !important;
+    border-radius: 22px !important;
+    border: 1px solid rgba(0, 255, 136, 0.32) !important;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(0, 255, 136, .12), transparent 44%),
+        linear-gradient(180deg, rgba(8, 29, 44, 0.98), rgba(2, 9, 20, 0.98)) !important;
+    color: #f3fffb !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,.52), 0 0 26px rgba(0,255,136,.13) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(10px) scale(.98) !important;
+    transition: opacity .16s ease, transform .16s ease !important;
+}
+
+.eos-assist-root.eos-assist-open .eos-assist-panel {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.eos-assist-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.eos-assist-head strong { display: block; font-size: 16px; font-weight: 950; margin-bottom: 5px; }
+.eos-assist-head span { display: block; color: rgba(226, 245, 255, .76); font-size: 12px; line-height: 1.35; }
+.eos-assist-close { width: 32px; height: 32px; border-radius: 12px; border: 1px solid rgba(0,255,136,.26); background: rgba(0,0,0,.34); color: #fff; cursor: pointer; }
+.eos-assist-steps { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
+.eos-assist-steps span { padding: 5px 9px; border-radius: 999px; background: rgba(0,255,136,.10); border: 1px solid rgba(0,255,136,.18); color: rgba(237,255,250,.90); font-size: 11px; font-weight: 750; }
+.eos-assist-input-label { display: block; color: rgba(226,245,255,.78); font-size: 11px; margin: 0 0 6px; font-weight: 750; }
+.eos-assist-input-row { display: flex; gap: 8px; }
+.eos-assist-input { flex: 1; min-width: 0; border-radius: 14px; border: 1px solid rgba(98,190,255,.28); background: rgba(0,7,13,.62); color: #f3fffb; padding: 10px 12px; outline: none; }
+.eos-assist-send { border: 0; border-radius: 14px; padding: 0 13px; background: linear-gradient(135deg, #00ff88, #00d4ff); color: #001019; font-weight: 900; cursor: pointer; }
+.eos-assist-answer { margin-top: 12px; padding: 12px 13px; border-radius: 16px; border: 1px solid rgba(0,212,255,.20); background: rgba(0,0,0,.28); color: rgba(238,255,250,.90); font-size: 12px; line-height: 1.42; }
+
+@media (max-width: 720px) {
+    html.eos-app .MuiDrawer-paper,
+    html.eos-app .eos-drawer { padding-left: 68px !important; }
+    html.eos-app .eos-native-drawer-header { left: 8px !important; width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+    html.eos-app .eos-native-drawer-header > div:first-child { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+    html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+    html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle { width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; }
+    .eos-assist-root { right: 14px !important; bottom: 16px !important; }
+    .eos-assist-button { min-width: 54px !important; width: 54px !important; height: 54px !important; border-radius: 18px !important; grid-template-columns: 1fr !important; padding: 0 !important; place-items: center !important; }
+    .eos-assist-button strong, .eos-assist-button small { display: none !important; }
+    .eos-assist-dot { grid-column: 1; grid-row: 1; width: 14px; height: 14px; }
+}
+
+
+/* === NexoWatt EOS v30: final nav/assist/security polish ==================
+   Pfeil liegt weiter links in einem eigenen Slot, Menü klappt nur kompakt ein,
+   EOS Assist öffnet robust und EOS Sicherheit bleibt Nicht-Admins verborgen. */
+html.eos-app .eos-brand-badge-mark {
+    background:
+        radial-gradient(circle at 48% 45%, rgba(0, 255, 136, 0.14), rgba(0, 0, 0, 0.98) 54%, #000 100%) !important;
+    border-color: rgba(125, 255, 218, 0.88) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 0 24px rgba(0, 255, 136, 0.16),
+        0 0 0 2px rgba(0, 0, 0, 0.70),
+        0 0 24px rgba(0, 255, 136, 0.64),
+        0 0 46px rgba(0, 212, 255, 0.20) !important;
+}
+
+html.eos-app .eos-brand-badge-logo {
+    background: #000 !important;
+    border-radius: 16px !important;
+    padding: 2px !important;
+}
+
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer {
+    padding-left: 128px !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+html.eos-app .eos-native-drawer-header {
+    left: 6px !important;
+    top: 7px !important;
+    width: 62px !important;
+    min-width: 62px !important;
+    max-width: 62px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    background: rgba(0, 0, 0, 0.58) !important;
+    border: 1px solid rgba(0, 255, 136, 0.42) !important;
+    border-radius: 18px !important;
+}
+
+html.eos-app .eos-native-drawer-header > div:first-child {
+    width: 62px !important;
+    min-width: 62px !important;
+    max-width: 62px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    padding: 4px 7px !important;
+}
+
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    border-radius: 17px !important;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.20), rgba(0, 0, 0, 0.82)) !important;
+    border-color: rgba(89, 255, 199, 0.58) !important;
+    box-shadow: inset 0 0 16px rgba(0,255,136,.10), 0 0 18px rgba(0,255,136,.24) !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper,
+html.eos-app.eos-nav-compact .eos-drawer {
+    width: auto !important;
+    min-width: auto !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.eos-assist-root,
+#eos-assist-root {
+    pointer-events: auto !important;
+}
+
+.eos-assist-button,
+.eos-assist-close,
+.eos-assist-send {
+    pointer-events: auto !important;
+    user-select: none !important;
+}
+
+.eos-assist-root.eos-assist-open .eos-assist-panel,
+html.eos-assist-open .eos-assist-root .eos-assist-panel,
+html.eos-assist-open #eos-assist-root .eos-assist-panel {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.eos-assist-launcher {
+    display: none !important;
+}
+
+html.eos-security-non-admin-user .eos-security-admin-only-field,
+html.eos-security-nonadmin .eos-security-admin-only-field,
+.eos-security-hidden,
+.eos-security-hidden-delete {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+@media (max-width: 720px) {
+    html.eos-app .MuiDrawer-paper,
+    html.eos-app .eos-drawer { padding-left: 92px !important; }
+    html.eos-app .eos-native-drawer-header { left: 6px !important; width: 52px !important; min-width: 52px !important; max-width: 52px !important; }
+    html.eos-app .eos-native-drawer-header > div:first-child { width: 52px !important; min-width: 52px !important; max-width: 52px !important; }
+}
+
+/* === NexoWatt EOS v30: nav-toggle position, assistant click layer, security visibility ===
+   Keeps v29 stable backend. Only UI polish: black logo field, compact arrow moved
+   further left with reserved spacing, EOS Assist click/focus layer and admin-only
+   EOS security configuration visibility. */
+:root {
+    --eos-nav-toggle-slot: 126px;
+}
+
+html.eos-app .eos-brand-badge-mark {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 19px !important;
+    background:
+        radial-gradient(circle at 50% 46%, rgba(0, 255, 136, 0.22), rgba(0, 0, 0, 0.94) 62%, #000 100%) !important;
+    border: 1px solid rgba(126, 255, 216, 0.72) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 0 24px rgba(0, 255, 136, 0.18),
+        0 0 0 1px rgba(0, 0, 0, 0.70),
+        0 0 24px rgba(0, 255, 136, 0.56),
+        0 0 42px rgba(0, 212, 255, 0.18) !important;
+    overflow: hidden !important;
+    transform: translateY(-3px) !important;
+}
+
+html.eos-app .eos-brand-badge-logo {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    padding: 4px !important;
+    filter:
+        brightness(2.35)
+        contrast(1.24)
+        saturate(1.50)
+        drop-shadow(0 0 1px rgba(255, 255, 255, 0.98))
+        drop-shadow(0 0 12px rgba(0, 255, 136, 0.82))
+        drop-shadow(0 0 24px rgba(0, 212, 255, 0.30)) !important;
+}
+
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer {
+    padding-left: var(--eos-nav-toggle-slot) !important;
+}
+
+html.eos-app .eos-native-drawer-header {
+    left: 6px !important;
+    top: 8px !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    z-index: 8 !important;
+}
+
+html.eos-app .eos-native-drawer-header > div:first-child {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+}
+
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header button,
+html.eos-app .eos-native-drawer-header .MuiIconButton-root {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    border-radius: 17px !important;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.18), rgba(0, 0, 0, 0.82)) !important;
+    border: 1px solid rgba(0, 255, 136, 0.54) !important;
+    box-shadow: 0 0 18px rgba(0, 255, 136, 0.24), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+html.eos-app.eos-nav-compact .MuiDrawer-paper,
+html.eos-app.eos-nav-compact .eos-drawer {
+    padding-left: 76px !important;
+}
+
+/* Keep EOS Assist clickable even when the route content has high z-index layers. */
+html.eos-app .eos-assist-root,
+html.eos-app #eos-assist-root {
+    pointer-events: auto !important;
+    z-index: 3000 !important;
+}
+html.eos-app .eos-assist-button,
+html.eos-app .eos-assist-close,
+html.eos-app .eos-assist-send,
+html.eos-app .eos-assist-input,
+html.eos-app .eos-assist-panel {
+    pointer-events: auto !important;
+}
+html.eos-app .eos-assist-root.eos-assist-open .eos-assist-panel,
+html.eos-app #eos-assist-root.eos-assist-open .eos-assist-panel {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+/* EOS Security is an administrator-only configuration area. */
+html.eos-security-nonadmin .eos-security-admin-only-field,
+html.eos-security-non-admin-user .eos-security-admin-only-field,
+html.eos-security-nonadmin .eos-security-admin-only-tab,
+html.eos-security-non-admin-user .eos-security-admin-only-tab,
+html.eos-security-nonadmin .eos-security-settings-restricted .eos-security-admin-only-field,
+html.eos-security-non-admin-user .eos-security-settings-restricted .eos-security-admin-only-field {
+    display: none !important;
+}
+
+@media (max-width: 720px) {
+    :root { --eos-nav-toggle-slot: 86px; }
+    html.eos-app .eos-native-drawer-header { left: 6px !important; width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+    html.eos-app .eos-native-drawer-header > div:first-child { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+    html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+    html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle,
+    html.eos-app .eos-native-drawer-header button,
+    html.eos-app .eos-native-drawer-header .MuiIconButton-root { width: 42px !important; height: 42px !important; min-width: 42px !important; min-height: 42px !important; }
+}
+
+
+/* === NexoWatt EOS v30: nav arrow, black logo badge, assist/security polish === */
+html.eos-app .eos-brand-badge-mark {
+    background:
+        radial-gradient(circle at 50% 44%, rgba(0, 255, 136, 0.22), rgba(0, 0, 0, 0.96) 50%, #000 100%) !important;
+    border: 1px solid rgba(124, 255, 214, 0.92) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.075),
+        inset 0 0 22px rgba(0,255,136,.24),
+        0 0 0 1px rgba(0,0,0,.82),
+        0 0 24px rgba(0,255,136,.72),
+        0 0 46px rgba(0,212,255,.22) !important;
+    transform: translateY(-4px) !important;
+}
+html.eos-app .eos-brand-badge-logo {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    filter:
+        brightness(2.45)
+        contrast(1.28)
+        saturate(1.58)
+        drop-shadow(0 0 1px rgba(255,255,255,.95))
+        drop-shadow(0 0 13px rgba(0,255,136,.90))
+        drop-shadow(0 0 26px rgba(0,212,255,.32)) !important;
+}
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer {
+    padding-left: 112px !important;
+}
+html.eos-app .eos-native-drawer-header {
+    left: 4px !important;
+    top: 8px !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+}
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle {
+    transform: translateX(-2px) !important;
+}
+html.eos-app .eos-hidden-logout,
+html.eos-app .eos-hidden-logout *,
+html.eos-app .eos-native-logout-hidden,
+html.eos-app .eos-native-logout-hidden * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+html.eos-app.eos-nav-compact .MuiDrawer-paper,
+html.eos-app.eos-nav-compact .eos-drawer {
+    padding-left: 88px !important;
+}
+/* EOS Assist stable root */
+.eos-assist-root {
+    position: fixed !important;
+    right: 26px !important;
+    bottom: 24px !important;
+    z-index: 1700 !important;
+    font-family: inherit !important;
+}
+.eos-assist-root .eos-assist-button,
+.eos-assist-button {
+    display: grid !important;
+    grid-template-columns: 12px auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 8px !important;
+    align-items: center !important;
+    min-width: 156px !important;
+    padding: 10px 14px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(0, 255, 136, 0.48) !important;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.22), rgba(0, 212, 255, 0.12) 62%, rgba(0, 0, 0, 0.72)) !important;
+    color: #f3fffb !important;
+    box-shadow: 0 14px 32px rgba(0,0,0,.38), 0 0 24px rgba(0,255,136,.20) !important;
+    cursor: pointer !important;
+}
+.eos-assist-panel {
+    display: block !important;
+    position: absolute !important;
+    right: 0 !important;
+    bottom: calc(100% + 12px) !important;
+    width: min(430px, calc(100vw - 36px)) !important;
+    max-height: min(650px, calc(100vh - 150px)) !important;
+    overflow: auto !important;
+    padding: 16px !important;
+    border-radius: 22px !important;
+    border: 1px solid rgba(0,255,136,.36) !important;
+    background: radial-gradient(circle at 18% 0%, rgba(0,255,136,.14), transparent 44%), linear-gradient(180deg, rgba(8,29,44,.985), rgba(2,9,20,.985)) !important;
+    color: #f3fffb !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 28px rgba(0,255,136,.16) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(10px) scale(.98) !important;
+    transition: opacity .16s ease, transform .16s ease !important;
+}
+.eos-assist-root.eos-assist-open .eos-assist-panel,
+html.eos-assist-open .eos-assist-panel {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+}
+.eos-assist-card { margin-top: 10px; padding: 12px 13px; border-radius: 16px; border: 1px solid rgba(0,212,255,.20); background: rgba(0,0,0,.30); color: rgba(238,255,250,.92); font-size: 12px; line-height: 1.45; white-space: pre-line; }
+.eos-assist-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.eos-assist-actions button { border-radius: 999px; border: 1px solid rgba(0,255,136,.24); background: rgba(0,255,136,.09); color: #effffc; padding: 7px 10px; font-weight: 800; cursor: pointer; }
+.eos-assist-logo { width: 36px; height: 36px; display: grid !important; place-items: center; border-radius: 13px; background: #000; border: 1px solid rgba(0,255,136,.45); box-shadow: 0 0 14px rgba(0,255,136,.22); }
+.eos-assist-logo img { width: 30px; height: 30px; object-fit: contain; filter: brightness(1.8) drop-shadow(0 0 8px rgba(0,255,136,.55)); }
+.eos-assist-foot { margin-top: 10px; color: rgba(226,245,255,.62); font-size: 11px; line-height: 1.35; }
+/* Non-admins must not see the EOS security settings tab/fields. */
+html.eos-security-nonadmin [data-eos-security-admin-only="true"],
+html.eos-security-non-admin-user [data-eos-security-admin-only="true"],
+html:not(.eos-security-admin):not(.eos-security-admin-user) [data-eos-security-admin-only="true"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+.eos-security-restricted-note {
+    border-radius: 18px !important;
+    border: 1px solid rgba(255, 193, 7, .36) !important;
+    background: linear-gradient(135deg, rgba(255,193,7,.14), rgba(0,0,0,.30)) !important;
+    color: #fff8dd !important;
+    margin: 8px 0 14px !important;
+    padding: 12px 14px !important;
+}
+@media (max-width: 720px) {
+    html.eos-app .MuiDrawer-paper,
+    html.eos-app .eos-drawer { padding-left: 82px !important; }
+    html.eos-app .eos-native-drawer-header { left: 4px !important; }
+    .eos-assist-root { right: 14px !important; bottom: 16px !important; }
+}
+
+
+/* === NexoWatt EOS v31: clean arrow tile, security text repair, AI-ready Assist === */
+:root { --eos-nav-toggle-slot: 82px; }
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer {
+    padding-left: var(--eos-nav-toggle-slot) !important;
+}
+html.eos-app.eos-nav-compact .MuiDrawer-paper,
+html.eos-app.eos-nav-compact .eos-drawer {
+    padding-left: var(--eos-nav-toggle-slot) !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+html.eos-app .eos-native-drawer-header,
+html.eos-app .eos-nav-toggle-shell {
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+    max-height: 54px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 18px !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.84), rgba(0, 255, 136, 0.13)) !important;
+    border: 1px solid rgba(0, 255, 136, 0.50) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 18px rgba(0,255,136,.20) !important;
+    overflow: visible !important;
+}
+html.eos-app .eos-native-drawer-header > div:first-child,
+html.eos-app .eos-nav-toggle-shell > div:first-child {
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+    max-height: 54px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+}
+html.eos-app .eos-native-drawer-header a,
+html.eos-app .eos-native-drawer-header img,
+html.eos-app .eos-native-drawer-header .MuiAvatar-root,
+html.eos-app .eos-native-drawer-header .MuiAvatar-img,
+html.eos-app .eos-native-drawer-header .eos-native-title,
+html.eos-app .eos-nav-toggle-decor-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle,
+html.eos-app .eos-native-drawer-header button,
+html.eos-app .eos-native-drawer-header .MuiIconButton-root {
+    position: static !important;
+    transform: none !important;
+    margin: 0 !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 15px !important;
+    background: radial-gradient(circle at 50% 50%, rgba(0,255,136,.24), rgba(0,0,0,.88) 72%) !important;
+    border: 1px solid rgba(110,255,211,.58) !important;
+    color: #eefcff !important;
+    box-shadow: 0 0 16px rgba(0,255,136,.28), inset 0 0 12px rgba(0,255,136,.12) !important;
+}
+html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle svg,
+html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle svg,
+html.eos-app .eos-native-drawer-header .MuiSvgIcon-root {
+    width: 22px !important;
+    height: 22px !important;
+}
+html.eos-app .eos-hidden-logout,
+html.eos-app .eos-hidden-logout *,
+html.eos-app .eos-native-logout-hidden,
+html.eos-app .eos-native-logout-hidden * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+}
+.eos-assist-panel { max-height: min(690px, calc(100vh - 150px)) !important; }
+.eos-assist-answer { white-space: pre-line !important; }
+.eos-assist-foot strong { color: #00ff88; }
+@media (max-width: 720px) {
+    :root { --eos-nav-toggle-slot: 72px; }
+    html.eos-app .eos-native-drawer-header,
+    html.eos-app .eos-nav-toggle-shell { left: 10px !important; width: 48px !important; min-width: 48px !important; max-width: 48px !important; height: 48px !important; min-height: 48px !important; }
+    html.eos-app .eos-native-drawer-header > div:first-child { width: 48px !important; min-width: 48px !important; max-width: 48px !important; height: 48px !important; min-height: 48px !important; }
+    html.eos-app .eos-native-drawer-header button.eos-nav-compact-toggle,
+    html.eos-app .eos-native-drawer-header .eos-nav-compact-toggle,
+    html.eos-app .eos-native-drawer-header button,
+    html.eos-app .eos-native-drawer-header .MuiIconButton-root { width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; }
+}
+
+
+/* === NexoWatt EOS v32: keep arrow button, remove empty left tile ============
+   The previous patch hid the native arrow together with the decorative tile on
+   some render paths. This patch removes only the empty native tile and creates
+   one independent compact-toggle button, positioned clearly left of the menu.
+   The navigation still has two states only: normal and compact. It never fully
+   disappears. */
+:root { --eos-nav-toggle-slot: 78px; }
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer,
+html.eos-app.eos-nav-compact .MuiDrawer-paper,
+html.eos-app.eos-nav-compact .eos-drawer {
+    padding-left: var(--eos-nav-toggle-slot) !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Hide the decorative native tile only. The real button is injected below. */
+html.eos-app .eos-native-drawer-header,
+html.eos-app .eos-nav-toggle-shell {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: hidden !important;
+}
+
+html.eos-app .eos-standalone-nav-toggle {
+    position: fixed !important;
+    left: 24px !important;
+    top: calc(var(--eos-shell-top) + var(--eos-header-height) + var(--eos-nav-gap) + 14px) !important;
+    z-index: 2500 !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(110, 255, 211, 0.65) !important;
+    background: radial-gradient(circle at 50% 50%, rgba(0,255,136,.22), rgba(0,0,0,.92) 74%) !important;
+    color: #f4fffb !important;
+    box-shadow: 0 0 16px rgba(0,255,136,.28), inset 0 0 12px rgba(0,255,136,.12) !important;
+    cursor: pointer !important;
+    outline: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+html.eos-app .eos-standalone-nav-toggle:hover,
+html.eos-app .eos-standalone-nav-toggle:focus-visible {
+    border-color: rgba(0, 255, 136, .95) !important;
+    box-shadow: 0 0 22px rgba(0,255,136,.42), inset 0 0 16px rgba(0,255,136,.18) !important;
+    transform: translateY(-1px) !important;
+}
+html.eos-app .eos-standalone-nav-toggle svg {
+    width: 22px !important;
+    height: 22px !important;
+    display: block !important;
+    transition: transform .16s ease !important;
+}
+html.eos-app.eos-nav-compact .eos-standalone-nav-toggle svg {
+    transform: rotate(180deg) !important;
+}
+html.eos-login .eos-standalone-nav-toggle,
+html:not(.eos-app) .eos-standalone-nav-toggle {
+    display: none !important;
+}
+@media (max-width: 720px) {
+    :root { --eos-nav-toggle-slot: 66px; }
+    html.eos-app .eos-standalone-nav-toggle {
+        left: 14px !important;
+        top: calc(var(--eos-shell-top) + var(--eos-header-height) + var(--eos-nav-gap) + 10px) !important;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        border-radius: 14px !important;
+    }
+}
+
+
+/* === NexoWatt EOS v33: Assist button spacing ==============================
+   Keep the EOS Assist accessible, but reserve the bottom-right corner for the
+   native page settings pencil / floating action buttons and scroll controls. */
+:root {
+    --eos-assist-safe-right: 118px;
+    --eos-assist-safe-bottom: 22px;
+}
+html.eos-app .eos-assist-root,
+html.eos-app #eos-assist-root {
+    right: var(--eos-assist-safe-right) !important;
+    bottom: var(--eos-assist-safe-bottom) !important;
+    z-index: 1680 !important;
+}
+html.eos-app .eos-assist-root .eos-assist-panel,
+html.eos-app #eos-assist-root .eos-assist-panel {
+    right: 0 !important;
+    bottom: calc(100% + 12px) !important;
+}
+/* Keep common page settings / FAB elements clickable above the assist. */
+html.eos-app [aria-label*="Einstellung"],
+html.eos-app [title*="Einstellung"],
+html.eos-app [aria-label*="Settings"],
+html.eos-app [title*="Settings"],
+html.eos-app .MuiFab-root,
+html.eos-app button[class*="Fab"],
+html.eos-app button[class*="fab"] {
+    z-index: 1800 !important;
+}
+@media (max-width: 1100px) {
+    :root { --eos-assist-safe-right: 104px; }
+}
+@media (max-width: 720px) {
+    :root {
+        --eos-assist-safe-right: 86px;
+        --eos-assist-safe-bottom: 16px;
+    }
+    html.eos-app .eos-assist-root .eos-assist-button,
+    html.eos-app #eos-assist-root .eos-assist-button {
+        min-width: 54px !important;
+        width: 54px !important;
+        height: 54px !important;
+        border-radius: 18px !important;
+        grid-template-columns: 1fr !important;
+        padding: 0 !important;
+        place-items: center !important;
+    }
+    html.eos-app .eos-assist-root .eos-assist-button strong,
+    html.eos-app .eos-assist-root .eos-assist-button small,
+    html.eos-app #eos-assist-root .eos-assist-button strong,
+    html.eos-app #eos-assist-root .eos-assist-button small {
+        display: none !important;
+    }
+}
+
+
+/* === NexoWatt EOS v35: login redirect + adapter config interaction fix ======
+   Keep native adapter configuration pages fully clickable and reserve the bottom
+   right corner for adapter/page floating actions. */
+html.eos-app.eos-adapter-config-surface #app-paper button,
+html.eos-app.eos-adapter-config-surface #app-paper [role="button"],
+html.eos-app.eos-adapter-config-surface #app-paper a,
+html.eos-app.eos-adapter-config-surface #app-paper input,
+html.eos-app.eos-adapter-config-surface #app-paper select,
+html.eos-app.eos-adapter-config-surface #app-paper textarea {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-adapter-config-surface #app-paper .MuiButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiIconButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiMenuItem-root {
+    position: relative !important;
+    z-index: 12 !important;
+}
+html.eos-app .eos-assist-root,
+html.eos-app #eos-assist-root {
+    right: 150px !important;
+    bottom: 22px !important;
+}
+@media (max-width: 1100px) {
+    html.eos-app .eos-assist-root,
+    html.eos-app #eos-assist-root { right: 126px !important; }
+}
+@media (max-width: 720px) {
+    html.eos-app .eos-assist-root,
+    html.eos-app #eos-assist-root { right: 96px !important; }
+}
+
+
+/* === NexoWatt EOS v38: native adapter configuration safe mode =============
+   Custom adapter configuration pages (React/HTML/jsonConfig) must be fully
+   controlled by the adapter itself. EOS shell decoration is disabled inside the
+   content area so buttons such as "Gerät hinzufügen" and "Gerät bearbeiten" stay
+   clickable and dialogs/popovers are not hidden behind overlays. */
+html.eos-app.eos-adapter-config-surface #app-paper,
+html.eos-app.eos-adapter-config-surface #app-paper * {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-adapter-config-surface #app-paper button,
+html.eos-app.eos-adapter-config-surface #app-paper [role="button"],
+html.eos-app.eos-adapter-config-surface #app-paper a,
+html.eos-app.eos-adapter-config-surface #app-paper input,
+html.eos-app.eos-adapter-config-surface #app-paper select,
+html.eos-app.eos-adapter-config-surface #app-paper textarea,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiIconButton-root,
+html.eos-app.eos-adapter-config-surface #app-paper .MuiMenuItem-root {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+html.eos-app.eos-adapter-config-surface .eos-assist-root,
+html.eos-app.eos-adapter-config-surface #eos-assist-root,
+html.eos-app.eos-adapter-config-surface .eos-assist-config-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+html.eos-app.eos-adapter-config-surface .MuiDialog-root,
+html.eos-app.eos-adapter-config-surface .MuiModal-root,
+html.eos-app.eos-adapter-config-surface .MuiPopover-root,
+html.eos-app.eos-adapter-config-surface .MuiMenu-root,
+html.eos-app.eos-adapter-config-surface .MuiDialog-container {
+    pointer-events: auto !important;
+    z-index: 4200 !important;
+}
+html.eos-app.eos-adapter-config-surface .MuiDialog-paper,
+html.eos-app.eos-adapter-config-surface .MuiPopover-paper,
+html.eos-app.eos-adapter-config-surface .MuiMenu-paper {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-adapter-config-surface #app-paper .eos-protected-delete-control,
+html.eos-app.eos-adapter-config-surface #app-paper .eos-security-hidden-delete,
+html.eos-app.eos-adapter-config-surface #app-paper .eos-protected-adapter-row {
+    display: revert !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    filter: none !important;
+    pointer-events: auto !important;
+}
+
+
+/* === NexoWatt EOS v38: native popup/dialog compatibility ==================
+   EOS decoration must never block native Admin dialogs, adapter install search,
+   autocomplete poppers, menus or adapter-owned configuration dialogs. */
+html.eos-app .MuiDialog-root,
+html.eos-app .MuiModal-root,
+html.eos-app .MuiPopover-root,
+html.eos-app .MuiPopper-root,
+html.eos-app .MuiMenu-root,
+html.eos-app .MuiAutocomplete-popper,
+html.eos-app [role="dialog"],
+html.eos-app [role="listbox"],
+html.eos-app [role="menu"] {
+    pointer-events: auto !important;
+}
+html.eos-app .MuiDialog-paper,
+html.eos-app .MuiPaper-root[role="dialog"],
+html.eos-app .MuiPopover-paper,
+html.eos-app .MuiMenu-paper,
+html.eos-app .MuiAutocomplete-paper,
+html.eos-app .MuiAutocomplete-listbox,
+html.eos-app .MuiList-root[role="listbox"] {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+html.eos-app .MuiAutocomplete-popper,
+html.eos-app .MuiPopper-root,
+html.eos-app .MuiPopover-root,
+html.eos-app .MuiMenu-root {
+    z-index: 6500 !important;
+}
+html.eos-app .MuiDialog-root button,
+html.eos-app .MuiDialog-root [role="button"],
+html.eos-app .MuiDialog-root a,
+html.eos-app .MuiModal-root button,
+html.eos-app .MuiModal-root [role="button"],
+html.eos-app .MuiModal-root a,
+html.eos-app .MuiPopover-root button,
+html.eos-app .MuiPopover-root [role="button"],
+html.eos-app .MuiPopover-root a,
+html.eos-app .MuiPopper-root button,
+html.eos-app .MuiPopper-root [role="button"],
+html.eos-app .MuiPopper-root a,
+html.eos-app .MuiMenu-root button,
+html.eos-app .MuiMenu-root [role="button"],
+html.eos-app .MuiMenu-root a,
+html.eos-app [role="listbox"] [role="option"],
+html.eos-app .MuiAutocomplete-option {
+    pointer-events: auto !important;
+    visibility: visible !important;
+}
+
+/* v38: snackbars/toasts are clickable, but generic dialogs are not modified. */
+html.eos-app .MuiSnackbar-root,
+html.eos-app .SnackbarItem-root,
+html.eos-app .SnackbarItem-wrappedRoot,
+html.eos-app .notistack-Snackbar,
+html.eos-app .Toastify__toast-container,
+html.eos-app .Toastify__toast {
+    pointer-events: auto !important;
+    z-index: 5200 !important;
+}
+html.eos-app .MuiSnackbar-root button,
+html.eos-app .SnackbarItem-root button,
+html.eos-app .notistack-Snackbar button,
+html.eos-app .Toastify__toast button {
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* v38: never allow decorative EOS layers to sit above native modals/popups. */
+html.eos-app .eos-top-toolbar::before,
+html.eos-app .eos-top-toolbar::after,
+html.eos-app .eos-brand-badge::before,
+html.eos-app .eos-brand-badge::after,
+html.eos-app .eos-panel::before,
+html.eos-app .eos-panel::after {
+    pointer-events: none !important;
+}
+
+
+/* === NexoWatt EOS v39: Objects/datapoints native state writing compatibility === */
+html.eos-app.eos-objects-surface .eos-object-value-cell,
+html.eos-objects-surface .eos-object-value-cell {
+    pointer-events: auto !important;
+    min-height: 30px !important;
+    border-radius: 8px !important;
+    transition: background .12s ease, box-shadow .12s ease, outline-color .12s ease;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell.eos-object-value-writable,
+html.eos-objects-surface .eos-object-value-cell.eos-object-value-writable {
+    cursor: pointer !important;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell.eos-object-value-writable:hover,
+html.eos-objects-surface .eos-object-value-cell.eos-object-value-writable:hover,
+html.eos-app.eos-objects-surface .eos-object-value-cell.eos-object-value-hover,
+html.eos-objects-surface .eos-object-value-cell.eos-object-value-hover {
+    background: rgba(0, 255, 136, .14) !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 255, 136, .32), 0 0 12px rgba(0, 255, 136, .10) !important;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell .admin-button,
+html.eos-objects-surface .eos-object-value-cell .admin-button,
+html.eos-app.eos-objects-surface .eos-object-value-cell button,
+html.eos-objects-surface .eos-object-value-cell button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+html.eos-app.eos-objects-surface .MuiDialog-root,
+html.eos-app.eos-objects-surface .MuiModal-root,
+html.eos-app.eos-objects-surface .MuiPopover-root,
+html.eos-app.eos-objects-surface .MuiPopper-root,
+html.eos-app.eos-objects-surface [role="dialog"],
+html.eos-app.eos-objects-surface [role="listbox"],
+html.eos-app.eos-objects-surface [role="menu"],
+html.eos-objects-surface .MuiDialog-root,
+html.eos-objects-surface .MuiModal-root,
+html.eos-objects-surface .MuiPopover-root,
+html.eos-objects-surface .MuiPopper-root,
+html.eos-objects-surface [role="dialog"],
+html.eos-objects-surface [role="listbox"],
+html.eos-objects-surface [role="menu"] {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-objects-surface .MuiDialog-root button,
+html.eos-app.eos-objects-surface .MuiDialog-root [role="button"],
+html.eos-app.eos-objects-surface .MuiDialog-root input,
+html.eos-app.eos-objects-surface .MuiDialog-root textarea,
+html.eos-app.eos-objects-surface .MuiDialog-root select,
+html.eos-app.eos-objects-surface .MuiMenuItem-root,
+html.eos-app.eos-objects-surface .MuiAutocomplete-option,
+html.eos-objects-surface .MuiDialog-root button,
+html.eos-objects-surface .MuiDialog-root [role="button"],
+html.eos-objects-surface .MuiDialog-root input,
+html.eos-objects-surface .MuiDialog-root textarea,
+html.eos-objects-surface .MuiDialog-root select,
+html.eos-objects-surface .MuiMenuItem-root,
+html.eos-objects-surface .MuiAutocomplete-option {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-objects-surface .MuiTooltip-popper,
+html.eos-objects-surface .MuiTooltip-popper {
+    z-index: 9000 !important;
+    pointer-events: none !important;
+}
+/* Do not let EOS floating help cover the right action column of the object table. */
+html.eos-app.eos-objects-surface .eos-assist-root,
+html.eos-app.eos-objects-surface #eos-assist-root,
+html.eos-objects-surface .eos-assist-root,
+html.eos-objects-surface #eos-assist-root {
+    right: 150px !important;
+    bottom: 26px !important;
+    z-index: 1200 !important;
+}

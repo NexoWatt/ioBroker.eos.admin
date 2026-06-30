@@ -32,6 +32,14 @@ let socketIoFile: false | string;
 let uuid: string;
 const page404 = readFileSync(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = readFileSync(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
+const CORE_PROTECTED_ADAPTER_NAMES = [
+    'eos-admin',
+    'backitup',
+    'nexowatt-devices',
+    'nexowatt-device',
+    'nexowatt-dev',
+    'nexowatt-ui',
+] as const;
 // const FORBIDDEN_CHARS = /[\]\[*,;'"`<>\\\s?]/g; // with space
 
 // copied from here: https://github.com/component/escape-html/blob/master/index.js
@@ -145,6 +153,8 @@ interface WebOptions {
 interface AdminAdapter extends ioBroker.Adapter {
     secret: string;
     config: AdminAdapterConfig;
+    getSession: (id: string, callback: (token?: InternalStorageToken | null) => void) => void;
+    getObjectViewAsync: (design: string, search: string, params: ioBroker.GetObjectViewParams) => Promise<ioBroker.GetObjectViewResult>;
 }
 
 /** Webserver class */
@@ -161,7 +171,7 @@ export default class Web {
 
     /** URL to the JSON config schema */
     private readonly JSON_CONFIG_SCHEMA_URL =
-        // 'https://raw.githubusercontent.com/ioBroker/ioBroker.admin/master/packages/jsonConfig/schemas/jsonConfig.json';
+        // 'https://raw.githubusercontent.com/ioBroker/NexoWatt EOS Admin/master/packages/jsonConfig/schemas/jsonConfig.json';
         'https://raw.githubusercontent.com/ioBroker/json-config/main/schemas/jsonConfig.json';
 
     private store: Store | null = null;
@@ -425,8 +435,325 @@ export default class Web {
         }
     }
 
+    private normalizeEosGroupId(value: unknown): string | null {
+        if (typeof value !== 'string') {
+            return null;
+        }
+        let group = value.trim();
+        if (!group) {
+            return null;
+        }
+        if (!group.startsWith('system.group.')) {
+            group = `system.group.${group.replace(/^group\./, '')}`;
+        }
+        return /^system\.group\.[a-z0-9_.-]+$/i.test(group) ? group : null;
+    }
+
+    private normalizeEosUserId(value: unknown): string | null {
+        if (!value) {
+            return null;
+        }
+        let user = typeof value === 'string' ? value : String((value as { id?: unknown; _id?: unknown; user?: unknown; name?: unknown }).id || (value as { _id?: unknown })._id || (value as { user?: unknown }).user || (value as { name?: unknown }).name || '');
+        user = user.trim();
+        if (!user) {
+            return null;
+        }
+        if (!user.startsWith('system.user.')) {
+            user = `system.user.${user.replace(/^user\./, '')}`;
+        }
+        return /^system\.user\.[a-z0-9_.-]+$/i.test(user) ? user : null;
+    }
+
+    private normalizeEosAdapterName(value: unknown): string | null {
+        if (typeof value !== 'string') {
+            return null;
+        }
+        let adapter = value.trim().toLowerCase();
+        if (!adapter) {
+            return null;
+        }
+        adapter = adapter.replace(/^system\.adapter\./, '').replace(/^iobroker\./, '').replace(/^@nexowatt\/iobroker\./, '').replace(/^@nexowatt\//, '');
+        adapter = adapter.replace(/\.\d+$/, '');
+        return /^[a-z0-9_-]+$/.test(adapter) ? adapter : null;
+    }
+
+    private getEosSecurityAdminGroups(): string[] {
+        const configured = this.settings.eosAdminOnlyGroups || this.settings.eosSecurityAdminGroups;
+        const groups = new Set<string>();
+        const add = (value: unknown): void => {
+            if (!value) {
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach(add);
+                return;
+            }
+            if (typeof value === 'object') {
+                const row = value as { group?: unknown; id?: unknown; name?: unknown; enabled?: unknown };
+                if (row.enabled === false) {
+                    return;
+                }
+                add(row.group || row.id || row.name);
+                return;
+            }
+            const group = this.normalizeEosGroupId(String(value));
+            if (group) {
+                groups.add(group);
+            }
+        };
+        add(configured);
+        groups.add('system.group.administrator');
+        return [...groups].sort();
+    }
+
+    private getEosProtectedAdapterNames(): string[] {
+        const names = new Set<string>(CORE_PROTECTED_ADAPTER_NAMES);
+        const add = (value: unknown): void => {
+            if (!value) {
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach(add);
+                return;
+            }
+            if (typeof value === 'object') {
+                const row = value as { adapter?: unknown; name?: unknown; enabled?: unknown };
+                if (row.enabled === false) {
+                    return;
+                }
+                add(row.adapter || row.name);
+                return;
+            }
+            const adapter = this.normalizeEosAdapterName(String(value));
+            if (adapter) {
+                names.add(adapter);
+            }
+        };
+        if (this.settings.eosProtectAdapterDeletion !== false) {
+            add(this.settings.eosProtectedAdapters);
+        }
+        return [...names].sort();
+    }
+
+    private readAccessTokenFromRequest(req: Request): string | null {
+        const cookieHeader = req.headers.cookie || '';
+        const accessCookie = cookieHeader
+            .split(';')
+            .map(cookie => cookie.trim())
+            .find(cookie => cookie.startsWith('access_token='));
+        let token = accessCookie ? accessCookie.split('=').slice(1).join('=') : '';
+        if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+            token = req.headers.authorization.substring('Bearer '.length);
+        }
+        if (!token && req.query?.token) {
+            token = req.query.token as string;
+        }
+        if (!token) {
+            return null;
+        }
+        try {
+            token = decodeURIComponent(token);
+        } catch {
+            // keep raw token
+        }
+        token = token.trim();
+        if (token.startsWith('Bearer ')) {
+            token = token.substring('Bearer '.length).trim();
+        }
+        if (token.startsWith('s:')) {
+            token = token.substring(2);
+        }
+        // Express signed cookies are encoded as s:<token>.<signature>. ioBroker tokens are not JWTs.
+        if (token.includes('.') && !token.startsWith('eyJ')) {
+            token = token.substring(0, token.indexOf('.'));
+        }
+        return token || null;
+    }
+
+
+    private readSession(id: string): Promise<InternalStorageToken | null | undefined> {
+        return new Promise(resolve => this.adapter.getSession(id, token => resolve(token)));
+    }
+
+    private async readEosCurrentUser(req: Request): Promise<string | null> {
+        const requestUser = (req as Request & { user?: unknown }).user;
+        const fromRequest = this.normalizeEosUserId(requestUser);
+        if (fromRequest) {
+            return fromRequest;
+        }
+        if (!this.settings.auth) {
+            return this.normalizeEosUserId(this.settings.defaultUser) || 'system.user.admin';
+        }
+        const token = this.readAccessTokenFromRequest(req);
+        if (!token) {
+            return null;
+        }
+        const candidates = new Set<string>();
+        candidates.add(token);
+        candidates.add(token.startsWith('a:') ? token : `a:${token}`);
+        if (token.length > 1) {
+            candidates.add(`a:${token[1]}`);
+        }
+        for (const id of candidates) {
+            const session = await this.readSession(id).catch(() => null);
+            const user = this.normalizeEosUserId(session?.user);
+            if (user) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    private async getEosGroupsForUser(userId: string): Promise<string[]> {
+        const groups = new Set<string>();
+        try {
+            const result = await this.adapter.getObjectViewAsync('system', 'group', {
+                startkey: 'system.group.',
+                endkey: 'system.group.香',
+            });
+            for (const row of result.rows) {
+                const group = (row.value || row.doc) as ioBroker.GroupObject;
+                const members = Array.isArray(group?.common?.members) ? group.common.members : [];
+                if (members.includes(userId as ioBroker.ObjectIDs.User)) {
+                    groups.add(row.id);
+                }
+            }
+        } catch (e) {
+            this.adapter.log.debug(`Cannot resolve EOS security groups for ${userId}: ${e instanceof Error ? e.message : e}`);
+        }
+        return [...groups].sort();
+    }
+
+    private async sendEosSecuritySession(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+        const userId = await this.readEosCurrentUser(req);
+        const groups = userId ? await this.getEosGroupsForUser(userId) : [];
+        const adminGroups = this.getEosSecurityAdminGroups();
+        const isAdministrator = userId === 'system.user.admin' || groups.includes('system.group.administrator');
+        const isEosAdminGroup = isAdministrator || groups.some(group => adminGroups.includes(group));
+
+        res.status(200).json({
+            user: userId,
+            groups,
+            adminGroups,
+            isAdministrator,
+            isEosAdminGroup,
+            isAdmin: isEosAdminGroup,
+            hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
+            hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
+            restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false,
+            legacyAdminAdapter: 'admin',
+            legacyAdminInstance: 'admin.0',
+            protectedAdapters: this.getEosProtectedAdapterNames(),
+        });
+    }
+
     resetIndexHtml(): void {
         this.indexHTML = '';
+    }
+
+
+    private extractAccessToken(req: Request): string | null {
+        const cookies = req.headers.cookie?.split(';').find(c => c.trim().startsWith('access_token='));
+        let tokenCookie = cookies?.split('=')[1] || null;
+        if (!tokenCookie && req.headers.authorization?.startsWith('Bearer ')) {
+            tokenCookie = req.headers.authorization.split(' ')[1];
+        } else if (!tokenCookie && req.query?.token) {
+            tokenCookie = req.query.token as string;
+        }
+        return tokenCookie || null;
+    }
+
+    private async getSessionUser(req: Request): Promise<string | null> {
+        return this.readEosCurrentUser(req);
+    }
+
+    private async getGroupsForUser(userId: string | null): Promise<string[]> {
+        if (!userId) {
+            return [];
+        }
+        try {
+            const groups = await this.adapter.getForeignObjectsAsync('system.group.*', 'group');
+            return Object.values(groups || {})
+                .filter(group => Array.isArray(group?.common?.members) && group.common.members.includes(userId as any))
+                .map(group => group._id)
+                .filter((id): id is string => !!id);
+        } catch (e) {
+            this.adapter.log.debug(`Cannot read groups for NexoWatt security context: ${e.message}`);
+            return [];
+        }
+    }
+
+    private async getNexowattSecurityContext(req: Request): Promise<Record<string, unknown>> {
+        const user = await this.getSessionUser(req);
+        const groups = await this.getGroupsForUser(user);
+        const adminOnlyGroups = Array.isArray((this.adapter.config as any).eosAdminOnlyGroups)
+            ? (this.adapter.config as any).eosAdminOnlyGroups
+                .filter((entry: any) => entry && entry.enabled !== false)
+                .map((entry: any) => String(entry.group || entry.id || entry.name || '').trim())
+                .filter((group: string) => !!group)
+                .map((group: string) => group.startsWith('system.group.') ? group : `system.group.${group.replace(/^group\./, '')}`)
+            : ['system.group.administrator'];
+        const isAdminGroup = user === 'system.user.admin' || adminOnlyGroups.some((group: string) => groups.includes(group));
+        const hideLegacyAdmin = (this.adapter.config as any).eosHideLegacyAdminForNonAdmins !== false && !isAdminGroup;
+        return {
+            user,
+            groups,
+            adminOnlyGroups,
+            isAdminGroup,
+            hideLegacyAdmin,
+            protectedAdapters: (this.adapter.config as any).eosProtectedAdapters || [],
+        };
+    }
+
+
+    private getSafeLoginOrigin(req: Request): string | null {
+        let origin = '';
+        try {
+            const url = new URL(req.url, 'http://127.0.0.1');
+            origin = url.searchParams.get('origin') || '';
+        } catch {
+            const match = req.url.match(/[?&]origin=([^&]*)/);
+            origin = match?.[1] || '';
+        }
+        if (!origin) {
+            return null;
+        }
+        try {
+            origin = decodeURIComponent(origin);
+        } catch {
+            // keep raw value and validate below
+        }
+        origin = String(origin || '').trim();
+        // Reject encoded hashes/login/logout/404 and hard-timeout parameters. The old logic
+        // generated paths such as /%2F%23tab-adapters&hard=1/index.html?login.
+        if (!origin || /(?:%2f|%23|#|login|logout|404|hard=|undefined|null)/i.test(origin)) {
+            return null;
+        }
+        origin = origin.split('?')[0];
+        const pos = origin.lastIndexOf('/');
+        if (pos > 0) {
+            origin = origin.substring(0, pos);
+        } else if (pos === 0) {
+            origin = '';
+        }
+        if (!origin || origin === '.') {
+            return null;
+        }
+        if (/^https?:\/\//i.test(origin)) {
+            try {
+                const parsed = new URL(origin);
+                return parsed.pathname && parsed.pathname !== '/' ? parsed.pathname.replace(/\/+$/, '') : null;
+            } catch {
+                return null;
+            }
+        }
+        if (!origin.startsWith('/')) {
+            return null;
+        }
+        return origin.replace(/\/+$/, '') || null;
     }
 
     /**
@@ -437,7 +764,7 @@ export default class Web {
             this.server.app = express();
             this.server.app.use(compression());
 
-            this.settings.ttl = Math.round(this.settings.ttl) || 3_600;
+            this.settings.ttl = Math.round(Number(this.settings.ttl)) || 3_600;
             this.settings.accessAllowedConfigs ||= [];
             this.settings.accessAllowedTabs ||= [];
 
@@ -458,6 +785,17 @@ export default class Web {
 
             this.server.app.get('/version', (_req: Request, res: Response): void => {
                 res.status(200).send(this.adapter.version);
+            });
+
+            // v36: Repair stale/broken URLs generated by older EOS hard-logout builds.
+            this.server.app.use((req: Request, res: Response, next: NextFunction): void => {
+                const requested = String(req.originalUrl || req.url || '');
+                if (/(?:%2f|%252f)(?:%23|%2523)|\/login\/|\/logout\/|hard=1/i.test(requested)
+                    && /index\.html|login|hard=1|origin=|%23|%2523/i.test(requested)) {
+                    res.redirect(this.LOGIN_PAGE);
+                    return;
+                }
+                next();
             });
 
             // replace socket.io
@@ -513,21 +851,16 @@ export default class Web {
                 this.server.app.use(bodyParser.urlencoded({ extended: true }));
                 this.server.app.use(bodyParser.json());
 
+                // v36: OAuth/session handling intentionally follows upstream ioBroker Admin.
                 this.oauth2Model = createOAuth2Server(this.adapter, {
                     app: this.server.app,
                     secure: this.settings.secure,
                     accessLifetime: this.settings.ttl,
-                    refreshLifetime: 60 * 60 * 24 * 7, // 1 week (Maybe adjustable?)
+                    refreshLifetime: 60 * 60 * 24 * 7, // 1 week, same as upstream admin
                     noBasicAuth: this.settings.noBasicAuth,
                     loginPage: (req: Request): string => {
                         const isDev = req.url.includes('?dev');
-                        let origin = req.url.split('origin=')[1];
-                        if (origin) {
-                            const pos = origin.lastIndexOf('/');
-                            if (pos !== -1) {
-                                origin = origin.substring(0, pos);
-                            }
-                        }
+                        const origin = this.getSafeLoginOrigin(req);
 
                         if (isDev) {
                             return 'http://127.0.0.1:3000/index.html?login';
@@ -536,8 +869,10 @@ export default class Web {
                         return origin ? origin + this.LOGIN_PAGE : this.LOGIN_PAGE;
                     },
                 });
-
                 this.server.app.get('/session', (req: Request, res: Response): void => {
+                    // v36: Follow upstream admin semantics again. Do not run a second
+                    // EOS hard-logout timer here; the official OAuth/session handling
+                    // already uses the configured access lifetime.
                     if (req.headers.cookie) {
                         const cookies = req.headers.cookie.split(';').find(c => c.trim().startsWith('access_token='));
                         let tokenCookie = cookies?.split('=')[1];
@@ -546,31 +881,60 @@ export default class Web {
                         } else if (!tokenCookie && req.query?.token) {
                             tokenCookie = req.query.token as string;
                         }
-
                         if (tokenCookie) {
-                            void this.adapter.getSession(`a:${tokenCookie[1]}`, (token: InternalStorageToken): void => {
-                                if (!token?.user) {
+                            const candidates = new Set<string>();
+                            candidates.add(tokenCookie.startsWith('a:') ? tokenCookie : `a:${tokenCookie}`);
+                            if (tokenCookie.length > 1) candidates.add(`a:${tokenCookie[1]}`);
+                            const ids = Array.from(candidates);
+                            const readNext = (index: number): void => {
+                                const id = ids[index];
+                                if (!id) {
                                     res.json({ expireInSec: 0 });
-                                } else {
-                                    res.json({ expireInSec: Math.round((token.aExp - Date.now()) / 1000) });
+                                    return;
                                 }
-                            });
+                                void this.adapter.getSession(id, (token: InternalStorageToken): void => {
+                                    if (!token?.user) {
+                                        readNext(index + 1);
+                                    } else {
+                                        res.json({ expireInSec: Math.round((token.aExp - Date.now()) / 1000) });
+                                    }
+                                });
+                            };
+                            readNext(0);
                             return;
                         }
                     }
-
                     res.json({ error: 'Cannot find session' });
+                });
+
+                this.server.app.get(/.*\/nexowatt\/security\/(?:context|session)$/, (req: Request, res: Response): void => {
+                    void this.sendEosSecuritySession(req, res).catch(e => {
+                        this.adapter.log.warn(`Cannot create NexoWatt security context: ${e instanceof Error ? e.message : e}`);
+                        res.status(200).json({
+                            user: null,
+                            groups: [],
+                            adminGroups: ['system.group.administrator'],
+                            isAdministrator: false,
+                            isEosAdminGroup: false,
+                            isAdmin: false,
+                            hideLegacyAdminForNonAdmins: true,
+                            hideLegacyAdminFromNonAdmins: true,
+                            restrictProtectedAdapterControls: true,
+                            protectedAdapters: ['eos-admin'],
+                        });
+                    });
                 });
 
                 this.server.app.get('/logout', (req: Request, res: Response): void => {
                     const isDev = req.url.includes('?dev');
-                    let origin = req.url.split('origin=')[1];
-                    if (origin) {
-                        const pos = origin.lastIndexOf('/');
-                        if (pos !== -1) {
-                            origin = origin.substring(0, pos);
-                        }
+                    const origin = this.getSafeLoginOrigin(req);
+
+                    // v36: normal logout; remove known auth cookies before redirecting.
+                    for (const cookieName of ['access_token', 'refresh_token', 'connect.sid', 'io', 'ioBroker.sid', 'eos-admin.sid']) {
+                        res.clearCookie(cookieName, { path: '/' });
                     }
+                    const sessionReq = req as Request & { session?: { destroy?: (callback?: (err?: Error) => void) => void } };
+                    sessionReq.session?.destroy?.(() => undefined);
 
                     if (isDev) {
                         res.redirect('http://127.0.0.1:3000/index.html?login');
@@ -639,6 +1003,27 @@ export default class Web {
             } else {
                 this.server.app.get('/logout', (_req: Request, res: Response): void => res.redirect('/'));
             }
+
+            const sendSecuritySession = (req: Request, res: Response): void => {
+                void this.sendEosSecuritySession(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot read EOS security session: ${e instanceof Error ? e.message : e}`);
+                    res.status(200).json({
+                        user: null,
+                        groups: [],
+                        adminGroups: ['system.group.administrator'],
+                        isAdministrator: false,
+                        isEosAdminGroup: false,
+                        isAdmin: false,
+                        hideLegacyAdminForNonAdmins: true,
+                        hideLegacyAdminFromNonAdmins: true,
+                        restrictProtectedAdapterControls: true,
+                        protectedAdapters: ['eos-admin'],
+                    });
+                });
+            };
+            this.server.app.get('/eos/security/status', sendSecuritySession);
+            this.server.app.get('/nexowatt/security/session', sendSecuritySession);
+            this.server.app.get('/nexowatt/security/context', sendSecuritySession);
 
             this.server.app.get('/iobroker_check.html', (_req: Request, res: Response): void => {
                 res.status(200).send('ioBroker');
@@ -884,7 +1269,7 @@ export default class Web {
                 this.server.app.use('/', (_req: Request, res: Response): void => {
                     res.header('Content-Type', 'text/plain');
                     res.status(404).send(
-                        'This adapter cannot be installed directly from GitHub.<br>You must install it from npm.<br>Write for that <i>"npm install iobroker.admin"</i> in according directory.',
+                        'This adapter cannot be installed directly from GitHub.<br>You must install it from npm.<br>Write for that <i>"npm install iobroker.eos-admin"</i> in according directory.',
                     );
                 });
             } else {

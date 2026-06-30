@@ -35,6 +35,110 @@ const ONE_HOUR_MS = 3_600_000;
 const ERROR_PERMISSION = 'permissionError';
 const CURRENT_MAX_MAJOR_NODEJS = 22;
 const CURRENT_MAX_MAJOR_NPM = 10;
+function normalizeLoginTimeout(value, fallback = 3_600) {
+    const ttl = Math.round(Number(value));
+    if (!Number.isFinite(ttl) || ttl < 120) {
+        return fallback;
+    }
+    return Math.min(ttl, 31_536_000); // 1 year hard limit
+}
+const EOS_ADMIN_ADAPTER_NAME = 'eos-admin';
+const LEGACY_ADMIN_ADAPTER_NAME = 'admin';
+const CORE_PROTECTED_ADAPTER_NAMES = [
+    EOS_ADMIN_ADAPTER_NAME,
+    'backitup',
+    'nexowatt-devices',
+    'nexowatt-device',
+    'nexowatt-dev',
+    'nexowatt-ui',
+];
+const LEGACY_ADMIN_INSTANCE_ID = 'system.adapter.admin.0';
+const DEFAULT_LEGACY_ADMIN_LOCK_PORT = 18_081;
+const DEFAULT_LEGACY_ADMIN_LOCK_BIND = '127.0.0.1';
+const DEFAULT_EOS_ADMIN_GROUPS = ['system.group.administrator'];
+const DEFAULT_ADMIN_ONLY_GROUP = DEFAULT_EOS_ADMIN_GROUPS[0];
+const ADMIN_OWNER_USER = 'system.user.admin';
+const ADMIN_ONLY_OBJECT_ACL = 0x660;
+function normalizeAdapterName(value) {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    let adapter = value.trim();
+    if (!adapter) {
+        return null;
+    }
+    adapter = adapter.replace(/^iobroker\./i, '').replace(/^system\.adapter\./, '');
+    adapter = adapter.replace(/\.\d+$/, '');
+    return /^[a-z0-9_-]+$/i.test(adapter) ? adapter : null;
+}
+function normalizeProtectedAdapters(value) {
+    const result = new Set();
+    const add = (entry) => {
+        if (typeof entry === 'string') {
+            const normalized = normalizeAdapterName(entry);
+            if (normalized) {
+                result.add(normalized);
+            }
+            return;
+        }
+        if (entry && typeof entry === 'object') {
+            const config = entry;
+            if (config.enabled === false) {
+                return;
+            }
+            const normalized = normalizeAdapterName(config.adapter || config.name);
+            if (normalized) {
+                result.add(normalized);
+            }
+        }
+    };
+    if (Array.isArray(value)) {
+        value.forEach(add);
+    }
+    return [...result].sort();
+}
+
+function normalizeGroupId(value) {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    let group = value.trim();
+    if (!group) {
+        return null;
+    }
+    if (!group.startsWith('system.group.')) {
+        group = `system.group.${group.replace(/^group\./, '')}`;
+    }
+    return /^system\.group\.[a-z0-9_.-]+$/i.test(group) ? group : null;
+}
+function normalizeAdminOnlyGroups(value) {
+    const result = new Set();
+    const add = (entry) => {
+        if (typeof entry === 'string') {
+            const normalized = normalizeGroupId(entry);
+            if (normalized) {
+                result.add(normalized);
+            }
+            return;
+        }
+        if (entry && typeof entry === 'object') {
+            if (entry.enabled === false) {
+                return;
+            }
+            const normalized = normalizeGroupId(entry.group || entry.id || entry.name);
+            if (normalized) {
+                result.add(normalized);
+            }
+        }
+    };
+    if (Array.isArray(value)) {
+        value.forEach(add);
+    }
+    if (!result.size) {
+        DEFAULT_EOS_ADMIN_GROUPS.forEach(group => result.add(group));
+    }
+    return [...result].sort();
+}
 let socket;
 let webServer;
 let lastRepoUpdate;
@@ -54,6 +158,12 @@ class Admin extends adapter_core_1.Adapter {
     changedPasswords = [];
     /** In-process ioBroker.mcp connection backing the chat helper. Created on first chat message. */
     mcpChat = null;
+    /** Periodic guard that keeps EOS safety policy applied even if object events are missed. */
+    eosSecurityTimer = null;
+    /** Debounce timer for object-change triggered safety checks. */
+    eosSecurityDebounce = null;
+    /** Avoid concurrent policy writes while the guard corrects objects. */
+    eosSecurityRunning = false;
     constructor(options = {}) {
         options = {
             ...options,
@@ -103,6 +213,9 @@ class Admin extends adapter_core_1.Adapter {
             if (objects[id]) {
                 delete objects[id];
             }
+        }
+        if (id === LEGACY_ADMIN_INSTANCE_ID || id === 'system.adapter.admin' || id.match(/^system\.adapter\./)) {
+            this.scheduleEosSecurityGuard(`object change: ${id}`);
         }
         // TODO Build in some threshold of messages
         socket?.objectChange(id, obj);
@@ -602,6 +715,14 @@ class Admin extends adapter_core_1.Adapter {
             clearTimeout(this.updaterTimeout);
             this.updaterTimeout = null;
         }
+        if (this.eosSecurityDebounce) {
+            clearTimeout(this.eosSecurityDebounce);
+            this.eosSecurityDebounce = null;
+        }
+        if (this.eosSecurityTimer) {
+            clearInterval(this.eosSecurityTimer);
+            this.eosSecurityTimer = null;
+        }
         if (this.mcpChat) {
             void this.mcpChat.close();
             this.mcpChat = null;
@@ -617,6 +738,239 @@ class Admin extends adapter_core_1.Adapter {
         }
     };
     onLog = (obj) => socket?.sendLog(obj);
+    isLegacyAdminLockEnabled() {
+        return this.config.eosLockLegacyAdmin !== false;
+    }
+    shouldHideLegacyAdminFromNonAdmins() {
+        return this.config.eosHideLegacyAdminFromNonAdmins !== false && this.config.eosHideLegacyAdminForNonAdmins !== false && this.config.nexowattHideLegacyAdminForNonAdmins !== false;
+    }
+    shouldApplyAdminOnlyAclToProtectedAdapters() {
+        const config = this.config;
+        return config.eosStrictProtectedAdapterAcl === true && this.config.eosApplyAdminOnlyAclToProtectedAdapters === true;
+    }
+    getAdminOnlyGroup() {
+        const configuredGroups = normalizeAdminOnlyGroups(this.config.eosAdminOnlyGroups || this.config.eosSecurityAdminGroups);
+        if (configuredGroups.length) {
+            return configuredGroups[0];
+        }
+        return normalizeGroupId(this.config.eosAdminOnlyGroup) || DEFAULT_ADMIN_ONLY_GROUP;
+    }
+    getAdminOnlyAcl() {
+        return {
+            object: ADMIN_ONLY_OBJECT_ACL,
+            owner: ADMIN_OWNER_USER,
+            ownerGroup: this.getAdminOnlyGroup(),
+        };
+    }
+    async ensureObjectAdminOnlyAcl(id) {
+        const obj = await this.getForeignObjectAsync(id);
+        if (!obj) {
+            return false;
+        }
+        const targetAcl = this.getAdminOnlyAcl();
+        const acl = (obj.acl ||= {});
+        let changed = false;
+        if (acl.owner !== targetAcl.owner) {
+            acl.owner = targetAcl.owner;
+            changed = true;
+        }
+        if (acl.ownerGroup !== targetAcl.ownerGroup) {
+            acl.ownerGroup = targetAcl.ownerGroup;
+            changed = true;
+        }
+        if (acl.object !== targetAcl.object) {
+            acl.object = targetAcl.object;
+            changed = true;
+        }
+        if (changed) {
+            await this.setForeignObjectAsync(id, obj);
+        }
+        return changed;
+    }
+    getLegacyAdminAclObjectIds() {
+        return ['system.adapter.admin', LEGACY_ADMIN_INSTANCE_ID];
+    }
+    async ensureLegacyAdminVisibleOnlyToAdmins() {
+        if (!this.shouldHideLegacyAdminFromNonAdmins()) {
+            return;
+        }
+        let changed = false;
+        for (const id of this.getLegacyAdminAclObjectIds()) {
+            changed = (await this.ensureObjectAdminOnlyAcl(id)) || changed;
+        }
+        if (changed) {
+            this.log.info(`EOS ACL guard restricted legacy admin visibility to ${this.getAdminOnlyGroup()}`);
+        }
+    }
+    getLegacyAdminLockPort() {
+        const configured = Number(this.config.eosLegacyAdminLockPort);
+        if (!Number.isInteger(configured) || configured < 1 || configured > 65535) {
+            return DEFAULT_LEGACY_ADMIN_LOCK_PORT;
+        }
+        return configured;
+    }
+    getLegacyAdminLockBind() {
+        const configured = typeof this.config.eosLegacyAdminLockBind === 'string'
+            ? this.config.eosLegacyAdminLockBind.trim()
+            : '';
+        return configured || DEFAULT_LEGACY_ADMIN_LOCK_BIND;
+    }
+    getProtectedAdapterNames() {
+        const configured = normalizeProtectedAdapters(this.config.eosProtectedAdapters);
+        const result = new Set(CORE_PROTECTED_ADAPTER_NAMES);
+        configured.forEach(adapter => result.add(adapter));
+        // EOS Admin and the core NexoWatt runtime adapters must always stay protected through ACL/UI policy,
+        // but never via common.dontDelete/common.nondeletable. Those flags can interfere with ioBroker updates
+        // because updates may replace adapter objects.
+        return [...result].sort();
+    }
+    scheduleEosSecurityGuard(reason) {
+        if (this.eosSecurityDebounce) {
+            clearTimeout(this.eosSecurityDebounce);
+        }
+        this.eosSecurityDebounce = setTimeout(() => {
+            this.eosSecurityDebounce = null;
+            void this.enforceEosSecurity(reason);
+        }, 750);
+    }
+    async ensureObjectProtectionPolicy(id, options) {
+        const obj = await this.getForeignObjectAsync(id);
+        if (!obj?.common) {
+            return false;
+        }
+        let changed = false;
+        obj.common = obj.common || {};
+        // v29: do not use common.dontDelete for EOS protection because it can block adapter upgrades.
+        if (obj.common.dontDelete === true) {
+            delete obj.common.dontDelete;
+            changed = true;
+        }
+        if (obj.common.nondeletable === true) {
+            obj.common.nondeletable = false;
+            changed = true;
+        }
+        const targetAcl = this.getAdminOnlyAcl();
+        if (options.adminOnlyAcl) {
+            const acl = (obj.acl ||= {});
+            if (acl.owner !== targetAcl.owner) {
+                acl.owner = targetAcl.owner;
+                changed = true;
+            }
+            if (acl.ownerGroup !== targetAcl.ownerGroup) {
+                acl.ownerGroup = targetAcl.ownerGroup;
+                changed = true;
+            }
+            if (acl.object !== targetAcl.object) {
+                acl.object = targetAcl.object;
+                changed = true;
+            }
+        }
+        else if (obj.acl && obj.acl.owner === targetAcl.owner && obj.acl.ownerGroup === targetAcl.ownerGroup && obj.acl.object === targetAcl.object) {
+            delete obj.acl;
+            changed = true;
+        }
+        if (changed) {
+            await this.setForeignObjectAsync(id, obj);
+        }
+        return changed;
+    }
+    async ensureProtectedAdapter(adapter) {
+        if (!adapter || adapter === LEGACY_ADMIN_ADAPTER_NAME) {
+            return;
+        }
+        const isEosAdmin = adapter === EOS_ADMIN_ADAPTER_NAME;
+        const adminOnlyAcl = isEosAdmin || (this.shouldApplyAdminOnlyAclToProtectedAdapters() && adapter !== 'backitup');
+        // v37 BackItUp/runtime-adapter compatibility: keep default protection UI/role based.
+        // Do not rewrite common/ACL of runtime adapters unless explicitly configured.
+        if (!isEosAdmin && !adminOnlyAcl) {
+            return;
+        }
+        let changed = await this.ensureObjectProtectionPolicy(`system.adapter.${adapter}`, {
+            keepDontDelete: false,
+            adminOnlyAcl,
+        });
+        try {
+            const instances = await this.getObjectViewAsync('system', 'instance', {
+                startkey: `system.adapter.${adapter}.`,
+                endkey: `system.adapter.${adapter}.香`,
+            });
+            for (const row of instances.rows) {
+                changed = (await this.ensureObjectProtectionPolicy(row.id, {
+                    keepDontDelete: false,
+                    adminOnlyAcl,
+                })) || changed;
+            }
+        }
+        catch (e) {
+            this.log.warn(`Cannot protect instances of adapter "${adapter}": ${e instanceof Error ? e.message : e}`);
+        }
+        if (changed) {
+            this.log.info(`EOS ACL/UI delete guard applied to adapter "${adapter}"`);
+        }
+    }
+    async ensureLegacyAdminLocked() {
+        if (!this.isLegacyAdminLockEnabled()) {
+            return;
+        }
+        const obj = await this.getForeignObjectAsync(LEGACY_ADMIN_INSTANCE_ID);
+        if (!obj?.common) {
+            return;
+        }
+        const targetPort = this.getLegacyAdminLockPort();
+        const targetBind = this.getLegacyAdminLockBind();
+        let changed = false;
+        const native = (obj.native ||= {});
+        if (obj.common.enabled !== false) {
+            obj.common.enabled = false;
+            changed = true;
+        }
+        if (native.port !== targetPort) {
+            native.port = targetPort;
+            changed = true;
+        }
+        if (native.bind !== targetBind) {
+            native.bind = targetBind;
+            changed = true;
+        }
+        if (obj.common.nondeletable === true) {
+            obj.common.nondeletable = false;
+            changed = true;
+        }
+        if (changed) {
+            await this.setForeignObjectAsync(LEGACY_ADMIN_INSTANCE_ID, obj);
+            this.log.warn(`EOS security guard disabled legacy admin.0 and moved it to ${targetBind}:${targetPort}. Disable "Legacy Admin lock" in EOS Admin settings before intentionally starting the old admin.`);
+        }
+    }
+    async enforceEosSecurity(reason = 'periodic') {
+        if (this.eosSecurityRunning) {
+            return;
+        }
+        this.eosSecurityRunning = true;
+        try {
+            await this.ensureLegacyAdminLocked();
+            await this.ensureLegacyAdminVisibleOnlyToAdmins();
+            if (this.config.eosProtectAdapterDeletion !== false) {
+                for (const adapter of this.getProtectedAdapterNames()) {
+                    await this.ensureProtectedAdapter(adapter);
+                }
+            }
+        }
+        catch (e) {
+            this.log.warn(`Cannot apply EOS security guard (${reason}): ${e instanceof Error ? e.message : e}`);
+        }
+        finally {
+            this.eosSecurityRunning = false;
+        }
+    }
+    startEosSecurityGuard() {
+        this.subscribeForeignObjects('system.adapter.*');
+        void this.enforceEosSecurity('startup');
+        if (!this.eosSecurityTimer) {
+            this.eosSecurityTimer = setInterval(() => {
+                void this.enforceEosSecurity('periodic');
+            }, 30000);
+        }
+    }
     async createUpdateInfo() {
         const promises = [];
         // create a connected object and state
@@ -911,7 +1265,7 @@ class Admin extends adapter_core_1.Adapter {
         const settings = {
             language: this.config.language,
             defaultUser: this.config.defaultUser,
-            ttl: this.config.ttl,
+            ttl: normalizeLoginTimeout(this.config.ttl),
             secure: this.config.secure,
             auth: this.config.auth,
             port: this.config.port,
@@ -1269,8 +1623,8 @@ class Admin extends adapter_core_1.Adapter {
         // allow only one admin instance to check the versions for every host
         if (this.instance !== 0) {
             const objs = await this.getObjectViewAsync('system', 'instance', {
-                startkey: 'system.adapter.admin.',
-                endkey: 'system.adapter.admin.\u9999',
+                startkey: 'system.adapter.eos-admin.',
+                endkey: 'system.adapter.eos-admin.\u9999',
             });
             let min = null;
             // find the lowest active instance on the same host
@@ -1760,6 +2114,7 @@ class Admin extends adapter_core_1.Adapter {
         if (!this.config.defaultUser.match(/^system\.user\./)) {
             this.config.defaultUser = `system.user.${this.config.defaultUser}`;
         }
+        this.startEosSecurityGuard();
         (0, objectFixes_1.checkCommonObjects)(this).catch((e) => this.log.warn(`Cannot check common objects: ${e?.message}`));
         this.getData(adapter => (webServer = new web_1.default(adapter.config, adapter, this.initSocket.bind(this), { systemLanguage })));
         if (this.config.accessApplyRights &&

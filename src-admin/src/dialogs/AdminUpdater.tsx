@@ -107,7 +107,7 @@ class AdminUpdater extends Component<AdminUpdaterProps, AdminUpdaterState> {
 
         await this.props.socket.upgradeAdapterWithWebserver(this.props.host, {
             version: this.props.version,
-            adapterName: 'admin',
+            adapterName: 'eos-admin',
             port,
             useHttps,
             certPublicName,
@@ -189,11 +189,11 @@ class AdminUpdater extends Component<AdminUpdaterProps, AdminUpdaterState> {
                     if (response && !response.running && response.success && response.stdout) {
                         response.stdout.push('');
                         response.stdout.push('---------------------------------------------------');
-                        response.stdout.push(I18n.t('%s was successfully updated to %s', 'admin', this.props.version));
+                        response.stdout.push(I18n.t('%s was successfully updated to %s', 'eos-admin', this.props.version));
                     } else if (response?.stdout) {
                         response.stdout.unshift('');
                         response.stdout.unshift('---------------------------------------------------');
-                        response.stdout.unshift(I18n.t('updating %s to %s...', 'admin', this.props.version));
+                        response.stdout.unshift(I18n.t('updating %s to %s...', 'eos-admin', this.props.version));
                     }
                     this.setState({ response, error: null }, (): void => {
                         if (response && !response.running) {
@@ -258,7 +258,7 @@ class AdminUpdater extends Component<AdminUpdaterProps, AdminUpdaterState> {
                 maxWidth="lg"
                 fullWidth
             >
-                <DialogTitle>{I18n.t('Updating %s...', 'admin')}</DialogTitle>
+                <DialogTitle>{I18n.t('Updating %s...', 'eos-admin')}</DialogTitle>
                 <DialogContent style={{ height: 400, padding: '0 20px', overflow: 'hidden' }}>
                     {(!this.state.response || this.state.response.running) && !this.state.error ? (
                         <LinearProgress />

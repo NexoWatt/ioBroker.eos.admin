@@ -999,7 +999,7 @@ class App extends Router<AppProps, AppState> {
                 protocol: window.location.protocol as 'http:' | 'https:',
                 host: window.location.hostname,
 
-                name: 'admin',
+                name: 'eos-admin',
                 admin5only: true,
                 port: App.getPort(),
                 autoSubscribes: ['system.adapter.*'], // Do not subscribe on '*' and really we don't need a 'system.adapter.*' either. Every tab must subscribe itself to everything that it needs
@@ -1038,7 +1038,7 @@ class App extends Router<AppProps, AppState> {
                                     disableMcp: false,
                                 };
 
-                                if (this.state.cmd && this.state.cmd.match(/ admin(@[-.\w]+)?$/)) {
+                                if (this.state.cmd && /\b(?:admin|eos-admin)(?:@[-.\w]+)?(?:\s+--debug)?$/.test(this.state.cmd)) {
                                     // close the command dialog after reconnecting (maybe admin was restarted, and the update is now finished)
                                     newState.commandRunning = false;
                                     newState.forceUpdateAdapters = this.state.forceUpdateAdapters + 1;
@@ -1464,28 +1464,16 @@ class App extends Router<AppProps, AppState> {
 
     onSessionExpiration = (expireAt: number): Promise<boolean> => {
         return new Promise<boolean>(resolve => {
-            const tokens = Connection.readTokens();
-            if (
-                (this.doNotAskSessionExpiration && Date.now() < this.doNotAskSessionExpiration) ||
-                tokens.refresh_token_expires_in.getTime() > Date.now()
-            ) {
-                resolve(true);
-            } else {
-                this.setState({ askForTokenRefresh: { expireAt, resolve, doNotAsk: false } }, () => {
-                    this.expireInSecInterval ||= setInterval(() => {
-                        if (Date.now() >= this.state.askForTokenRefresh.expireAt) {
-                            clearInterval(this.expireInSecInterval);
-                            this.expireInSecInterval = null;
-                            // On session expiration will be called only if the connection is the owner of the token
-                            Connection.deleteTokensStatic();
-                            window.location.reload();
-                        } else {
-                            // redraw timer
-                            this.forceUpdate();
-                        }
-                    }, 1_000);
-                });
+            const delay = Math.max(0, expireAt - Date.now() + 500);
+            if (this.expireInSecInterval) {
+                clearInterval(this.expireInSecInterval);
+                this.expireInSecInterval = null;
             }
+            this.expireInSecInterval = setTimeout(() => {
+                Connection.deleteTokensStatic();
+                window.location.href = './index.html?login&eosLogout=timeout';
+            }, delay) as unknown as ReturnType<typeof setInterval>;
+            resolve(false);
         });
     };
 
@@ -1515,7 +1503,7 @@ class App extends Router<AppProps, AppState> {
         const maxCount = 200;
         for (let instance = 0; instance < maxCount; instance++) {
             try {
-                const adminAlive = await this.socket.getState(`system.adapter.admin.${instance}.alive`);
+                const adminAlive = await this.socket.getState(`system.adapter.eos-admin.${instance}.alive`);
                 if (adminAlive?.val) {
                     return instance;
                 }
@@ -2432,18 +2420,18 @@ class App extends Router<AppProps, AppState> {
                                 onClick={() => {
                                     if (window.sidebar) {
                                         // Firefox
-                                        window.sidebar.addPanel('ioBroker.admin', this.state.showRedirect, '');
+                                        window.sidebar.addPanel('NexoWatt EOS Admin', this.state.showRedirect, '');
                                     } else if (window.opera && window.print) {
                                         // Opera
                                         const elem = document.createElement('a');
                                         elem.setAttribute('href', this.state.showRedirect);
-                                        elem.setAttribute('title', 'ioBroker.admin');
+                                        elem.setAttribute('title', 'NexoWatt EOS Admin');
                                         elem.setAttribute('rel', 'sidebar');
                                         elem.click(); // this.title=document.title;
                                     } else if (document.all) {
                                         // ie
                                         // @ts-expect-error ignore
-                                        window.external.AddFavorite(this.state.showRedirect, 'ioBroker.admin');
+                                        window.external.AddFavorite(this.state.showRedirect, 'NexoWatt EOS Admin');
                                     }
                                 }}
                             >
@@ -2977,7 +2965,7 @@ class App extends Router<AppProps, AppState> {
                 <h1 style={{ color: '#F00' }}>Error in GUI!</h1>
                 Please open the browser console (F12), copy error text from there and create the issue on{' '}
                 <a
-                    href="https://github.com/ioBroker/ioBroker.admin/issues"
+                    href="https://github.com/ioBroker/NexoWatt EOS Admin/issues"
                     target="_blank"
                     rel="noreferrer"
                 >

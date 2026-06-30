@@ -1121,7 +1121,7 @@ export default class ObjectHistoryData extends Component<ObjectHistoryDataProps,
             val,
             ack: this.state.edit.ack,
             ts: this.state.selected[0],
-            from: `system.adapter.admin.${this.adminInstance}`,
+            from: `system.adapter.eos-admin.${this.adminInstance}`,
             q: this.state.edit.q,
         };
 
@@ -1161,7 +1161,7 @@ export default class ObjectHistoryData extends Component<ObjectHistoryDataProps,
             ts: ts.getTime(),
             val,
             ack: this.state.edit.ack,
-            from: `system.adapter.admin.${this.adminInstance}`,
+            from: `system.adapter.eos-admin.${this.adminInstance}`,
             q: this.state.edit.q || 0,
         };
 

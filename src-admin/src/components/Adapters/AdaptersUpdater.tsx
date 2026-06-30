@@ -183,7 +183,7 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
         Object.keys(this.props.repository).forEach(adapter => {
             const _installed = this.props.installed[adapter];
             // ignore js-controller in this dialog
-            if (adapter === 'js-controller' || adapter === 'admin') {
+            if (adapter === 'js-controller' || adapter === 'admin' || adapter === 'eos-admin') {
                 return;
             }
             if (

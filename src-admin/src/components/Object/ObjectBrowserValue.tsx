@@ -270,12 +270,17 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             }
         }
 
-        this.props.onClose({
+        const nextState = {
             val: value,
             ack: this.ack,
             q: this.q,
             expire: parseInt(this.expire as any as string, 10) || undefined,
-        });
+        };
+
+        void this.props.socket
+            .setState(this.props.object._id, nextState)
+            .then(() => this.props.onClose())
+            .catch(error => window.alert(`Cannot write state "${this.props.object._id}": ${error}`));
     }
 
     /**

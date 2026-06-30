@@ -520,7 +520,8 @@ export default class Hosts extends Component<HostsProps, HostsState> {
                     <div style={styles.grow} />
                 </TabHeader>
                 <TabContent overflow="auto">
-                    {!Utils.isStableRepository(this.props.systemConfig.common.activeRepo) ? (
+                    {!Utils.isStableRepository(this.props.systemConfig.common.activeRepo) &&
+                    String(this.props.systemConfig.common.activeRepo || '').toLowerCase() !== 'nexowatt' ? (
                         <Box sx={{ marginX: 2, width: 'calc(100% - 32px)', alignSelf: 'center' }}>
                             <InfoBox type={'warning'}>
                                 {this.t('Active repo is "%s"', this.props.systemConfig.common.activeRepo)}
