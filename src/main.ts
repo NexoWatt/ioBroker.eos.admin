@@ -1043,14 +1043,11 @@ class Admin extends Adapter {
     }
 
     private getProtectedAdapterNames(): string[] {
-        const configured = normalizeProtectedAdapters(this.config.eosProtectedAdapters);
-        const result = new Set<string>(CORE_PROTECTED_ADAPTER_NAMES);
+        // v45: delete protection is intentionally limited to the fixed EOS core list.
+        // Older installations may have stored additional entries in eosProtectedAdapters;
+        // those must not make ordinary runtime adapters undeletable in Dienste/Module.
+        const result = new Set<string>([LEGACY_ADMIN_ADAPTER_NAME, ...CORE_PROTECTED_ADAPTER_NAMES]);
 
-        configured.forEach(adapter => result.add(adapter));
-
-        // EOS Admin and the core NexoWatt runtime adapters must always stay protected through ACL/UI policy,
-        // but never via common.dontDelete/common.nondeletable. Those flags can interfere with ioBroker updates
-        // because updates may replace adapter objects.
         return [...result].sort();
     }
 
@@ -1121,6 +1118,85 @@ class Admin extends Adapter {
         }
 
         return changed;
+    }
+
+    private async clearStaleAdapterDeleteLocks(id: string, protectedAdapters: Set<string>): Promise<boolean> {
+        const obj = (await this.getForeignObjectAsync(id)) as ioBroker.AnyObject | null | undefined;
+        if (!obj?.common) {
+            return false;
+        }
+
+        const adapter = String(id)
+            .replace(/^system\.adapter\./, '')
+            .replace(/\.\d+$/, '');
+        const isProtected = protectedAdapters.has(adapter);
+        let changed = false;
+
+        obj.common = obj.common || {};
+
+        // v45: old builds could leave common.dontDelete/common.nondeletable on normal
+        // adapter or instance objects. Those flags block ioBroker del even if the UI allows it.
+        if ((obj.common as Record<string, unknown>).dontDelete === true) {
+            delete (obj.common as Record<string, unknown>).dontDelete;
+            changed = true;
+        }
+
+        if ((obj.common as Record<string, unknown>).nondeletable === true) {
+            (obj.common as Record<string, unknown>).nondeletable = false;
+            changed = true;
+        }
+
+        // Also undo stale admin-only ACLs for adapters that are no longer protected by the
+        // hard core list. UI protection remains for real core modules.
+        if (!isProtected && obj.acl) {
+            const targetAcl = this.getAdminOnlyAcl();
+            const acl = obj.acl as Record<string, unknown>;
+            if (acl.owner === targetAcl.owner && acl.ownerGroup === targetAcl.ownerGroup && acl.object === targetAcl.object) {
+                delete (obj as ioBroker.AnyObject).acl;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            await this.setForeignObjectAsync(id, obj);
+        }
+
+        return changed;
+    }
+
+    private async repairStaleAdapterDeleteLocks(): Promise<void> {
+        const protectedAdapters = new Set(this.getProtectedAdapterNames());
+        const ids = new Set<string>();
+
+        const collect = async (type: 'adapter' | 'instance'): Promise<void> => {
+            try {
+                const view = await this.getObjectViewAsync('system', type, {
+                    startkey: 'system.adapter.',
+                    endkey: 'system.adapter.香',
+                });
+                for (const row of view.rows || []) {
+                    if (row.id) {
+                        ids.add(row.id);
+                    }
+                }
+            } catch (e) {
+                this.log.warn(`Cannot scan ${type} objects for stale delete locks: ${e instanceof Error ? e.message : e}`);
+            }
+        };
+
+        await collect('adapter');
+        await collect('instance');
+
+        let changed = 0;
+        for (const id of ids) {
+            if (await this.clearStaleAdapterDeleteLocks(id, protectedAdapters)) {
+                changed++;
+            }
+        }
+
+        if (changed) {
+            this.log.info(`EOS delete guard repaired stale delete locks on ${changed} adapter/instance object(s)`);
+        }
     }
 
     private async ensureProtectedAdapter(adapter: string): Promise<void> {
@@ -1217,6 +1293,7 @@ class Admin extends Adapter {
         try {
             await this.ensureLegacyAdminLocked();
             await this.ensureLegacyAdminVisibleOnlyToAdmins();
+            await this.repairStaleAdapterDeleteLocks();
 
             if (this.config.eosProtectAdapterDeletion !== false) {
                 for (const adapter of this.getProtectedAdapterNames()) {

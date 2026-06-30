@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v42-force-version-delete-dp-fix';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v45-delete-services-hardfix';
 
     const ACTIVE_CLASS = 'eos-objects-surface';
     const safe = fn => { try { return fn(); } catch (e) { return undefined; } };

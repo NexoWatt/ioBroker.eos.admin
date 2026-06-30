@@ -182,3 +182,7 @@ Diese Version korrigiert den Repository-Update-Pfad für den eigenständigen Ada
 ## NexoWatt EOS v7.9.42 Force-Update-Hinweis
 
 Dieses Paket hebt die sichtbare Adapter-Version und die EOS-Frontend-Cache-Buster auf v7.9.42 an. Es enthält den Delete-/DP-Write-Fix aus v7.9.41 und sorgt dafür, dass Browser nicht weiter die v40-Hilfsskripte verwenden.
+
+## NexoWatt EOS v7.9.45 Dienste/Module Delete Hardfix
+
+Fixes trash-icon deletion. DOM security scripts no longer capture delete clicks; only EOS core adapters stay protected and stale delete locks are repaired automatically.

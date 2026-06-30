@@ -33,6 +33,7 @@ let uuid: string;
 const page404 = readFileSync(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = readFileSync(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
 const CORE_PROTECTED_ADAPTER_NAMES = [
+    'admin',
     'eos-admin',
     'backitup',
     'nexowatt-devices',
@@ -507,32 +508,9 @@ export default class Web {
     }
 
     private getEosProtectedAdapterNames(): string[] {
-        const names = new Set<string>(CORE_PROTECTED_ADAPTER_NAMES);
-        const add = (value: unknown): void => {
-            if (!value) {
-                return;
-            }
-            if (Array.isArray(value)) {
-                value.forEach(add);
-                return;
-            }
-            if (typeof value === 'object') {
-                const row = value as { adapter?: unknown; name?: unknown; enabled?: unknown };
-                if (row.enabled === false) {
-                    return;
-                }
-                add(row.adapter || row.name);
-                return;
-            }
-            const adapter = this.normalizeEosAdapterName(String(value));
-            if (adapter) {
-                names.add(adapter);
-            }
-        };
-        if (this.settings.eosProtectAdapterDeletion !== false) {
-            add(this.settings.eosProtectedAdapters);
-        }
-        return [...names].sort();
+        // v45: frontend delete protection is core-only. Ignore old eosProtectedAdapters
+        // settings so normal installed adapters/instances remain deletable.
+        return [...new Set<string>(CORE_PROTECTED_ADAPTER_NAMES)].sort();
     }
 
     private readAccessTokenFromRequest(req: Request): string | null {
@@ -704,7 +682,7 @@ export default class Web {
             adminOnlyGroups,
             isAdminGroup,
             hideLegacyAdmin,
-            protectedAdapters: (this.adapter.config as any).eosProtectedAdapters || [],
+            protectedAdapters: this.getEosProtectedAdapterNames(),
         };
     }
 
@@ -920,7 +898,7 @@ export default class Web {
                             hideLegacyAdminForNonAdmins: true,
                             hideLegacyAdminFromNonAdmins: true,
                             restrictProtectedAdapterControls: true,
-                            protectedAdapters: ['eos-admin'],
+                            protectedAdapters: this.getEosProtectedAdapterNames(),
                         });
                     });
                 });
@@ -1017,7 +995,7 @@ export default class Web {
                         hideLegacyAdminForNonAdmins: true,
                         hideLegacyAdminFromNonAdmins: true,
                         restrictProtectedAdapterControls: true,
-                        protectedAdapters: ['eos-admin'],
+                        protectedAdapters: this.getEosProtectedAdapterNames(),
                     });
                 });
             };

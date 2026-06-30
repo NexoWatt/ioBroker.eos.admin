@@ -1770,11 +1770,20 @@ export default abstract class InstanceGeneric<
                     onClick={async event => {
                         event.stopPropagation();
                         event.preventDefault();
-                        // Count the number of instances
-                        const instances = await this.props.context.socket.getAdapterInstances(
-                            this.props.instance.id.split('.')[0],
-                        );
-                        this.setState({ openDialogDelete: instances.length || true, openDialog: true });
+
+                        let openDialogDelete: number | boolean = true;
+                        try {
+                            // Count the number of instances. If the socket call fails, still open
+                            // the delete dialog instead of leaving the trash button without reaction.
+                            const instances = await this.props.context.socket.getAdapterInstances(
+                                this.props.instance.id.split('.')[0],
+                            );
+                            openDialogDelete = Array.isArray(instances) ? instances.length || true : true;
+                        } catch (e) {
+                            console.warn('Cannot read adapter instances before delete:', e);
+                        }
+
+                        this.setState({ openDialogDelete, openDialog: true });
                     }}
                 >
                     <DeleteIcon />

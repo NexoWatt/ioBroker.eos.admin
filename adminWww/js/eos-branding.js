@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v40-update-package-mapping';
+    window.NEXOWATT_EOS_UI_VERSION = 'v45-delete-services-hardfix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -308,11 +308,9 @@
     ];
 
     const normalizeSecurityPolicy = policy => {
+        // v45: delete protection is fixed to EOS core adapters. Dynamic policy entries
+        // from older settings are ignored, otherwise normal Dienste can be blocked.
         const protectedAdapters = new Set(CORE_PROTECTED_ADAPTERS);
-        (Array.isArray(policy?.protectedAdapters) ? policy.protectedAdapters : []).forEach(item => {
-            const adapter = typeof item === 'string' ? normalizeIdentifier(item) : normalizeIdentifier(item?.adapter || item?.name);
-            if (adapter) protectedAdapters.add(adapter);
-        });
         const isAdmin = !!(policy?.isAdmin || policy?.isAdminGroup || policy?.isEosAdminGroup || policy?.isAdministrator);
         return {
             loaded: true,
@@ -378,6 +376,18 @@
             .some(el => pattern.test(textOfElement(el)));
     };
 
+    const SECURITY_SCOPE_MAX_TEXT = 1400;
+    const SECURITY_SCOPE_MAX_CONTROLS = 18;
+    const isSingleSecurityScope = container => {
+        if (!container || !container.querySelectorAll) return false;
+        const text = textOfElement(container);
+        if (!text || text.length > SECURITY_SCOPE_MAX_TEXT) return false;
+        const controls = container.querySelectorAll('button,[role="button"],a,.MuiIconButton-root').length;
+        if (controls > SECURITY_SCOPE_MAX_CONTROLS) return false;
+        const nested = container.querySelectorAll('[role="row"],tr,.MuiDataGrid-row,.MuiListItem-root,.MuiCard-root,.MuiAccordion-root').length;
+        return nested <= 4;
+    };
+
     const getSecurityContainers = () => Array.from(document.querySelectorAll([
         '#app-paper .MuiCard-root',
         '#app-paper tr.MuiTableRow-root',
@@ -390,7 +400,7 @@
         '#app-paper .MuiFormControlLabel-root',
         '#app-paper .MuiListItem-root',
         '#app-paper .MuiListItemButton-root',
-    ].join(','))).filter(el => !el.closest('.MuiDialog-paper'));
+    ].join(','))).filter(el => !el.closest('.MuiDialog-paper') && isSingleSecurityScope(el));
 
     const isDeleteControl = el => {
         const text = normalize(el.textContent || el.getAttribute?.('title') || el.getAttribute?.('aria-label') || '');
@@ -399,18 +409,26 @@
         return !!svg || /\b(delete|remove|uninstall|del|loschen|entfernen|deinstallieren)\b/.test(`${text} ${title}`);
     };
 
-    const lockDeleteControls = container => {
-        Array.from(container.querySelectorAll('button, [role="button"], a')).forEach(control => {
-            if (!isDeleteControl(control)) return;
-            control.classList.add('eos-protected-delete-control');
-            control.setAttribute('aria-disabled', 'true');
-            control.setAttribute('title', 'Geschütztes EOS-Systemmodul darf nicht gelöscht werden');
-            if ('disabled' in control) control.disabled = true;
-            control.addEventListener('click', event => {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-            }, true);
+    const unlockDeleteControls = () => safe(() => {
+        // v45: clean up classes/attributes created by older EOS delete guards. We do not
+        // install capture listeners anymore; React handlers enforce the core protection list.
+        document.querySelectorAll('#app-paper .eos-protected-delete-control, #app-paper .eos-security-hidden-delete, #app-paper [data-eos-delete-guard-bound="true"]').forEach(control => {
+            control.classList.remove('eos-protected-delete-control', 'eos-security-hidden-delete');
+            control.removeAttribute('data-eos-delete-guard-bound');
+            control.removeAttribute('aria-disabled');
+            control.style.display = '';
+            control.style.pointerEvents = '';
+            control.style.visibility = '';
+            control.style.opacity = '';
+            if (control.hasAttribute('disabled')) control.removeAttribute('disabled');
+            if ('disabled' in control) control.disabled = false;
         });
+    });
+
+    const lockDeleteControls = container => {
+        // v45: Intentionally no DOM click blocking. Stale capture listeners and disabled
+        // attributes were the reason normal services could not be deleted via trash icon.
+        unlockDeleteControls();
     };
 
 
@@ -460,22 +478,9 @@
     });
 
     const protectDeleteDialogs = () => {
-        if (state.securityPolicy.restrictProtectedAdapterControls === false) return;
-        const protectedAdapters = state.securityPolicy.protectedAdapters || [];
-        Array.from(document.querySelectorAll('.MuiDialog-paper, [role="dialog"]')).forEach(dialog => {
-            const text = textOfElement(dialog);
-            if (!/(delete|remove|loschen|entfernen|deinstallieren|del\s+)/i.test(text)) return;
-            const protectedHit = protectedAdapters.some(adapter => containerMentionsAdapter(dialog, adapter));
-            if (!protectedHit) return;
-            dialog.classList.add('eos-protected-delete-dialog');
-            Array.from(dialog.querySelectorAll('button')).forEach(button => {
-                const label = normalize(button.textContent || button.getAttribute('aria-label') || '');
-                if (/^(ok|ja|yes|delete|remove|loschen|entfernen|deinstallieren)$/.test(label)) {
-                    button.disabled = true;
-                    button.classList.add('eos-protected-delete-control');
-                }
-            });
-        });
+        // v45: Do not disable delete confirmation dialogs in the DOM. The delete command
+        // guard is handled in React and keeps the fixed EOS core list protected.
+        unlockDeleteControls();
     };
 
     const hideSecuritySettingsForNonAdmin = () => {
@@ -523,6 +528,7 @@
         const policy = state.securityPolicy;
         applySecurityClasses();
         releaseNotificationControls();
+        unlockDeleteControls();
         // Do not apply EOS security decoration inside native adapter configuration pages.
         // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
         if (isAdapterConfigSurface()) return;
@@ -535,6 +541,7 @@
 
         const containers = getSecurityContainers();
         containers.forEach(container => {
+            if (!isSingleSecurityScope(container)) return;
             if (!isAdminUser() && policy.hideLegacyAdminForNonAdmins !== false && isLegacyAdminContainer(container)) {
                 container.classList.add('eos-hidden-legacy-admin');
                 container.setAttribute('aria-hidden', 'true');

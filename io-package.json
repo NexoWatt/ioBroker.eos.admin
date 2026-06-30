@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.42",
+    "version": "7.9.45",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.44": {
+        "en": "Fix service/instance delete button: core-only protection, stale lock repair, guarded DOM scope.",
+        "de": "Fix für Dienste/Instanzen löschen: Schutz nur für EOS-Core, Reparatur alter Locks, enger DOM-Schutz."
+      },
       "7.9.42": {
         "en": "Forced visible update package with cache-busting version markers; adapter/instance deletion is blocked only for Admin/EOS Admin, BackItUp/Backup, NexoWatt Devices and NexoWatt UI; writable datapoints keep reliable command writes.",
         "de": "Sichtbares Force-Update mit Cache-Busting-Versionen; Adapter-/Instanz-Löschung bleibt nur für Admin/EOS Admin, BackItUp/Backup, NexoWatt Devices und NexoWatt UI gesperrt; beschreibbare Datenpunkte schreiben Befehlswerte weiterhin zuverlässig."
@@ -189,6 +193,19 @@
       "7.9.40": {
         "en": "Fixed repository update package mapping by adding packetName and preserved technical npm/ioBroker package output in command dialogs.",
         "de": "Repository-Update-Mapping korrigiert: packetName ergänzt und technische npm/ioBroker-Paketausgaben in Befehlsdialogen unverändert gelassen."
+      },
+      "7.9.45": {
+        "en": "Hard fix for service/module deletion: DOM security scripts no longer capture trash clicks, stale delete locks are repaired, and only EOS core adapters remain protected.",
+        "de": "Hardfix für Dienste-/Module-Löschung: DOM-Security-Skripte fangen Mülleimer-Klicks nicht mehr ab, alte Löschsperren werden repariert und nur EOS-Core-Adapter bleiben geschützt.",
+        "ru": "Исправление удаления служб/модулей: DOM security больше не перехватывает клики по корзине, устаревшие блокировки удаления исправляются, защищены только основные адаптеры EOS.",
+        "pt": "Correção de exclusão de serviços/módulos: scripts DOM security não capturam mais cliques na lixeira, bloqueios antigos são reparados e apenas adaptadores EOS core ficam protegidos.",
+        "nl": "Hardfix voor verwijderen van diensten/modules: DOM-securityscripts vangen prullenbakklikken niet meer af, oude verwijderblokkades worden hersteld en alleen EOS-coreadapters blijven beschermd.",
+        "fr": "Correctif suppression services/modules : les scripts DOM security ne capturent plus les clics corbeille, les anciens verrous sont réparés et seuls les adaptateurs cœur EOS restent protégés.",
+        "it": "Fix eliminazione servizi/moduli: gli script DOM security non intercettano più i clic sul cestino, i vecchi blocchi vengono riparati e solo gli adattatori core EOS restano protetti.",
+        "es": "Corrección de eliminación de servicios/módulos: los scripts DOM security ya no capturan clics de papelera, se reparan bloqueos antiguos y solo adaptadores core EOS quedan protegidos.",
+        "pl": "Poprawka usuwania usług/modułów: skrypty DOM security nie przechwytują kliknięć kosza, stare blokady są naprawiane i chronione pozostają tylko adaptery rdzeniowe EOS.",
+        "uk": "Виправлення видалення служб/модулів: DOM security більше не перехоплює кліки кошика, старі блокування виправляються, захищені лише основні адаптери EOS.",
+        "zh-cn": "服务/模块删除硬修复：DOM security 脚本不再拦截垃圾桶点击，会修复旧删除锁，仅 EOS 核心适配器受保护。"
       }
     },
     "desc": {
@@ -226,7 +243,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.42/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.45/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -237,7 +254,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.42/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.45/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -306,7 +323,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.42/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.45/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v42-force-version-delete-dp-fix';
+    const VERSION = 'v45-delete-services-hardfix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -65,9 +65,9 @@
 
     const isAdminUser = () => !!(state.policy?.isAdmin || state.policy?.isEosAdminGroup || state.policy?.isAdministrator);
     const protectedAdapters = () => {
-        const names = new Set([LEGACY_ADMIN, ...CORE_PROTECTED_ADAPTERS].map(normalizeAdapter).filter(Boolean));
-        (state.policy?.protectedAdapters || []).map(normalizeAdapter).filter(Boolean).forEach(adapter => names.add(adapter));
-        return names;
+        // v45: hard delete protection only for EOS core adapters. Dynamic/stale
+        // policy entries must never block ordinary installed adapters.
+        return new Set([LEGACY_ADMIN, ...CORE_PROTECTED_ADAPTERS].map(normalizeAdapter).filter(Boolean));
     };
 
     const isProtectedAdapter = value => {
@@ -89,7 +89,26 @@
         },
     };
 
-    const closestPanel = el => el?.closest?.('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root, .MuiBox-root') || null;
+    const SECURITY_SCOPE_MAX_TEXT = 1400;
+    const SECURITY_SCOPE_MAX_CONTROLS = 18;
+    const isSingleSecurityScope = el => {
+        if (!el || !el.querySelectorAll) return false;
+        const text = normalize(el.textContent || '');
+        if (!text || text.length > SECURITY_SCOPE_MAX_TEXT) return false;
+        const controls = el.querySelectorAll('button,[role="button"],a,.MuiIconButton-root').length;
+        if (controls > SECURITY_SCOPE_MAX_CONTROLS) return false;
+        const nested = el.querySelectorAll('[role="row"],tr,.MuiDataGrid-row,.MuiListItem-root,.MuiCard-root,.MuiAccordion-root').length;
+        return nested <= 4;
+    };
+
+    const closestPanel = el => {
+        let node = el?.closest?.('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root, .MuiBox-root') || null;
+        while (node && node !== document.body && node !== document.documentElement) {
+            if (isSingleSecurityScope(node)) return node;
+            node = node.parentElement?.closest?.('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root, .MuiBox-root') || null;
+        }
+        return null;
+    };
     const markHidden = el => {
         if (!el || el.classList?.contains('eos-security-keep-visible')) return;
         el.classList.add('eos-security-hidden');
@@ -128,37 +147,27 @@
         });
     };
 
-    const hideProtectedDeleteControls = () => {
-        if (!state.policy?.restrictProtectedAdapterControls) return;
-        const protectedSet = protectedAdapters();
-        if (!protectedSet.size) return;
-        document.querySelectorAll('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root').forEach(panel => {
-            let adapter = '';
-            const icon = panel.querySelector('img[src*="/adapter/"], img[src*="adapter/"]');
-            const src = icon ? String(icon.getAttribute('src') || '') : '';
-            const match = src.match(/adapter\/([^\/]+)\//i);
-            if (match) adapter = normalizeAdapter(match[1]);
-            const text = normalizeFlat(panel.textContent || '');
-            if (!adapter) {
-                for (const protectedName of protectedSet) {
-                    if (new RegExp(`\\b${protectedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\.\\d+)?\\b`, 'i').test(text)) {
-                        adapter = protectedName;
-                        break;
-                    }
-                }
-            }
-            if (!adapter || !protectedSet.has(adapter)) return;
-            panel.classList.add('eos-security-protected-adapter');
-            panel.querySelectorAll('button,[role="button"],a').forEach(button => {
-                const label = normalizeFlat(`${button.textContent || ''} ${button.getAttribute('title') || ''} ${button.getAttribute('aria-label') || ''}`);
-                if (/loschen|delete|remove|deinstall|uninstall/.test(label)) {
-                    button.classList.add('eos-security-hidden-delete');
-                    button.setAttribute('disabled', 'disabled');
-                    button.setAttribute('aria-disabled', 'true');
-                    button.style.display = 'none';
-                }
-            });
+    const releaseDeleteControls = () => {
+        // v45: undo markers from older EOS DOM guards. Only touch controls that were
+        // marked by EOS scripts, not native Admin disabled states.
+        document.querySelectorAll('.eos-security-hidden-delete, .eos-protected-delete-control, [data-eos-security-locked-delete="true"]').forEach(control => {
+            control.classList?.remove('eos-security-hidden-delete', 'eos-protected-delete-control');
+            control.removeAttribute?.('data-eos-security-locked-delete');
+            control.removeAttribute?.('aria-disabled');
+            control.style.display = '';
+            control.style.visibility = '';
+            control.style.pointerEvents = '';
+            if (control.hasAttribute?.('disabled')) control.removeAttribute('disabled');
+            if ('disabled' in control) control.disabled = false;
         });
+    };
+
+    const hideProtectedDeleteControls = () => {
+        // v45: Do not hide or capture trash buttons in the DOM. The shipped React
+        // source/bundles already block protected EOS core adapters before executing
+        // the ioBroker del command. DOM blocking caused stale/virtualized rows to make
+        // normal services undeletable.
+        releaseDeleteControls();
     };
 
     const replaceTextNodes = () => {
@@ -293,33 +302,8 @@
         state.observer.observe(document.documentElement, { childList: true, subtree: true });
     };
 
-    document.addEventListener('click', event => {
-        const target = event.target?.closest?.('button,[role="button"],a,[role="menuitem"],.MuiMenuItem-root');
-        if (!target || isAdapterConfigSurface()) return;
-        // Native Admin dialogs, install/autocomplete poppers and adapter-owned menus must stay untouched.
-        if (target.closest?.('.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="dialog"],[role="listbox"],[role="menu"]')) return;
-        const label = normalizeFlat(`${target.textContent || ''} ${target.getAttribute?.('title') || ''} ${target.getAttribute?.('aria-label') || ''}`);
-        if (!/loschen|delete|remove|deinstall|uninstall/.test(label)) return;
-
-        const panel = closestPanel(target);
-        if (!panel) return;
-        const protectedSet = protectedAdapters();
-        const icon = panel.querySelector('img[src*="/adapter/"], img[src*="adapter/"]');
-        const src = icon ? String(icon.getAttribute('src') || '') : '';
-        const match = src.match(/adapter\/([^\/]+)\//i);
-        const adapterFromIcon = match ? normalizeAdapter(match[1]) : '';
-        const text = normalizeFlat(panel.textContent || '');
-        const protectedHit = adapterFromIcon
-            ? isProtectedAdapter(adapterFromIcon)
-            : [...protectedSet].some(adapter => new RegExp(`\\b${adapter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\.\\d+)?\\b`, 'i').test(text));
-        if (!protectedHit) return;
-
-        target.classList.add('eos-security-hidden-delete');
-        target.setAttribute?.('aria-disabled', 'true');
-        target.style.display = 'none';
-        event.preventDefault();
-        event.stopImmediatePropagation();
-    }, true);
+    // v45: No global capture listener for delete buttons. Protected adapter deletion is
+    // handled in the React delete handlers; global DOM interception broke normal Dienste.
 
     const start = () => {
         loadPolicy();

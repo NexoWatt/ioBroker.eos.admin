@@ -62,9 +62,12 @@ const normalizeEosAdapterName = (value: string): string => String(value || '')
     .replace(/\.\d+$/, '');
 
 const isEosProtectedInstance = (instanceIdOrAdapter: string): boolean => {
-    const adapter = normalizeEosAdapterName(instanceIdOrAdapter.replace(/^system\.adapter\./, '').split('.')[0] || instanceIdOrAdapter);
-    const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockInstanceDelete?: (idOrAdapter: string) => boolean } }).NEXOWATT_EOS_SECURITY;
-    return EOS_CORE_PROTECTED_ADAPTERS.has(adapter) || !!security?.shouldBlockInstanceDelete?.(instanceIdOrAdapter);
+    const adapter = normalizeEosAdapterName(instanceIdOrAdapter);
+
+    // v45: Dienste deletion is blocked only for the fixed EOS core list.
+    // Do not use the dynamic security policy here; older configs may still contain
+    // runtime adapters and would make normal instances undeletable.
+    return EOS_CORE_PROTECTED_ADAPTERS.has(adapter);
 };
 
 const styles: Record<string, any> = {

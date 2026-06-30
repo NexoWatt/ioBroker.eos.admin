@@ -34,6 +34,7 @@ let uuid;
 const page404 = (0, node_fs_1.readFileSync)(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = (0, node_fs_1.readFileSync)(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
 const CORE_PROTECTED_ADAPTER_NAMES = [
+    'admin',
     'eos-admin',
     'backitup',
     'nexowatt-devices',
@@ -411,23 +412,9 @@ class Web {
         return [...groups].sort();
     }
     getEosProtectedAdapterNames() {
-        const names = new Set(CORE_PROTECTED_ADAPTER_NAMES);
-        const add = value => {
-            if (!value) return;
-            if (Array.isArray(value)) {
-                value.forEach(add);
-                return;
-            }
-            if (typeof value === 'object') {
-                if (value.enabled === false) return;
-                add(value.adapter || value.name);
-                return;
-            }
-            const adapter = this.normalizeEosAdapterName(String(value));
-            if (adapter) names.add(adapter);
-        };
-        if (this.settings.eosProtectAdapterDeletion !== false) add(this.settings.eosProtectedAdapters);
-        return [...names].sort();
+        // v45: frontend delete protection is core-only. Ignore old eosProtectedAdapters
+        // settings so normal installed adapters/instances remain deletable.
+        return [...new Set(CORE_PROTECTED_ADAPTER_NAMES)].sort();
     }
     async getEosGroupsForUser(userId) {
         const groups = new Set();
@@ -720,7 +707,7 @@ class Web {
                             hideLegacyAdminForNonAdmins: true,
                             hideLegacyAdminFromNonAdmins: true,
                             restrictProtectedAdapterControls: true,
-                            protectedAdapters: ['eos-admin'],
+                            protectedAdapters: this.getEosProtectedAdapterNames(),
                         });
                     });
                 });
@@ -809,7 +796,7 @@ class Web {
                         hideLegacyAdminForNonAdmins: true,
                         hideLegacyAdminFromNonAdmins: true,
                         restrictProtectedAdapterControls: true,
-                        protectedAdapters: ['eos-admin'],
+                        protectedAdapters: this.getEosProtectedAdapterNames(),
                     });
                 });
             };

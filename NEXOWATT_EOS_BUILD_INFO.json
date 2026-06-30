@@ -1,11 +1,13 @@
 {
-  "version": "7.9.42",
-  "variant": "nexowatt-eos-ui-v42-force-version-delete-dp-fix",
-  "base": "v41-delete-dp-write-fix",
+  "version": "7.9.45",
+  "variant": "nexowatt-eos-ui-v45-delete-services-hardfix",
+  "base": "v44-delete-services-fix",
   "changes": [
-    "Version/Cache-Busting auf v7.9.42 erhöht, damit nach ZIP-Installation eindeutig sichtbar ist, ob das neue Paket läuft",
-    "AdminWww Index lädt EOS-Sicherheits- und Datenpunkt-Hilfsskripte mit neuem Query-String, damit keine v40 Browser-Caches weiterlaufen",
-    "Adapter-/Instanz-Löschschutz nur für Admin/EOS Admin, BackItUp/Backup, NexoWatt Devices und NexoWatt UI; alle anderen Instanzen bleiben löschbar",
-    "Beschreibbare Datenpunkte behalten den stabilisierten setState-Write mit ack=false/q=0 für Befehlswerte"
-  ]
+    "Mülleimer-Klicks in Dienste/Module werden nicht mehr durch EOS-DOM-Security abgefangen",
+    "Löschschutz nur noch für admin/eos-admin/backitup/nexowatt-devices/nexowatt-ui",
+    "Alte common.dontDelete/common.nondeletable und stale EOS-ACLs werden beim Start repariert",
+    "getAdapterInstances-Fehler blockiert den Löschdialog nicht mehr",
+    "Cache-Buster auf v45 erhöht"
+  ],
+  "notes": "Hardfix: remove DOM delete click capture, keep source/bundle core-only delete guard, repair stale dontDelete/nondeletable and stale EOS ACL locks."
 }

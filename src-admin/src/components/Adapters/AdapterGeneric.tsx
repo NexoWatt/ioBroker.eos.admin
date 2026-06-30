@@ -71,8 +71,10 @@ const normalizeEosAdapterName = (value: string): string => String(value || '')
 
 const isEosProtectedAdapter = (adapterName: string): boolean => {
     const adapter = normalizeEosAdapterName(adapterName);
-    const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { isProtectedAdapter?: (name: string) => boolean } }).NEXOWATT_EOS_SECURITY;
-    return EOS_CORE_PROTECTED_ADAPTERS.has(adapter) || !!security?.isProtectedAdapter?.(adapter);
+
+    // v45: Module deletion is blocked only for the fixed EOS core list.
+    // Dynamic policy entries are ignored so stale settings cannot block normal adapters.
+    return EOS_CORE_PROTECTED_ADAPTERS.has(adapter);
 };
 
 export const genericStyles: Record<string, any> = {
@@ -1112,8 +1114,7 @@ export default abstract class AdapterGeneric<
     }
 
     delete(deleteCustom?: boolean): void {
-        const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockAdapterDelete?: (adapterName: string) => boolean } }).NEXOWATT_EOS_SECURITY;
-        if (isEosProtectedAdapter(this.props.adapterName) || security?.shouldBlockAdapterDelete?.(this.props.adapterName)) {
+        if (isEosProtectedAdapter(this.props.adapterName)) {
             window.alert('Dieser Adapter ist ein geschütztes NexoWatt-EOS-Systemmodul und darf nicht gelöscht werden.');
             return;
         }
