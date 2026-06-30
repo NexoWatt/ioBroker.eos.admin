@@ -1,10 +1,16 @@
 (() => {
     'use strict';
 
+<<<<<<< HEAD
     const VERSION = 'v41-delete-dp-write-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
+=======
+    const VERSION = 'v39-object-state-tools';
+    const LEGACY_ADMIN = 'admin';
+    const LEGACY_ADMIN_INSTANCE = 'admin.0';
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-security-ui.js"]')?.src || window.location.href;
         return new URL('../', script).href;
@@ -23,7 +29,11 @@
             isAdministrator: false,
             hideLegacyAdminFromNonAdmins: true,
             restrictProtectedAdapterControls: true,
+<<<<<<< HEAD
             protectedAdapters: CORE_PROTECTED_ADAPTERS,
+=======
+            protectedAdapters: ['eos-admin'],
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         },
         scheduled: false,
         observer: null,
@@ -64,6 +74,7 @@
     };
 
     const isAdminUser = () => !!(state.policy?.isAdmin || state.policy?.isEosAdminGroup || state.policy?.isAdministrator);
+<<<<<<< HEAD
     const protectedAdapters = () => {
         const names = new Set([LEGACY_ADMIN, ...CORE_PROTECTED_ADAPTERS].map(normalizeAdapter).filter(Boolean));
         (state.policy?.protectedAdapters || []).map(normalizeAdapter).filter(Boolean).forEach(adapter => names.add(adapter));
@@ -73,6 +84,13 @@
     const isProtectedAdapter = value => {
         const adapter = normalizeAdapter(value);
         return !!adapter && (adapter === LEGACY_ADMIN || protectedAdapters().has(adapter));
+=======
+    const protectedAdapters = () => new Set((state.policy?.protectedAdapters || []).map(normalizeAdapter).filter(Boolean));
+
+    const isProtectedAdapter = value => {
+        const adapter = normalizeAdapter(value);
+        return !!adapter && protectedAdapters().has(adapter);
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     };
 
     window.NEXOWATT_EOS_SECURITY = {
@@ -81,11 +99,23 @@
         isAdminUser,
         isProtectedAdapter,
         shouldBlockAdapterDelete(adapterName) {
+<<<<<<< HEAD
             return isProtectedAdapter(adapterName);
         },
         shouldBlockInstanceDelete(instanceIdOrAdapter) {
             const raw = String(instanceIdOrAdapter || '').replace(/^system\.adapter\./, '');
             return isProtectedAdapter(raw);
+=======
+            if (isAdminUser()) return false;
+            const adapter = normalizeAdapter(adapterName);
+            return adapter === LEGACY_ADMIN || isProtectedAdapter(adapter);
+        },
+        shouldBlockInstanceDelete(instanceIdOrAdapter) {
+            if (isAdminUser()) return false;
+            const raw = String(instanceIdOrAdapter || '').replace(/^system\.adapter\./, '');
+            const adapter = normalizeAdapter(raw);
+            return adapter === LEGACY_ADMIN || isProtectedAdapter(adapter);
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         },
     };
 
@@ -129,7 +159,11 @@
     };
 
     const hideProtectedDeleteControls = () => {
+<<<<<<< HEAD
         if (!state.policy?.restrictProtectedAdapterControls) return;
+=======
+        if (!state.policy?.restrictProtectedAdapterControls || isAdminUser()) return;
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         const protectedSet = protectedAdapters();
         if (!protectedSet.size) return;
         document.querySelectorAll('.MuiCard-root, .MuiPaper-root, [role="row"], tr, .MuiListItem-root').forEach(panel => {
@@ -159,6 +193,16 @@
                 }
             });
         });
+<<<<<<< HEAD
+=======
+        document.querySelectorAll('[role="menuitem"], .MuiMenuItem-root').forEach(item => {
+            const text = normalizeFlat(item.textContent || '');
+            if (/loschen|delete|remove|deinstall|uninstall/.test(text)) {
+                item.classList.add('eos-security-hidden-delete');
+                item.style.display = 'none';
+            }
+        });
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     };
 
     const replaceTextNodes = () => {
@@ -295,6 +339,7 @@
 
     document.addEventListener('click', event => {
         const target = event.target?.closest?.('button,[role="button"],a,[role="menuitem"],.MuiMenuItem-root');
+<<<<<<< HEAD
         if (!target || isAdapterConfigSurface()) return;
         // Native Admin dialogs, install/autocomplete poppers and adapter-owned menus must stay untouched.
         if (target.closest?.('.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="dialog"],[role="listbox"],[role="menu"]')) return;
@@ -319,6 +364,16 @@
         target.style.display = 'none';
         event.preventDefault();
         event.stopImmediatePropagation();
+=======
+        if (!target || isAdminUser() || isAdapterConfigSurface()) return;
+        // Native Admin dialogs, install/autocomplete poppers and adapter-owned menus must stay untouched.
+        if (target.closest?.('.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="dialog"],[role="listbox"],[role="menu"]')) return;
+        const label = normalizeFlat(`${target.textContent || ''} ${target.getAttribute?.('title') || ''} ${target.getAttribute?.('aria-label') || ''}`);
+        if (/loschen|delete|remove|deinstall|uninstall/.test(label)) {
+            target.classList.add('eos-security-hidden-delete');
+            target.style.display = 'none';
+        }
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     }, true);
 
     const start = () => {

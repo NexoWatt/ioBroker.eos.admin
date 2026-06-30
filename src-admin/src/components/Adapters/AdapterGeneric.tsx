@@ -1113,8 +1113,13 @@ export default abstract class AdapterGeneric<
 
     delete(deleteCustom?: boolean): void {
         const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockAdapterDelete?: (adapterName: string) => boolean } }).NEXOWATT_EOS_SECURITY;
+<<<<<<< HEAD
         if (isEosProtectedAdapter(this.props.adapterName) || security?.shouldBlockAdapterDelete?.(this.props.adapterName)) {
             window.alert('Dieser Adapter ist ein geschütztes NexoWatt-EOS-Systemmodul und darf nicht gelöscht werden.');
+=======
+        if (security?.shouldBlockAdapterDelete?.(this.props.adapterName)) {
+            window.alert('Dieser Adapter ist durch NexoWatt EOS geschützt. Nur die Administrator-Gruppe darf ihn löschen.');
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
             return;
         }
         this.props.context.executeCommand(

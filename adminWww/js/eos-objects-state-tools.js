@@ -1,7 +1,11 @@
 (() => {
     'use strict';
 
+<<<<<<< HEAD
     window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v41-delete-dp-write-fix';
+=======
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v39-object-state-tools';
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
 
     const ACTIVE_CLASS = 'eos-objects-surface';
     const safe = fn => { try { return fn(); } catch (e) { return undefined; } };
@@ -86,6 +90,7 @@
         if (!setSurfaceState()) return;
         const base = root && root.nodeType ? root : document;
         const cells = [];
+<<<<<<< HEAD
         const valueCellSelector = '.eos-object-value-cell,[data-eos-object-value-cell],[title*="Wert schreiben"],[title*="Button sofort testen"]';
         if (base.nodeType === Node.ELEMENT_NODE && base.matches?.(valueCellSelector)) cells.push(base);
         cells.push(...Array.from(base.querySelectorAll?.(valueCellSelector) || []));
@@ -93,12 +98,22 @@
             const id = cell.getAttribute('data-eos-object-value-cell') || cell.closest?.('[id]')?.getAttribute('id') || '';
             const title = cell.getAttribute('title') || '';
             const writable = cell.getAttribute('data-eos-object-writable') === '1' || /Wert schreiben|Button sofort testen/i.test(title);
+=======
+        if (base.nodeType === Node.ELEMENT_NODE && base.matches?.('.eos-object-value-cell')) cells.push(base);
+        cells.push(...Array.from(base.querySelectorAll?.('.eos-object-value-cell') || []));
+        cells.forEach(cell => {
+            const id = cell.getAttribute('data-eos-object-value-cell') || '';
+            const writable = cell.getAttribute('data-eos-object-writable') === '1';
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
             const visibleValue = (cell.textContent || '').trim().replace(/\s+/g, ' ') || '(leer)';
             cell.style.pointerEvents = 'auto';
             cell.style.cursor = writable ? 'pointer' : 'default';
             cell.classList.toggle('eos-object-value-writable', writable);
             cell.classList.toggle('eos-object-value-readonly', !writable);
+<<<<<<< HEAD
             cell.classList.add('eos-object-value-cell');
+=======
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
             cell.setAttribute('data-eos-current-visible-value', visibleValue);
             const hint = writable
                 ? 'Klicken: Wert schreiben / Button sofort testen'
@@ -143,8 +158,11 @@
         if (nativeInteractive) {
             // Intentionally do not stop propagation. This keeps the native ObjectBrowser write dialog and button states working.
             releaseNativeControls(nativeInteractive);
+<<<<<<< HEAD
             window.setTimeout(() => releaseNativeControls(document), 50);
             window.setTimeout(() => annotateValueCells(document), 120);
+=======
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         }
     }, false);
 

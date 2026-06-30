@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "version": "7.9.41",
   "variant": "nexowatt-eos-ui-v41-delete-dp-write-fix",
   "base": "v40-update-packetname-fix",
@@ -7,5 +8,15 @@
     "Alle anderen installierten Adapter/Instanzen bleiben über Module/Dienste löschbar",
     "Geschützte Adapter werden weiterhin nicht über common.dontDelete/nondeletable blockiert, damit Updates möglich bleiben",
     "Beschreibbare Datenpunkte schreiben Werte als vollständiges ioBroker-State-Objekt mit ack=false/q=0; Button/Switch-DPs schreiben sofortige Befehle zuverlässiger"
+=======
+  "version": "7.9.38",
+  "variant": "nexowatt-eos-ui-v38-popup-config-stability-fix",
+  "base": "v36-native-config-session-fix",
+  "changes": [
+    "Benachrichtigungen/Toast-Schließen werden nicht mehr von EOS-Sicherheitsregeln blockiert",
+    "EOS-Sicherheitstexte werden auch in nativen Adapter-Konfigurationsseiten als UTF-8/Mojibake repariert",
+    "Protected adapter ACL hardening ist standardmäßig deaktiviert, damit BackItUp und Adapter-Konfigurationsseiten nicht gestört werden",
+    "Stale EOS admin-only ACLs auf runtime/protected Adaptern werden beim Guard-Lauf entfernt; EOS Admin und Legacy Admin bleiben gesondert geschützt"
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
   ]
 }

@@ -411,7 +411,11 @@ class Web {
         return [...groups].sort();
     }
     getEosProtectedAdapterNames() {
+<<<<<<< HEAD
         const names = new Set(CORE_PROTECTED_ADAPTER_NAMES);
+=======
+        const names = new Set(['eos-admin']);
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         const add = value => {
             if (!value) return;
             if (Array.isArray(value)) {

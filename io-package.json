@@ -1,7 +1,11 @@
 {
   "common": {
     "name": "eos-admin",
+<<<<<<< HEAD
     "version": "7.9.41",
+=======
+    "version": "7.9.40",
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -178,10 +182,13 @@
         "en": "Improved datapoint value editing and object-table hover information without changing stable EOS Admin behavior.",
         "de": "Verbesserte Wertbearbeitung in Datenpunkten und Objekt-Tabellen-Hover-Informationen ohne Änderung des stabilen EOS-Admin-Verhaltens."
       },
+<<<<<<< HEAD
       "7.9.41": {
         "en": "Fixed EOS adapter deletion policy so only Admin/EOS Admin, Backup, NexoWatt Devices and NexoWatt UI stay protected; writable datapoints now write command values more reliably.",
         "de": "EOS-Löschschutz korrigiert: Nur Admin/EOS Admin, Backup, NexoWatt Devices und NexoWatt UI bleiben geschützt; beschreibbare Datenpunkte schreiben Befehlswerte zuverlässiger."
       },
+=======
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
       "7.9.40": {
         "en": "Fixed repository update package mapping by adding packetName and preserved technical npm/ioBroker package output in command dialogs.",
         "de": "Repository-Update-Mapping korrigiert: packetName ergänzt und technische npm/ioBroker-Paketausgaben in Befehlsdialogen unverändert gelassen."
@@ -222,7 +229,11 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
+<<<<<<< HEAD
     "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.41/admin/admin.svg",
+=======
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.40/admin/admin.svg",
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -233,7 +244,11 @@
       "licensed"
     ],
     "compact": true,
+<<<<<<< HEAD
     "readme": "https://unpkg.com/iobroker.eos-admin@7.9.41/README.md",
+=======
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.40/README.md",
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -302,7 +317,11 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
+<<<<<<< HEAD
     "meta": "https://unpkg.com/iobroker.eos-admin@7.9.41/io-package.json",
+=======
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.40/io-package.json",
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -355,6 +374,7 @@
         "adapter": "backitup",
         "note": "Backup- und Restore-System",
         "enabled": true
+<<<<<<< HEAD
       },
       {
         "adapter": "nexowatt-devices",
@@ -365,6 +385,8 @@
         "adapter": "nexowatt-ui",
         "note": "NexoWatt UI / Bedienoberfläche",
         "enabled": true
+=======
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
       }
     ],
     "eosHideLegacyAdminFromNonAdmins": true,

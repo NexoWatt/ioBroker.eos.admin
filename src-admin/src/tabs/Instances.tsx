@@ -796,8 +796,14 @@ class Instances extends Component<InstancesProps, InstancesState> {
 
     onDeleteInstance = (instance: InstanceEntry, deleteCustom: boolean, deleteAdapter: boolean): void => {
         const deleteTarget = deleteAdapter ? instance.id.split('.')[0] : instance.id;
+<<<<<<< HEAD
         if (isEosProtectedInstance(deleteTarget)) {
             window.alert('Dieser Dienst ist ein geschütztes NexoWatt-EOS-Systemmodul und darf nicht gelöscht werden.');
+=======
+        const security = (window as unknown as { NEXOWATT_EOS_SECURITY?: { shouldBlockInstanceDelete?: (instanceIdOrAdapter: string) => boolean } }).NEXOWATT_EOS_SECURITY;
+        if (security?.shouldBlockInstanceDelete?.(deleteTarget)) {
+            window.alert('Dieser Dienst ist durch NexoWatt EOS geschützt. Nur die Administrator-Gruppe darf ihn löschen.');
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
             return;
         }
         this.setState({ deleting: instance.id }, () =>

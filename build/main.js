@@ -44,6 +44,7 @@ function normalizeLoginTimeout(value, fallback = 3_600) {
 }
 const EOS_ADMIN_ADAPTER_NAME = 'eos-admin';
 const LEGACY_ADMIN_ADAPTER_NAME = 'admin';
+<<<<<<< HEAD
 const CORE_PROTECTED_ADAPTER_NAMES = [
     EOS_ADMIN_ADAPTER_NAME,
     'backitup',
@@ -52,6 +53,8 @@ const CORE_PROTECTED_ADAPTER_NAMES = [
     'nexowatt-dev',
     'nexowatt-ui',
 ];
+=======
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
 const LEGACY_ADMIN_INSTANCE_ID = 'system.adapter.admin.0';
 const DEFAULT_LEGACY_ADMIN_LOCK_PORT = 18_081;
 const DEFAULT_LEGACY_ADMIN_LOCK_BIND = '127.0.0.1';
@@ -817,11 +820,16 @@ class Admin extends adapter_core_1.Adapter {
     }
     getProtectedAdapterNames() {
         const configured = normalizeProtectedAdapters(this.config.eosProtectedAdapters);
+<<<<<<< HEAD
         const result = new Set(CORE_PROTECTED_ADAPTER_NAMES);
         configured.forEach(adapter => result.add(adapter));
         // EOS Admin and the core NexoWatt runtime adapters must always stay protected through ACL/UI policy,
         // but never via common.dontDelete/common.nondeletable. Those flags can interfere with ioBroker updates
         // because updates may replace adapter objects.
+=======
+        const result = new Set(configured);
+        result.add(EOS_ADMIN_ADAPTER_NAME);
+>>>>>>> 2c8497e0494c920afffc856224e95c909439adb7
         return [...result].sort();
     }
     scheduleEosSecurityGuard(reason) {
