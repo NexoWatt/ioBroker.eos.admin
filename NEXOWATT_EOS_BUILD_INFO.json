@@ -1,13 +1,15 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.47",
-  "variant": "nexowatt-eos-ui-v47-delete-logquiet-fix",
-  "createdAt": "2026-06-30T12:39:21Z",
+  "version": "7.9.48",
+  "variant": "nexowatt-eos-ui-v48-role-guard-fix",
+  "createdAt": "2026-07-05T13:10:00Z",
   "fixes": [
-    "stale delete-lock repair is executed only once per adapter process",
-    "protected core adapters are skipped by stale delete-lock repair to avoid repair/reapply loops",
-    "delete guard repair messages are debug-level and no longer fill normal logs",
-    "service/module deletion behavior from v7.9.45 is preserved"
+    "formal EOS roles: admin, installer/installateur, enduser/endkunde",
+    "security session endpoint now returns role, installer groups, end-user groups and group display names",
+    "end-user accounts are automatically routed away from the blank tab-intro page to the EOS/NexoWatt cockpit",
+    "frontend navigation is filtered per role without blocking adapter-owned click handlers",
+    "permission quick profiles now show the three EOS roles: Endkunde, Installateur, Admin",
+    "delete/logquiet behavior from v7.9.47 is preserved"
   ],
   "protectedDeleteAdapters": [
     "admin",
@@ -17,5 +19,6 @@
     "nexowatt-device",
     "nexowatt-dev",
     "nexowatt-ui"
-  ]
+  ],
+  "notes": "Adds formal EOS roles (admin, installer, enduser), end-user landing redirect away from blank intro page, and role-filtered navigation."
 }

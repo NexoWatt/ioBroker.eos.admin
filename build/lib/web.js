@@ -416,23 +416,115 @@ class Web {
         // settings so normal installed adapters/instances remain deletable.
         return [...new Set(CORE_PROTECTED_ADAPTER_NAMES)].sort();
     }
-    async getEosGroupsForUser(userId) {
+    getEosConfiguredRoleGroups(...keys) {
         const groups = new Set();
+        const add = value => {
+            if (!value) return;
+            if (Array.isArray(value)) {
+                value.forEach(add);
+                return;
+            }
+            if (typeof value === 'object') {
+                if (value.enabled === false) return;
+                add(value.group || value.id || value.name);
+                return;
+            }
+            const group = this.normalizeEosGroupId(String(value));
+            if (group) groups.add(group);
+        };
+        const settings = this.settings || {};
+        keys.forEach(key => add(settings[key]));
+        return [...groups].sort();
+    }
+    getEosInstallerGroups() {
+        const groups = new Set(this.getEosConfiguredRoleGroups(
+            'eosInstallerGroups',
+            'eosInstallateurGroups',
+            'eosServiceGroups',
+        ));
+        groups.add('system.group.installateur');
+        groups.add('system.group.installateure');
+        groups.add('system.group.installer');
+        groups.add('system.group.service');
+        groups.add('system.group.techniker');
+        return [...groups].sort();
+    }
+    getEosEndUserGroups() {
+        const groups = new Set(this.getEosConfiguredRoleGroups(
+            'eosEndUserGroups',
+            'eosEndkundeGroups',
+            'eosCustomerGroups',
+        ));
+        groups.add('system.group.endkunde');
+        groups.add('system.group.endkunden');
+        groups.add('system.group.kunde');
+        groups.add('system.group.kunden');
+        groups.add('system.group.user');
+        groups.add('system.group.users');
+        return [...groups].sort();
+    }
+    getTranslatedName(value) {
+        if (!value) return '';
+        if (typeof value === 'string') return value;
+        return String(value.de || value.en || Object.values(value)[0] || '');
+    }
+    async getEosGroupDetailsForUser(userId) {
+        const groups = [];
         try {
             const result = await this.adapter.getObjectViewAsync('system', 'group', {
                 startkey: 'system.group.',
                 endkey: 'system.group.香',
+                include_docs: true,
             });
             for (const row of result.rows) {
-                const group = row.value || row.doc;
+                const group = row.doc || row.value;
                 const members = Array.isArray(group?.common?.members) ? group.common.members : [];
-                if (members.includes(userId)) groups.add(row.id);
+                if (members.includes(userId)) {
+                    groups.push({
+                        id: row.id,
+                        name: this.getTranslatedName(group?.common?.name),
+                        desc: this.getTranslatedName(group?.common?.desc),
+                    });
+                }
             }
         }
         catch (e) {
             this.adapter.log.debug(`Cannot resolve EOS security groups for ${userId}: ${e instanceof Error ? e.message : e}`);
         }
-        return [...groups].sort();
+        return groups.sort((a, b) => a.id.localeCompare(b.id));
+    }
+    async getEosGroupsForUser(userId) {
+        return (await this.getEosGroupDetailsForUser(userId)).map(group => group.id);
+    }
+    normalizeEosRoleText(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/^system\.group\./, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+    }
+    resolveEosRole(userId, groups, groupNames, adminGroups) {
+        if (userId === 'system.user.admin' || groups.includes('system.group.administrator') || groups.some(group => adminGroups.includes(group))) {
+            return 'admin';
+        }
+        const installerGroups = this.getEosInstallerGroups();
+        if (groups.some(group => installerGroups.includes(group))) {
+            return 'installer';
+        }
+        const endUserGroups = this.getEosEndUserGroups();
+        if (groups.some(group => endUserGroups.includes(group))) {
+            return 'enduser';
+        }
+        const roleText = [...groups, ...groupNames].map(value => this.normalizeEosRoleText(value)).join(' ');
+        if (/(^| )(installateur|installateure|installer|installation|service|servicetechniker|techniker|technician|integrator|partner|wartung|maintenance)( |$)/i.test(roleText)) {
+            return 'installer';
+        }
+        if (/(^| )(endkunde|endkunden|kunde|kunden|customer|customers|bediener|operator|viewer|nutzer|benutzer)( |$)/i.test(roleText)) {
+            return 'enduser';
+        }
+        return 'enduser';
     }
     readAccessTokenFromRequest(req) {
         const cookieHeader = req.headers.cookie || '';
@@ -481,20 +573,31 @@ class Web {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         const userId = await this.readEosCurrentUser(req);
-        const groups = userId ? await this.getEosGroupsForUser(userId) : [];
+        const groupDetails = userId ? await this.getEosGroupDetailsForUser(userId) : [];
+        const groups = groupDetails.map(group => group.id);
+        const groupNames = groupDetails.flatMap(group => [group.name, group.desc]).filter(Boolean);
         const adminGroups = this.getEosSecurityAdminGroups();
-        const isAdministrator = userId === 'system.user.admin' || groups.includes('system.group.administrator');
-        const isEosAdminGroup = isAdministrator || groups.some(group => adminGroups.includes(group));
+        const role = this.resolveEosRole(userId, groups, groupNames, adminGroups);
+        const isAdministrator = role === 'admin' && (userId === 'system.user.admin' || groups.includes('system.group.administrator'));
+        const isEosAdminGroup = role === 'admin';
+        const isInstaller = role === 'installer';
+        const isEndUser = role === 'enduser';
         res.status(200).json({
             user: userId,
             groups,
+            groupNames,
             adminGroups,
+            installerGroups: this.getEosInstallerGroups(),
+            endUserGroups: this.getEosEndUserGroups(),
+            role,
             isAdministrator,
             isEosAdminGroup,
+            isInstaller,
+            isEndUser,
             isAdmin: isEosAdminGroup,
             hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
-            restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false && this.settings.eosApplyAdminOnlyAclToProtectedAdapters !== false,
+            restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false,
             legacyAdminAdapter: 'admin',
             legacyAdminInstance: 'admin.0',
             protectedAdapters: this.getEosProtectedAdapterNames(),
@@ -700,9 +803,15 @@ class Web {
                         res.status(200).json({
                             user: null,
                             groups: [],
+                            groupNames: [],
                             adminGroups: ['system.group.administrator'],
+                            installerGroups: this.getEosInstallerGroups(),
+                            endUserGroups: this.getEosEndUserGroups(),
+                            role: 'enduser',
                             isAdministrator: false,
                             isEosAdminGroup: false,
+                            isInstaller: false,
+                            isEndUser: true,
                             isAdmin: false,
                             hideLegacyAdminForNonAdmins: true,
                             hideLegacyAdminFromNonAdmins: true,
@@ -789,9 +898,15 @@ class Web {
                     res.status(200).json({
                         user: null,
                         groups: [],
+                        groupNames: [],
                         adminGroups: ['system.group.administrator'],
+                        installerGroups: this.getEosInstallerGroups(),
+                        endUserGroups: this.getEosEndUserGroups(),
+                        role: 'enduser',
                         isAdministrator: false,
                         isEosAdminGroup: false,
+                        isInstaller: false,
+                        isEndUser: true,
                         isAdmin: false,
                         hideLegacyAdminForNonAdmins: true,
                         hideLegacyAdminFromNonAdmins: true,

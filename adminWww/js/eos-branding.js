@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v47-delete-logquiet-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v48-role-guard-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -945,6 +945,8 @@
 
     const desiredPermission = (profile, block, perm) => {
         if (!perm) return null;
+        if (profile === 'enduser') profile = 'operator';
+        if (profile === 'installer') profile = 'service';
         if (profile === 'admin') return true;
         if (profile === 'viewer') return ['object', 'state', 'file'].includes(block) && ['list', 'read'].includes(perm);
         if (profile === 'operator') {
@@ -981,13 +983,12 @@
         const panel = document.createElement('section');
         panel.className = 'eos-permission-presets';
         panel.innerHTML = `
-            <div class="eos-permission-presets-title">Rechte-Schnellprofile</div>
-            <div class="eos-permission-presets-text">Wähle ein Profil und passe danach einzelne Rechte an. Administrator-Rollen bleiben bewusst transparent sichtbar.</div>
+            <div class="eos-permission-presets-title">EOS Rollen-Schnellprofile</div>
+            <div class="eos-permission-presets-text">NexoWatt EOS arbeitet mit drei Rollen: Admin, Installateur und Endkunde. Wähle ein Profil und passe danach bei Bedarf einzelne Rechte an.</div>
             <div class="eos-permission-presets-actions">
-                <button type="button" data-profile="viewer">Nur lesen</button>
-                <button type="button" data-profile="operator">Bedienung</button>
-                <button type="button" data-profile="service">Service</button>
-                <button type="button" data-profile="admin">Vollzugriff</button>
+                <button type="button" data-profile="enduser">Endkunde</button>
+                <button type="button" data-profile="installer">Installateur</button>
+                <button type="button" data-profile="admin">Admin</button>
             </div>
         `;
         panel.addEventListener('click', event => {

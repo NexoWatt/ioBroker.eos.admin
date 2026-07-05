@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.47",
+    "version": "7.9.48",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.48": {
+        "en": "Role guard fix: formal admin/installer/end-user roles, end-user auto-routing away from the blank intro page, and role-filtered EOS navigation.",
+        "de": "Rollen-Fix: klare Admin-/Installateur-/Endkundenrollen, automatische Endkunden-Weiterleitung weg von der leeren Intro-Seite und rollenbasierte EOS-Navigation."
+      },
       "7.9.47": {
         "en": "Quiet delete guard fix: stale delete-lock repair runs once and skips protected core adapters, preventing repeated log entries while service deletion remains functional.",
         "de": "Leiser Delete-Guard-Fix: Reparatur alter Löschsperren läuft nur einmal und überspringt geschützte Core-Adapter, wodurch wiederholte Logeinträge verhindert werden; Dienste löschen bleibt funktionsfähig."
@@ -247,7 +251,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.47/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.48/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -258,7 +262,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.47/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.48/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -327,7 +331,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.47/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.48/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -419,7 +423,26 @@
     "eosApplyAdminOnlyAclToProtectedAdapters": false,
     "eosAssistantEnabled": true,
     "eosAssistantAdminOnly": false,
-    "eosStrictProtectedAdapterAcl": false
+    "eosStrictProtectedAdapterAcl": false,
+    "eosInstallerGroups": [
+      {
+        "group": "system.group.installateur",
+        "note": "Installateure / Service",
+        "enabled": true
+      }
+    ],
+    "eosEndUserGroups": [
+      {
+        "group": "system.group.endkunde",
+        "note": "Endkunden / Bediener",
+        "enabled": true
+      },
+      {
+        "group": "system.group.endkunden",
+        "note": "Endkunden / Bediener",
+        "enabled": true
+      }
+    ]
   },
   "notifications": [
     {
