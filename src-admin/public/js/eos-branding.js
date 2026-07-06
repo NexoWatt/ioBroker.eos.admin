@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v50-dp-write-hardfix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v51-unrestricted-dp-write-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

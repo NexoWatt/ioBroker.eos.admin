@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v50-dp-write-hardfix';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v51-unrestricted-dp-write-fix';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;

@@ -1,16 +1,18 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.50",
-  "variant": "nexowatt-eos-ui-v50-dp-write-hardfix",
+  "version": "7.9.51",
+  "variant": "nexowatt-eos-ui-v51-unrestricted-dp-write-fix",
   "createdAt": "2026-07-06T11:20:00Z",
   "fixes": [
-    "hard fallback write dialog for writable ObjectBrowser value cells when the native React click path is blocked or not opened",
-    "module-federation adapter-react chunk is cache-busted so the patched ObjectBrowser is actually loaded",
-    "ObjectBrowser value cells stop row-selection propagation and no longer depend on an initialized local state cache before opening the write path",
-    "boolean, number, JSON and states values are coerced consistently before socket.setState",
-    "writes use ack=false and q=0 by default and the dialog closes only after setState succeeds",
-    "objects-page observers avoid characterData/class churn to improve frontend performance",
-    "delete/logquiet/role-guard behavior from previous fixes is preserved"
+    "ObjectBrowser value-cell editability no longer depends on common.write=false or expert mode",
+    "ObjectBrowser context-menu edit value is visible for every non-file state",
+    "EOS fallback writer treats data-eos-object-value-cell as a write candidate and validates object.type=state before writing",
+    "manual writes use ack=false and q=0 by default and show a clear error when socket/ACL rejects the write",
+    "state value cells are marked writable consistently so the user can click all state values without hidden locks",
+    "frontend direct socket.setState fallback via eos-admin backend bridge when the browser/user socket write is rejected",
+    "direct boolean/button writes also use the unrestricted EOS write bridge instead of silently failing",
+    "common.write/read metadata no longer disables button/switch recognition in the ObjectBrowser tree",
+    "existing delete/logquiet/role-guard fixes are preserved"
   ],
   "protectedDeleteAdapters": [
     "admin",
@@ -21,8 +23,8 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Hardfix for manual writable datapoint writes in the data point/object browser view. The shipped module-federation, ObjectBrowser and fallback writer assets are cache-busted and patched together.",
-  "patch": "v50-dp-write-hardfix",
-  "description": "Reliable data point write fallback and objects page performance guard",
-  "buildDate": "2026-07-06T16:50:00Z"
+  "notes": "Manual state writes in the data point/object browser no longer depend on common.write, common.read or expert mode. Every object of type state can open the write dialog or direct write path; if the direct browser socket write is rejected, EOS retries through the eos-admin backend messagebox and returns the real ioBroker error if the controller still refuses.",
+  "patch": "v51-unrestricted-dp-write-fix",
+  "description": "Unrestricted manual ObjectBrowser state write fix and EMS command path guard",
+  "buildDate": "2026-07-06T18:35:00Z"
 }

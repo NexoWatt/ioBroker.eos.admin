@@ -378,6 +378,10 @@ class Admin extends adapter_core_1.Adapter {
             });
             return;
         }
+        else if (obj.command === 'eos:writeState') {
+            void this.processEosWriteStateMessage(obj);
+            return;
+        }
         else if (obj.command.startsWith('chat:')) {
             this.processChatMessage(obj).catch(error => this.log.error(`Error by chat processing: ${error}`));
             return;
@@ -387,6 +391,57 @@ class Admin extends adapter_core_1.Adapter {
         }
         socket?.sendCommand(obj);
     };
+
+    /**
+     * EOS frontend state-write bridge. This intentionally does not use common.write as an EOS-side
+     * lock: every existing object of type "state" may be written from the admin UI. The ioBroker
+     * object/state database remains the authority; if the controller rejects the write, the concrete
+     * error is returned to the browser instead of failing silently.
+     */
+    async processEosWriteStateMessage(obj) {
+        const respond = (response) => {
+            if (obj.callback) {
+                this.sendTo(obj.from, obj.command, response, obj.callback);
+            }
+        };
+        try {
+            const message = obj.message || {};
+            const id = typeof message.id === 'string' ? message.id.trim() : '';
+            if (!id || id.length > 2048 || id.includes('*')) {
+                respond({ ok: false, error: 'Invalid state id' });
+                return;
+            }
+            const stateInput = message.state && typeof message.state === 'object' ? message.state : { val: message.val };
+            const state = {
+                val: stateInput.val,
+                ack: stateInput.ack === true,
+                q: Number.isFinite(Number(stateInput.q)) ? Number(stateInput.q) : 0,
+            };
+            const expire = Number(stateInput.expire);
+            if (Number.isFinite(expire) && expire > 0) {
+                state.expire = Math.round(expire);
+            }
+            const objDef = await this.getForeignObjectAsync(id);
+            if (!objDef) {
+                respond({ ok: false, error: `Object "${id}" does not exist` });
+                return;
+            }
+            if (objDef.type !== 'state') {
+                respond({ ok: false, error: `Object "${id}" is not a state (${objDef.type})` });
+                return;
+            }
+            if (objDef.common?.type === 'file') {
+                respond({ ok: false, error: `Object "${id}" is a file state and cannot be written as a normal value` });
+                return;
+            }
+            await this.setForeignStateAsync(id, state);
+            respond({ ok: true, id });
+        }
+        catch (error) {
+            respond({ ok: false, error: error instanceof Error ? error.message : String(error) });
+        }
+    }
+
     getName(name) {
         if (!name) {
             return undefined;

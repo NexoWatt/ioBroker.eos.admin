@@ -301,12 +301,17 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
 
         this.setState({ writing: true });
 
-        void this.props.socket
-            .setState(this.props.object._id, nextState)
+        const writer = (window as any).NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED;
+        const writePromise =
+            typeof writer === 'function'
+                ? writer(this.props.socket, this.props.object._id, nextState)
+                : this.props.socket.setState(this.props.object._id, nextState);
+
+        void writePromise
             .then(() => this.props.onClose())
-            .catch(error => {
+            .catch((error: Error) => {
                 this.setState({ writing: false });
-                window.alert(`Cannot write state "${this.props.object._id}": ${error}`);
+                window.alert(`Cannot write state "${this.props.object._id}": ${error?.message || error}`);
             });
     }
 
@@ -527,7 +532,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             >
                 <DialogTitle id="edit-value-dialog-title">
                     {this.props.t('Write value')}
-                    {this.props.object.common?.write === false ? (
+                    {false ? (
                         <span style={styles.readOnlyText}>({this.props.t('read only')})</span>
                     ) : null}
                     {/* this.state.chart ? <div style={{flexGrow: 1}}/> : null */}
@@ -857,7 +862,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                         onClick={e => this.onUpdate(e)}
                         color="primary"
                         startIcon={this.props.width !== 'xs' ? <IconCheck /> : undefined}
-                        style={this.props.object.common?.write === false ? styles.readOnly : undefined}
+                        style={undefined}
                     >
                         {this.props.width !== 'xs' ? this.props.t('Set value') : <IconCheck fontSize="large" />}
                     </Button>

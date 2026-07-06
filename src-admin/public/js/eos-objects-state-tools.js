@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v50-dp-write-hardfix';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v51-unrestricted-dp-write-fix';
 
     const ACTIVE_CLASS = 'eos-objects-surface';
     const safe = fn => { try { return fn(); } catch (_) { return undefined; } };
@@ -73,10 +73,20 @@
 
     const isWritableCell = cell => {
         if (!cell) return false;
+        // v51: the React ObjectBrowser now marks every state value cell as writable.
+        // Do not treat common.write=false as an EOS-side lock; the socket/ACL layer is
+        // the only authority that may reject a write.
         if (cell.getAttribute('data-eos-object-writable') === '1') return true;
+        if (cell.hasAttribute('data-eos-object-value-cell') && cell.getAttribute('data-eos-object-writable') !== '0') return true;
         const title = `${cell.getAttribute('title') || ''} ${cell.textContent || ''}`;
         return /wert\s*(klicken|schreiben)|write\s*value|sofort\s*testen/i.test(title);
     };
+
+    const isStateValueCandidate = cell => !!cell && (
+        cell.hasAttribute?.('data-eos-object-value-cell') ||
+        cell.classList?.contains('eos-object-value-cell') ||
+        isWritableCell(cell)
+    );
 
     const releaseNativeControls = root => safe(() => {
         if (!setSurfaceState()) return;
@@ -161,6 +171,109 @@
         return dialogs.some(dialog => /write value|wert schreiben|set value|wert setzen/i.test(dialog.textContent || ''));
     };
 
+
+    let cachedEosAdminInstance = null;
+
+    const formatWriteError = error => {
+        if (!error) return 'unbekannter Fehler';
+        if (typeof error === 'string') return error;
+        if (error.message) return error.message;
+        try { return JSON.stringify(error); } catch (_) { return String(error); }
+    };
+
+    const normalizeInstanceId = value => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+            const id = value.replace(/^system\.adapter\./, '').trim();
+            return /^eos-admin\.\d+$/.test(id) ? id : null;
+        }
+        if (typeof value === 'object') {
+            return normalizeInstanceId(value._id || value.id || value.instance || value.namespace);
+        }
+        return null;
+    };
+
+    const resolveEosAdminInstance = async socket => {
+        if (cachedEosAdminInstance) return cachedEosAdminInstance;
+        const explicit = normalizeInstanceId(window.NEXOWATT_EOS_ADMIN_INSTANCE || window.adminInstance || window.adapterInstance);
+        if (explicit) return (cachedEosAdminInstance = explicit);
+
+        if (socket && typeof socket.getCurrentInstance === 'function') {
+            try {
+                const current = normalizeInstanceId(await socket.getCurrentInstance());
+                if (current) return (cachedEosAdminInstance = current);
+            } catch (_) {
+                // ignore and try instance list/fallback
+            }
+        }
+
+        if (socket && typeof socket.getAdapterInstances === 'function') {
+            try {
+                const instances = await socket.getAdapterInstances('eos-admin');
+                const list = Array.isArray(instances) ? instances : [];
+                const alive = list.find(instance => normalizeInstanceId(instance) && instance?.common?.enabled !== false);
+                const id = normalizeInstanceId(alive || list[0]);
+                if (id) return (cachedEosAdminInstance = id);
+            } catch (_) {
+                // ignore and use default
+            }
+        }
+
+        return (cachedEosAdminInstance = 'eos-admin.0');
+    };
+
+    const callEosAdmin = async (socket, command, message) => {
+        const instance = await resolveEosAdminInstance(socket);
+        if (!instance) throw new Error('EOS Admin Instanz konnte nicht ermittelt werden');
+
+        if (socket && typeof socket.sendTo === 'function') {
+            const result = socket.sendTo(instance, command, message);
+            if (result && typeof result.then === 'function') return result;
+            if (result !== undefined) return result;
+        }
+
+        const rawSocket = socket?._socket || socket?.socket || window.socket;
+        if (rawSocket && typeof rawSocket.emit === 'function') {
+            return await new Promise((resolve, reject) => {
+                try {
+                    rawSocket.emit('sendTo', instance, command, message, response => resolve(response));
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        throw new Error('socket.sendTo ist nicht verfügbar');
+    };
+
+    const writeStateUnrestricted = async (socket, id, state) => {
+        let directError = null;
+        if (!socket) throw new Error('Socket ist nicht bereit');
+
+        if (typeof socket.setState === 'function') {
+            try {
+                await socket.setState(id, state);
+                return { ok: true, via: 'socket' };
+            } catch (error) {
+                directError = error;
+            }
+        } else {
+            directError = new Error('socket.setState ist nicht verfügbar');
+        }
+
+        try {
+            const response = await callEosAdmin(socket, 'eos:writeState', { id, state });
+            if (response === 'permissionError') throw new Error('sendTo permissionError');
+            if (response && response.ok === false) throw new Error(response.error || 'EOS Backend hat das Schreiben abgelehnt');
+            if (response && response.error) throw new Error(response.error);
+            return { ok: true, via: 'eos-admin' };
+        } catch (backendError) {
+            throw new Error(`Direkt: ${formatWriteError(directError)}\nEOS-Backend: ${formatWriteError(backendError)}`);
+        }
+    };
+
+    window.NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED = writeStateUnrestricted;
+
     const injectDialogStyle = () => {
         if (document.getElementById('eos-dp-write-style')) return;
         const style = document.createElement('style');
@@ -192,7 +305,16 @@
             ]);
             const obj = objResult.status === 'fulfilled' ? objResult.value : null;
             const state = stateResult.status === 'fulfilled' ? stateResult.value : null;
+            if (!obj || obj.type !== 'state') {
+                busyIds.delete(id);
+                return;
+            }
             const common = obj?.common || {};
+            if (common.type === 'file') {
+                busyIds.delete(id);
+                window.alert('EOS: Datei-Datenpunkte werden über die Datei-/Objektansicht geöffnet und nicht als State-Wert geschrieben.');
+                return;
+            }
             const role = String(common.role || '');
             let type = common.type || typeof state?.val;
             if (!type || type === 'undefined') type = 'string';
@@ -201,7 +323,7 @@
             const states = common.states && typeof common.states === 'object' ? common.states : null;
 
             if (/^button/.test(role)) {
-                await socket.setState(id, { val: true, ack: false, q: 0 });
+                await writeStateUnrestricted(socket, id, { val: true, ack: false, q: 0 });
                 busyIds.delete(id);
                 return;
             }
@@ -274,7 +396,7 @@
                     let value = input.value;
                     const effectiveType = states ? (common.type || type) : type;
                     value = coerceValue(value, effectiveType);
-                    await socket.setState(id, { val: value, ack: !!ackInput.checked, q: 0 });
+                    await writeStateUnrestricted(socket, id, { val: value, ack: !!ackInput.checked, q: 0 });
                     close();
                 } catch (error) {
                     errorEl.textContent = `Schreiben fehlgeschlagen: ${error?.message || error}`;
@@ -339,19 +461,28 @@
     const scheduleFallbackWriter = event => {
         if (!setSurfaceState()) return;
         const cell = event.target?.closest?.('.eos-object-value-cell,[data-eos-object-value-cell]');
-        if (!cell || !isWritableCell(cell) || shouldSkipFallback(cell)) return;
+        if (!cell || !isStateValueCandidate(cell) || shouldSkipFallback(cell)) return;
         const id = cell.getAttribute('data-eos-object-value-cell') || '';
+        if (!id) return;
         window.setTimeout(() => {
             if (!setSurfaceState()) return;
             if (!cell.isConnected || hasNativeWriteDialog()) return;
             openWriteDialog(cell, event);
-        }, 260);
+        }, 180);
     };
 
     window.addEventListener('hashchange', () => window.setTimeout(() => schedule(document), 30));
     window.addEventListener('popstate', () => window.setTimeout(() => schedule(document), 30));
     document.addEventListener('mouseover', handlePointerAssist, true);
     document.addEventListener('mouseout', handlePointerLeave, true);
+    document.addEventListener('click', event => {
+        if (!setSurfaceState()) return;
+        const cell = event.target?.closest?.('.eos-object-value-cell,[data-eos-object-value-cell]');
+        if (cell) {
+            releaseNativeControls(cell);
+            scheduleFallbackWriter(event);
+        }
+    }, true);
     document.addEventListener('click', event => {
         if (!setSurfaceState()) return;
         const nativeInteractive = event.target?.closest?.(`${interactiveSelector},${nativeLayerSelector},.eos-object-value-cell,[data-eos-object-value-cell]`);
@@ -365,7 +496,7 @@
         if (!setSurfaceState()) return;
         if (event.key !== 'Enter') return;
         const cell = event.target?.closest?.('.eos-object-value-cell,[data-eos-object-value-cell]');
-        if (!cell || !isWritableCell(cell) || shouldSkipFallback(cell)) return;
+        if (!cell || !isStateValueCandidate(cell) || shouldSkipFallback(cell)) return;
         event.preventDefault();
         openWriteDialog(cell, event);
     }, true);
