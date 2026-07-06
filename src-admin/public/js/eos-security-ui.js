@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v48-role-guard-fix';
+    const VERSION = 'v49-dp-write-performance-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];

@@ -46,13 +46,11 @@ export class ObjectsWorker {
 
             if (this.objects[id]) {
                 oldObj = this.objects[id];
-                if (JSON.stringify(this.objects[id]) !== JSON.stringify(obj)) {
-                    type = 'changed';
-                    this.objects[id] = obj;
-                } else {
-                    // no changes
-                    type = 'changed';
+                if (this.objects[id] === obj || JSON.stringify(this.objects[id]) === JSON.stringify(obj)) {
+                    return;
                 }
+                type = 'changed';
+                this.objects[id] = obj;
             } else {
                 type = 'new';
                 this.objects[id] = obj;

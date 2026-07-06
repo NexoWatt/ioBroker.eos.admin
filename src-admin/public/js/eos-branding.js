@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v48-role-guard-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v49-dp-write-performance-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -157,10 +157,19 @@
         return next;
     };
 
+    const isCommandOrTechnicalOutput = el => {
+        if (!el || !el.closest) return false;
+        if (el.closest('textarea, pre, code, samp, kbd, .xterm, .xterm-screen, .terminal, [class*=\"Terminal\"], [class*=\"terminal\"], [class*=\"Console\"], [class*=\"console\"]')) return true;
+        const dialog = el.closest('.MuiDialog-root, [role=\"dialog\"]');
+        if (!dialog) return false;
+        const text = dialog.textContent || '';
+        return /(?:Befehl ausführen|Process exited|npm error|npm ERR|upgrade\s+eos-admin|Installing\s+iobroker\.|Installing\s+NexoWatt\s+EOS\.|NPM version|debug-0\.log)/i.test(text);
+    };
+
     const skipElement = el => {
         if (!el || el.nodeType !== 1) return false;
         const tag = el.tagName;
-        return tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'CODE' || tag === 'PRE';
+        return tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'CODE' || tag === 'PRE' || tag === 'SAMP' || tag === 'KBD' || isCommandOrTechnicalOutput(el);
     };
 
     const patchTextNode = node => {

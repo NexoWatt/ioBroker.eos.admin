@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.48",
+    "version": "7.9.49",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.49": {
+        "en": "Reliable manual writes for writable states, corrected boolean switch handling and faster objects page updates.",
+        "de": "Zuverlässiges manuelles Beschreiben beschreibbarer Datenpunkte, korrigierte Boolean-/Switch-Behandlung und schnellere Datenpunkte-Oberfläche."
+      },
       "7.9.48": {
         "en": "Role guard fix: formal admin/installer/end-user roles, end-user auto-routing away from the blank intro page, and role-filtered EOS navigation.",
         "de": "Rollen-Fix: klare Admin-/Installateur-/Endkundenrollen, automatische Endkunden-Weiterleitung weg von der leeren Intro-Seite und rollenbasierte EOS-Navigation."
@@ -251,7 +255,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.48/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.49/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -262,7 +266,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.48/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.49/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -331,7 +335,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.48/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.49/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },

@@ -1,15 +1,17 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.48",
-  "variant": "nexowatt-eos-ui-v48-role-guard-fix",
-  "createdAt": "2026-07-05T13:10:00Z",
+  "version": "7.9.49",
+  "variant": "nexowatt-eos-ui-v49-dp-write-performance-fix",
+  "createdAt": "2026-07-06T11:20:00Z",
   "fixes": [
-    "formal EOS roles: admin, installer/installateur, enduser/endkunde",
-    "security session endpoint now returns role, installer groups, end-user groups and group display names",
-    "end-user accounts are automatically routed away from the blank tab-intro page to the EOS/NexoWatt cockpit",
-    "frontend navigation is filtered per role without blocking adapter-owned click handlers",
-    "permission quick profiles now show the three EOS roles: Endkunde, Installateur, Admin",
-    "delete/logquiet behavior from v7.9.47 is preserved"
+    "reliable manual writes for writable datapoints with robust boolean/string/number state handling",
+    "switch datapoints no longer use JavaScript truthiness, so string values like 'false' and '0' toggle correctly",
+    "missing or not-yet-subscribed state values are handled safely before direct switch/button writes",
+    "state value dialog shows boolean values consistently and writes JSON/Object mode correctly",
+    "object worker suppresses unchanged object events to reduce unnecessary React rerenders",
+    "objects-page DOM helper no longer rewrites titles continuously and avoids full-page scans on every mutation",
+    "role UI observer no longer watches title changes, reducing feedback loops on the datapoints page",
+    "delete/logquiet/role-guard behavior from v7.9.48 is preserved"
   ],
   "protectedDeleteAdapters": [
     "admin",
@@ -20,5 +22,5 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Adds formal EOS roles (admin, installer, enduser), end-user landing redirect away from blank intro page, and role-filtered navigation."
+  "notes": "Fixes unreliable manual datapoint writes, especially switch/button states with null, undefined, 'false' or '0' values, and reduces UI overhead on the datapoints/object browser page."
 }

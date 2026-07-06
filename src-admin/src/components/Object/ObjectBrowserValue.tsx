@@ -122,6 +122,7 @@ interface ObjectBrowserValueState {
     /** If input is invalid, set value button is disabled */
     valid: boolean;
     jsonError?: boolean;
+    writing: boolean;
 }
 
 class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowserValueState> {
@@ -179,6 +180,11 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             }
         } else if (type === 'number') {
             value = parseFloat(this.propsValue) || 0;
+        } else if (type === 'boolean') {
+            if (value !== null && value !== undefined && value !== 'null' && value !== 'undefined') {
+                value = ObjectBrowserValue.parseBoolean(value);
+                this.propsValue = value;
+            }
         }
 
         this.state = {
@@ -191,6 +197,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             /** If input is invalid, set value button is disabled */
             valid: true,
             jsonError: false,
+            writing: false,
         };
 
         this.ack = false;
@@ -233,10 +240,25 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         }, 200);
     }
 
+    static parseBoolean(value: unknown): boolean {
+        if (value === true || value === 1) {
+            return true;
+        }
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            return normalized === 'true' || normalized === '1' || normalized === 'on' || normalized === 'yes';
+        }
+        return false;
+    }
+
     onUpdate(e: React.KeyboardEvent | React.MouseEvent): void {
         if (e) {
             e.stopPropagation();
             e.preventDefault();
+        }
+
+        if (this.state.writing) {
+            return;
         }
 
         let value = this.state.targetValue;
@@ -253,7 +275,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                         value = parseFloat(value.replace(',', '.')) || 0;
                     }
                 } else if (type === 'boolean') {
-                    value = value === true || value === 'true' || value === '1' || value === 'ON' || value === 'on';
+                    value = ObjectBrowserValue.parseBoolean(value);
                 }
             }
         } else if (this.state.type === 'number') {
@@ -266,7 +288,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             if (value === 'null') {
                 value = null;
             } else {
-                value = value === true || value === 'true' || value === '1' || value === 'ON' || value === 'on';
+                value = ObjectBrowserValue.parseBoolean(value);
             }
         }
 
@@ -277,10 +299,15 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             expire: parseInt(this.expire as any as string, 10) || undefined,
         };
 
+        this.setState({ writing: true });
+
         void this.props.socket
             .setState(this.props.object._id, nextState)
             .then(() => this.props.onClose())
-            .catch(error => window.alert(`Cannot write state "${this.props.object._id}": ${error}`));
+            .catch(error => {
+                this.setState({ writing: false });
+                window.alert(`Cannot write state "${this.props.object._id}": ${error}`);
+            });
     }
 
     /**
@@ -616,7 +643,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                                 <MenuItem value="string">String</MenuItem>
                                                                 <MenuItem value="number">Number</MenuItem>
                                                                 <MenuItem value="boolean">Boolean</MenuItem>
-                                                                <MenuItem value="object">JSON/Object</MenuItem>
+                                                                <MenuItem value="json">JSON/Object</MenuItem>
                                                                 {this.props.states ? (
                                                                     <MenuItem value="states">States</MenuItem>
                                                                 ) : null}
@@ -661,12 +688,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                     <Grid2>
                                                         <Switch
                                                             autoFocus
-                                                            defaultChecked={
-                                                                this.propsValue === 'null' ||
-                                                                this.propsValue === 'undefined'
-                                                                    ? false
-                                                                    : !!this.propsValue
-                                                            }
+                                                            checked={ObjectBrowserValue.parseBoolean(this.state.targetValue)}
                                                             onKeyUp={e => e.key === 'Enter' && this.onUpdate(e)}
                                                             onChange={e =>
                                                                 this.setState({ targetValue: e.target.checked })
@@ -831,7 +853,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     {!this.props.expertMode ? <div style={{ flexGrow: 1 }} /> : null}
                     <Button
                         variant="contained"
-                        disabled={!this.state.valid}
+                        disabled={!this.state.valid || this.state.writing}
                         onClick={e => this.onUpdate(e)}
                         color="primary"
                         startIcon={this.props.width !== 'xs' ? <IconCheck /> : undefined}

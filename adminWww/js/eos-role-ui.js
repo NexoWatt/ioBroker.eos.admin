@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v48-role-guard-fix';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v49-dp-write-performance-fix';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;
@@ -280,7 +280,7 @@
     const startObserver = () => safe(() => {
         if (state.observer || !document.documentElement) return;
         state.observer = new MutationObserver(scheduleApply);
-        state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'class', 'aria-label', 'title'] });
+        state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'class', 'aria-label'] });
     });
 
     const start = () => {
