@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v51-unrestricted-dp-write-fix';
+    const VERSION = 'v52-fast-unrestricted-dp-write';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -232,15 +232,20 @@
         });
     };
 
+    const isObjectsRoute = () => /#\/?tab-objects\b|#tab-objects\b/.test(String(window.location.hash || '')) || /[?&]tab=objects/.test(String(window.location.href || ''));
+
     const applyPolicyToDom = () => {
-        // Text repair is safe and must also run on adapter config pages.
-        replaceTextNodes();
+        const objectsRoute = isObjectsRoute();
+        // v52: the data-point table is large and virtualized. Do not walk/repair the
+        // complete object tree while the user scrolls or edits states there.
+        if (!objectsRoute) replaceTextNodes();
+        document.documentElement.classList.toggle('eos-objects-fast-route', objectsRoute);
         const admin = isAdminUser();
         document.documentElement.classList.toggle('eos-security-admin-user', admin);
         document.documentElement.classList.toggle('eos-security-non-admin-user', !admin);
         document.documentElement.classList.toggle('eos-security-nonadmin', !admin);
         releaseNotificationControls();
-        if (isAdapterConfigSurface()) return;
+        if (objectsRoute || isAdapterConfigSurface()) return;
         hideLegacyAdminPanels();
         hideProtectedDeleteControls();
         hideEosSecuritySettingsForNonAdmins();
@@ -298,7 +303,10 @@
 
     const installObserver = () => {
         if (state.observer) return;
-        state.observer = new MutationObserver(() => scheduleApply());
+        state.observer = new MutationObserver(() => {
+            if (isObjectsRoute()) return;
+            scheduleApply();
+        });
         state.observer.observe(document.documentElement, { childList: true, subtree: true });
     };
 

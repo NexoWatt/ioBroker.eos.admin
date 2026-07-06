@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v51-unrestricted-dp-write-fix';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v52-fast-unrestricted-dp-write';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;
@@ -282,9 +282,10 @@
     const startObserver = () => safe(() => {
         if (state.observer || !document.documentElement) return;
         state.observer = new MutationObserver(records => {
-            // Large object lists change row classes constantly. Role filtering only needs
-            // to react to structural/nav changes there, not every selection highlight.
-            if (isObjectsRoute() && records.every(record => record.type === 'attributes' && record.attributeName === 'class')) return;
+            // v52: while the virtualized object table is open, thousands of row/class/text
+            // mutations can happen per second. Role filtering only needs hash/storage/nav
+            // changes there, so DOM mutations from the table are ignored.
+            if (isObjectsRoute()) return;
             scheduleApply();
         });
         state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'class', 'aria-label'] });

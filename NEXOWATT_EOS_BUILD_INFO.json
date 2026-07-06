@@ -1,7 +1,7 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.51",
-  "variant": "nexowatt-eos-ui-v51-unrestricted-dp-write-fix",
+  "version": "7.9.52",
+  "variant": "nexowatt-eos-ui-v52-fast-unrestricted-dp-write",
   "createdAt": "2026-07-06T11:20:00Z",
   "fixes": [
     "ObjectBrowser value-cell editability no longer depends on common.write=false or expert mode",
@@ -24,7 +24,8 @@
     "nexowatt-ui"
   ],
   "notes": "Manual state writes in the data point/object browser no longer depend on common.write, common.read or expert mode. Every object of type state can open the write dialog or direct write path; if the direct browser socket write is rejected, EOS retries through the eos-admin backend messagebox and returns the real ioBroker error if the controller still refuses.",
-  "patch": "v51-unrestricted-dp-write-fix",
+  "patch": "v52-fast-unrestricted-dp-write",
   "description": "Unrestricted manual ObjectBrowser state write fix and EMS command path guard",
-  "buildDate": "2026-07-06T18:35:00Z"
+  "buildDate": "2026-07-06T18:35:00Z",
+  "builtAt": "2026-07-06T19:25:00Z"
 }

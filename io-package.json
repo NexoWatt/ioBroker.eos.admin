@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.51",
+    "version": "7.9.52",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,9 +18,9 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.51": {
-        "en": "Hard unrestricted manual state write fix: every ObjectBrowser state value can be clicked/written independent of common.write/read or expert mode; direct writes retry through the EOS backend bridge and real ioBroker errors are shown.",
-        "de": "Harter Unrestricted-Fix für manuelles State-Schreiben: jeder State-Wert im ObjectBrowser kann unabhängig von common.write/read oder Expertenmodus angeklickt/geschrieben werden; Direktwrites laufen bei Ablehnung zusätzlich über die EOS-Backend-Bridge und echte ioBroker-Fehler werden angezeigt."
+      "7.9.52": {
+        "en": "NexoWatt EOS v7.9.52: fast data-point page, direct backend DP write dialog and reduced console/DOM overhead.",
+        "de": "NexoWatt EOS v7.9.52: schnellere Datenpunkte-Seite, direkter Backend-DP-Schreibdialog und weniger Console-/DOM-Last."
       },
       "7.9.50": {
         "en": "Hardfix for manual writes in the objects/datapoints view: patched ObjectBrowser, direct fallback write dialog, cache-busted frontend chunks and lighter observers.",
@@ -263,7 +263,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.51/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.52/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -274,7 +274,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.51/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.52/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -343,7 +343,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.51/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.52/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },

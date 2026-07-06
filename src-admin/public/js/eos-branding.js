@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v51-unrestricted-dp-write-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v52-fast-unrestricted-dp-write';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -1391,6 +1391,14 @@
         releaseNotificationControls();
         ensurePopupCompatibility();
         applySecurityUiGuard();
+        if (isObjectsRoute()) {
+            // v52: keep branding out of the large virtualized data-point table. Shell,
+            // assistant and rights helpers above are enough; text/attribute walking here
+            // caused slow refreshes and blocked value clicks under load.
+            document.documentElement.classList.add('eos-objects-fast-route');
+            return;
+        }
+        document.documentElement.classList.remove('eos-objects-fast-route');
         if (isAdapterConfigSurface()) {
             // Adapter-owned configuration pages must not be rebranded or structurally patched.
             // We still repair broken UTF-8/mojibake text because jsonConfig labels can be
@@ -1431,6 +1439,11 @@
         releaseNotificationControls();
         ensurePopupCompatibility();
         applySecurityUiGuard();
+        if (isObjectsRoute()) {
+            document.documentElement.classList.add('eos-objects-fast-route');
+            return;
+        }
+        document.documentElement.classList.remove('eos-objects-fast-route');
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
             if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) {
@@ -1467,6 +1480,11 @@
 
     const installObserver = () => safe(() => {
         const observer = new MutationObserver(mutations => {
+            if (isObjectsRoute()) {
+                // Ignore virtualization churn in the data-point table. Hash/load timers
+                // still run the shell patch when the user enters or leaves the page.
+                return;
+            }
             for (const mutation of mutations) {
                 if (mutation.type === 'characterData') {
                     if (isAdapterConfigSurface() && mutation.target?.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(mutation.target);
