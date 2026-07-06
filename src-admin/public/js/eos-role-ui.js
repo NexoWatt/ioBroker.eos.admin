@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v49-dp-write-performance-fix';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v50-dp-write-hardfix';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;
@@ -37,6 +37,8 @@
         .trim();
 
     const stripTab = value => String(value || '').replace(/^#?\/?/, '').replace(/^tab-/, '');
+
+    const isObjectsRoute = () => /#\/?tab-objects\b|#tab-objects\b/.test(String(window.location.hash || '')) || /[?&]tab=objects/.test(String(window.location.href || ''));
 
     const hashTab = () => {
         const hash = decodeURIComponent(window.location.hash || '');
@@ -279,7 +281,12 @@
 
     const startObserver = () => safe(() => {
         if (state.observer || !document.documentElement) return;
-        state.observer = new MutationObserver(scheduleApply);
+        state.observer = new MutationObserver(records => {
+            // Large object lists change row classes constantly. Role filtering only needs
+            // to react to structural/nav changes there, not every selection highlight.
+            if (isObjectsRoute() && records.every(record => record.type === 'attributes' && record.attributeName === 'class')) return;
+            scheduleApply();
+        });
         state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'class', 'aria-label'] });
     });
 

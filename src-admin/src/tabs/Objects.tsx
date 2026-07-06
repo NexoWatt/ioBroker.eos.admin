@@ -241,6 +241,7 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
     }
 
     render(): JSX.Element[] {
+        (window as any).NEXOWATT_EOS_OBJECTS_SOCKET = this.props.socket;
         // Derive the browser's navigation target from the URL hash `#tab-objects/<mode>/<id>`.
         // The ObjectBrowser stays URL-agnostic; we translate the route here and back (onNavigateTo).
         const location = Router.getLocation();

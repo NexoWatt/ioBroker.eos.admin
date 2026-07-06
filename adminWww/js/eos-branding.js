@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v49-dp-write-performance-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v50-dp-write-hardfix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -1463,6 +1463,8 @@
         run();
     };
 
+    const isObjectsRoute = () => /#\/?tab-objects\b|#tab-objects\b/.test(String(window.location.hash || '')) || /[?&]tab=objects/.test(String(window.location.href || ''));
+
     const installObserver = () => safe(() => {
         const observer = new MutationObserver(mutations => {
             for (const mutation of mutations) {
@@ -1477,7 +1479,10 @@
                     if (node.nodeType === Node.TEXT_NODE) {
                         if (isAdapterConfigSurface() && node.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(node);
                         else patchTextNode(node);
-                    } else if (node.nodeType === Node.ELEMENT_NODE) state.pendingScopes.add(node);
+                    } else if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (isObjectsRoute() && node.closest?.('.eos-object-value-cell,[data-eos-object-value-cell]')) return;
+                        state.pendingScopes.add(node);
+                    }
                 });
             }
             if (state.pendingScopes.size) scheduleScopePatch();
@@ -1485,7 +1490,9 @@
         observer.observe(document.documentElement, {
             subtree: true,
             childList: true,
-            characterData: true,
+            // v50: React changes thousands of text nodes on the data-point page.
+            // Added nodes are still patched; existing text-node mutation tracking is too expensive.
+            characterData: false,
         });
     });
 
