@@ -508,10 +508,9 @@ class Admin extends Adapter {
 
 
     /**
-     * EOS frontend state-write bridge. This intentionally does not use common.write as an EOS-side
-     * lock: every existing object of type "state" may be written from the admin UI. The ioBroker
-     * object/state database remains the authority; if the controller rejects the write, the concrete
-     * error is returned to the browser instead of failing silently.
+     * EOS frontend state-write bridge. It follows the ioBroker state contract:
+     * only objects of type "state" with common.write !== false may be written from the UI.
+     * Read-only states stay read-only; writable command/register states are sent with ack=false.
      */
     async processEosWriteStateMessage(obj: ioBroker.Message): Promise<void> {
         const respond = (response: Record<string, any>): void => {
@@ -546,6 +545,10 @@ class Admin extends Adapter {
             }
             if (objDef.type !== 'state') {
                 respond({ ok: false, error: `Object "${id}" is not a state (${objDef.type})` });
+                return;
+            }
+            if ((objDef.common as ioBroker.StateCommon | undefined)?.write === false) {
+                respond({ ok: false, error: `Object "${id}" is read-only (common.write=false)` });
                 return;
             }
             if ((objDef.common as ioBroker.StateCommon | undefined)?.type === 'file') {

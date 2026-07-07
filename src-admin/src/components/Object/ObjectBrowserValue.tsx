@@ -122,7 +122,6 @@ interface ObjectBrowserValueState {
     /** If input is invalid, set value button is disabled */
     valid: boolean;
     jsonError?: boolean;
-    writing: boolean;
 }
 
 class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowserValueState> {
@@ -197,7 +196,6 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             /** If input is invalid, set value button is disabled */
             valid: true,
             jsonError: false,
-            writing: false,
         };
 
         this.ack = false;
@@ -257,7 +255,8 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             e.preventDefault();
         }
 
-        if (this.state.writing) {
+        if (this.props.object.common?.write === false) {
+            window.alert(`Cannot write state "${this.props.object._id}": common.write=false`);
             return;
         }
 
@@ -292,27 +291,12 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             }
         }
 
-        const nextState = {
+        this.props.onClose({
             val: value,
             ack: this.ack,
             q: this.q,
             expire: parseInt(this.expire as any as string, 10) || undefined,
-        };
-
-        this.setState({ writing: true });
-
-        const writer = (window as any).NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED;
-        const writePromise =
-            typeof writer === 'function'
-                ? writer(this.props.socket, this.props.object._id, nextState)
-                : this.props.socket.setState(this.props.object._id, nextState);
-
-        void writePromise
-            .then(() => this.props.onClose())
-            .catch((error: Error) => {
-                this.setState({ writing: false });
-                window.alert(`Cannot write state "${this.props.object._id}": ${error?.message || error}`);
-            });
+        });
     }
 
     /**
@@ -532,7 +516,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             >
                 <DialogTitle id="edit-value-dialog-title">
                     {this.props.t('Write value')}
-                    {false ? (
+                    {this.props.object.common?.write === false ? (
                         <span style={styles.readOnlyText}>({this.props.t('read only')})</span>
                     ) : null}
                     {/* this.state.chart ? <div style={{flexGrow: 1}}/> : null */}
@@ -858,11 +842,11 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     {!this.props.expertMode ? <div style={{ flexGrow: 1 }} /> : null}
                     <Button
                         variant="contained"
-                        disabled={!this.state.valid || this.state.writing}
+                        disabled={!this.state.valid || this.props.object.common?.write === false}
                         onClick={e => this.onUpdate(e)}
                         color="primary"
                         startIcon={this.props.width !== 'xs' ? <IconCheck /> : undefined}
-                        style={undefined}
+                        style={this.props.object.common?.write === false ? styles.readOnly : undefined}
                     >
                         {this.props.width !== 'xs' ? this.props.t('Set value') : <IconCheck fontSize="large" />}
                     </Button>

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.52",
+    "version": "7.9.53",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.53": {
+        "en": "NexoWatt EOS v7.9.53: restored native ioBroker ObjectBrowser write semantics. Read-only registers stay read-only; writable states can be written reliably via the native value dialog.",
+        "de": "NexoWatt EOS v7.9.53: native ioBroker-ObjectBrowser-Schreiblogik wiederhergestellt. Read-Register bleiben lesend; Write-Register lassen sich zuverlässig über den nativen Wertdialog schreiben."
+      },
       "7.9.52": {
         "en": "NexoWatt EOS v7.9.52: fast data-point page, direct backend DP write dialog and reduced console/DOM overhead.",
         "de": "NexoWatt EOS v7.9.52: schnellere Datenpunkte-Seite, direkter Backend-DP-Schreibdialog und weniger Console-/DOM-Last."
@@ -263,7 +267,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.52/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.53/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -274,7 +278,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.52/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.53/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -343,7 +347,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.52/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.53/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
