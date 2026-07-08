@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v52-fast-unrestricted-dp-write';
+    window.NEXOWATT_EOS_UI_VERSION = 'v54-native-admin-datapoints';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -1391,14 +1391,6 @@
         releaseNotificationControls();
         ensurePopupCompatibility();
         applySecurityUiGuard();
-        if (isObjectsRoute()) {
-            // v52: keep branding out of the large virtualized data-point table. Shell,
-            // assistant and rights helpers above are enough; text/attribute walking here
-            // caused slow refreshes and blocked value clicks under load.
-            document.documentElement.classList.add('eos-objects-fast-route');
-            return;
-        }
-        document.documentElement.classList.remove('eos-objects-fast-route');
         if (isAdapterConfigSurface()) {
             // Adapter-owned configuration pages must not be rebranded or structurally patched.
             // We still repair broken UTF-8/mojibake text because jsonConfig labels can be
@@ -1439,11 +1431,6 @@
         releaseNotificationControls();
         ensurePopupCompatibility();
         applySecurityUiGuard();
-        if (isObjectsRoute()) {
-            document.documentElement.classList.add('eos-objects-fast-route');
-            return;
-        }
-        document.documentElement.classList.remove('eos-objects-fast-route');
         for (const scope of scopes.slice(0, 80)) {
             if (!scope || !scope.isConnected) continue;
             if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) {
@@ -1476,15 +1463,8 @@
         run();
     };
 
-    const isObjectsRoute = () => /#\/?tab-objects\b|#tab-objects\b/.test(String(window.location.hash || '')) || /[?&]tab=objects/.test(String(window.location.href || ''));
-
     const installObserver = () => safe(() => {
         const observer = new MutationObserver(mutations => {
-            if (isObjectsRoute()) {
-                // Ignore virtualization churn in the data-point table. Hash/load timers
-                // still run the shell patch when the user enters or leaves the page.
-                return;
-            }
             for (const mutation of mutations) {
                 if (mutation.type === 'characterData') {
                     if (isAdapterConfigSurface() && mutation.target?.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(mutation.target);
@@ -1497,10 +1477,7 @@
                     if (node.nodeType === Node.TEXT_NODE) {
                         if (isAdapterConfigSurface() && node.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(node);
                         else patchTextNode(node);
-                    } else if (node.nodeType === Node.ELEMENT_NODE) {
-                        if (isObjectsRoute() && node.closest?.('.eos-object-value-cell,[data-eos-object-value-cell]')) return;
-                        state.pendingScopes.add(node);
-                    }
+                    } else if (node.nodeType === Node.ELEMENT_NODE) state.pendingScopes.add(node);
                 });
             }
             if (state.pendingScopes.size) scheduleScopePatch();
@@ -1508,9 +1485,7 @@
         observer.observe(document.documentElement, {
             subtree: true,
             childList: true,
-            // v50: React changes thousands of text nodes on the data-point page.
-            // Added nodes are still patched; existing text-node mutation tracking is too expensive.
-            characterData: false,
+            characterData: true,
         });
     });
 

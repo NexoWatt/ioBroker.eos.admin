@@ -2,29 +2,18 @@
     'use strict';
 
     /**
-     * v53: native ObjectBrowser write mode
+     * v54: passive objects helper.
      *
-     * The earlier EOS fast-write fallback captured value-cell clicks before the
-     * ioBroker ObjectBrowser could process them. That made the UI look writable
-     * for every state and caused unreliable writes on large object trees.
-     *
-     * From v53 on, this helper is intentionally passive: it only publishes a
-     * version marker and removes the unrestricted writer from older cached
-     * sessions. The original ioBroker ObjectBrowser decides writability via
-     * common.write and performs the state write through socket.setState.
+     * Do not capture value-cell clicks, do not rewrite ObjectBrowser titles and
+     * do not run MutationObserver scans on the datapoints table. The ioBroker
+     * ObjectBrowser is responsible for read/write handling via common.write.
      */
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v53-native-objectbrowser-write';
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_MODE = 'native-objectbrowser';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v54-native-admin-datapoints';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_MODE = 'passive-native-objectbrowser';
 
     try {
         delete window.NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED;
     } catch {
         window.NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED = undefined;
-    }
-
-    try {
-        document.documentElement.classList.remove('eos-dp-write-ready');
-    } catch {
-        // ignore
     }
 })();

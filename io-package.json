@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.53",
+    "version": "7.9.54",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,17 +18,9 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.53": {
-        "en": "NexoWatt EOS v7.9.53: restored native ioBroker ObjectBrowser write semantics. Read-only registers stay read-only; writable states can be written reliably via the native value dialog.",
-        "de": "NexoWatt EOS v7.9.53: native ioBroker-ObjectBrowser-Schreiblogik wiederhergestellt. Read-Register bleiben lesend; Write-Register lassen sich zuverlässig über den nativen Wertdialog schreiben."
-      },
-      "7.9.52": {
-        "en": "NexoWatt EOS v7.9.52: fast data-point page, direct backend DP write dialog and reduced console/DOM overhead.",
-        "de": "NexoWatt EOS v7.9.52: schnellere Datenpunkte-Seite, direkter Backend-DP-Schreibdialog und weniger Console-/DOM-Last."
-      },
-      "7.9.50": {
-        "en": "Hardfix for manual writes in the objects/datapoints view: patched ObjectBrowser, direct fallback write dialog, cache-busted frontend chunks and lighter observers.",
-        "de": "Hardfix für manuelles Schreiben in der Datenpunkte-Ansicht: gepatchter ObjectBrowser, direkter Fallback-Schreibdialog, Cache-Busting der Frontend-Bundles und leichtere Observer."
+      "7.9.54": {
+        "en": "Restores stable native ioBroker ObjectBrowser datapoint handling: read-only states stay read-only, writable states can be edited, and the broken DPWrite module-federation bundle/performance guard is removed.",
+        "de": "Stellt die stabile native ioBroker-ObjectBrowser-Datenpunktbedienung wieder her: nur lesbare States bleiben nur lesbar, beschreibbare States sind editierbar, und das fehlerhafte DPWrite-Module-Federation-Bundle/Performance-Guard ist entfernt."
       },
       "7.9.49": {
         "en": "Reliable manual writes for writable states, corrected boolean switch handling and faster objects page updates.",
@@ -267,7 +259,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.53/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.54/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -278,7 +270,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.53/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.54/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -347,7 +339,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.53/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.54/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },

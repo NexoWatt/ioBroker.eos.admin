@@ -1,18 +1,17 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.53",
-  "variant": "nexowatt-eos-ui-v53-native-dp-write-semantics",
-  "createdAt": "2026-07-06T11:20:00Z",
+  "version": "7.9.54",
+  "variant": "nexowatt-eos-ui-v54-native-admin-datapoints",
+  "createdAt": "2026-07-07T20:15:00Z",
   "fixes": [
-    "ObjectBrowser value-cell editability no longer depends on common.write=false or expert mode",
-    "ObjectBrowser context-menu edit value is visible for every non-file state",
-    "EOS fallback writer treats data-eos-object-value-cell as a write candidate and validates object.type=state before writing",
-    "manual writes use ack=false and q=0 by default and show a clear error when socket/ACL rejects the write",
-    "state value cells are marked writable consistently so the user can click all state values without hidden locks",
-    "frontend direct socket.setState fallback via eos-admin backend bridge when the browser/user socket write is rejected",
-    "direct boolean/button writes also use the unrestricted EOS write bridge instead of silently failing",
-    "common.write/read metadata no longer disables button/switch recognition in the ObjectBrowser tree",
-    "existing delete/logquiet/role-guard fixes are preserved"
+    "restore stable original Admin module-federation entry/assets instead of custom DPWrite entry bundles",
+    "remove passive/active performance guard injection that caused duplicate HTML5Backend errors",
+    "disable EOS DOM click capture for datapoint values; native ObjectBrowser handles clicks again",
+    "read-only state objects with common.write=false are no longer treated as writable in expert mode",
+    "writable state objects with common.write=true/common.write not false open the native value dialog",
+    "ObjectBrowserValue returns changes through the native ObjectBrowser onClose/onUpdate path instead of bypassing it",
+    "switch states still use robust boolean parsing so string false/0 do not get stuck",
+    "delete/logquiet/role-guard behavior from earlier fixes is preserved"
   ],
   "protectedDeleteAdapters": [
     "admin",
@@ -23,9 +22,7 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Manual state writes in the data point/object browser no longer depend on common.write, common.read or expert mode. Every object of type state can open the write dialog or direct write path; if the direct browser socket write is rejected, EOS retries through the eos-admin backend messagebox and returns the real ioBroker error if the controller still refuses.",
-  "patch": "v53-native-dp-write-semantics",
-  "description": "Native ioBroker ObjectBrowser write semantics: read registers stay read-only via common.write=false; writable states use the native socket.setState flow.",
-  "buildDate": "2026-07-06T18:35:00Z",
-  "builtAt": "2026-07-06T19:25:00Z"
+  "notes": "The v50-v53 DPWrite module-federation replacements and performance guard are not used. Datapoint writability follows ioBroker common.write: read registers with write=false stay read-only, write/command registers with write=true remain editable.",
+  "patch": "v7.9.54-native-admin-datapoints-restore",
+  "description": "Restores the stable native ioBroker ObjectBrowser datapoint flow while preserving the NexoWatt EOS design and role/delete fixes."
 }

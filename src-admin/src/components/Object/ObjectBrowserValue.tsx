@@ -122,6 +122,7 @@ interface ObjectBrowserValueState {
     /** If input is invalid, set value button is disabled */
     valid: boolean;
     jsonError?: boolean;
+    writing: boolean;
 }
 
 class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowserValueState> {
@@ -196,6 +197,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             /** If input is invalid, set value button is disabled */
             valid: true,
             jsonError: false,
+            writing: false,
         };
 
         this.ack = false;
@@ -255,8 +257,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             e.preventDefault();
         }
 
-        if (this.props.object.common?.write === false) {
-            window.alert(`Cannot write state "${this.props.object._id}": common.write=false`);
+        if (this.state.writing) {
             return;
         }
 
@@ -289,6 +290,11 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             } else {
                 value = ObjectBrowserValue.parseBoolean(value);
             }
+        }
+
+        if (this.props.object.common?.write === false) {
+            window.alert(`Cannot write state "${this.props.object._id}": common.write=false`);
+            return;
         }
 
         this.props.onClose({
