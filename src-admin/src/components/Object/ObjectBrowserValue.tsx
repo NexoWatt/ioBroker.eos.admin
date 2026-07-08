@@ -317,7 +317,11 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             return false;
         }
 
-        const numVal = Number(value);
+        const numVal = Number(typeof value === 'string' ? value.replace(',', '.') : value);
+
+        if (Number.isNaN(numVal)) {
+            return false;
+        }
 
         if (typeof common.min === 'number' && numVal < common.min) {
             return false;
@@ -699,9 +703,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 fullWidth
                                                 autoFocus
                                                 error={!this.state.valid}
-                                                type="number"
+                                                type="text"
                                                 slotProps={{
                                                     htmlInput: {
+                                                        inputMode: 'decimal',
                                                         step: this.props.object.common.step,
                                                         min: this.props.object.common.min,
                                                         max: this.props.object.common.max,
@@ -817,9 +822,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 title={this.props.t('0 - no expiration')}
                                                 sx={{ '&.MuiTextField-root': styles.expire }}
                                                 label={this.props.t('Expire')}
-                                                type="number"
+                                                type="text"
                                                 slotProps={{
                                                     htmlInput: {
+                                                        inputMode: 'decimal',
                                                         min: 0,
                                                     },
                                                 }}

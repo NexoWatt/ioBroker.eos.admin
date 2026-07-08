@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v56-native-dp-click-tooltip-performance';
+    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v57-native-dp-manual-dialog-stability';
 
     const MOJIBAKE_MAP = new Map(Object.entries({
         'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen',

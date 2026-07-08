@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v56-native-dp-click-tooltip-performance';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v57-native-dp-manual-dialog-stability';
     window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_MODE = 'passive-native-objectbrowser';
 
     // Keep this file intentionally passive. The datapoints page must use the

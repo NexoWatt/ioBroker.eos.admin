@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v56-native-dp-click-tooltip-performance';
+    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v57-native-dp-manual-dialog-stability';
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {
         log: console.log.bind(console),
@@ -31,11 +31,12 @@
             .trim();
 
         return /(?:^|\s)\[ADAPTERS\](?:\s|$)/.test(text)
-            || /^Render because of /.test(text)
-            || /^getInstances:\s*\d+/.test(text)
-            || /^Translate:\s*/.test(text)
-            || /^Stored version:\s*/.test(text)
-            || /^Please (?:add to|modify) "system\.(?:adapter\.|host\.[^.]+\.adapter\.)/.test(text);
+            || /Render because of /.test(text)
+            || /getInstances:\s*\d+/.test(text)
+            || /Translate:\s*/.test(text)
+            || /Stored version:\s*/.test(text)
+            || /Please (?:add to|modify) "system\.(?:adapter\.|host\.[^.]+\.adapter\.)/.test(text)
+            || /Please (?:add to|modify) "system\.host\.[^.]+\.adapter\./.test(text);
     };
 
     const install = () => {

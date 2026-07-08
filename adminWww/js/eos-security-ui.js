@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v56-native-dp-click-tooltip-performance';
+    const VERSION = 'v57-native-dp-manual-dialog-stability';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -238,7 +238,7 @@
     };
 
     const applyPolicyToDom = () => {
-        // v56: the datapoints/logs pages belong to the native ObjectBrowser. Do not
+        // v57: the datapoints/logs pages belong to the native ObjectBrowser. Do not
         // walk those large virtualized tables or popup surfaces on every mutation.
         if (!isHighLoadAdminSurface()) replaceTextNodes();
         const admin = isAdminUser();

@@ -1,7 +1,7 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.56",
-  "variant": "nexowatt-eos-ui-v56-native-dp-click-tooltip-performance",
+  "version": "7.9.57",
+  "variant": "nexowatt-eos-ui-v57-native-dp-manual-dialog-stability",
   "createdAt": "2026-07-08T07:45:00Z",
   "fixes": [
     "keep original ioBroker ObjectBrowser write semantics: common.write=false read-only, otherwise writable",
@@ -23,7 +23,7 @@
     "nexowatt-ui"
   ],
   "notes": "Native ObjectBrowser DP writes; no ignored clicks while states cache is loading; v53 performance guard neutralized; reduced console/DOM noise.",
-  "patch": "v7.9.56-native-dp-click-tooltip-performance-stabilization",
+  "patch": "v57-native-dp-manual-dialog-stability",
   "description": "Restores the stable native ioBroker ObjectBrowser datapoint flow while preserving the NexoWatt EOS design and role/delete fixes.",
-  "build": "nexowatt-eos-ui-v56-native-dp-click-tooltip-performance-stabilization"
+  "build": "nexowatt-eos-ui-v57-native-dp-manual-dialog-stability-stabilization"
 }

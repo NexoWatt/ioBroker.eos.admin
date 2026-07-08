@@ -3606,7 +3606,7 @@ html.eos-role-loaded .eos-role-hidden * {
     outline: none;
 }
 
-/* === NexoWatt EOS v56: native ObjectBrowser value cells and tooltips === */
+/* === NexoWatt EOS v57: native ObjectBrowser value cells and tooltips === */
 html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"],
 html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"] {
     cursor: pointer !important;

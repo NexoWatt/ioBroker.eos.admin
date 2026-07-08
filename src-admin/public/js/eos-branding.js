@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v56-native-dp-click-tooltip-performance';
+    window.NEXOWATT_EOS_UI_VERSION = 'v57-native-dp-manual-dialog-stability';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -1517,7 +1517,7 @@
         observer.observe(document.documentElement, {
             subtree: true,
             childList: true,
-            // v56: characterData floods large ObjectBrowser tables. Text fixes are
+            // v57: characterData floods large ObjectBrowser tables. Text fixes are
             // applied by scheduled scope/full patches instead.
             characterData: false,
         });
