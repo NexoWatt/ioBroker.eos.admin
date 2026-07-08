@@ -1,17 +1,17 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.54",
-  "variant": "nexowatt-eos-ui-v54-native-admin-datapoints",
-  "createdAt": "2026-07-07T20:15:00Z",
+  "version": "7.9.56",
+  "variant": "nexowatt-eos-ui-v56-native-dp-click-tooltip-performance",
+  "createdAt": "2026-07-08T07:45:00Z",
   "fixes": [
-    "restore stable original Admin module-federation entry/assets instead of custom DPWrite entry bundles",
-    "remove passive/active performance guard injection that caused duplicate HTML5Backend errors",
-    "disable EOS DOM click capture for datapoint values; native ObjectBrowser handles clicks again",
-    "read-only state objects with common.write=false are no longer treated as writable in expert mode",
-    "writable state objects with common.write=true/common.write not false open the native value dialog",
-    "ObjectBrowserValue returns changes through the native ObjectBrowser onClose/onUpdate path instead of bypassing it",
-    "switch states still use robust boolean parsing so string false/0 do not get stuck",
-    "delete/logquiet/role-guard behavior from earlier fixes is preserved"
+    "keep original ioBroker ObjectBrowser write semantics: common.write=false read-only, otherwise writable",
+    "remove EOS unrestricted/capture write paths; datapoint clicks use native ObjectBrowserValue dialog",
+    "stabilize ObjectBrowser value-cell click handling with stopPropagation and a click target while state cache is still loading",
+    "fix ObjectBrowser tooltip startup when tooltipInfo is not yet loaded; hover details now get a non-empty fallback and safe state default",
+    "do not let EOS branding/security/role observers scan or touch the native datapoints/logs table and MUI tooltip/popup surfaces",
+    "keep stale eos-performance-guard.js neutralized as no-op compatibility shim",
+    "make console quiet filter resistant to late console rewrites and %%c-prefixed admin debug logs",
+    "preserve delete/logquiet/role-guard fixes from previous versions"
   ],
   "protectedDeleteAdapters": [
     "admin",
@@ -22,7 +22,8 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "The v50-v53 DPWrite module-federation replacements and performance guard are not used. Datapoint writability follows ioBroker common.write: read registers with write=false stay read-only, write/command registers with write=true remain editable.",
-  "patch": "v7.9.54-native-admin-datapoints-restore",
-  "description": "Restores the stable native ioBroker ObjectBrowser datapoint flow while preserving the NexoWatt EOS design and role/delete fixes."
+  "notes": "Native ObjectBrowser DP writes; no ignored clicks while states cache is loading; v53 performance guard neutralized; reduced console/DOM noise.",
+  "patch": "v7.9.56-native-dp-click-tooltip-performance-stabilization",
+  "description": "Restores the stable native ioBroker ObjectBrowser datapoint flow while preserving the NexoWatt EOS design and role/delete fixes.",
+  "build": "nexowatt-eos-ui-v56-native-dp-click-tooltip-performance-stabilization"
 }

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v39-object-state-tools';
+    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v56-native-dp-click-tooltip-performance';
 
     const MOJIBAKE_MAP = new Map(Object.entries({
         'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen',
@@ -32,6 +32,8 @@
     }));
 
     const safe = fn => { try { return fn(); } catch { return undefined; } };
+    const isHighLoadAdminSurface = () => /tab-(objects|adapter|adapters|instances|logs|host|hosts)\b/.test(String(window.location.hash || '').toLowerCase());
+    const isInsideAppPaper = node => !!node?.closest?.('#app-paper, [role="grid"], .MuiDataGrid-root, .ReactVirtualized__Grid, .eos-object-value-cell');
 
     const repairText = value => {
         let text = String(value || '');
@@ -121,7 +123,7 @@
     });
 
     const run = root => {
-        repairSecurityText(root);
+        if (!isHighLoadAdminSurface() || !isInsideAppPaper(root?.nodeType === Node.TEXT_NODE ? root.parentElement : root)) repairSecurityText(root);
         repairNotifications(root);
     };
 
@@ -135,7 +137,7 @@
             }
             roots.forEach(root => run(root));
         });
-        observer.observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+        observer.observe(document.documentElement, { subtree: true, childList: true, characterData: false });
         [250, 1000, 3000, 8000].forEach(ms => window.setTimeout(() => run(document.body || document.documentElement), ms));
     };
 

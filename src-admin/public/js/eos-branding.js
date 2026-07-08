@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v54-native-admin-datapoints';
+    window.NEXOWATT_EOS_UI_VERSION = 'v56-native-dp-click-tooltip-performance';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -122,6 +122,12 @@
         'ra_Logout': 'Abmelden',
         'Logout': 'Abmelden',
     }));
+
+    const currentTab = () => String(window.location.hash || '').toLowerCase();
+    const isObjectsSurface = () => /tab-objects\b/.test(currentTab());
+    const isLogsSurface = () => /tab-logs\b/.test(currentTab());
+    const isHighLoadAdminSurface = () => /tab-(objects|adapter|adapters|instances|logs|host|hosts)\b/.test(currentTab());
+    const isInsideAppPaper = node => !!node?.closest?.('#app-paper, [role="grid"], .MuiDataGrid-root, .ReactVirtualized__Grid, .eos-object-value-cell, .MuiTooltip-popper, .MuiPopover-root, .MuiPopper-root, .MuiMenu-root, [role="tooltip"]');
 
     const state = {
         fullPatchScheduled: false,
@@ -245,6 +251,7 @@
             ? [root]
             : Array.from(root.querySelectorAll ? root.querySelectorAll('[title],[aria-label],[alt],[placeholder],img') : []);
         for (const el of elements) {
+            if (isHighLoadAdminSurface() && el.closest?.('.eos-object-value-cell, [role="tooltip"], .MuiTooltip-popper, .MuiPopover-root, .MuiPopper-root')) continue;
             ['title', 'aria-label', 'alt', 'placeholder'].forEach(attr => {
                 if (el.hasAttribute && el.hasAttribute(attr)) {
                     const oldValue = el.getAttribute(attr);
@@ -272,6 +279,9 @@
             users: hash.includes('tab-users'),
             adapters: hash.includes('tab-adapters'),
             instances: hash.includes('tab-instances'),
+            objects: hash.includes('tab-objects'),
+            logs: hash.includes('tab-logs'),
+            hosts: hash.includes('tab-hosts') || hash.includes('tab-host'),
             intro: hash.includes('tab-intro') || hash === '' || hash === '#/' || hash === '#/tab-intro',
         };
     };
@@ -528,6 +538,10 @@
         const policy = state.securityPolicy;
         applySecurityClasses();
         releaseNotificationControls();
+        // The ObjectBrowser owns datapoint value clicks and MUI tooltips. EOS security
+        // decoration must never scan or touch this table, otherwise the native write
+        // dialog can lose clicks while the page is still loading.
+        if (isObjectsSurface() || isLogsSurface()) return;
         unlockDeleteControls();
         // Do not apply EOS security decoration inside native adapter configuration pages.
         // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
@@ -599,6 +613,10 @@
         document.documentElement.classList.toggle('eos-route-users', routes.users);
         document.documentElement.classList.toggle('eos-route-adapters', routes.adapters);
         document.documentElement.classList.toggle('eos-route-instances', routes.instances);
+        document.documentElement.classList.toggle('eos-route-objects', routes.objects);
+        document.documentElement.classList.toggle('eos-objects-surface', routes.objects);
+        document.documentElement.classList.toggle('eos-route-logs', routes.logs);
+        document.documentElement.classList.toggle('eos-route-hosts', routes.hosts);
         document.documentElement.classList.toggle('eos-route-intro', routes.intro);
     };
 
@@ -1403,6 +1421,15 @@
                     patchAttributes(scope);
                 });
             });
+        } else if (isHighLoadAdminSurface()) {
+            // v55: on large virtualized tables do not walk the whole app body.
+            // Full text scans were competing with ObjectBrowser state loading.
+            ['.MuiAppBar-root', '.MuiDrawer-paper', 'nav', '.eos-brand-badge', '.eos-top-toolbar', '.MuiDialog-root'].forEach(selector => {
+                document.querySelectorAll(selector).forEach(scope => {
+                    patchTextNodes(scope);
+                    patchAttributes(scope);
+                });
+            });
         } else {
             patchTextNodes(document.body || document.documentElement);
             patchAttributes(document.body || document.documentElement);
@@ -1431,8 +1458,9 @@
         releaseNotificationControls();
         ensurePopupCompatibility();
         applySecurityUiGuard();
-        for (const scope of scopes.slice(0, 80)) {
+        for (const scope of scopes.slice(0, 40)) {
             if (!scope || !scope.isConnected) continue;
+            if (isHighLoadAdminSurface() && (scope.id === 'app-paper' || isInsideAppPaper(scope))) continue;
             if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) {
                 patchMojibakeTextNodes(scope);
                 continue;
@@ -1467,6 +1495,7 @@
         const observer = new MutationObserver(mutations => {
             for (const mutation of mutations) {
                 if (mutation.type === 'characterData') {
+                    if (isHighLoadAdminSurface() && isInsideAppPaper(mutation.target?.parentElement)) continue;
                     if (isAdapterConfigSurface() && mutation.target?.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(mutation.target);
                     else patchTextNode(mutation.target);
                     continue;
@@ -1477,7 +1506,10 @@
                     if (node.nodeType === Node.TEXT_NODE) {
                         if (isAdapterConfigSurface() && node.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(node);
                         else patchTextNode(node);
-                    } else if (node.nodeType === Node.ELEMENT_NODE) state.pendingScopes.add(node);
+                    } else if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (isHighLoadAdminSurface() && isInsideAppPaper(node)) return;
+                        state.pendingScopes.add(node);
+                    }
                 });
             }
             if (state.pendingScopes.size) scheduleScopePatch();
@@ -1485,7 +1517,9 @@
         observer.observe(document.documentElement, {
             subtree: true,
             childList: true,
-            characterData: true,
+            // v56: characterData floods large ObjectBrowser tables. Text fixes are
+            // applied by scheduled scope/full patches instead.
+            characterData: false,
         });
     });
 
@@ -1495,13 +1529,13 @@
             fullPatch();
             fetchSecurityPolicy();
             installObserver();
-            [250, 1000, 2500, 5000].forEach(scheduleFullPatch);
+            [350, 1500].forEach(scheduleFullPatch);
         }, { once: true });
     } else {
         fullPatch();
         fetchSecurityPolicy();
         installObserver();
-        [250, 1000, 2500, 5000].forEach(scheduleFullPatch);
+        [350, 1500].forEach(scheduleFullPatch);
     }
     window.addEventListener('load', () => scheduleFullPatch(0), { once: true });
     window.addEventListener('hashchange', () => scheduleFullPatch(0));

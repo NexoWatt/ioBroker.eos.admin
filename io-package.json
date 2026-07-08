@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.54",
+    "version": "7.9.56",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -1017,5 +1017,6 @@
         }
       }
     }
-  }
+  },
+  "version": "7.9.56"
 }

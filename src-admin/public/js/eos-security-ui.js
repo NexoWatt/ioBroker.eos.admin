@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v54-native-admin-datapoints';
+    const VERSION = 'v56-native-dp-click-tooltip-performance';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -30,6 +30,11 @@
     };
 
     const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+    const currentTab = () => String(window.location.hash || '').toLowerCase();
+    const isObjectsSurface = () => /tab-objects\b/.test(currentTab());
+    const isLogsSurface = () => /tab-logs\b/.test(currentTab());
+    const isHighLoadAdminSurface = () => /tab-(objects|adapter|adapters|instances|logs|host|hosts)\b/.test(currentTab());
+    const isInsideAppPaper = node => !!node?.closest?.('#app-paper, [role="grid"], .MuiDataGrid-root, .ReactVirtualized__Grid, .eos-object-value-cell, .MuiTooltip-popper, .MuiPopover-root, .MuiPopper-root, .MuiMenu-root, [role="tooltip"]');
 
     const fixMojibake = value => {
         let text = String(value || '');
@@ -233,13 +238,15 @@
     };
 
     const applyPolicyToDom = () => {
-        // Text repair is safe and must also run on adapter config pages.
-        replaceTextNodes();
+        // v56: the datapoints/logs pages belong to the native ObjectBrowser. Do not
+        // walk those large virtualized tables or popup surfaces on every mutation.
+        if (!isHighLoadAdminSurface()) replaceTextNodes();
         const admin = isAdminUser();
         document.documentElement.classList.toggle('eos-security-admin-user', admin);
         document.documentElement.classList.toggle('eos-security-non-admin-user', !admin);
         document.documentElement.classList.toggle('eos-security-nonadmin', !admin);
         releaseNotificationControls();
+        if (isObjectsSurface() || isLogsSurface()) return;
         if (isAdapterConfigSurface()) return;
         hideLegacyAdminPanels();
         hideProtectedDeleteControls();
@@ -298,7 +305,10 @@
 
     const installObserver = () => {
         if (state.observer) return;
-        state.observer = new MutationObserver(() => scheduleApply());
+        state.observer = new MutationObserver(mutations => {
+            if (isHighLoadAdminSurface() && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
+            scheduleApply();
+        });
         state.observer.observe(document.documentElement, { childList: true, subtree: true });
     };
 
@@ -308,7 +318,7 @@
     const start = () => {
         loadPolicy();
         installObserver();
-        [300, 1000, 2500, 5000].forEach(ms => window.setTimeout(scheduleApply, ms));
+        [500, 2000].forEach(ms => window.setTimeout(scheduleApply, ms));
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
     else start();

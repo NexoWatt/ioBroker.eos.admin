@@ -3605,3 +3605,23 @@ html.eos-role-loaded .eos-role-hidden * {
     filter: brightness(1.08);
     outline: none;
 }
+
+/* === NexoWatt EOS v56: native ObjectBrowser value cells and tooltips === */
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"],
+html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"] {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"]:hover,
+html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"]:hover {
+    background: rgba(0, 255, 136, .14) !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 255, 136, .32), 0 0 12px rgba(0, 255, 136, .10) !important;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell[title],
+html.eos-objects-surface .eos-object-value-cell[title] {
+    pointer-events: auto !important;
+}
+html.eos-app.eos-objects-surface .MuiTooltip-tooltip,
+html.eos-objects-surface .MuiTooltip-tooltip {
+    max-width: min(520px, 80vw) !important;
+}

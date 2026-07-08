@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v54-native-admin-datapoints';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v56-native-dp-click-tooltip-performance';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;
@@ -37,6 +37,11 @@
         .trim();
 
     const stripTab = value => String(value || '').replace(/^#?\/?/, '').replace(/^tab-/, '');
+    const currentTab = () => String(window.location.hash || '').toLowerCase();
+    const isObjectsSurface = () => /tab-objects\b/.test(currentTab());
+    const isLogsSurface = () => /tab-logs\b/.test(currentTab());
+    const isHighLoadAdminSurface = () => /tab-(objects|adapter|adapters|instances|logs|host|hosts)\b/.test(currentTab());
+    const isInsideAppPaper = node => !!node?.closest?.('#app-paper, [role="grid"], .MuiDataGrid-root, .ReactVirtualized__Grid, .eos-object-value-cell, .MuiTooltip-popper, .MuiPopover-root, .MuiPopper-root, .MuiMenu-root, [role="tooltip"]');
 
     const hashTab = () => {
         const hash = decodeURIComponent(window.location.hash || '');
@@ -241,6 +246,7 @@
     const apply = () => {
         if (!state.policy) return;
         setRoleClasses(state.role);
+        if ((isObjectsSurface() || isLogsSurface()) && state.role === 'admin') return;
         applyMenuPolicy();
         redirectIfNeeded();
         scheduleFallbackCheck();
@@ -249,10 +255,12 @@
     const scheduleApply = () => {
         if (state.scheduled) return;
         state.scheduled = true;
-        requestAnimationFrame(() => {
+        const run = () => {
             state.scheduled = false;
             apply();
-        });
+        };
+        if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 700 });
+        else requestAnimationFrame(run);
     };
 
     const fetchPolicy = async () => {
@@ -279,7 +287,10 @@
 
     const startObserver = () => safe(() => {
         if (state.observer || !document.documentElement) return;
-        state.observer = new MutationObserver(scheduleApply);
+        state.observer = new MutationObserver(mutations => {
+            if (isHighLoadAdminSurface() && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
+            scheduleApply();
+        });
         state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'class', 'aria-label'] });
     });
 
@@ -291,9 +302,8 @@
             scheduleApply();
         });
         window.addEventListener('storage', scheduleApply);
-        setTimeout(scheduleApply, 400);
-        setTimeout(scheduleApply, 1500);
-        setTimeout(scheduleApply, 3500);
+        setTimeout(scheduleApply, 700);
+        setTimeout(scheduleApply, 2500);
     };
 
     if (document.readyState === 'loading') {
