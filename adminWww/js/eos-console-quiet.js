@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v61-modal-autocomplete-layer-fix';
+    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v62-adapter-filter-overlay-cleanup';
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {
         log: console.log.bind(console),

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v61-modal-autocomplete-layer-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v62-adapter-filter-overlay-cleanup';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

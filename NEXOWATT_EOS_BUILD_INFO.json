@@ -1,6 +1,6 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.61",
+  "version": "7.9.62",
   "variant": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
   "createdAt": "2026-07-19T18:20:00Z",
   "fixes": [
@@ -20,9 +20,9 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Stability cleanup for v54-v57 cached bundles, heavy-page branding throttling, instance-aware EOS Admin delete protection, and expert version install fix.",
-  "patch": "v7.9.61 modal autocomplete/listbox z-index and pointer stability fix",
+  "notes": "Suppress stale adapter filter/category MUI menus falling into the left header/navigation area; keep dialog autocomplete/listbox and native install dialogs active.",
+  "patch": "v7.9.62 adapter filter overlay cleanup / stale MUI menu suppression",
   "description": "Keeps the EOS design while preventing old admin bundles from reinitializing the app and restoring expected admin operations.",
   "build": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
-  "uiVersion": "v61-modal-autocomplete-layer-fix"
+  "uiVersion": "v62-adapter-filter-overlay-cleanup"
 }
