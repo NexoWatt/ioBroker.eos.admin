@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v58-admin-stability-delete-version-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v60-admin-stability-delete-version-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

@@ -1,6 +1,6 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.58",
+  "version": "7.9.60",
   "variant": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
   "createdAt": "2026-07-19T18:20:00Z",
   "fixes": [
@@ -23,5 +23,6 @@
   "notes": "Stability cleanup for v54-v57 cached bundles, heavy-page branding throttling, instance-aware EOS Admin delete protection, and expert version install fix.",
   "patch": "v58-admin-stability-delete-version-fix",
   "description": "Keeps the EOS design while preventing old admin bundles from reinitializing the app and restoring expected admin operations.",
-  "build": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix"
+  "build": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
+  "uiVersion": "v60-module-actions-cache-hardening"
 }

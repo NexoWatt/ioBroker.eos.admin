@@ -277,7 +277,11 @@ export default abstract class AdapterGeneric<
                         style={!this.props.cached.rightOs ? this.styles.hidden : undefined}
                         onClick={
                             this.props.cached.rightOs
-                                ? () => this.onAddInstance(this.props.adapterName, this.props.context)
+                                ? event => {
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      this.onAddInstance(this.props.adapterName, this.props.context);
+                                  }
                                 : undefined
                         }
                     >
@@ -304,7 +308,7 @@ export default abstract class AdapterGeneric<
             >
                 <IconButton
                     size="small"
-                    onClick={() => this.setState({ autoUpgradeDialogOpen: true, showDialog: true })}
+                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ autoUpgradeDialogOpen: true, showDialog: true }); }}
                 >
                     {!autoUpgrade || autoUpgrade === 'none' ? <KeyboardArrowUp /> : ICONS[autoUpgrade]}
                 </IconButton>
@@ -325,7 +329,7 @@ export default abstract class AdapterGeneric<
                 >
                     <IconButton
                         size="small"
-                        onClick={() => this.openInfoDialog()}
+                        onClick={event => { event.preventDefault(); event.stopPropagation(); this.openInfoDialog(); }}
                     >
                         <HelpIcon />
                     </IconButton>
@@ -550,7 +554,7 @@ export default abstract class AdapterGeneric<
                 slotProps={{ popper: { sx: this.styles.tooltip } }}
             >
                 <div
-                    onClick={() => this.setState({ showUpdateDialog: true, showDialog: true })}
+                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ showUpdateDialog: true, showDialog: true }); }}
                     style={{
                         ...this.styles.buttonUpdate,
                         ...(this.props.cached.rightDependencies ? this.styles.updateAvailable : undefined),
@@ -684,8 +688,9 @@ export default abstract class AdapterGeneric<
             >
                 <IconButton
                     size="small"
-                    disabled={this.props.commandRunning}
-                    onClick={() => this.onUpload()}
+                    disabled={false}
+                    data-eos-adapter-action="upload"
+                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.onUpload(); }}
                 >
                     <PublishIcon />
                 </IconButton>
@@ -705,7 +710,8 @@ export default abstract class AdapterGeneric<
                     <IconButton
                         size="small"
                         disabled={this.props.commandRunning}
-                        onClick={() => this.setState({ adapterDeletionDialog: true, showDialog: true })}
+                        data-eos-adapter-action="delete"
+                        onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ adapterDeletionDialog: true, showDialog: true }); }}
                     >
                         <DeleteForeverIcon />
                     </IconButton>
@@ -723,9 +729,10 @@ export default abstract class AdapterGeneric<
                     slotProps={{ popper: { sx: this.styles.tooltip } }}
                 >
                     <IconButton
-                        disabled={this.props.commandRunning}
+                        disabled={false}
                         size="small"
-                        onClick={() => this.setState({ showInstallVersion: true, showDialog: true })}
+                        data-eos-adapter-action="install-specific-version"
+                        onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ showInstallVersion: true, showDialog: true }); }}
                     >
                         <AddToPhotosIcon />
                     </IconButton>
@@ -743,7 +750,8 @@ export default abstract class AdapterGeneric<
                 <IconButton
                     size="small"
                     disabled={this.props.commandRunning}
-                    onClick={() => this.rebuild()}
+                    data-eos-adapter-action="rebuild"
+                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.rebuild(); }}
                 >
                     <BuildIcon />
                 </IconButton>

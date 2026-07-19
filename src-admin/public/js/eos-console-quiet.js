@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v58-admin-stability-delete-version-fix';
+    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v60-admin-stability-delete-version-fix';
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {
         log: console.log.bind(console),
@@ -13,7 +13,7 @@
     window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ = original;
 
     const toText = args => {
-        // v58: avoid JSON.stringify on large admin objects. The previous quiet filter
+        // v60: avoid JSON.stringify on large admin objects. The previous quiet filter
         // could itself become visible in Chrome as requestIdleCallback/message violations.
         const out = [];
         const list = Array.from(args || []).slice(0, 4);

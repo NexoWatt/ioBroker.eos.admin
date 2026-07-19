@@ -1,1 +1,1 @@
-import "./index-CQZugZ1z-v58.js";
+import "./index-CQZugZ1z-v60.js";
