@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v60-admin-stability-delete-version-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v61-modal-autocomplete-layer-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -475,14 +475,14 @@
         const selectors = [
             '.MuiDialog-root', '.MuiModal-root', '.MuiPopover-root', '.MuiPopper-root',
             '.MuiMenu-root', '.MuiAutocomplete-popper', '.MuiAutocomplete-listbox',
-            '[role="dialog"]', '[role="listbox"]', '[role="menu"]'
+            'body > [role="presentation"]', '[role="dialog"]', '[role="listbox"]', '[role="menu"]'
         ].join(',');
         document.querySelectorAll(selectors).forEach(el => {
             el.classList.add('eos-native-popup-safe');
             if (el.style) {
                 el.style.pointerEvents = 'auto';
-                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="listbox"],[role="menu"]');
-                if (isFloating && !el.closest('.MuiDialog-paper')) el.style.zIndex = '6500';
+                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="listbox"],[role="menu"],body > [role="presentation"]');
+                if (isFloating && !el.closest('.MuiDialog-paper')) el.style.zIndex = '15000';
             }
         });
     });

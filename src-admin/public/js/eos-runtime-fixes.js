@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v58-admin-stability-delete-version-fix';
+    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v61-modal-autocomplete-layer-fix';
 
     const MOJIBAKE_MAP = new Map(Object.entries({
         'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen',

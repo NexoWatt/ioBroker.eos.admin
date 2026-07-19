@@ -1,4 +1,4 @@
-# NexoWatt EOS Admin v7.9.60
+# NexoWatt EOS Admin v7.9.61
 
 Fixes module-card action clicks, specific-version installation for installed adapters such as nexowatt-ui, and hardens cache/legacy bootstrap shims to avoid duplicate HTML5 backend crashes after updates.
 

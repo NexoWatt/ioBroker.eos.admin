@@ -3729,3 +3729,62 @@ html.eos-app .MuiMenu-root {
 html.eos-app .MuiTooltip-popper {
     pointer-events: none !important;
 }
+
+
+/* === NexoWatt EOS v61: native dialog autocomplete/listbox layer fix ==========
+   MUI Autocomplete/Select poppers are rendered in a body portal, not inside the
+   dialog. Our EOS dialog z-index was higher than the native popper z-index, so
+   the adapter search list appeared behind the install dialog and could not be
+   selected. Keep native poppers above dialogs/backdrops and keep options
+   clickable. */
+html.eos-app body > .MuiAutocomplete-popper,
+html.eos-app body > .MuiPopper-root,
+html.eos-app body > .MuiPopover-root,
+html.eos-app body > .MuiMenu-root,
+html.eos-app .eos-native-popup-safe.MuiAutocomplete-popper,
+html.eos-app .eos-native-popup-safe.MuiPopper-root,
+html.eos-app .eos-native-popup-safe.MuiPopover-root,
+html.eos-app .eos-native-popup-safe.MuiMenu-root,
+html.eos-app .MuiAutocomplete-popper,
+html.eos-app .MuiPopper-root[data-popper-placement],
+html.eos-app .MuiPopover-root,
+html.eos-app .MuiMenu-root {
+    z-index: 15000 !important;
+    pointer-events: auto !important;
+}
+html.eos-app body > [role="presentation"]:has(.MuiAutocomplete-paper),
+html.eos-app body > [role="presentation"]:has([role="listbox"]),
+html.eos-app body > [role="presentation"]:has(.MuiMenu-paper) {
+    z-index: 15000 !important;
+    pointer-events: auto !important;
+}
+html.eos-app .MuiAutocomplete-paper,
+html.eos-app .MuiAutocomplete-listbox,
+html.eos-app .MuiMenu-paper,
+html.eos-app .MuiPopover-paper,
+html.eos-app .MuiList-root[role="listbox"],
+html.eos-app [role="listbox"],
+html.eos-app [role="option"],
+html.eos-app .MuiAutocomplete-option {
+    z-index: 15001 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+html.eos-app .MuiAutocomplete-option,
+html.eos-app [role="listbox"] [role="option"],
+html.eos-app .MuiMenuItem-root {
+    cursor: pointer !important;
+    user-select: none !important;
+}
+html.eos-app .MuiAutocomplete-option.Mui-focused,
+html.eos-app .MuiAutocomplete-option[aria-selected="true"],
+html.eos-app [role="option"]:hover,
+html.eos-app .MuiMenuItem-root:hover {
+    background: rgba(0, 255, 136, 0.18) !important;
+}
+/* Native tooltips should stay above the UI visually but must not intercept clicks. */
+html.eos-app .MuiTooltip-popper {
+    z-index: 16000 !important;
+    pointer-events: none !important;
+}

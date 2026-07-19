@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v60-admin-stability-delete-version-fix';
+    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v61-modal-autocomplete-layer-fix';
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {
         log: console.log.bind(console),
