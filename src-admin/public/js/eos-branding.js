@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v57-native-dp-manual-dialog-stability';
+    window.NEXOWATT_EOS_UI_VERSION = 'v58-admin-stability-delete-version-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -541,7 +541,7 @@
         // The ObjectBrowser owns datapoint value clicks and MUI tooltips. EOS security
         // decoration must never scan or touch this table, otherwise the native write
         // dialog can lose clicks while the page is still loading.
-        if (isObjectsSurface() || isLogsSurface()) return;
+        if (isHighLoadAdminSurface()) return;
         unlockDeleteControls();
         // Do not apply EOS security decoration inside native adapter configuration pages.
         // Adapter UIs must remain 100% functional; backend/role checks still protect EOS actions.
@@ -1400,15 +1400,17 @@
         installAssistDelegatedClick();
         ensureEosAssist();
         installHardLogoutWatchdog();
-        ensureRightsHelper();
-        ensurePermissionPresets();
         ensureSettingsDialogClasses();
         ensurePopupCompatibility();
         hideNativeLogoutNav();
-        hideOfficialNexoWattRepoWarning();
         releaseNotificationControls();
         ensurePopupCompatibility();
-        applySecurityUiGuard();
+        if (!isHighLoadAdminSurface()) {
+            ensureRightsHelper();
+            ensurePermissionPresets();
+            hideOfficialNexoWattRepoWarning();
+            applySecurityUiGuard();
+        }
         if (isAdapterConfigSurface()) {
             // Adapter-owned configuration pages must not be rebranded or structurally patched.
             // We still repair broken UTF-8/mojibake text because jsonConfig labels can be
@@ -1449,16 +1451,19 @@
         installAssistDelegatedClick();
         ensureEosAssist();
         installHardLogoutWatchdog();
-        ensureRightsHelper();
-        ensurePermissionPresets();
         ensureSettingsDialogClasses();
         ensurePopupCompatibility();
         hideNativeLogoutNav();
-        hideOfficialNexoWattRepoWarning();
         releaseNotificationControls();
         ensurePopupCompatibility();
-        applySecurityUiGuard();
-        for (const scope of scopes.slice(0, 40)) {
+        if (!isHighLoadAdminSurface()) {
+            ensureRightsHelper();
+            ensurePermissionPresets();
+            hideOfficialNexoWattRepoWarning();
+            applySecurityUiGuard();
+        }
+        const scopeLimit = isHighLoadAdminSurface() ? 10 : 40;
+        for (const scope of scopes.slice(0, scopeLimit)) {
             if (!scope || !scope.isConnected) continue;
             if (isHighLoadAdminSurface() && (scope.id === 'app-paper' || isInsideAppPaper(scope))) continue;
             if (isAdapterConfigSurface() && (scope.id === 'app-paper' || scope.closest?.('#app-paper'))) {
@@ -1485,10 +1490,11 @@
         if (state.scopePatchScheduled) return;
         state.scopePatchScheduled = true;
         const run = () => {
-            if ('requestIdleCallback' in window) window.requestIdleCallback(scopePatch, { timeout: 600 });
+            if ('requestIdleCallback' in window) window.requestIdleCallback(scopePatch, { timeout: isHighLoadAdminSurface() ? 1200 : 600 });
             else window.requestAnimationFrame(scopePatch);
         };
-        run();
+        if (isHighLoadAdminSurface()) window.setTimeout(run, 150);
+        else run();
     };
 
     const installObserver = () => safe(() => {

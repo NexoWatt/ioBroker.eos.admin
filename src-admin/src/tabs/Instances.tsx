@@ -53,20 +53,29 @@ import InstanceCategory from '../components/Instances/InstanceCategory';
 
 const EOS_CORE_PROTECTED_ADAPTERS = new Set(['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui']);
 
-const normalizeEosAdapterName = (value: string): string => String(value || '')
-    .toLowerCase()
-    .replace(/^system\.adapter\./, '')
-    .replace(/^iobroker\./, '')
-    .replace(/^@nexowatt\/iobroker\./, '')
-    .replace(/^@nexowatt\//, '')
-    .replace(/\.\d+$/, '');
+const parseEosAdapterTarget = (value: string): { adapter: string; instance?: string } => {
+    const raw = String(value || '')
+        .toLowerCase()
+        .replace(/^system\.adapter\./, '')
+        .replace(/^iobroker\./, '')
+        .replace(/^@nexowatt\/iobroker\./, '')
+        .replace(/^@nexowatt\//, '');
+    const match = raw.match(/^([a-z0-9_-]+)(?:\.(\d+))?$/);
+    if (!match) {
+        return { adapter: raw.replace(/\.\d+$/, '') };
+    }
+    return { adapter: match[1], instance: match[2] };
+};
 
 const isEosProtectedInstance = (instanceIdOrAdapter: string): boolean => {
-    const adapter = normalizeEosAdapterName(instanceIdOrAdapter);
+    const { adapter, instance } = parseEosAdapterTarget(instanceIdOrAdapter);
 
-    // v47: Dienste deletion is blocked only for the fixed EOS core list.
-    // Do not use the dynamic security policy here; older configs may still contain
-    // runtime adapters and would make normal instances undeletable.
+    // v58: Dienste deletion is blocked only for the fixed EOS core list.
+    // Additional admin/eos-admin test instances are intentionally removable;
+    // only admin.0/eos-admin.0 and the adapter package object stay protected.
+    if (adapter === 'admin' || adapter === 'eos-admin') {
+        return instance === undefined || instance === '0';
+    }
     return EOS_CORE_PROTECTED_ADAPTERS.has(adapter);
 };
 

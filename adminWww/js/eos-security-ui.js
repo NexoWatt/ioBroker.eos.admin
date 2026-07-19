@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v57-native-dp-manual-dialog-stability';
+    const VERSION = 'v58-admin-stability-delete-version-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -61,10 +61,16 @@
         return text;
     };
     const normalizeFlat = value => normalize(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const parseAdapterTarget = value => {
+        let raw = String(value || '').trim().toLowerCase();
+        raw = raw.replace(/^system\.adapter\./, '').replace(/^iobroker\./, '').replace(/^@nexowatt\/iobroker\./, '').replace(/^@nexowatt\//, '');
+        const match = raw.match(/^([a-z0-9_-]+)(?:\.(\d+))?$/);
+        if (!match) return { adapter: raw.replace(/\.\d+$/, ''), instance: undefined };
+        return { adapter: match[1], instance: match[2] };
+    };
+
     const normalizeAdapter = value => {
-        let adapter = String(value || '').trim().toLowerCase();
-        adapter = adapter.replace(/^system\.adapter\./, '').replace(/^iobroker\./, '').replace(/^@nexowatt\/iobroker\./, '').replace(/^@nexowatt\//, '');
-        adapter = adapter.replace(/\.\d+$/, '');
+        const { adapter } = parseAdapterTarget(value);
         return /^[a-z0-9_-]+$/.test(adapter) ? adapter : '';
     };
 
@@ -80,6 +86,15 @@
         return !!adapter && (adapter === LEGACY_ADMIN || protectedAdapters().has(adapter));
     };
 
+    const shouldBlockInstanceTarget = value => {
+        const { adapter, instance } = parseAdapterTarget(value);
+        if (!adapter || !protectedAdapters().has(adapter)) return false;
+        // v58: only the main Admin/EOS Admin instance is protected. Additional
+        // eos-admin.1/eos-admin.2 test instances must be removable.
+        if (adapter === LEGACY_ADMIN || adapter === 'eos-admin') return instance === undefined || instance === '0';
+        return true;
+    };
+
     window.NEXOWATT_EOS_SECURITY = {
         version: VERSION,
         getPolicy: () => state.policy,
@@ -89,8 +104,7 @@
             return isProtectedAdapter(adapterName);
         },
         shouldBlockInstanceDelete(instanceIdOrAdapter) {
-            const raw = String(instanceIdOrAdapter || '').replace(/^system\.adapter\./, '');
-            return isProtectedAdapter(raw);
+            return shouldBlockInstanceTarget(instanceIdOrAdapter);
         },
     };
 

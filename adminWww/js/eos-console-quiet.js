@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v57-native-dp-manual-dialog-stability';
+    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v58-admin-stability-delete-version-fix';
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {
         log: console.log.bind(console),
@@ -12,24 +12,23 @@
     };
     window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ = original;
 
-    const normalizeArg = value => {
-        try {
-            if (typeof value === 'string') return value;
-            if (value && typeof value.message === 'string') return value.message;
-            return JSON.stringify(value);
-        } catch (_) {
-            return String(value);
+    const toText = args => {
+        // v58: avoid JSON.stringify on large admin objects. The previous quiet filter
+        // could itself become visible in Chrome as requestIdleCallback/message violations.
+        const out = [];
+        const list = Array.from(args || []).slice(0, 4);
+        for (const value of list) {
+            if (typeof value === 'string') out.push(value);
+            else if (value && typeof value.message === 'string') out.push(value.message);
+            else if (value && typeof value.name === 'string') out.push(value.name);
+            else if (value != null && (typeof value === 'number' || typeof value === 'boolean')) out.push(String(value));
         }
+        return out.join(' ').replace(/%c/g, '').replace(/\s+/g, ' ').trim();
     };
 
     const noisy = args => {
-        const text = Array.from(args || [])
-            .map(normalizeArg)
-            .join(' ')
-            .replace(/%c/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-
+        const text = toText(args);
+        if (!text) return false;
         return /(?:^|\s)\[ADAPTERS\](?:\s|$)/.test(text)
             || /Render because of /.test(text)
             || /getInstances:\s*\d+/.test(text)
@@ -41,21 +40,23 @@
 
     const install = () => {
         ['log', 'info', 'warn', 'debug'].forEach(level => {
-            if (console[level]?.__nexowattQuietV56) return;
+            if (console[level]?.__nexowattQuietV58) return;
             const wrapped = (...args) => {
                 if (noisy(args)) return;
                 original[level](...args);
             };
-            Object.defineProperty(wrapped, '__nexowattQuietV56', { value: true });
+            Object.defineProperty(wrapped, '__nexowattQuietV58', { value: true });
             console[level] = wrapped;
         });
     };
 
     install();
-    queueMicrotask(install);
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', install, { once: true });
+    } else {
+        queueMicrotask(install);
+    }
     window.addEventListener('load', install, { once: true });
-    [50, 250, 750, 1500, 3500, 7000].forEach(ms => setTimeout(install, ms));
 
     window.NEXOWATT_EOS_RESTORE_CONSOLE = () => Object.assign(console, original);
 })();

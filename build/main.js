@@ -824,6 +824,30 @@ class Admin extends adapter_core_1.Adapter {
         const result = new Set([LEGACY_ADMIN_ADAPTER_NAME, ...CORE_PROTECTED_ADAPTER_NAMES]);
         return [...result].sort();
     }
+    parseAdapterObjectId(id) {
+        const raw = String(id || '')
+            .replace(/^system\.adapter\./, '')
+            .trim()
+            .toLowerCase();
+        const match = raw.match(/^([a-z0-9_-]+)(?:\.(\d+))?$/i);
+        if (!match) {
+            return { adapter: raw.replace(/\.\d+$/, '') };
+        }
+        return { adapter: match[1], instance: match[2] };
+    }
+    isProtectedDeleteObjectId(id, protectedAdapters = new Set(this.getProtectedAdapterNames())) {
+        const { adapter, instance } = this.parseAdapterObjectId(id);
+        if (!adapter || !protectedAdapters.has(adapter)) {
+            return false;
+        }
+        // v58: Only the primary Admin/EOS Admin instance is locked. Additional
+        // eos-admin/admin test instances such as eos-admin.1 must remain deletable.
+        // The package adapter object itself (without instance number) stays protected.
+        if (adapter === EOS_ADMIN_ADAPTER_NAME || adapter === LEGACY_ADMIN_ADAPTER_NAME) {
+            return instance === undefined || instance === '0';
+        }
+        return true;
+    }
     scheduleEosSecurityGuard(reason) {
         if (this.eosSecurityDebounce) {
             clearTimeout(this.eosSecurityDebounce);
@@ -879,13 +903,11 @@ class Admin extends adapter_core_1.Adapter {
         if (!obj?.common) {
             return false;
         }
-        const adapter = String(id)
-            .replace(/^system\.adapter\./, '')
-            .replace(/\.\d+$/, '');
-        const isProtected = protectedAdapters.has(adapter);
-        // v47: never "repair" the fixed protected core adapters here. On some systems
+        const isProtected = this.isProtectedDeleteObjectId(id, protectedAdapters);
+        // v47/v58: never "repair" fixed protected core adapter objects here. On some systems
         // ioBroker or another guard restores their delete flags immediately, which created
-        // a repair/reapply loop and filled the log every debounce cycle.
+        // a repair/reapply loop and filled the log every debounce cycle. Additional EOS Admin
+        // instances such as eos-admin.1 are not protected and are cleaned below.
         if (isProtected) {
             return false;
         }
@@ -969,9 +991,10 @@ class Admin extends adapter_core_1.Adapter {
                 endkey: `system.adapter.${adapter}.香`,
             });
             for (const row of instances.rows) {
+                const protectThisInstance = this.isProtectedDeleteObjectId(row.id, new Set(this.getProtectedAdapterNames()));
                 changed = (await this.ensureObjectProtectionPolicy(row.id, {
                     keepDontDelete: false,
-                    adminOnlyAcl,
+                    adminOnlyAcl: protectThisInstance && adminOnlyAcl,
                 })) || changed;
             }
         }

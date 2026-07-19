@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v57-native-dp-manual-dialog-stability';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v58-admin-stability-delete-version-fix';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;

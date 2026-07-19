@@ -715,13 +715,8 @@ export default abstract class AdapterGeneric<
     }
 
     renderInstallSpecificVersionButton(): JSX.Element | null {
-        const allowAdapterUpdate = this.props.context.repository[this.props.adapterName]
-            ? this.props.context.repository[this.props.adapterName].allowAdapterUpdate
-            : true;
-
         return (
             this.props.context.expertMode &&
-            allowAdapterUpdate !== false &&
             this.installedVersion && (
                 <Tooltip
                     title={this.props.context.t('Install a specific version')}

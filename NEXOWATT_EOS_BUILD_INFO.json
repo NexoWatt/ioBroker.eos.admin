@@ -1,29 +1,27 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.57",
-  "variant": "nexowatt-eos-ui-v57-native-dp-manual-dialog-stability",
-  "createdAt": "2026-07-08T07:45:00Z",
+  "version": "7.9.58",
+  "variant": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
+  "createdAt": "2026-07-19T18:20:00Z",
   "fixes": [
-    "keep original ioBroker ObjectBrowser write semantics: common.write=false read-only, otherwise writable",
-    "remove EOS unrestricted/capture write paths; datapoint clicks use native ObjectBrowserValue dialog",
-    "stabilize ObjectBrowser value-cell click handling with stopPropagation and a click target while state cache is still loading",
-    "fix ObjectBrowser tooltip startup when tooltipInfo is not yet loaded; hover details now get a non-empty fallback and safe state default",
-    "do not let EOS branding/security/role observers scan or touch the native datapoints/logs table and MUI tooltip/popup surfaces",
-    "keep stale eos-performance-guard.js neutralized as no-op compatibility shim",
-    "make console quiet filter resistant to late console rewrites and %%c-prefixed admin debug logs",
-    "preserve delete/logquiet/role-guard fixes from previous versions"
+    "stop stale cross-imports into old bootstrap bundles that could initialize the GUI twice and trigger the GitHub/error screen",
+    "reduce console/DOM overhead on heavy admin pages such as Datenpunkte, Module, Dienste, Hosts and Systemlogs",
+    "allow expert specific-version installation button for installed adapters even when repository metadata blocks normal auto-update controls",
+    "protect only eos-admin.0 from deletion; eos-admin.1 and other additional EOS Admin test instances become deletable again",
+    "keep native ioBroker datapoint semantics: common.write=false read-only, common.write!=false opens native write dialog",
+    "preserve delete/logquiet/role/datapoint fixes from previous versions"
   ],
   "protectedDeleteAdapters": [
-    "admin",
-    "eos-admin",
+    "admin.0",
+    "eos-admin.0",
     "backitup",
     "nexowatt-devices",
     "nexowatt-device",
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Native ObjectBrowser DP writes; no ignored clicks while states cache is loading; v53 performance guard neutralized; reduced console/DOM noise.",
-  "patch": "v57-native-dp-manual-dialog-stability",
-  "description": "Restores the stable native ioBroker ObjectBrowser datapoint flow while preserving the NexoWatt EOS design and role/delete fixes.",
-  "build": "nexowatt-eos-ui-v57-native-dp-manual-dialog-stability-stabilization"
+  "notes": "Stability cleanup for v54-v57 cached bundles, heavy-page branding throttling, instance-aware EOS Admin delete protection, and expert version install fix.",
+  "patch": "v58-admin-stability-delete-version-fix",
+  "description": "Keeps the EOS design while preventing old admin bundles from reinitializing the app and restoring expected admin operations.",
+  "build": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix"
 }
