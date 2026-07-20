@@ -134,6 +134,16 @@ if (!drawerSource.includes('if (!this.isSwipeable())') || !drawerSource.includes
 if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('active bootstrap still renders the native desktop drawer header');
 if (!brandingCss.includes('a[href=\"/#easy\"]') || !brandingCss.includes('data-eos-native-drawer-header-hidden')) fail('branding CSS lacks structural native drawer-header fallback');
 
+const appSource = fs.readFileSync(path.join(root, 'src-admin/src/App.tsx'), 'utf8');
+const toolbarStart = activeBootstrap.indexOf('renderToolbar(e){');
+const toolbarEnd = toolbarStart >= 0 ? activeBootstrap.indexOf('renderSampleError()', toolbarStart) : -1;
+const activeToolbar = toolbarStart >= 0 && toolbarEnd > toolbarStart ? activeBootstrap.slice(toolbarStart, toolbarEnd) : '';
+if (!appSource.includes('EOS desktop: do not render the upstream compact toolbar menu/logo')) fail('App.tsx lacks exact desktop toolbar duplicate removal');
+if (!activeToolbar.includes('children:[e&&jsxRuntimeExports.jsx(')) fail('active bootstrap still renders desktop MenuIcon unconditionally');
+if (!activeToolbar.includes('e&&this.state.drawerState!==STATES.opened&&!this.state.expertMode&&window.innerWidth>450&&')) fail('active bootstrap still renders compact desktop /#easy identity');
+if (!branding.includes('hideNativeCompactToolbarIdentity')) fail('branding lacks exact AppBar compact identity fallback');
+if (!brandingCss.includes('eos-native-toolbar-menu-hidden') || !brandingCss.includes('svg[data-testid="MenuIcon"]')) fail('branding CSS lacks exact AppBar duplicate fallback');
+
 const activeAdapterReact = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v61.js'), 'utf8');
 const activeObjects = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v61.js'), 'utf8');
 const activeAdapters = fs.readFileSync(path.join(root, 'adminWww/assets/Adapters-B5_jQ7DE-v61.js'), 'utf8');

@@ -1,15 +1,14 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.65",
-  "variant": "nexowatt-eos-ui-v65-native-drawer-header-hard-remove",
-  "createdAt": "2026-07-20T13:38:44Z",
+  "version": "7.9.66",
+  "variant": "nexowatt-eos-ui-v66-native-toolbar-identity-hard-remove",
+  "createdAt": "2026-07-20T14:19:48Z",
   "fixes": [
-    "remove the desktop native ioBroker Drawer header in the React source and active frontend bundle instead of only hiding a post-detected CSS class",
-    "scan every MUI Drawer paper and structurally remove the easy-link/logo plus chevron header when an older cached runtime recreates it",
-    "add a direct CSS fallback for the native /#easy drawer-header structure before branding JavaScript finishes",
-    "retain the independent EOS navigation compact toggle and preserve the mobile native close control",
-    "bump all EOS cache tags and keep source/deployed branding assets byte-identical",
-    "preserve native datapoint write semantics, delete protection and specific-version installation behavior"
+    "remove the actual desktop AppBar MenuIcon that forms the left half of the unwanted top-left tab",
+    "remove the compact /#easy logo identity that forms the right half of the unwanted top-left tab",
+    "patch App.tsx and the actively loaded bootstrap-COulQZax-v61.js bundle",
+    "add exact JS/CSS fallbacks for stale cached React DOM while leaving the EOS brand badge intact",
+    "retain native controls on mobile only and preserve the EOS horizontal navigation"
   ],
   "protectedDeleteAdapters": [
     "admin.0",
@@ -20,9 +19,9 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "The unwanted top-left NexoWatt tab was the native desktop Drawer.getHeader() element. v65 removes it at render source, active bundle and DOM fallback levels.",
-  "patch": "v7.9.65 native drawer header hard remove",
-  "description": "Hard-removes the stray desktop native drawer header while keeping the intended EOS header and standalone navigation toggle.",
-  "build": "nexowatt-eos-ui-v65-native-drawer-header-hard-remove",
-  "uiVersion": "v65-native-drawer-header-hard-remove"
+  "notes": "v63-v65 targeted Drawer.getHeader(), but the screenshot element actually came from App.renderToolbar(): MenuIcon plus compact admin identity. v66 removes the exact source.",
+  "patch": "v7.9.66 native toolbar identity hard remove",
+  "description": "Removes the duplicate desktop AppBar menu/logo tab without changing mobile navigation or EOS functionality.",
+  "build": "nexowatt-eos-ui-v66-native-toolbar-identity-hard-remove",
+  "uiVersion": "v66-native-toolbar-identity-hard-remove"
 }

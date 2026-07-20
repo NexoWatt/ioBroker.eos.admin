@@ -786,6 +786,44 @@
         `;
     };
 
+
+
+    const hideNativeCompactToolbarIdentity = toolbar => safe(() => {
+        if (!toolbar || !window.matchMedia('(min-width: 901px)').matches) return;
+
+        const hide = (element, className) => {
+            if (!element || element.closest?.('.eos-brand-badge')) return;
+            element.classList.add(className);
+            element.dataset.eosNativeToolbarHidden = 'true';
+            element.setAttribute('aria-hidden', 'true');
+            element.setAttribute('inert', '');
+            element.querySelectorAll?.('button, a, [role="button"], input, select, textarea').forEach(control => {
+                control.setAttribute('tabindex', '-1');
+                control.setAttribute('aria-hidden', 'true');
+            });
+            if (element.style) {
+                for (const [name, value] of Object.entries({
+                    display: 'none', visibility: 'hidden', opacity: '0',
+                    'pointer-events': 'none', width: '0', 'min-width': '0', 'max-width': '0',
+                    height: '0', 'min-height': '0', 'max-height': '0',
+                    margin: '0', padding: '0', overflow: 'hidden', flex: '0 0 0',
+                })) element.style.setProperty(name, value, 'important');
+            }
+        };
+
+        // The visible tab is two native AppBar children: MenuIcon + compact /#easy identity.
+        Array.from(toolbar.children).forEach(child => {
+            if (child.matches?.('button, .MuiIconButton-root') && child.querySelector?.('svg[data-testid="MenuIcon"]')) {
+                hide(child, 'eos-native-toolbar-menu-hidden');
+            }
+        });
+        toolbar.querySelectorAll('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]').forEach(link => {
+            let directChild = link;
+            while (directChild?.parentElement && directChild.parentElement !== toolbar) directChild = directChild.parentElement;
+            if (directChild?.parentElement === toolbar) hide(directChild, 'eos-native-toolbar-identity-hidden');
+        });
+    });
+
     const ensureLogoutButton = () => {
         // v14: the custom EOS logout button remains disabled/removed.
         // The visible native logout menu item is hidden too because it caused broken redirects.
@@ -914,6 +952,7 @@
         if (toolbar) {
             toolbar.classList.add('eos-top-toolbar');
             ensureBrandBadge(toolbar);
+            hideNativeCompactToolbarIdentity(toolbar);
         }
         removeStrayNativeDrawerHeaders();
         hideNativeLogoutNav();

@@ -3864,7 +3864,7 @@ html.eos-app .eos-native-drawer-header-hidden {
 }
 
 
-/* === NexoWatt EOS v7.9.65: native desktop drawer-header hard remove ======
+/* === NexoWatt EOS v7.9.66: native desktop drawer-header hard remove ======
    The upstream drawer identity block contains a /#easy link plus the chevron
    button. It is redundant in the EOS horizontal shell and caused the small
    floating NexoWatt tab above the real header. Target the actual structure,
@@ -3890,4 +3890,35 @@ html.eos-app [data-eos-native-drawer-header-hidden="true"] {
     border: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
+}
+
+
+/* === NexoWatt EOS v7.9.66: exact desktop AppBar duplicate removal =========
+   The top-left ghost tab is the native desktop MenuIcon plus the compact
+   /#easy logo identity from App.renderToolbar(), not Drawer.getHeader(). */
+html.eos-app .eos-top-toolbar > .eos-native-toolbar-menu-hidden,
+html.eos-app .eos-top-toolbar > .eos-native-toolbar-identity-hidden,
+html.eos-app .eos-top-toolbar > [data-eos-native-toolbar-hidden="true"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important; min-width: 0 !important; max-width: 0 !important;
+    height: 0 !important; min-height: 0 !important; max-height: 0 !important;
+    margin: 0 !important; padding: 0 !important; overflow: hidden !important;
+    flex: 0 0 0 !important;
+}
+@media (min-width: 901px) {
+    html.eos-app .eos-top-toolbar > button:has(svg[data-testid="MenuIcon"]),
+    html.eos-app .eos-top-toolbar > .MuiIconButton-root:has(svg[data-testid="MenuIcon"]),
+    html.eos-app .eos-top-toolbar > .MuiGrid-root:has(a[href="/#easy"]) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important; min-width: 0 !important; max-width: 0 !important;
+        height: 0 !important; min-height: 0 !important; max-height: 0 !important;
+        margin: 0 !important; padding: 0 !important; overflow: hidden !important;
+        flex: 0 0 0 !important;
+    }
 }
