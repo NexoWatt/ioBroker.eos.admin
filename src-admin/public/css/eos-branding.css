@@ -3788,3 +3788,77 @@ html.eos-app .MuiTooltip-popper {
     z-index: 16000 !important;
     pointer-events: none !important;
 }
+
+
+/* === NexoWatt EOS v62: adapter filter overlay cleanup =====================
+   Keep the module cards and top filter controls. Hide only stale/orphaned
+   native MUI filter menus that fall back into the left header/navigation area
+   and cover the EOS adapter view. Dialog listboxes/autocomplete remain active. */
+html.eos-route-adapters body > .MuiMenu-root.eos-adapter-filter-menu-stale,
+html.eos-route-adapters body > .MuiPopover-root.eos-adapter-filter-menu-stale,
+html.eos-route-adapters body > [role="presentation"].eos-adapter-filter-menu-stale,
+html.eos-route-adapters .eos-adapter-filter-menu-stale,
+html.eos-route-adapters .eos-adapter-filter-menu-stale-paper {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+html.eos-route-adapters .MuiDialog-root .MuiAutocomplete-popper,
+html.eos-route-adapters .MuiDialog-root [role="listbox"],
+html.eos-route-adapters .MuiModal-root .MuiAutocomplete-popper,
+html.eos-route-adapters .MuiModal-root [role="listbox"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 16000 !important;
+}
+
+
+/* === NexoWatt EOS v7.9.64: remove stray top-left ghost toggle =====
+   The floating compact-nav tile in the top-left corner must not be shown.
+   Keep the main EOS header and the regular round back/collapse control only. */
+html.eos-app .eos-native-drawer-header,
+html.eos-app .eos-native-drawer-header > div:first-child {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+
+/* === NexoWatt EOS v7.9.64: final native drawer header guard ============== */
+html.eos-app .eos-native-drawer-header-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}

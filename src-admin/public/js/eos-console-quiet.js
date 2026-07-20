@@ -1,7 +1,8 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = 'v61-modal-autocomplete-layer-fix';
+    const QUIET_VERSION = 'v64-cache-build-consistency-hardening';
+    window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = QUIET_VERSION;
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {
         log: console.log.bind(console),
@@ -40,12 +41,12 @@
 
     const install = () => {
         ['log', 'info', 'warn', 'debug'].forEach(level => {
-            if (console[level]?.__nexowattQuietV58) return;
+            if (console[level]?.__nexowattQuietVersion === QUIET_VERSION) return;
             const wrapped = (...args) => {
                 if (noisy(args)) return;
                 original[level](...args);
             };
-            Object.defineProperty(wrapped, '__nexowattQuietV58', { value: true });
+            Object.defineProperty(wrapped, '__nexowattQuietVersion', { value: QUIET_VERSION });
             console[level] = wrapped;
         });
     };

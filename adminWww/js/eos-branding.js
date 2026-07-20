@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v62-adapter-filter-overlay-cleanup';
+    window.NEXOWATT_EOS_UI_VERSION = 'v64-cache-build-consistency-hardening';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -829,46 +829,29 @@
         const isListLike = el => el.classList?.contains('MuiList-root') || el.querySelector?.('.MuiListItemButton-root');
         let header = drawer.querySelector(':scope > .eos-native-drawer-header');
         if (!header) {
-            header = directChildren.find(el => !isListLike(el) && el.querySelector && el.querySelector('button') && (el.querySelector('img') || el.querySelector('.MuiAvatar-root') || el.querySelector('a')))
-                || directChildren.find(el => !isListLike(el) && el.querySelector && (el.querySelector('button') || el.querySelector('img') || el.querySelector('.MuiAvatar-root')));
+            header = directChildren.find(el => {
+                if (isListLike(el) || !el.querySelector) return false;
+                const hasToggle = !!el.querySelector('button, .MuiIconButton-root, [role="button"]');
+                const hasIdentity = !!el.querySelector('img, .MuiAvatar-root, a')
+                    || /nexowatt|iobroker|energy operation system/i.test(String(el.textContent || ''));
+                return hasToggle && hasIdentity;
+            });
         }
         if (header) {
-            header.classList.add('eos-native-drawer-header', 'eos-nav-toggle-shell');
-            const toggleButton = header.querySelector('button, .MuiIconButton-root, [role="button"]');
-            if (toggleButton && !toggleButton.dataset.eosNavCompactToggle) {
-                toggleButton.dataset.eosNavCompactToggle = 'true';
-                toggleButton.classList.add('eos-nav-compact-toggle');
-                toggleButton.setAttribute('title', 'Navigation kompakt/normal umschalten');
-                toggleButton.setAttribute('aria-label', 'Navigation kompakt/normal umschalten');
-                const toggleCompact = event => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-                    const compact = !document.documentElement.classList.contains('eos-nav-compact');
-                    document.documentElement.classList.toggle('eos-nav-compact', compact);
-                    safe(() => localStorage.setItem('nexowatt:eosNavCompact', compact ? '1' : '0'));
-                    toggleButton.setAttribute('aria-pressed', compact ? 'true' : 'false');
-                };
-                toggleButton.addEventListener('click', toggleCompact, true);
-                toggleButton.addEventListener('keydown', event => {
-                    if (event.key === 'Enter' || event.key === ' ') toggleCompact(event);
-                }, true);
-            }
-            header.querySelectorAll('a,img,.MuiAvatar-root,.MuiAvatar-img,.eos-native-title').forEach(el => {
-                if (!el.closest?.('button')) el.classList.add('eos-nav-toggle-decor-hidden');
+            // The horizontal EOS navigation uses the independent standalone toggle.
+            // The native drawer identity/header is decorative here and caused the
+            // stray top-left tab. Do not bind events or inject content into it.
+            header.classList.add('eos-native-drawer-header', 'eos-nav-toggle-shell', 'eos-native-drawer-header-hidden');
+            header.setAttribute('aria-hidden', 'true');
+            header.setAttribute('inert', '');
+            header.querySelectorAll('button, a, [role="button"], input, select, textarea').forEach(control => {
+                control.setAttribute('tabindex', '-1');
+                control.setAttribute('aria-hidden', 'true');
             });
-            const img = header.querySelector('img');
-            if (img) patchImage(img);
-            const avatarImg = header.querySelector('.MuiAvatar-img');
-            if (avatarImg) patchImage(avatarImg);
-            const logoArea = header.querySelector('a')?.parentElement || header.firstElementChild || header;
-            if (logoArea && !logoArea.querySelector('.eos-native-title')) {
-                const title = document.createElement('span');
-                title.className = 'eos-native-title';
-                title.innerHTML = `<strong>${BRAND}</strong><small>${EOS_MEANING}</small>`;
-                const link = logoArea.querySelector('a');
-                if (link && link.nextSibling) logoArea.insertBefore(title, link.nextSibling);
-                else logoArea.appendChild(title);
+            if (header.style) {
+                header.style.display = 'none';
+                header.style.visibility = 'hidden';
+                header.style.pointerEvents = 'none';
             }
         }
         const list = drawer.querySelector('.MuiList-root');

@@ -1,15 +1,16 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.62",
-  "variant": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
-  "createdAt": "2026-07-19T18:20:00Z",
+  "version": "7.9.64",
+  "variant": "nexowatt-eos-ui-v64-cache-build-consistency-hardening",
+  "createdAt": "2026-07-20T11:47:12Z",
   "fixes": [
-    "stop stale cross-imports into old bootstrap bundles that could initialize the GUI twice and trigger the GitHub/error screen",
-    "reduce console/DOM overhead on heavy admin pages such as Datenpunkte, Module, Dienste, Hosts and Systemlogs",
-    "allow expert specific-version installation button for installed adapters even when repository metadata blocks normal auto-update controls",
-    "protect only eos-admin.0 from deletion; eos-admin.1 and other additional EOS Admin test instances become deletable again",
-    "keep native ioBroker datapoint semantics: common.write=false read-only, common.write!=false opens native write dialog",
-    "preserve delete/logquiet/role/datapoint fixes from previous versions"
+    "force cache refresh for all EOS branding/runtime assets after every package update",
+    "keep source and deployed branding assets byte-identical so a future frontend build does not restore stale UI code",
+    "remove the hidden native drawer header without attaching listeners or injecting content into that hidden node",
+    "replace old heavyweight ObjectBrowser and adapter-react bundles with compatibility shims to the single active v61 runtime",
+    "keep only one effective React-DnD/HTML5 backend on fresh loads and reduce the update package size",
+    "extend package validation to detect cache-tag, source/build, nested-version and compatibility-shim regressions",
+    "preserve native datapoint semantics and the existing deletion/version-selection protections"
   ],
   "protectedDeleteAdapters": [
     "admin.0",
@@ -20,9 +21,9 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Suppress stale adapter filter/category MUI menus falling into the left header/navigation area; keep dialog autocomplete/listbox and native install dialogs active.",
-  "patch": "v7.9.62 adapter filter overlay cleanup / stale MUI menu suppression",
-  "description": "Keeps the EOS design while preventing old admin bundles from reinitializing the app and restoring expected admin operations.",
-  "build": "nexowatt-eos-ui-v58-admin-stability-delete-version-fix",
-  "uiVersion": "v62-adapter-filter-overlay-cleanup"
+  "notes": "Consistency hardening after v63. The top-left ghost header remains hidden; the independent EOS navigation toggle remains available.",
+  "patch": "v7.9.64 cache/build consistency hardening",
+  "description": "Hardens cache invalidation, source/build parity and the single active frontend runtime without changing native ioBroker datapoint write semantics.",
+  "build": "nexowatt-eos-ui-v64-cache-build-consistency-hardening",
+  "uiVersion": "v64-cache-build-consistency-hardening"
 }
