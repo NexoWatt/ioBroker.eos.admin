@@ -3864,7 +3864,7 @@ html.eos-app .eos-native-drawer-header-hidden {
 }
 
 
-/* === NexoWatt EOS v7.9.66: native desktop drawer-header hard remove ======
+/* === NexoWatt EOS v7.9.65: native desktop drawer-header hard remove ======
    The upstream drawer identity block contains a /#easy link plus the chevron
    button. It is redundant in the EOS horizontal shell and caused the small
    floating NexoWatt tab above the real header. Target the actual structure,
@@ -3893,32 +3893,58 @@ html.eos-app [data-eos-native-drawer-header-hidden="true"] {
 }
 
 
-/* === NexoWatt EOS v7.9.66: exact desktop AppBar duplicate removal =========
-   The top-left ghost tab is the native desktop MenuIcon plus the compact
-   /#easy logo identity from App.renderToolbar(), not Drawer.getHeader(). */
-html.eos-app .eos-top-toolbar > .eos-native-toolbar-menu-hidden,
-html.eos-app .eos-top-toolbar > .eos-native-toolbar-identity-hidden,
-html.eos-app .eos-top-toolbar > [data-eos-native-toolbar-hidden="true"] {
+/* === NexoWatt EOS v7.9.67: restore primary brand, remove only ghost tab ===
+   Keep the large NexoWatt EOS / Energy Operation System card. Hide only the
+   short native NexoWatt+arrow block that is redundant in the EOS shell. */
+html.eos-app .eos-top-toolbar > .eos-brand-badge,
+html.eos-app .eos-top-toolbar > .eos-primary-brand,
+html.eos-app [data-eos-primary-brand="true"] {
+    display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+    flex: 0 0 auto !important;
+}
+
+html.eos-app .eos-native-top-left-ghost-hidden,
+html.eos-app [data-eos-native-top-left-ghost="true"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
-    width: 0 !important; min-width: 0 !important; max-width: 0 !important;
-    height: 0 !important; min-height: 0 !important; max-height: 0 !important;
-    margin: 0 !important; padding: 0 !important; overflow: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
     flex: 0 0 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
+
 @media (min-width: 901px) {
-    html.eos-app .eos-top-toolbar > button:has(svg[data-testid="MenuIcon"]),
-    html.eos-app .eos-top-toolbar > .MuiIconButton-root:has(svg[data-testid="MenuIcon"]),
-    html.eos-app .eos-top-toolbar > .MuiGrid-root:has(a[href="/#easy"]) {
+    /* Exact upstream Drawer.getHeader fingerprint. This rule never targets the
+       primary .eos-brand-badge in the AppBar. */
+    html.eos-app .MuiDrawer-paper > *:not(.MuiList-root):has(a[href*="#easy"]):has(button),
+    html.eos-app .MuiSwipeableDrawer-paper > *:not(.MuiList-root):has(a[href*="#easy"]):has(.MuiIconButton-root) {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
-        width: 0 !important; min-width: 0 !important; max-width: 0 !important;
-        height: 0 !important; min-height: 0 !important; max-height: 0 !important;
-        margin: 0 !important; padding: 0 !important; overflow: hidden !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
         flex: 0 0 0 !important;
     }
 }

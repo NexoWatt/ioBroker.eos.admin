@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v65-native-drawer-header-hard-remove';
+    window.NEXOWATT_EOS_UI_VERSION = 'v67-primary-logo-restore-native-ghost-remove';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -771,14 +771,29 @@
         document.querySelectorAll('.eos-brand-badge').forEach(existing => {
             if (!toolbar.contains(existing)) existing.remove();
         });
-        let badge = toolbar.querySelector('.eos-brand-badge');
+
+        let badge = toolbar.querySelector(':scope > .eos-brand-badge') || toolbar.querySelector('.eos-brand-badge');
         if (!badge) {
             badge = document.createElement('span');
-            badge.className = 'eos-brand-badge eos-system-brand';
-            const firstButton = toolbar.querySelector('button');
-            toolbar.insertBefore(badge, firstButton || toolbar.firstChild || null);
+            badge.className = 'eos-brand-badge eos-system-brand eos-primary-brand';
         }
-        badge.classList.add('eos-system-brand');
+
+        // Never use a nested button as insertBefore reference. App.renderToolbar()
+        // can omit the desktop MenuIcon, in which case querySelector('button')
+        // points into a child wrapper and insertBefore throws a NotFoundError.
+        if (badge.parentElement !== toolbar || toolbar.firstElementChild !== badge) {
+            toolbar.insertBefore(badge, toolbar.firstElementChild || null);
+        }
+
+        badge.classList.add('eos-system-brand', 'eos-primary-brand');
+        badge.dataset.eosPrimaryBrand = 'true';
+        badge.removeAttribute('hidden');
+        badge.removeAttribute('aria-hidden');
+        badge.removeAttribute('inert');
+        badge.style.removeProperty('display');
+        badge.style.removeProperty('visibility');
+        badge.style.removeProperty('opacity');
+        badge.style.removeProperty('pointer-events');
         badge.innerHTML = `
             <span class="eos-brand-badge-mark"><img class="eos-brand-badge-logo" src="${LOGO}" alt="${BRAND}" /></span>
             <span class="eos-brand-badge-copy"><strong>${BRAND}</strong><small>${EOS_MEANING}</small></span>
@@ -786,42 +801,79 @@
         `;
     };
 
+    const hideNativeTopLeftGhost = element => safe(() => {
+        if (!element) return;
+        if (
+            element.matches?.('.eos-brand-badge, .eos-primary-brand') ||
+            element.closest?.('.eos-brand-badge, .eos-primary-brand') ||
+            element.querySelector?.('.eos-brand-badge, .eos-primary-brand')
+        ) return;
 
+        const text = normalize(element.textContent || '');
+        // The wanted primary card contains the full product name and subtitle.
+        // The unwanted native tab contains only the short NexoWatt identity.
+        if (/energy operation system|nexowatt eos/.test(text)) return;
 
-    const hideNativeCompactToolbarIdentity = toolbar => safe(() => {
-        if (!toolbar || !window.matchMedia('(min-width: 901px)').matches) return;
+        element.classList.add('eos-native-top-left-ghost-hidden');
+        element.dataset.eosNativeTopLeftGhost = 'true';
+        element.setAttribute('aria-hidden', 'true');
+        element.setAttribute('inert', '');
+        element.querySelectorAll?.('button, a, [role="button"], input, select, textarea').forEach(control => {
+            control.setAttribute('tabindex', '-1');
+            control.setAttribute('aria-hidden', 'true');
+        });
+        if (element.style) {
+            for (const name of [
+                'display', 'visibility', 'opacity', 'pointer-events',
+                'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height',
+                'margin', 'padding', 'overflow', 'flex', 'border', 'box-shadow',
+            ]) {
+                const value = name === 'display' ? 'none'
+                    : name === 'visibility' ? 'hidden'
+                    : name === 'opacity' ? '0'
+                    : name === 'pointer-events' ? 'none'
+                    : name === 'overflow' ? 'hidden'
+                    : name === 'flex' ? '0 0 0'
+                    : name === 'border' || name === 'box-shadow' ? 'none'
+                    : '0';
+                element.style.setProperty(name, value, 'important');
+            }
+        }
+    });
 
-        const hide = (element, className) => {
-            if (!element || element.closest?.('.eos-brand-badge')) return;
-            element.classList.add(className);
-            element.dataset.eosNativeToolbarHidden = 'true';
-            element.setAttribute('aria-hidden', 'true');
-            element.setAttribute('inert', '');
-            element.querySelectorAll?.('button, a, [role="button"], input, select, textarea').forEach(control => {
-                control.setAttribute('tabindex', '-1');
-                control.setAttribute('aria-hidden', 'true');
+    const removeNativeTopLeftGhost = () => safe(() => {
+        if (!window.matchMedia('(min-width: 901px)').matches) return;
+
+        // Source 1: upstream Drawer.getHeader() identity + chevron block.
+        document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(drawer => {
+            Array.from(drawer.children || []).forEach(child => {
+                if (!child?.querySelector) return;
+                const text = normalize(child.textContent || '');
+                const hasIdentity = !!child.querySelector('a[href*="#easy"], img, .MuiAvatar-root') || /nexowatt|iobroker/.test(text);
+                const hasToggle = !!child.querySelector('button, .MuiIconButton-root, [role="button"]');
+                const isNavigationList = child.classList?.contains('MuiList-root') || !!child.querySelector('.MuiListItemButton-root');
+                if (hasIdentity && hasToggle && !isNavigationList) hideNativeTopLeftGhost(child);
             });
-            if (element.style) {
-                for (const [name, value] of Object.entries({
-                    display: 'none', visibility: 'hidden', opacity: '0',
-                    'pointer-events': 'none', width: '0', 'min-width': '0', 'max-width': '0',
-                    height: '0', 'min-height': '0', 'max-height': '0',
-                    margin: '0', padding: '0', overflow: 'hidden', flex: '0 0 0',
-                })) element.style.setProperty(name, value, 'important');
-            }
-        };
+        });
 
-        // The visible tab is two native AppBar children: MenuIcon + compact /#easy identity.
-        Array.from(toolbar.children).forEach(child => {
-            if (child.matches?.('button, .MuiIconButton-root') && child.querySelector?.('svg[data-testid="MenuIcon"]')) {
-                hide(child, 'eos-native-toolbar-menu-hidden');
-            }
+        // Source 2: stale native compact identity rendered as a small top-left
+        // AppBar child. Use geometry + short label, and explicitly protect the
+        // large primary EOS badge.
+        document.querySelectorAll('.MuiAppBar-root .MuiToolbar-root > *, .eos-top-toolbar > *').forEach(child => {
+            if (!child?.querySelector || child.matches?.('.eos-brand-badge, .eos-primary-brand')) return;
+            if (child.querySelector('.eos-brand-badge, .eos-primary-brand')) return;
+            const text = normalize(child.textContent || '');
+            const hasShortIdentity = text === 'nexowatt' || text === 'iobroker' || /^nexowatt\s*$/.test(text);
+            const hasEasyLink = !!child.querySelector('a[href*="#easy"]');
+            const hasToggle = !!child.querySelector('button, .MuiIconButton-root, svg');
+            const rect = child.getBoundingClientRect?.();
+            const isTopLeft = rect && rect.top < 105 && rect.left < 220 && rect.width < 230 && rect.height < 100;
+            if (isTopLeft && (hasShortIdentity || hasEasyLink) && hasToggle) hideNativeTopLeftGhost(child);
         });
-        toolbar.querySelectorAll('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]').forEach(link => {
-            let directChild = link;
-            while (directChild?.parentElement && directChild.parentElement !== toolbar) directChild = directChild.parentElement;
-            if (directChild?.parentElement === toolbar) hide(directChild, 'eos-native-toolbar-identity-hidden');
-        });
+
+        // Restore/verify the correct large EOS identity after cleanup.
+        const toolbar = document.querySelector('#root > .MuiPaper-root > .MuiAppBar-root .MuiToolbar-root, header .MuiToolbar-root, .MuiAppBar-root .MuiToolbar-root');
+        if (toolbar) ensureBrandBadge(toolbar);
     });
 
     const ensureLogoutButton = () => {
@@ -952,8 +1004,8 @@
         if (toolbar) {
             toolbar.classList.add('eos-top-toolbar');
             ensureBrandBadge(toolbar);
-            hideNativeCompactToolbarIdentity(toolbar);
         }
+        removeNativeTopLeftGhost();
         removeStrayNativeDrawerHeaders();
         hideNativeLogoutNav();
         releaseNotificationControls();

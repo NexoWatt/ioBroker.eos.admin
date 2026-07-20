@@ -1,14 +1,14 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.66",
-  "variant": "nexowatt-eos-ui-v66-native-toolbar-identity-hard-remove",
-  "createdAt": "2026-07-20T14:19:48Z",
+  "version": "7.9.67",
+  "variant": "nexowatt-eos-ui-v67-primary-logo-restore-native-ghost-remove",
+  "createdAt": "2026-07-20T15:39:35Z",
   "fixes": [
-    "remove the actual desktop AppBar MenuIcon that forms the left half of the unwanted top-left tab",
-    "remove the compact /#easy logo identity that forms the right half of the unwanted top-left tab",
-    "patch App.tsx and the actively loaded bootstrap-COulQZax-v61.js bundle",
-    "add exact JS/CSS fallbacks for stale cached React DOM while leaving the EOS brand badge intact",
-    "retain native controls on mobile only and preserve the EOS horizontal navigation"
+    "restore the large NexoWatt EOS / Energy Operation System header badge removed by v66",
+    "remove only the short native NexoWatt+arrow ghost tab at the upper-left corner",
+    "use a robust direct-child brand insertion that does not depend on a native MenuIcon button",
+    "publish a fresh v67 bootstrap and route-chunk graph so cached bootstrap-v61 cannot survive the update",
+    "retain desktop Drawer.getHeader() suppression while preserving mobile navigation and EOS controls"
   ],
   "protectedDeleteAdapters": [
     "admin.0",
@@ -19,9 +19,9 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "v63-v65 targeted Drawer.getHeader(), but the screenshot element actually came from App.renderToolbar(): MenuIcon plus compact admin identity. v66 removes the exact source.",
-  "patch": "v7.9.66 native toolbar identity hard remove",
-  "description": "Removes the duplicate desktop AppBar menu/logo tab without changing mobile navigation or EOS functionality.",
-  "build": "nexowatt-eos-ui-v66-native-toolbar-identity-hard-remove",
-  "uiVersion": "v66-native-toolbar-identity-hard-remove"
+  "notes": "v66 removed the wrong toolbar structure and also made the custom brand insertion fail when no direct MenuIcon existed. v67 restores the primary EOS brand and cache-busts the exact Drawer fix.",
+  "patch": "v7.9.67 primary logo restore and native ghost tab removal",
+  "description": "Restores the correct main EOS logo while removing only the unwanted compact NexoWatt arrow tab.",
+  "build": "nexowatt-eos-ui-v67-primary-logo-restore-native-ghost-remove",
+  "uiVersion": "v67-primary-logo-restore-native-ghost-remove"
 }

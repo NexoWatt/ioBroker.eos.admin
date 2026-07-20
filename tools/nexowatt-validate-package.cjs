@@ -81,7 +81,7 @@ for (const asset of [
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(adminIndex)) fail(`adminWww/index.html cache tag is stale for ${asset}`);
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(sourceIndex)) fail(`src-admin/index.html cache tag is stale for ${asset}`);
 }
-for (const entry of ['hostInit-v61.js', 'index-CQZugZ1z-v61.js']) {
+for (const entry of ['hostInit-v61.js', 'index-CQZugZ1z-v67.js']) {
   const escaped = entry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(adminIndex)) fail(`adminWww/index.html entry cache tag is stale for ${entry}`);
 }
@@ -121,32 +121,41 @@ if (!branding.includes('eos-native-drawer-header-hidden') || !branding.includes(
 if (!branding.includes('removeStrayNativeDrawerHeaders') || !branding.includes('a[href=\"/#easy\"]')) fail('eos-branding.js lacks structural native drawer-header cleanup');
 if (!branding.includes('ensureStandaloneNavToggle')) fail('eos-branding.js lacks the independent EOS navigation toggle');
 const activeGraph = [
-  fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v61.js'), 'utf8'),
-  fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v61.js'), 'utf8'),
+  fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v67.js'), 'utf8'),
+  fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v67.js'), 'utf8'),
   fs.readFileSync(path.join(root, 'adminWww/remoteEntry-v61.js'), 'utf8'),
 ].join('\n');
-if (/-v(?:54|55|56|57|58|59|60)\.js/.test(activeGraph)) fail('active v61 frontend graph still imports an old versioned runtime file');
+if (/bootstrap-COulQZax-v61\.js|(?:AdapterUpdateDialog|Adapters|Config|CustomTab|DeviceManager|EasyMode|Enums|Fields|Files|Hosts|Instances|Intro|Logs|Objects|Users)-[^\"']+-v61\.js/.test(activeGraph)) fail('active v67 frontend graph still imports a v61 application runtime/route chunk');
 
 const drawerSource = fs.readFileSync(path.join(root, 'src-admin/src/components/Drawer.tsx'), 'utf8');
-const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v61.js'), 'utf8');
+const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v67.js'), 'utf8');
 const brandingCss = fs.readFileSync(path.join(root, 'adminWww/css/eos-branding.css'), 'utf8');
 if (!drawerSource.includes('if (!this.isSwipeable())') || !drawerSource.includes('return null;')) fail('Drawer.tsx still renders the native desktop drawer header');
 if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('active bootstrap still renders the native desktop drawer header');
 if (!brandingCss.includes('a[href=\"/#easy\"]') || !brandingCss.includes('data-eos-native-drawer-header-hidden')) fail('branding CSS lacks structural native drawer-header fallback');
 
 const appSource = fs.readFileSync(path.join(root, 'src-admin/src/App.tsx'), 'utf8');
-const toolbarStart = activeBootstrap.indexOf('renderToolbar(e){');
-const toolbarEnd = toolbarStart >= 0 ? activeBootstrap.indexOf('renderSampleError()', toolbarStart) : -1;
-const activeToolbar = toolbarStart >= 0 && toolbarEnd > toolbarStart ? activeBootstrap.slice(toolbarStart, toolbarEnd) : '';
-if (!appSource.includes('EOS desktop: do not render the upstream compact toolbar menu/logo')) fail('App.tsx lacks exact desktop toolbar duplicate removal');
-if (!activeToolbar.includes('children:[e&&jsxRuntimeExports.jsx(')) fail('active bootstrap still renders desktop MenuIcon unconditionally');
-if (!activeToolbar.includes('e&&this.state.drawerState!==STATES.opened&&!this.state.expertMode&&window.innerWidth>450&&')) fail('active bootstrap still renders compact desktop /#easy identity');
-if (!branding.includes('hideNativeCompactToolbarIdentity')) fail('branding lacks exact AppBar compact identity fallback');
-if (!brandingCss.includes('eos-native-toolbar-menu-hidden') || !brandingCss.includes('svg[data-testid="MenuIcon"]')) fail('branding CSS lacks exact AppBar duplicate fallback');
+if (!branding.includes('eos-primary-brand') || !branding.includes('toolbar.firstElementChild')) fail('branding lacks robust primary EOS brand insertion');
+if (!branding.includes('removeNativeTopLeftGhost') || !branding.includes('eos-native-top-left-ghost-hidden')) fail('branding lacks exact native top-left ghost removal');
+if (!brandingCss.includes('data-eos-primary-brand') || !brandingCss.includes('data-eos-native-top-left-ghost')) fail('branding CSS lacks primary-brand/ghost safeguards');
+if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('fresh v67 bootstrap still renders desktop Drawer.getHeader()');
+if (!activeBootstrap.includes('children:[jsxRuntimeExports.jsx(')) fail('v67 bootstrap did not restore the normal toolbar structure required by the EOS brand injector');
+
+for (const file of [
+  'AdapterUpdateDialog-BMg84Hpf-v67.js', 'Adapters-B5_jQ7DE-v67.js', 'Config-hHK2UzGP-v67.js',
+  'CustomTab-B0wqoazH-v67.js', 'DeviceManager-BFmQeYQ1-v67.js', 'EasyMode-B1d9Vdc4-v67.js',
+  'Enums-DbWYxKOo-v67.js', 'Fields-CX3rKuWb-v67.js', 'Files-Cd2HOzIE-v67.js',
+  'Hosts-Bg8QzW5i-v67.js', 'Instances-YdaGnS5a-v67.js', 'Intro-DkwRiz1n-v67.js',
+  'Logs-CsVPSLJH-v67.js', 'Objects-DPan0bzw-v67.js', 'Users-BgnBRgwU-v67.js',
+]) {
+  if (!exists(path.join('adminWww/assets', file))) fail(`missing fresh v67 route chunk: ${file}`);
+  const chunk = fs.readFileSync(path.join(root, 'adminWww/assets', file), 'utf8');
+  if (chunk.includes('bootstrap-COulQZax-v61.js')) fail(`${file} still imports bootstrap-v61`);
+}
 
 const activeAdapterReact = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v61.js'), 'utf8');
-const activeObjects = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v61.js'), 'utf8');
-const activeAdapters = fs.readFileSync(path.join(root, 'adminWww/assets/Adapters-B5_jQ7DE-v61.js'), 'utf8');
+const activeObjects = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v67.js'), 'utf8');
+const activeAdapters = fs.readFileSync(path.join(root, 'adminWww/assets/Adapters-B5_jQ7DE-v67.js'), 'utf8');
 for (const marker of ['eos-object-value-cell', 'data-eos-object-writable']) {
   if (!activeAdapterReact.includes(marker)) fail(`active ObjectBrowser bundle lacks required marker: ${marker}`);
 }
