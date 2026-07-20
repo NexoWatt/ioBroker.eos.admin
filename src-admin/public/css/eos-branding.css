@@ -3862,3 +3862,32 @@ html.eos-app .eos-native-drawer-header-hidden {
     box-shadow: none !important;
     background: transparent !important;
 }
+
+
+/* === NexoWatt EOS v7.9.65: native desktop drawer-header hard remove ======
+   The upstream drawer identity block contains a /#easy link plus the chevron
+   button. It is redundant in the EOS horizontal shell and caused the small
+   floating NexoWatt tab above the real header. Target the actual structure,
+   not only a class that JavaScript may assign too late. */
+body:has(#app-paper) .MuiDrawer-paper > *:has(a[href="/#easy"]):has(button),
+body:has(#app-paper) .MuiDrawer-paper > *:has(a[href$="#easy"]):has(.MuiIconButton-root),
+body:has(#app-paper) .MuiSwipeableDrawer-paper > *:has(a[href="/#easy"]):has(button),
+html.eos-app [data-eos-native-drawer-header-hidden="true"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}

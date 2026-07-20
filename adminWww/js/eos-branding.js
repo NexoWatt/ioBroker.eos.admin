@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v64-cache-build-consistency-hardening';
+    window.NEXOWATT_EOS_UI_VERSION = 'v65-native-drawer-header-hard-remove';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -820,6 +820,39 @@
         });
     });
 
+    const hideNativeDrawerHeaderElement = header => safe(() => {
+        if (!header || header.closest?.('.eos-brand-badge, .eos-top-toolbar')) return;
+        header.classList.add(
+            'eos-native-drawer-header',
+            'eos-nav-toggle-shell',
+            'eos-native-drawer-header-hidden',
+        );
+        header.dataset.eosNativeDrawerHeaderHidden = 'true';
+        header.setAttribute('aria-hidden', 'true');
+        header.setAttribute('inert', '');
+        header.querySelectorAll('button, a, [role="button"], input, select, textarea').forEach(control => {
+            control.setAttribute('tabindex', '-1');
+            control.setAttribute('aria-hidden', 'true');
+        });
+        if (header.style) {
+            header.style.setProperty('display', 'none', 'important');
+            header.style.setProperty('visibility', 'hidden', 'important');
+            header.style.setProperty('opacity', '0', 'important');
+            header.style.setProperty('pointer-events', 'none', 'important');
+            header.style.setProperty('width', '0', 'important');
+            header.style.setProperty('height', '0', 'important');
+            header.style.setProperty('overflow', 'hidden', 'important');
+            header.style.setProperty('margin', '0', 'important');
+            header.style.setProperty('padding', '0', 'important');
+        }
+    });
+
+    const getDirectDrawerChild = (drawer, node) => {
+        let current = node;
+        while (current?.parentElement && current.parentElement !== drawer) current = current.parentElement;
+        return current?.parentElement === drawer ? current : null;
+    };
+
     const patchDrawerHeader = drawer => safe(() => {
         if (!drawer) return;
         drawer.classList.add('eos-drawer');
@@ -827,38 +860,44 @@
 
         const directChildren = Array.from(drawer.children).filter(el => el.nodeType === 1);
         const isListLike = el => el.classList?.contains('MuiList-root') || el.querySelector?.('.MuiListItemButton-root');
-        let header = drawer.querySelector(':scope > .eos-native-drawer-header');
+
+        // Exact upstream Drawer.getHeader() fingerprint: its identity link points to /#easy
+        // and the same direct drawer child contains the native chevron IconButton.
+        const easyLink = drawer.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]');
+        let header = getDirectDrawerChild(drawer, easyLink);
+
+        if (!header || !header.querySelector?.('button, .MuiIconButton-root, [role="button"]')) {
+            header = drawer.querySelector(':scope > .eos-native-drawer-header');
+        }
         if (!header) {
             header = directChildren.find(el => {
                 if (isListLike(el) || !el.querySelector) return false;
                 const hasToggle = !!el.querySelector('button, .MuiIconButton-root, [role="button"]');
+                const hasEasyLink = !!el.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]');
                 const hasIdentity = !!el.querySelector('img, .MuiAvatar-root, a')
                     || /nexowatt|iobroker|energy operation system/i.test(String(el.textContent || ''));
-                return hasToggle && hasIdentity;
+                return hasToggle && (hasEasyLink || hasIdentity);
             });
         }
-        if (header) {
-            // The horizontal EOS navigation uses the independent standalone toggle.
-            // The native drawer identity/header is decorative here and caused the
-            // stray top-left tab. Do not bind events or inject content into it.
-            header.classList.add('eos-native-drawer-header', 'eos-nav-toggle-shell', 'eos-native-drawer-header-hidden');
-            header.setAttribute('aria-hidden', 'true');
-            header.setAttribute('inert', '');
-            header.querySelectorAll('button, a, [role="button"], input, select, textarea').forEach(control => {
-                control.setAttribute('tabindex', '-1');
-                control.setAttribute('aria-hidden', 'true');
-            });
-            if (header.style) {
-                header.style.display = 'none';
-                header.style.visibility = 'hidden';
-                header.style.pointerEvents = 'none';
-            }
-        }
+        if (header) hideNativeDrawerHeaderElement(header);
+
         const list = drawer.querySelector('.MuiList-root');
         if (list) {
             list.classList.add('eos-scroll-nav');
             hideNativeLogoutNav();
         }
+    });
+
+    const removeStrayNativeDrawerHeaders = () => safe(() => {
+        document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(drawer => {
+            patchDrawerHeader(drawer);
+            drawer.querySelectorAll('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]').forEach(link => {
+                const directChild = getDirectDrawerChild(drawer, link);
+                if (directChild?.querySelector?.('button, .MuiIconButton-root, [role="button"]')) {
+                    hideNativeDrawerHeaderElement(directChild);
+                }
+            });
+        });
     });
 
     const patchShell = () => safe(() => {
@@ -876,7 +915,7 @@
             toolbar.classList.add('eos-top-toolbar');
             ensureBrandBadge(toolbar);
         }
-        patchDrawerHeader(document.querySelector('.MuiDrawer-paper'));
+        removeStrayNativeDrawerHeaders();
         hideNativeLogoutNav();
         releaseNotificationControls();
         ensurePopupCompatibility();

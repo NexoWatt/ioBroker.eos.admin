@@ -563,7 +563,14 @@ class Drawer extends Component<DrawerProps, DrawerState> {
         }
     }
 
-    getHeader(): JSX.Element {
+    getHeader(): JSX.Element | null {
+        // EOS desktop uses its own horizontal navigation and standalone compact toggle.
+        // Rendering the upstream drawer identity header here creates the stray top-left
+        // NexoWatt tab. Keep the native close header only on swipeable mobile drawers.
+        if (!this.isSwipeable()) {
+            return null;
+        }
+
         const { state, handleNavigation } = this.props;
 
         return (

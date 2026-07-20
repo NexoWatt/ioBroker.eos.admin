@@ -1,16 +1,15 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.64",
-  "variant": "nexowatt-eos-ui-v64-cache-build-consistency-hardening",
-  "createdAt": "2026-07-20T11:47:12Z",
+  "version": "7.9.65",
+  "variant": "nexowatt-eos-ui-v65-native-drawer-header-hard-remove",
+  "createdAt": "2026-07-20T13:38:44Z",
   "fixes": [
-    "force cache refresh for all EOS branding/runtime assets after every package update",
-    "keep source and deployed branding assets byte-identical so a future frontend build does not restore stale UI code",
-    "remove the hidden native drawer header without attaching listeners or injecting content into that hidden node",
-    "replace old heavyweight ObjectBrowser and adapter-react bundles with compatibility shims to the single active v61 runtime",
-    "keep only one effective React-DnD/HTML5 backend on fresh loads and reduce the update package size",
-    "extend package validation to detect cache-tag, source/build, nested-version and compatibility-shim regressions",
-    "preserve native datapoint semantics and the existing deletion/version-selection protections"
+    "remove the desktop native ioBroker Drawer header in the React source and active frontend bundle instead of only hiding a post-detected CSS class",
+    "scan every MUI Drawer paper and structurally remove the easy-link/logo plus chevron header when an older cached runtime recreates it",
+    "add a direct CSS fallback for the native /#easy drawer-header structure before branding JavaScript finishes",
+    "retain the independent EOS navigation compact toggle and preserve the mobile native close control",
+    "bump all EOS cache tags and keep source/deployed branding assets byte-identical",
+    "preserve native datapoint write semantics, delete protection and specific-version installation behavior"
   ],
   "protectedDeleteAdapters": [
     "admin.0",
@@ -21,9 +20,9 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "Consistency hardening after v63. The top-left ghost header remains hidden; the independent EOS navigation toggle remains available.",
-  "patch": "v7.9.64 cache/build consistency hardening",
-  "description": "Hardens cache invalidation, source/build parity and the single active frontend runtime without changing native ioBroker datapoint write semantics.",
-  "build": "nexowatt-eos-ui-v64-cache-build-consistency-hardening",
-  "uiVersion": "v64-cache-build-consistency-hardening"
+  "notes": "The unwanted top-left NexoWatt tab was the native desktop Drawer.getHeader() element. v65 removes it at render source, active bundle and DOM fallback levels.",
+  "patch": "v7.9.65 native drawer header hard remove",
+  "description": "Hard-removes the stray desktop native drawer header while keeping the intended EOS header and standalone navigation toggle.",
+  "build": "nexowatt-eos-ui-v65-native-drawer-header-hard-remove",
+  "uiVersion": "v65-native-drawer-header-hard-remove"
 }

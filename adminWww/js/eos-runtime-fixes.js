@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v64-cache-build-consistency-hardening';
+    window.NEXOWATT_EOS_RUNTIME_FIXES_VERSION = 'v65-native-drawer-header-hard-remove';
 
     const MOJIBAKE_MAP = new Map(Object.entries({
         'dÃ¼rfen': 'dürfen', 'DÃ¼rfen': 'Dürfen',

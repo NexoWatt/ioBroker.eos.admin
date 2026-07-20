@@ -117,7 +117,8 @@ if (!branding.includes('isAdapterConfigSurface')) fail('eos-branding.js lacks na
 if (!branding.includes('Adapter UIs must remain 100% functional')) fail('eos-branding.js lacks native adapter config interaction guard');
 if (!branding.includes('v38: All native Admin dialogs') || !branding.includes('ensurePopupCompatibility')) fail('eos-branding.js lacks v38 popup compatibility guard');
 
-if (!branding.includes('eos-native-drawer-header-hidden') || !branding.includes("header.setAttribute('inert', '')")) fail('eos-branding.js lacks the v64 native drawer-header guard');
+if (!branding.includes('eos-native-drawer-header-hidden') || !branding.includes("header.setAttribute('inert', '')")) fail('eos-branding.js lacks the native drawer-header guard');
+if (!branding.includes('removeStrayNativeDrawerHeaders') || !branding.includes('a[href=\"/#easy\"]')) fail('eos-branding.js lacks structural native drawer-header cleanup');
 if (!branding.includes('ensureStandaloneNavToggle')) fail('eos-branding.js lacks the independent EOS navigation toggle');
 const activeGraph = [
   fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v61.js'), 'utf8'),
@@ -125,6 +126,13 @@ const activeGraph = [
   fs.readFileSync(path.join(root, 'adminWww/remoteEntry-v61.js'), 'utf8'),
 ].join('\n');
 if (/-v(?:54|55|56|57|58|59|60)\.js/.test(activeGraph)) fail('active v61 frontend graph still imports an old versioned runtime file');
+
+const drawerSource = fs.readFileSync(path.join(root, 'src-admin/src/components/Drawer.tsx'), 'utf8');
+const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v61.js'), 'utf8');
+const brandingCss = fs.readFileSync(path.join(root, 'adminWww/css/eos-branding.css'), 'utf8');
+if (!drawerSource.includes('if (!this.isSwipeable())') || !drawerSource.includes('return null;')) fail('Drawer.tsx still renders the native desktop drawer header');
+if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('active bootstrap still renders the native desktop drawer header');
+if (!brandingCss.includes('a[href=\"/#easy\"]') || !brandingCss.includes('data-eos-native-drawer-header-hidden')) fail('branding CSS lacks structural native drawer-header fallback');
 
 const activeAdapterReact = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v61.js'), 'utf8');
 const activeObjects = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v61.js'), 'utf8');

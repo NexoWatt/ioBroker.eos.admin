@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v64-cache-build-consistency-hardening';
+    const VERSION = 'v65-native-drawer-header-hard-remove';
     window.NEXOWATT_EOS_ADAPTER_SURFACE_CLEANUP_VERSION = VERSION;
 
     const previous = window.__NEXOWATT_EOS_ADAPTER_SURFACE_CLEANUP_RUNTIME__;

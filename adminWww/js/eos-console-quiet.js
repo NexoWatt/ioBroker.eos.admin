@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const QUIET_VERSION = 'v64-cache-build-consistency-hardening';
+    const QUIET_VERSION = 'v65-native-drawer-header-hard-remove';
     window.NEXOWATT_EOS_CONSOLE_QUIET_VERSION = QUIET_VERSION;
 
     const original = window.__NEXOWATT_EOS_CONSOLE_ORIGINAL__ || {

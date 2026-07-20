@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v64-cache-build-consistency-hardening';
+    const VERSION = 'v65-native-drawer-header-hard-remove';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
