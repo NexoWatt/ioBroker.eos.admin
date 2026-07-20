@@ -81,7 +81,7 @@ for (const asset of [
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(adminIndex)) fail(`adminWww/index.html cache tag is stale for ${asset}`);
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(sourceIndex)) fail(`src-admin/index.html cache tag is stale for ${asset}`);
 }
-for (const entry of ['hostInit-v61.js', 'index-CQZugZ1z-v67.js']) {
+for (const entry of ['hostInit-v61.js', 'index-CQZugZ1z-v68.js']) {
   const escaped = entry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(adminIndex)) fail(`adminWww/index.html entry cache tag is stale for ${entry}`);
 }
@@ -121,14 +121,14 @@ if (!branding.includes('eos-native-drawer-header-hidden') || !branding.includes(
 if (!branding.includes('removeStrayNativeDrawerHeaders') || !branding.includes('a[href=\"/#easy\"]')) fail('eos-branding.js lacks structural native drawer-header cleanup');
 if (!branding.includes('ensureStandaloneNavToggle')) fail('eos-branding.js lacks the independent EOS navigation toggle');
 const activeGraph = [
-  fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v67.js'), 'utf8'),
-  fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v67.js'), 'utf8'),
+  fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v68.js'), 'utf8'),
+  fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v68.js'), 'utf8'),
   fs.readFileSync(path.join(root, 'adminWww/remoteEntry-v61.js'), 'utf8'),
 ].join('\n');
 if (/bootstrap-COulQZax-v61\.js|(?:AdapterUpdateDialog|Adapters|Config|CustomTab|DeviceManager|EasyMode|Enums|Fields|Files|Hosts|Instances|Intro|Logs|Objects|Users)-[^\"']+-v61\.js/.test(activeGraph)) fail('active v67 frontend graph still imports a v61 application runtime/route chunk');
 
 const drawerSource = fs.readFileSync(path.join(root, 'src-admin/src/components/Drawer.tsx'), 'utf8');
-const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v67.js'), 'utf8');
+const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v68.js'), 'utf8');
 const brandingCss = fs.readFileSync(path.join(root, 'adminWww/css/eos-branding.css'), 'utf8');
 if (!drawerSource.includes('if (!this.isSwipeable())') || !drawerSource.includes('return null;')) fail('Drawer.tsx still renders the native desktop drawer header');
 if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('active bootstrap still renders the native desktop drawer header');
@@ -136,10 +136,13 @@ if (!brandingCss.includes('a[href=\"/#easy\"]') || !brandingCss.includes('data-e
 
 const appSource = fs.readFileSync(path.join(root, 'src-admin/src/App.tsx'), 'utf8');
 if (!branding.includes('eos-primary-brand') || !branding.includes('toolbar.firstElementChild')) fail('branding lacks robust primary EOS brand insertion');
-if (!branding.includes('removeNativeTopLeftGhost') || !branding.includes('eos-native-top-left-ghost-hidden')) fail('branding lacks exact native top-left ghost removal');
-if (!brandingCss.includes('data-eos-primary-brand') || !brandingCss.includes('data-eos-native-top-left-ghost')) fail('branding CSS lacks primary-brand/ghost safeguards');
-if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('fresh v67 bootstrap still renders desktop Drawer.getHeader()');
-if (!activeBootstrap.includes('children:[jsxRuntimeExports.jsx(')) fail('v67 bootstrap did not restore the normal toolbar structure required by the EOS brand injector');
+if (!branding.includes('removeNativeTopLeftGhost') || !branding.includes('a[href=\"/#easy\"]')) fail('branding lacks exact native toolbar ghost removal');
+if (!brandingCss.includes('data-eos-primary-brand') || !brandingCss.includes('v7.9.68: exact native desktop toolbar ghost removal')) fail('branding CSS lacks primary-brand/exact-toolbar safeguards');
+if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('fresh v68 bootstrap still renders desktop Drawer.getHeader()');
+if (!appSource.includes('{small && (') || !appSource.includes('{small &&\n                    this.state.drawerState')) fail('App.tsx still renders native desktop toolbar identity controls');
+if (!activeBootstrap.includes('children:[e&&jsxRuntimeExports.jsx(')) fail('v68 bootstrap still renders native desktop MenuIcon');
+if (!activeBootstrap.includes('this.renderLoggedUser(),e&&this.state.drawerState')) fail('v68 bootstrap still renders the native desktop compact identity block');
+if (!activeBootstrap.includes('const version$b=\"7.9.68\"')) fail('v68 bootstrap frontend version marker is stale');
 
 for (const file of [
   'AdapterUpdateDialog-BMg84Hpf-v67.js', 'Adapters-B5_jQ7DE-v67.js', 'Config-hHK2UzGP-v67.js',
@@ -148,7 +151,7 @@ for (const file of [
   'Hosts-Bg8QzW5i-v67.js', 'Instances-YdaGnS5a-v67.js', 'Intro-DkwRiz1n-v67.js',
   'Logs-CsVPSLJH-v67.js', 'Objects-DPan0bzw-v67.js', 'Users-BgnBRgwU-v67.js',
 ]) {
-  if (!exists(path.join('adminWww/assets', file))) fail(`missing fresh v67 route chunk: ${file}`);
+  if (!exists(path.join('adminWww/assets', file))) fail(`missing compatible route chunk: ${file}`);
   const chunk = fs.readFileSync(path.join(root, 'adminWww/assets', file), 'utf8');
   if (chunk.includes('bootstrap-COulQZax-v61.js')) fail(`${file} still imports bootstrap-v61`);
 }

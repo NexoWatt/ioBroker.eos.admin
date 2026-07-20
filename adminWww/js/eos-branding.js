@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v67-primary-logo-restore-native-ghost-remove';
+    window.NEXOWATT_EOS_UI_VERSION = 'v68-exact-native-toolbar-ghost-remove';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -844,35 +844,50 @@
     const removeNativeTopLeftGhost = () => safe(() => {
         if (!window.matchMedia('(min-width: 901px)').matches) return;
 
-        // Source 1: upstream Drawer.getHeader() identity + chevron block.
+        // Exact source of the unwanted pill in App.renderToolbar(): two sibling
+        // controls are visually combined by the EOS header CSS. Remove them
+        // independently; never touch the primary .eos-brand-badge.
+        const toolbar = document.querySelector(
+            '#root > .MuiPaper-root > .MuiAppBar-root .MuiToolbar-root, header .MuiToolbar-root, .MuiAppBar-root .MuiToolbar-root',
+        );
+        if (toolbar) {
+            Array.from(toolbar.children || []).forEach(child => {
+                if (!child?.querySelector) return;
+                if (
+                    child.matches?.('.eos-brand-badge, .eos-primary-brand') ||
+                    child.querySelector?.('.eos-brand-badge, .eos-primary-brand')
+                ) return;
+
+                // Native compact identity block: contains /#easy and the short
+                // NexoWatt image. It is a separate sibling from the menu button.
+                if (child.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]')) {
+                    hideNativeTopLeftGhost(child);
+                    return;
+                }
+
+                // Native desktop MenuIcon button. MUI exposes data-testid in
+                // normal builds; the SVG path check is a fallback for stripped builds.
+                const menuIcon = child.querySelector('svg[data-testid="MenuIcon"]');
+                const menuPath = child.querySelector('svg path')?.getAttribute?.('d') || '';
+                const isMenuPath = /M3\s*18h18v-?2H3v2|M3\s*6h18v2H3z/.test(menuPath.replace(/,/g, ' '));
+                if ((child.matches('button, .MuiIconButton-root') || child.querySelector('button, .MuiIconButton-root')) && (menuIcon || isMenuPath)) {
+                    hideNativeTopLeftGhost(child);
+                }
+            });
+        }
+
+        // Compatibility fallback for an old cached Drawer.getHeader() DOM.
         document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(drawer => {
             Array.from(drawer.children || []).forEach(child => {
                 if (!child?.querySelector) return;
-                const text = normalize(child.textContent || '');
-                const hasIdentity = !!child.querySelector('a[href*="#easy"], img, .MuiAvatar-root') || /nexowatt|iobroker/.test(text);
-                const hasToggle = !!child.querySelector('button, .MuiIconButton-root, [role="button"]');
+                const hasEasyLink = !!child.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]');
+                const hasChevron = !!child.querySelector('svg[data-testid="ChevronLeftIcon"], svg[data-testid="ChevronRightIcon"]');
                 const isNavigationList = child.classList?.contains('MuiList-root') || !!child.querySelector('.MuiListItemButton-root');
-                if (hasIdentity && hasToggle && !isNavigationList) hideNativeTopLeftGhost(child);
+                if (hasEasyLink && hasChevron && !isNavigationList) hideNativeTopLeftGhost(child);
             });
         });
 
-        // Source 2: stale native compact identity rendered as a small top-left
-        // AppBar child. Use geometry + short label, and explicitly protect the
-        // large primary EOS badge.
-        document.querySelectorAll('.MuiAppBar-root .MuiToolbar-root > *, .eos-top-toolbar > *').forEach(child => {
-            if (!child?.querySelector || child.matches?.('.eos-brand-badge, .eos-primary-brand')) return;
-            if (child.querySelector('.eos-brand-badge, .eos-primary-brand')) return;
-            const text = normalize(child.textContent || '');
-            const hasShortIdentity = text === 'nexowatt' || text === 'iobroker' || /^nexowatt\s*$/.test(text);
-            const hasEasyLink = !!child.querySelector('a[href*="#easy"]');
-            const hasToggle = !!child.querySelector('button, .MuiIconButton-root, svg');
-            const rect = child.getBoundingClientRect?.();
-            const isTopLeft = rect && rect.top < 105 && rect.left < 220 && rect.width < 230 && rect.height < 100;
-            if (isTopLeft && (hasShortIdentity || hasEasyLink) && hasToggle) hideNativeTopLeftGhost(child);
-        });
-
-        // Restore/verify the correct large EOS identity after cleanup.
-        const toolbar = document.querySelector('#root > .MuiPaper-root > .MuiAppBar-root .MuiToolbar-root, header .MuiToolbar-root, .MuiAppBar-root .MuiToolbar-root');
+        // Restore/verify the wanted large EOS identity after cleanup.
         if (toolbar) ensureBrandBadge(toolbar);
     });
 

@@ -1,7 +1,7 @@
 {
   "name": "NexoWatt EOS Admin",
-  "version": "7.9.67",
-  "variant": "nexowatt-eos-ui-v67-primary-logo-restore-native-ghost-remove",
+  "version": "7.9.68",
+  "variant": "nexowatt-eos-ui-v68-exact-native-toolbar-ghost-remove",
   "createdAt": "2026-07-20T15:39:35Z",
   "fixes": [
     "restore the large NexoWatt EOS / Energy Operation System header badge removed by v66",
@@ -19,9 +19,16 @@
     "nexowatt-dev",
     "nexowatt-ui"
   ],
-  "notes": "v66 removed the wrong toolbar structure and also made the custom brand insertion fail when no direct MenuIcon existed. v67 restores the primary EOS brand and cache-busts the exact Drawer fix.",
-  "patch": "v7.9.67 primary logo restore and native ghost tab removal",
+  "notes": "Removes only the two native desktop App toolbar controls that form the small arrow + NexoWatt ghost pill: the MenuIcon button and the compact /#easy identity block. The primary NexoWatt EOS / Energy Operation System brand badge remains untouched.",
+  "patch": "v7.9.68 exact native toolbar ghost removal",
   "description": "Restores the correct main EOS logo while removing only the unwanted compact NexoWatt arrow tab.",
-  "build": "nexowatt-eos-ui-v67-primary-logo-restore-native-ghost-remove",
-  "uiVersion": "v67-primary-logo-restore-native-ghost-remove"
+  "build": "nexowatt-eos-ui-v68-exact-native-toolbar-ghost-remove",
+  "uiVersion": "v68-exact-native-toolbar-ghost-remove",
+  "changes": [
+    "render the native App toolbar MenuIcon only on small/mobile layouts",
+    "render the compact /#easy identity block only on small/mobile layouts",
+    "publish a fresh v68 bootstrap entry and redirect the v67 compatibility path to it",
+    "add an exact DOM/CSS fallback for the two desktop native toolbar siblings",
+    "update the compiled frontend version marker to 7.9.68"
+  ]
 }

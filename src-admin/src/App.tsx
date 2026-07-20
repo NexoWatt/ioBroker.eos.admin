@@ -2658,17 +2658,16 @@ class App extends Router<AppProps, AppState> {
 
         return (
             <Toolbar>
-                <IconButton
-                    size="large"
-                    edge="start"
-                    style={{
-                        ...styles.menuButton,
-                        ...(!small && this.state.drawerState !== DrawerStates.closed ? styles.hide : undefined),
-                    }}
-                    onClick={() => this.handleDrawerState(DrawerStates.opened as 0)}
-                >
-                    <MenuIcon />
-                </IconButton>
+                {small && (
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        style={styles.menuButton}
+                        onClick={() => this.handleDrawerState(DrawerStates.opened as 0)}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                )}
                 <div style={styles.wrapperButtons}>
                     <Tooltip
                         title={I18n.t('Notifications')}
@@ -2875,7 +2874,8 @@ class App extends Router<AppProps, AppState> {
 
                 {this.renderLoggedUser()}
 
-                {this.state.drawerState !== DrawerStates.opened &&
+                {small &&
+                    this.state.drawerState !== DrawerStates.opened &&
                     !this.state.expertMode &&
                     window.innerWidth > 450 && (
                         <Grid

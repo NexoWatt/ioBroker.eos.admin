@@ -3948,3 +3948,30 @@ html.eos-app [data-eos-native-top-left-ghost="true"] {
         flex: 0 0 0 !important;
     }
 }
+
+
+/* === NexoWatt EOS v7.9.68: exact native desktop toolbar ghost removal ===
+   The unwanted pill consists of two independent App.renderToolbar siblings:
+   the native MenuIcon button and the compact /#easy identity block. The large
+   .eos-primary-brand is deliberately excluded and remains visible. */
+@media (min-width: 901px) {
+    html.eos-app .eos-top-toolbar > button:has(svg[data-testid="MenuIcon"]),
+    html.eos-app .eos-top-toolbar > .MuiIconButton-root:has(svg[data-testid="MenuIcon"]),
+    html.eos-app .eos-top-toolbar > *:not(.eos-brand-badge):not(.eos-primary-brand):has(a[href="/#easy"]),
+    html.eos-app .eos-top-toolbar > *:not(.eos-brand-badge):not(.eos-primary-brand):has(a[href$="#easy"]) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        flex: 0 0 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+}
