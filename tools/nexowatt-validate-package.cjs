@@ -81,7 +81,7 @@ for (const asset of [
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(adminIndex)) fail(`adminWww/index.html cache tag is stale for ${asset}`);
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(sourceIndex)) fail(`src-admin/index.html cache tag is stale for ${asset}`);
 }
-for (const entry of ['hostInit-v61.js', 'index-CQZugZ1z-v68.js']) {
+for (const entry of ['hostInit-v61.js', 'index-CQZugZ1z-v69.js']) {
   const escaped = entry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   if (!new RegExp(`${escaped}\\?v=${cacheTag}(?:["'])`).test(adminIndex)) fail(`adminWww/index.html entry cache tag is stale for ${entry}`);
 }
@@ -117,32 +117,27 @@ if (!branding.includes('isAdapterConfigSurface')) fail('eos-branding.js lacks na
 if (!branding.includes('Adapter UIs must remain 100% functional')) fail('eos-branding.js lacks native adapter config interaction guard');
 if (!branding.includes('v38: All native Admin dialogs') || !branding.includes('ensurePopupCompatibility')) fail('eos-branding.js lacks v38 popup compatibility guard');
 
-if (!branding.includes('eos-native-drawer-header-hidden') || !branding.includes("header.setAttribute('inert', '')")) fail('eos-branding.js lacks the native drawer-header guard');
-if (!branding.includes('removeStrayNativeDrawerHeaders') || !branding.includes('a[href=\"/#easy\"]')) fail('eos-branding.js lacks structural native drawer-header cleanup');
-if (!branding.includes('ensureStandaloneNavToggle')) fail('eos-branding.js lacks the independent EOS navigation toggle');
+if (!branding.includes('patchDrawerHeader') || !branding.includes('ensureStandaloneNavToggle')) fail('eos-branding.js lacks the known-good v57 shell controls');
+if (!branding.includes('removeSmallTopLeftNativeNexoWattTab') || !branding.includes('eos-small-top-left-native-tab-hidden')) fail('eos-branding.js lacks the bounded small top-left tab fallback');
 const activeGraph = [
-  fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v68.js'), 'utf8'),
-  fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v68.js'), 'utf8'),
+  fs.readFileSync(path.join(root, 'adminWww/assets/index-CQZugZ1z-v69.js'), 'utf8'),
+  fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v69.js'), 'utf8'),
   fs.readFileSync(path.join(root, 'adminWww/remoteEntry-v61.js'), 'utf8'),
 ].join('\n');
-if (/bootstrap-COulQZax-v61\.js|(?:AdapterUpdateDialog|Adapters|Config|CustomTab|DeviceManager|EasyMode|Enums|Fields|Files|Hosts|Instances|Intro|Logs|Objects|Users)-[^\"']+-v61\.js/.test(activeGraph)) fail('active v67 frontend graph still imports a v61 application runtime/route chunk');
+if (/bootstrap-COulQZax-v61\.js|(?:AdapterUpdateDialog|Adapters|Config|CustomTab|DeviceManager|EasyMode|Enums|Fields|Files|Hosts|Instances|Intro|Logs|Objects|Users)-[^"']+-v61\.js/.test(activeGraph)) fail('active v69 frontend graph still imports a v61 application runtime/route chunk');
 
 const drawerSource = fs.readFileSync(path.join(root, 'src-admin/src/components/Drawer.tsx'), 'utf8');
-const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v68.js'), 'utf8');
+const activeBootstrap = fs.readFileSync(path.join(root, 'adminWww/assets/bootstrap-COulQZax-v69.js'), 'utf8');
 const brandingCss = fs.readFileSync(path.join(root, 'adminWww/css/eos-branding.css'), 'utf8');
-if (!drawerSource.includes('if (!this.isSwipeable())') || !drawerSource.includes('return null;')) fail('Drawer.tsx still renders the native desktop drawer header');
-if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('active bootstrap still renders the native desktop drawer header');
-if (!brandingCss.includes('a[href=\"/#easy\"]') || !brandingCss.includes('data-eos-native-drawer-header-hidden')) fail('branding CSS lacks structural native drawer-header fallback');
+if (!drawerSource.includes('getHeader(): JSX.Element {') || drawerSource.includes('getHeader(): JSX.Element | null')) fail('Drawer.tsx is not restored to the v57 header baseline');
+if (!activeBootstrap.includes('getHeader(){const{state:e,handleNavigation:a}=this.props;')) fail('active bootstrap is not restored to the v57 Drawer.getHeader baseline');
+if (!brandingCss.includes('v32: keep arrow button, remove empty left tile') || !brandingCss.includes('eos-small-top-left-native-tab-hidden')) fail('branding CSS lacks the v57 header baseline or narrow fallback');
 
 const appSource = fs.readFileSync(path.join(root, 'src-admin/src/App.tsx'), 'utf8');
-if (!branding.includes('eos-primary-brand') || !branding.includes('toolbar.firstElementChild')) fail('branding lacks robust primary EOS brand insertion');
-if (!branding.includes('removeNativeTopLeftGhost') || !branding.includes('a[href=\"/#easy\"]')) fail('branding lacks exact native toolbar ghost removal');
-if (!brandingCss.includes('data-eos-primary-brand') || !brandingCss.includes('v7.9.68: exact native desktop toolbar ghost removal')) fail('branding CSS lacks primary-brand/exact-toolbar safeguards');
-if (!activeBootstrap.includes('getHeader(){if(!this.isSwipeable())return null;')) fail('fresh v68 bootstrap still renders desktop Drawer.getHeader()');
-if (!appSource.includes('{small && (') || !appSource.includes('{small &&\n                    this.state.drawerState')) fail('App.tsx still renders native desktop toolbar identity controls');
-if (!activeBootstrap.includes('children:[e&&jsxRuntimeExports.jsx(')) fail('v68 bootstrap still renders native desktop MenuIcon');
-if (!activeBootstrap.includes('this.renderLoggedUser(),e&&this.state.drawerState')) fail('v68 bootstrap still renders the native desktop compact identity block');
-if (!activeBootstrap.includes('const version$b=\"7.9.68\"')) fail('v68 bootstrap frontend version marker is stale');
+if (!appSource.includes('!small && this.state.drawerState !== DrawerStates.closed ? styles.hide : undefined')) fail('App.tsx is not restored to the v57 toolbar baseline');
+if (!activeBootstrap.includes('style:{...styles.menuButton,...!e&&this.state.drawerState!==STATES.closed?styles.hide:void 0}')) fail('active bootstrap is not restored to the v57 desktop MenuIcon behavior');
+if (!activeBootstrap.includes('this.renderLoggedUser(),this.state.drawerState!==STATES.opened')) fail('active bootstrap is not restored to the v57 compact identity behavior');
+if (!activeBootstrap.includes('const version$b="7.9.69"')) fail('v69 bootstrap frontend version marker is stale');
 
 for (const file of [
   'AdapterUpdateDialog-BMg84Hpf-v67.js', 'Adapters-B5_jQ7DE-v67.js', 'Config-hHK2UzGP-v67.js',

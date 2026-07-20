@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v68-exact-native-toolbar-ghost-remove';
+    window.NEXOWATT_EOS_UI_VERSION = 'v69-v57-header-baseline-restore';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -771,125 +771,20 @@
         document.querySelectorAll('.eos-brand-badge').forEach(existing => {
             if (!toolbar.contains(existing)) existing.remove();
         });
-
-        let badge = toolbar.querySelector(':scope > .eos-brand-badge') || toolbar.querySelector('.eos-brand-badge');
+        let badge = toolbar.querySelector('.eos-brand-badge');
         if (!badge) {
             badge = document.createElement('span');
-            badge.className = 'eos-brand-badge eos-system-brand eos-primary-brand';
+            badge.className = 'eos-brand-badge eos-system-brand';
+            const firstButton = toolbar.querySelector('button');
+            toolbar.insertBefore(badge, firstButton || toolbar.firstChild || null);
         }
-
-        // Never use a nested button as insertBefore reference. App.renderToolbar()
-        // can omit the desktop MenuIcon, in which case querySelector('button')
-        // points into a child wrapper and insertBefore throws a NotFoundError.
-        if (badge.parentElement !== toolbar || toolbar.firstElementChild !== badge) {
-            toolbar.insertBefore(badge, toolbar.firstElementChild || null);
-        }
-
-        badge.classList.add('eos-system-brand', 'eos-primary-brand');
-        badge.dataset.eosPrimaryBrand = 'true';
-        badge.removeAttribute('hidden');
-        badge.removeAttribute('aria-hidden');
-        badge.removeAttribute('inert');
-        badge.style.removeProperty('display');
-        badge.style.removeProperty('visibility');
-        badge.style.removeProperty('opacity');
-        badge.style.removeProperty('pointer-events');
+        badge.classList.add('eos-system-brand');
         badge.innerHTML = `
             <span class="eos-brand-badge-mark"><img class="eos-brand-badge-logo" src="${LOGO}" alt="${BRAND}" /></span>
             <span class="eos-brand-badge-copy"><strong>${BRAND}</strong><small>${EOS_MEANING}</small></span>
             <span class="eos-brand-led"></span>
         `;
     };
-
-    const hideNativeTopLeftGhost = element => safe(() => {
-        if (!element) return;
-        if (
-            element.matches?.('.eos-brand-badge, .eos-primary-brand') ||
-            element.closest?.('.eos-brand-badge, .eos-primary-brand') ||
-            element.querySelector?.('.eos-brand-badge, .eos-primary-brand')
-        ) return;
-
-        const text = normalize(element.textContent || '');
-        // The wanted primary card contains the full product name and subtitle.
-        // The unwanted native tab contains only the short NexoWatt identity.
-        if (/energy operation system|nexowatt eos/.test(text)) return;
-
-        element.classList.add('eos-native-top-left-ghost-hidden');
-        element.dataset.eosNativeTopLeftGhost = 'true';
-        element.setAttribute('aria-hidden', 'true');
-        element.setAttribute('inert', '');
-        element.querySelectorAll?.('button, a, [role="button"], input, select, textarea').forEach(control => {
-            control.setAttribute('tabindex', '-1');
-            control.setAttribute('aria-hidden', 'true');
-        });
-        if (element.style) {
-            for (const name of [
-                'display', 'visibility', 'opacity', 'pointer-events',
-                'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height',
-                'margin', 'padding', 'overflow', 'flex', 'border', 'box-shadow',
-            ]) {
-                const value = name === 'display' ? 'none'
-                    : name === 'visibility' ? 'hidden'
-                    : name === 'opacity' ? '0'
-                    : name === 'pointer-events' ? 'none'
-                    : name === 'overflow' ? 'hidden'
-                    : name === 'flex' ? '0 0 0'
-                    : name === 'border' || name === 'box-shadow' ? 'none'
-                    : '0';
-                element.style.setProperty(name, value, 'important');
-            }
-        }
-    });
-
-    const removeNativeTopLeftGhost = () => safe(() => {
-        if (!window.matchMedia('(min-width: 901px)').matches) return;
-
-        // Exact source of the unwanted pill in App.renderToolbar(): two sibling
-        // controls are visually combined by the EOS header CSS. Remove them
-        // independently; never touch the primary .eos-brand-badge.
-        const toolbar = document.querySelector(
-            '#root > .MuiPaper-root > .MuiAppBar-root .MuiToolbar-root, header .MuiToolbar-root, .MuiAppBar-root .MuiToolbar-root',
-        );
-        if (toolbar) {
-            Array.from(toolbar.children || []).forEach(child => {
-                if (!child?.querySelector) return;
-                if (
-                    child.matches?.('.eos-brand-badge, .eos-primary-brand') ||
-                    child.querySelector?.('.eos-brand-badge, .eos-primary-brand')
-                ) return;
-
-                // Native compact identity block: contains /#easy and the short
-                // NexoWatt image. It is a separate sibling from the menu button.
-                if (child.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]')) {
-                    hideNativeTopLeftGhost(child);
-                    return;
-                }
-
-                // Native desktop MenuIcon button. MUI exposes data-testid in
-                // normal builds; the SVG path check is a fallback for stripped builds.
-                const menuIcon = child.querySelector('svg[data-testid="MenuIcon"]');
-                const menuPath = child.querySelector('svg path')?.getAttribute?.('d') || '';
-                const isMenuPath = /M3\s*18h18v-?2H3v2|M3\s*6h18v2H3z/.test(menuPath.replace(/,/g, ' '));
-                if ((child.matches('button, .MuiIconButton-root') || child.querySelector('button, .MuiIconButton-root')) && (menuIcon || isMenuPath)) {
-                    hideNativeTopLeftGhost(child);
-                }
-            });
-        }
-
-        // Compatibility fallback for an old cached Drawer.getHeader() DOM.
-        document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(drawer => {
-            Array.from(drawer.children || []).forEach(child => {
-                if (!child?.querySelector) return;
-                const hasEasyLink = !!child.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]');
-                const hasChevron = !!child.querySelector('svg[data-testid="ChevronLeftIcon"], svg[data-testid="ChevronRightIcon"]');
-                const isNavigationList = child.classList?.contains('MuiList-root') || !!child.querySelector('.MuiListItemButton-root');
-                if (hasEasyLink && hasChevron && !isNavigationList) hideNativeTopLeftGhost(child);
-            });
-        });
-
-        // Restore/verify the wanted large EOS identity after cleanup.
-        if (toolbar) ensureBrandBadge(toolbar);
-    });
 
     const ensureLogoutButton = () => {
         // v14: the custom EOS logout button remains disabled/removed.
@@ -925,39 +820,6 @@
         });
     });
 
-    const hideNativeDrawerHeaderElement = header => safe(() => {
-        if (!header || header.closest?.('.eos-brand-badge, .eos-top-toolbar')) return;
-        header.classList.add(
-            'eos-native-drawer-header',
-            'eos-nav-toggle-shell',
-            'eos-native-drawer-header-hidden',
-        );
-        header.dataset.eosNativeDrawerHeaderHidden = 'true';
-        header.setAttribute('aria-hidden', 'true');
-        header.setAttribute('inert', '');
-        header.querySelectorAll('button, a, [role="button"], input, select, textarea').forEach(control => {
-            control.setAttribute('tabindex', '-1');
-            control.setAttribute('aria-hidden', 'true');
-        });
-        if (header.style) {
-            header.style.setProperty('display', 'none', 'important');
-            header.style.setProperty('visibility', 'hidden', 'important');
-            header.style.setProperty('opacity', '0', 'important');
-            header.style.setProperty('pointer-events', 'none', 'important');
-            header.style.setProperty('width', '0', 'important');
-            header.style.setProperty('height', '0', 'important');
-            header.style.setProperty('overflow', 'hidden', 'important');
-            header.style.setProperty('margin', '0', 'important');
-            header.style.setProperty('padding', '0', 'important');
-        }
-    });
-
-    const getDirectDrawerChild = (drawer, node) => {
-        let current = node;
-        while (current?.parentElement && current.parentElement !== drawer) current = current.parentElement;
-        return current?.parentElement === drawer ? current : null;
-    };
-
     const patchDrawerHeader = drawer => safe(() => {
         if (!drawer) return;
         drawer.classList.add('eos-drawer');
@@ -965,27 +827,50 @@
 
         const directChildren = Array.from(drawer.children).filter(el => el.nodeType === 1);
         const isListLike = el => el.classList?.contains('MuiList-root') || el.querySelector?.('.MuiListItemButton-root');
-
-        // Exact upstream Drawer.getHeader() fingerprint: its identity link points to /#easy
-        // and the same direct drawer child contains the native chevron IconButton.
-        const easyLink = drawer.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]');
-        let header = getDirectDrawerChild(drawer, easyLink);
-
-        if (!header || !header.querySelector?.('button, .MuiIconButton-root, [role="button"]')) {
-            header = drawer.querySelector(':scope > .eos-native-drawer-header');
-        }
+        let header = drawer.querySelector(':scope > .eos-native-drawer-header');
         if (!header) {
-            header = directChildren.find(el => {
-                if (isListLike(el) || !el.querySelector) return false;
-                const hasToggle = !!el.querySelector('button, .MuiIconButton-root, [role="button"]');
-                const hasEasyLink = !!el.querySelector('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]');
-                const hasIdentity = !!el.querySelector('img, .MuiAvatar-root, a')
-                    || /nexowatt|iobroker|energy operation system/i.test(String(el.textContent || ''));
-                return hasToggle && (hasEasyLink || hasIdentity);
-            });
+            header = directChildren.find(el => !isListLike(el) && el.querySelector && el.querySelector('button') && (el.querySelector('img') || el.querySelector('.MuiAvatar-root') || el.querySelector('a')))
+                || directChildren.find(el => !isListLike(el) && el.querySelector && (el.querySelector('button') || el.querySelector('img') || el.querySelector('.MuiAvatar-root')));
         }
-        if (header) hideNativeDrawerHeaderElement(header);
-
+        if (header) {
+            header.classList.add('eos-native-drawer-header', 'eos-nav-toggle-shell');
+            const toggleButton = header.querySelector('button, .MuiIconButton-root, [role="button"]');
+            if (toggleButton && !toggleButton.dataset.eosNavCompactToggle) {
+                toggleButton.dataset.eosNavCompactToggle = 'true';
+                toggleButton.classList.add('eos-nav-compact-toggle');
+                toggleButton.setAttribute('title', 'Navigation kompakt/normal umschalten');
+                toggleButton.setAttribute('aria-label', 'Navigation kompakt/normal umschalten');
+                const toggleCompact = event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                    const compact = !document.documentElement.classList.contains('eos-nav-compact');
+                    document.documentElement.classList.toggle('eos-nav-compact', compact);
+                    safe(() => localStorage.setItem('nexowatt:eosNavCompact', compact ? '1' : '0'));
+                    toggleButton.setAttribute('aria-pressed', compact ? 'true' : 'false');
+                };
+                toggleButton.addEventListener('click', toggleCompact, true);
+                toggleButton.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') toggleCompact(event);
+                }, true);
+            }
+            header.querySelectorAll('a,img,.MuiAvatar-root,.MuiAvatar-img,.eos-native-title').forEach(el => {
+                if (!el.closest?.('button')) el.classList.add('eos-nav-toggle-decor-hidden');
+            });
+            const img = header.querySelector('img');
+            if (img) patchImage(img);
+            const avatarImg = header.querySelector('.MuiAvatar-img');
+            if (avatarImg) patchImage(avatarImg);
+            const logoArea = header.querySelector('a')?.parentElement || header.firstElementChild || header;
+            if (logoArea && !logoArea.querySelector('.eos-native-title')) {
+                const title = document.createElement('span');
+                title.className = 'eos-native-title';
+                title.innerHTML = `<strong>${BRAND}</strong><small>${EOS_MEANING}</small>`;
+                const link = logoArea.querySelector('a');
+                if (link && link.nextSibling) logoArea.insertBefore(title, link.nextSibling);
+                else logoArea.appendChild(title);
+            }
+        }
         const list = drawer.querySelector('.MuiList-root');
         if (list) {
             list.classList.add('eos-scroll-nav');
@@ -993,15 +878,72 @@
         }
     });
 
-    const removeStrayNativeDrawerHeaders = () => safe(() => {
-        document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(drawer => {
-            patchDrawerHeader(drawer);
-            drawer.querySelectorAll('a[href="/#easy"], a[href$="#easy"], a[href*="/#easy"]').forEach(link => {
-                const directChild = getDirectDrawerChild(drawer, link);
-                if (directChild?.querySelector?.('button, .MuiIconButton-root, [role="button"]')) {
-                    hideNativeDrawerHeaderElement(directChild);
-                }
+
+    const removeSmallTopLeftNativeNexoWattTab = () => safe(() => {
+        if (!window.matchMedia?.('(min-width: 901px)').matches) return;
+
+        const primary = document.querySelector('.eos-brand-badge, .eos-primary-brand');
+        const isPrimary = element => !!element && (
+            element === primary ||
+            element.matches?.('.eos-brand-badge, .eos-primary-brand') ||
+            element.closest?.('.eos-brand-badge, .eos-primary-brand') ||
+            element.querySelector?.('.eos-brand-badge, .eos-primary-brand')
+        );
+        const hasShortNexoWattIdentity = element => {
+            if (!element || isPrimary(element)) return false;
+            const text = normalize(element.textContent || '');
+            if (/energy operation system|nexowatt eos/.test(text)) return false;
+            const image = element.querySelector?.('img, .MuiAvatar-img, .MuiAvatar-root');
+            const imageText = normalize(`${image?.getAttribute?.('alt') || ''} ${image?.getAttribute?.('src') || ''}`);
+            return /nexowatt/.test(text) || /nexowatt/.test(imageText);
+        };
+        const hide = element => {
+            if (!element || isPrimary(element)) return;
+            element.classList.add('eos-small-top-left-native-tab-hidden');
+            element.setAttribute('aria-hidden', 'true');
+            element.setAttribute('inert', '');
+            element.querySelectorAll?.('button, a, [role="button"]').forEach(control => {
+                control.setAttribute('tabindex', '-1');
+                control.setAttribute('aria-hidden', 'true');
             });
+            if (element.style) {
+                for (const [name, value] of Object.entries({
+                    display: 'none', visibility: 'hidden', opacity: '0', pointerEvents: 'none',
+                    width: '0', minWidth: '0', maxWidth: '0', height: '0', minHeight: '0', maxHeight: '0',
+                    margin: '0', padding: '0', overflow: 'hidden', flex: '0 0 0', border: '0', boxShadow: 'none',
+                })) element.style.setProperty(name.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`), value, 'important');
+            }
+        };
+
+        const inspect = seed => {
+            if (!seed || isPrimary(seed)) return;
+            let element = seed.nodeType === 1 ? seed : seed.parentElement;
+            let best = null;
+            while (element && element !== document.body && element !== document.documentElement) {
+                if (isPrimary(element)) return;
+                const rect = element.getBoundingClientRect?.();
+                if (rect && rect.top >= -4 && rect.top <= 52 && rect.left >= -4 && rect.left <= 185 &&
+                    rect.width >= 45 && rect.width <= 190 && rect.height >= 16 && rect.height <= 58 &&
+                    hasShortNexoWattIdentity(element)) {
+                    best = element;
+                }
+                if (rect && (rect.width > 220 || rect.height > 75 || rect.left > 200 || rect.top > 70)) break;
+                element = element.parentElement;
+            }
+            if (best) hide(best);
+        };
+
+        // Known native locations plus a coordinate fallback matching the compact tab.
+        document.querySelectorAll([
+            '.MuiDrawer-paper a[href*="#easy"]',
+            '.MuiSwipeableDrawer-paper a[href*="#easy"]',
+            '.MuiAppBar-root a[href*="#easy"]',
+            '.MuiToolbar-root a[href*="#easy"]',
+            'img[alt*="NexoWatt" i]',
+            'img[src*="nexowatt" i]',
+        ].join(',')).forEach(inspect);
+        [[8, 18], [45, 22], [90, 22], [135, 22], [80, 36]].forEach(([x, y]) => {
+            document.elementsFromPoint?.(x, y).forEach(inspect);
         });
     });
 
@@ -1020,8 +962,8 @@
             toolbar.classList.add('eos-top-toolbar');
             ensureBrandBadge(toolbar);
         }
-        removeNativeTopLeftGhost();
-        removeStrayNativeDrawerHeaders();
+        document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(patchDrawerHeader);
+        removeSmallTopLeftNativeNexoWattTab();
         hideNativeLogoutNav();
         releaseNotificationControls();
         ensurePopupCompatibility();
