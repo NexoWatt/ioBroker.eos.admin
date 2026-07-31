@@ -40,7 +40,7 @@ function CustomSelectButton({
     translateSuffix,
     noTranslation,
 }: CustomSelectButtonProps): JSX.Element {
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     translateSuffix = translateSuffix || '';
 
     return (
@@ -67,9 +67,24 @@ function CustomSelectButton({
             </Tooltip>
             <Menu
                 anchorEl={anchorEl}
-                keepMounted
                 open={Boolean(anchorEl)}
                 onClose={() => setAnchorEl(null)}
+                disableScrollLock
+                marginThreshold={8}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                slotProps={{
+                    root: { className: 'eos-module-filter-menu' },
+                    paper: {
+                        className: 'eos-module-filter-menu-paper',
+                        sx: {
+                            minWidth: 180,
+                            maxWidth: 'min(420px, calc(100vw - 24px))',
+                            maxHeight: 'min(70vh, 640px)',
+                            overflowY: 'auto',
+                        },
+                    },
+                }}
             >
                 {arrayItem.map(({ name }, idx) => (
                     <MenuItem

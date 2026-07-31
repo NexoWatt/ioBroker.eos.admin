@@ -1,16 +1,15 @@
 {
-  "version": "7.9.70",
+  "version": "7.9.71",
   "channel": "stability",
   "baseFrontend": "7.9.58 coherent runtime (derived from the proven 7.9.57 datapoint baseline)",
-  "runtimeEntry": "v70",
-  "releaseType": "consolidated-stability",
+  "runtimeEntry": "v71",
+  "releaseType": "module-popup-runtime-hardening",
   "notes": [
-    "No v62-v69 toolbar/overlay hotfix scripts are loaded.",
-    "All active module-federation entrypoints and route chunks use one v70 runtime.",
-    "One shared throttled MutationObserver coordinates branding, role and security DOM updates.",
-    "The v60 adapter-card action propagation fix is included without permitting concurrent commands.",
+    "Module filter menus are unmounted when closed and use explicit MUI anchor/origin settings.",
+    "Generic EOS CSS no longer forces hidden MUI Menu/Popover descendants visible.",
+    "Popup compatibility DOM work only touches open native overlay roots.",
+    "All active module-federation entrypoints and route chunks use one v71 runtime.",
     "Native ioBroker common.write semantics are retained.",
-    "Role policy failures retain unknown/last-good state instead of downgrading to enduser.",
-    "EOS-managed legacy Admin ACL changes can be restored without overwriting later external ACL changes."
+    "The original Admin React frontend remains the functional core; no second Admin frontend is started."
   ]
 }

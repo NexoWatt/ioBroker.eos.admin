@@ -3673,30 +3673,34 @@ html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"]
     cursor: pointer !important;
 }
 
-/* Autocomplete, Select and version lists are body portals. Keep them above
-   dialogs without altering the dialog component or intercepting tooltip clicks. */
+/* === NexoWatt EOS v7.9.71: native popup lifecycle ======================
+   MUI Menu uses keep-mounted/hidden modal states internally. Never force
+   generic menu descendants visible: doing so makes closed filter menus appear
+   at the viewport origin. Only raise overlays that are actually open. */
 html.eos-app body > .MuiAutocomplete-popper,
 html.eos-app body > .MuiPopper-root[data-popper-placement],
-html.eos-app body > .MuiPopover-root,
-html.eos-app body > .MuiMenu-root,
-html.eos-app .MuiAutocomplete-popper,
-html.eos-app .MuiPopper-root[data-popper-placement],
-html.eos-app .MuiPopover-root,
-html.eos-app .MuiMenu-root {
+html.eos-app body > .MuiPopover-root:not(.MuiModal-hidden),
+html.eos-app body > .MuiMenu-root:not(.MuiModal-hidden),
+html.eos-app .eos-module-filter-menu:not(.MuiModal-hidden) {
     z-index: 9000 !important;
     pointer-events: auto !important;
 }
-html.eos-app .MuiAutocomplete-paper,
-html.eos-app .MuiAutocomplete-listbox,
-html.eos-app .MuiMenu-paper,
-html.eos-app .MuiPopover-paper,
-html.eos-app [role="listbox"],
-html.eos-app [role="option"],
-html.eos-app .MuiAutocomplete-option,
-html.eos-app .MuiMenuItem-root {
+html.eos-app .MuiModal-hidden,
+html.eos-app .MuiPopover-root.MuiModal-hidden,
+html.eos-app .MuiMenu-root.MuiModal-hidden,
+html.eos-app .eos-module-filter-menu.MuiModal-hidden {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+html.eos-app .eos-module-filter-menu-paper {
     pointer-events: auto !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+    border-radius: 12px !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+}
+html.eos-app .eos-module-filter-menu-paper .MuiMenuItem-root {
+    min-height: 40px !important;
+    pointer-events: auto !important;
 }
 html.eos-app .MuiTooltip-popper {
     z-index: 9100 !important;

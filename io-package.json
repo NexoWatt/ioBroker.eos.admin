@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.70",
+    "version": "7.9.71",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.71": {
+        "en": "Fixed Module filter popups: closed keep-mounted MUI menus can no longer become visible, menu anchors remain stable, popup DOM work is scoped to open overlays, and runtime cache paths were advanced.",
+        "de": "Filter-Popups unter Module korrigiert: geschlossene MUI-Menüs können nicht mehr sichtbar werden, die Verankerung bleibt stabil, DOM-Anpassungen greifen nur bei geöffneten Overlays und die Runtime-Cachepfade wurden erneuert.",
+        "nl": "Filterpop-ups onder Modules hersteld: gesloten MUI-menu’s kunnen niet meer zichtbaar worden, ankers blijven stabiel, DOM-aanpassingen gelden alleen voor geopende overlays en de runtime-cachepaden zijn vernieuwd."
+      },
       "7.9.54": {
         "en": "Restores stable native ioBroker ObjectBrowser datapoint handling: read-only states stay read-only, writable states can be edited, and the broken DPWrite module-federation bundle/performance guard is removed.",
         "de": "Stellt die stabile native ioBroker-ObjectBrowser-Datenpunktbedienung wieder her: nur lesbare States bleiben nur lesbar, beschreibbare States sind editierbar, und das fehlerhafte DPWrite-Module-Federation-Bundle/Performance-Guard ist entfernt."
@@ -264,7 +269,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.70/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.71/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -275,7 +280,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.70/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.71/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -344,7 +349,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.70/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.71/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },

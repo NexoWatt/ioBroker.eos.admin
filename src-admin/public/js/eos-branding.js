@@ -477,14 +477,22 @@
         // event handlers untouched.
         const selectors = [
             '.MuiDialog-root', '.MuiModal-root', '.MuiPopover-root', '.MuiPopper-root',
-            '.MuiMenu-root', '.MuiAutocomplete-popper', '.MuiAutocomplete-listbox',
-            '[role="dialog"]', '[role="listbox"]', '[role="menu"]'
+            '.MuiMenu-root', '.MuiAutocomplete-popper'
         ].join(',');
         document.querySelectorAll(selectors).forEach(el => {
+            const hidden = el.classList.contains('MuiModal-hidden') || el.getAttribute('aria-hidden') === 'true';
+            if (hidden) {
+                el.classList.remove('eos-native-popup-safe');
+                if (el.style) {
+                    el.style.pointerEvents = '';
+                    el.style.zIndex = '';
+                }
+                return;
+            }
             el.classList.add('eos-native-popup-safe');
             if (el.style) {
                 el.style.pointerEvents = 'auto';
-                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="listbox"],[role="menu"]');
+                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper');
                 if (isFloating && !el.closest('.MuiDialog-paper')) el.style.zIndex = '6500';
             }
         });
@@ -1404,7 +1412,6 @@
         ensureEosAssist();
         installHardLogoutWatchdog();
         ensureSettingsDialogClasses();
-        ensurePopupCompatibility();
         hideNativeLogoutNav();
         releaseNotificationControls();
         ensurePopupCompatibility();

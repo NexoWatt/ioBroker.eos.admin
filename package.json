@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
-  "description": "NexoWatt EOS Admin consolidated stability release with a single coherent frontend runtime",
-  "version": "7.9.70",
+  "description": "NexoWatt EOS Admin stable runtime with reliable module filter popups and native datapoint semantics",
+  "version": "7.9.71",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -138,7 +138,7 @@
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
     "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
     "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs",
-    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs"
+    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs"
   },
   "author": "NexoWatt",
   "private": false,

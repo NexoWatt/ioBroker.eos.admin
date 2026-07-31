@@ -73,6 +73,6 @@ if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('bui
 const srcPkg = readJson('src-admin/package.json');
 const srcVersion = readJson('src-admin/src/version.json');
 if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
-if (!index.includes('hostInit-v70.js?v=70') || !index.includes('index-CQZugZ1z-v70.js?v=70')) fail('adminWww/index.html must load the v70 runtime');
+if (!index.includes('hostInit-v71.js?v=71') || !index.includes('index-CQZugZ1z-v71.js?v=71')) fail('adminWww/index.html must load the v71 runtime');
 
 console.log('[NexoWatt EOS package validation] OK');

@@ -1,1 +1,1 @@
-export { default } from "./CustomTab-B0wqoazH-v70.js";
+export { default } from "./CustomTab-B0wqoazH-v71.js";
