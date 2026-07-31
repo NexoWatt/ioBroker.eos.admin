@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
-  "description": "NexoWatt EOS Admin interface with reliable repository update mapping and technical log preservation.",
-  "version": "7.9.69",
+  "description": "NexoWatt EOS Admin consolidated stability release with a single coherent frontend runtime",
+  "version": "7.9.70",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -34,7 +34,7 @@
     "@iobroker/ws-server": "^4.4.1",
     "ajv": "^8.20.0",
     "archiver": "^7.0.1",
-    "axios": "^1.18.0",
+    "axios": "^1.17.0",
     "body-parser": "^2.2.2",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -114,7 +114,7 @@
     "test:integration": "mocha test/integration --exit && npm run test:gui && npm run test:rule && npm run test:unit",
     "test:rule": "mocha test/rule --exit",
     "test:gui": "mocha test/*.gui.js --exit",
-    "prepublishOnly": "npm run check:eos-package",
+    "prepublishOnly": "npm run check:eos-package && npm run check:eos-stability",
     "build": "npm run build:frontend && npm run build:backend",
     "build:backend": "tsc -p tsconfig.build.json && tsx tasks.mts --backend-i18n",
     "build:frontend": "tsx tasks.mts",
@@ -137,7 +137,8 @@
     "check:eos-package": "node tools/nexowatt-validate-package.cjs",
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
     "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
-    "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs"
+    "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs",
+    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs"
   },
   "author": "NexoWatt",
   "private": false,

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v65-native-drawer-header-hard-remove';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v70-stability';
     window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_MODE = 'passive-native-objectbrowser';
 
     // Keep this file intentionally passive. The datapoints page must use the

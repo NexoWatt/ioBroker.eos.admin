@@ -3626,18 +3626,27 @@ html.eos-objects-surface .MuiTooltip-tooltip {
     max-width: min(520px, 80vw) !important;
 }
 
-/* === NexoWatt EOS v60: modules tile action click stability ==================
-   The adapter/module tile description panel is purely an EOS styled wrapper. It
-   must never swallow clicks from the native Admin action buttons inside the
-   footer (upload, specific version, auto upgrade, help, add instance). */
+
+/* === NexoWatt EOS v7.9.70 stability additions =============================
+   Keep the proven v57/v58 header. These rules only harden module-card actions
+   and native MUI selection poppers; they do not hide or recreate toolbar items. */
 html.eos-route-adapters #app-paper .eos-adapter-info-card,
 html.eos-route-intro #app-paper .eos-adapter-info-card,
 html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"],
 html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] {
+    display: flex !important;
+    flex-direction: column !important;
     pointer-events: auto !important;
     overflow: hidden !important;
 }
-
+html.eos-route-adapters #app-paper .eos-adapter-info-card .MuiCardContent-root,
+html.eos-route-intro #app-paper .eos-adapter-info-card .MuiCardContent-root,
+html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiCardContent-root,
+html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiCardContent-root {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: auto !important;
+}
 html.eos-route-adapters #app-paper .eos-adapter-info-card > .MuiBox-root,
 html.eos-route-intro #app-paper .eos-adapter-info-card > .MuiBox-root,
 html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] > .MuiBox-root,
@@ -3645,195 +3654,51 @@ html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"]
     position: relative !important;
     z-index: 40 !important;
     pointer-events: auto !important;
+    flex: 0 0 auto !important;
     overflow: visible !important;
 }
-
 html.eos-route-adapters #app-paper .eos-adapter-info-card button,
 html.eos-route-adapters #app-paper .eos-adapter-info-card [role="button"],
-html.eos-route-adapters #app-paper .eos-adapter-info-card .MuiIconButton-root,
-html.eos-route-adapters #app-paper .eos-adapter-info-card .MuiButtonBase-root,
 html.eos-route-intro #app-paper .eos-adapter-info-card button,
 html.eos-route-intro #app-paper .eos-adapter-info-card [role="button"],
-html.eos-route-intro #app-paper .eos-adapter-info-card .MuiIconButton-root,
-html.eos-route-intro #app-paper .eos-adapter-info-card .MuiButtonBase-root,
 html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] button,
 html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] [role="button"],
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiIconButton-root,
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiButtonBase-root,
 html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] button,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] [role="button"],
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiIconButton-root,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiButtonBase-root {
-    pointer-events: auto !important;
+html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] [role="button"] {
     position: relative !important;
     z-index: 45 !important;
+    pointer-events: auto !important;
     visibility: visible !important;
     opacity: 1 !important;
     cursor: pointer !important;
 }
 
-html.eos-route-adapters #app-paper .eos-adapter-info-card .MuiCardContent-root,
-html.eos-route-intro #app-paper .eos-adapter-info-card .MuiCardContent-root {
-    pointer-events: auto !important;
-    min-height: 0 !important;
-}
-
-/* v60: module-card action/footer click hardening.
-   The description overlay must be readable, but it must never swallow clicks on
-   the native Admin action buttons: add instance, automatic update, readme,
-   upload, delete and specific version. */
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"],
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] {
-    display: flex !important;
-    flex-direction: column !important;
-    pointer-events: auto !important;
-}
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"]::before,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"]::before,
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiCardContent-root::before,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiCardContent-root::before {
-    pointer-events: none !important;
-}
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiCardContent-root,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiCardContent-root {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow: auto !important;
-}
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] > .MuiBox-root,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] > .MuiBox-root,
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] div[style*="justify-content: space-between"],
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] div[style*="justify-content: space-between"] {
-    position: relative !important;
-    z-index: 40 !important;
-    pointer-events: auto !important;
-    flex: 0 0 auto !important;
-}
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] button,
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiIconButton-root,
-html.eos-route-adapters #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiButtonBase-root,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] button,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiIconButton-root,
-html.eos-route-intro #app-paper .MuiCard-root > div[style*="position: absolute"][style*="z-index: 3"] .MuiButtonBase-root {
-    position: relative !important;
-    z-index: 41 !important;
-    pointer-events: auto !important;
-}
-html.eos-app .MuiDialog-root,
-html.eos-app .MuiModal-root,
-html.eos-app .MuiPopover-root,
-html.eos-app .MuiMenu-root {
-    z-index: 7000 !important;
-    pointer-events: auto !important;
-}
-html.eos-app .MuiTooltip-popper {
-    pointer-events: none !important;
-}
-
-
-/* === NexoWatt EOS v61: native dialog autocomplete/listbox layer fix ==========
-   MUI Autocomplete/Select poppers are rendered in a body portal, not inside the
-   dialog. Our EOS dialog z-index was higher than the native popper z-index, so
-   the adapter search list appeared behind the install dialog and could not be
-   selected. Keep native poppers above dialogs/backdrops and keep options
-   clickable. */
+/* Autocomplete, Select and version lists are body portals. Keep them above
+   dialogs without altering the dialog component or intercepting tooltip clicks. */
 html.eos-app body > .MuiAutocomplete-popper,
-html.eos-app body > .MuiPopper-root,
+html.eos-app body > .MuiPopper-root[data-popper-placement],
 html.eos-app body > .MuiPopover-root,
 html.eos-app body > .MuiMenu-root,
-html.eos-app .eos-native-popup-safe.MuiAutocomplete-popper,
-html.eos-app .eos-native-popup-safe.MuiPopper-root,
-html.eos-app .eos-native-popup-safe.MuiPopover-root,
-html.eos-app .eos-native-popup-safe.MuiMenu-root,
 html.eos-app .MuiAutocomplete-popper,
 html.eos-app .MuiPopper-root[data-popper-placement],
 html.eos-app .MuiPopover-root,
 html.eos-app .MuiMenu-root {
-    z-index: 15000 !important;
-    pointer-events: auto !important;
-}
-html.eos-app body > [role="presentation"]:has(.MuiAutocomplete-paper),
-html.eos-app body > [role="presentation"]:has([role="listbox"]),
-html.eos-app body > [role="presentation"]:has(.MuiMenu-paper) {
-    z-index: 15000 !important;
+    z-index: 9000 !important;
     pointer-events: auto !important;
 }
 html.eos-app .MuiAutocomplete-paper,
 html.eos-app .MuiAutocomplete-listbox,
 html.eos-app .MuiMenu-paper,
 html.eos-app .MuiPopover-paper,
-html.eos-app .MuiList-root[role="listbox"],
 html.eos-app [role="listbox"],
 html.eos-app [role="option"],
-html.eos-app .MuiAutocomplete-option {
-    z-index: 15001 !important;
-    pointer-events: auto !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
 html.eos-app .MuiAutocomplete-option,
-html.eos-app [role="listbox"] [role="option"],
 html.eos-app .MuiMenuItem-root {
-    cursor: pointer !important;
-    user-select: none !important;
-}
-html.eos-app .MuiAutocomplete-option.Mui-focused,
-html.eos-app .MuiAutocomplete-option[aria-selected="true"],
-html.eos-app [role="option"]:hover,
-html.eos-app .MuiMenuItem-root:hover {
-    background: rgba(0, 255, 136, 0.18) !important;
-}
-/* Native tooltips should stay above the UI visually but must not intercept clicks. */
-html.eos-app .MuiTooltip-popper {
-    z-index: 16000 !important;
-    pointer-events: none !important;
-}
-
-
-/* === NexoWatt EOS v62: adapter filter overlay cleanup =====================
-   Keep the module cards and top filter controls. Hide only stale/orphaned
-   native MUI filter menus that fall back into the left header/navigation area
-   and cover the EOS adapter view. Dialog listboxes/autocomplete remain active. */
-html.eos-route-adapters body > .MuiMenu-root.eos-adapter-filter-menu-stale,
-html.eos-route-adapters body > .MuiPopover-root.eos-adapter-filter-menu-stale,
-html.eos-route-adapters body > [role="presentation"].eos-adapter-filter-menu-stale,
-html.eos-route-adapters .eos-adapter-filter-menu-stale,
-html.eos-route-adapters .eos-adapter-filter-menu-stale-paper {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-html.eos-route-adapters .MuiDialog-root .MuiAutocomplete-popper,
-html.eos-route-adapters .MuiDialog-root [role="listbox"],
-html.eos-route-adapters .MuiModal-root .MuiAutocomplete-popper,
-html.eos-route-adapters .MuiModal-root [role="listbox"] {
-    display: block !important;
+    pointer-events: auto !important;
     visibility: visible !important;
     opacity: 1 !important;
-    pointer-events: auto !important;
-    z-index: 16000 !important;
 }
-
-
-/* === NexoWatt EOS v7.9.69: exact v57 header baseline + narrow fallback === */
-html.eos-app .eos-small-top-left-native-tab-hidden,
-html.eos-app [aria-hidden="true"].eos-small-top-left-native-tab-hidden {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
+html.eos-app .MuiTooltip-popper {
+    z-index: 9100 !important;
     pointer-events: none !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    flex: 0 0 0 !important;
-    border: 0 !important;
-    box-shadow: none !important;
 }

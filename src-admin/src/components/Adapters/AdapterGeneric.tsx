@@ -688,7 +688,7 @@ export default abstract class AdapterGeneric<
             >
                 <IconButton
                     size="small"
-                    disabled={false}
+                    disabled={this.props.commandRunning}
                     data-eos-adapter-action="upload"
                     onClick={event => { event.preventDefault(); event.stopPropagation(); this.onUpload(); }}
                 >
@@ -729,7 +729,7 @@ export default abstract class AdapterGeneric<
                     slotProps={{ popper: { sx: this.styles.tooltip } }}
                 >
                     <IconButton
-                        disabled={false}
+                        disabled={this.props.commandRunning}
                         size="small"
                         data-eos-adapter-action="install-specific-version"
                         onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ showInstallVersion: true, showDialog: true }); }}

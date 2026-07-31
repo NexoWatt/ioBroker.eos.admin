@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.69",
+    "version": "7.9.70",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -222,6 +222,11 @@
         "pl": "Poprawka usuwania usług/modułów: skrypty DOM security nie przechwytują kliknięć kosza, stare blokady są naprawiane i chronione pozostają tylko adaptery rdzeniowe EOS.",
         "uk": "Виправлення видалення служб/модулів: DOM security більше не перехоплює кліки кошика, старі блокування виправляються, захищені лише основні адаптери EOS.",
         "zh-cn": "服务/模块删除硬修复：DOM security 脚本不再拦截垃圾桶点击，会修复旧删除锁，仅 EOS 核心适配器受保护。"
+      },
+      "7.9.70": {
+        "en": "Stability consolidation: one coherent frontend runtime, resilient role policy loading, reversible EOS ACL handling, native datapoint semantics and hardened update caching.",
+        "de": "Stabilitätskonsolidierung: eine einheitliche Frontend-Laufzeit, robuste Rollenabfrage, reversible EOS-ACLs, native Datenpunktlogik und abgesicherter Update-Cache.",
+        "nl": "Stabiliteitsconsolidatie: één consistente frontend-runtime, robuuste rolcontrole, herstelbare EOS-ACLs, native datapuntlogica en veiligere updatecache."
       }
     },
     "desc": {
@@ -259,7 +264,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.69/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.70/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -270,7 +275,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.69/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.70/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -339,7 +344,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.69/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.70/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1018,5 +1023,5 @@
       }
     }
   },
-  "version": "7.9.69"
+  "version": "7.9.58"
 }

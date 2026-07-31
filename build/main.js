@@ -216,8 +216,11 @@ class Admin extends adapter_core_1.Adapter {
                 delete objects[id];
             }
         }
-        if (id === LEGACY_ADMIN_INSTANCE_ID || id === 'system.adapter.admin' || id.match(/^system\.adapter\./)) {
-            this.scheduleEosSecurityGuard(`object change: ${id}`);
+        if (id.startsWith('system.adapter.')) {
+            const { adapter } = this.parseAdapterObjectId(id);
+            if (this.getProtectedAdapterNames().includes(adapter)) {
+                this.scheduleEosSecurityGuard(`protected object change: ${id}`);
+            }
         }
         // TODO Build in some threshold of messages
         socket?.objectChange(id, obj);
@@ -769,9 +772,15 @@ class Admin extends adapter_core_1.Adapter {
         if (!obj) {
             return false;
         }
+        const native = (obj.native ||= {});
+        let changed = false;
+        if (native._nexowattEosAclManaged !== true) {
+            native._nexowattEosAclManaged = true;
+            native._nexowattEosAclPrevious = obj.acl ? JSON.stringify(obj.acl) : null;
+            changed = true;
+        }
         const targetAcl = this.getAdminOnlyAcl();
         const acl = (obj.acl ||= {});
-        let changed = false;
         if (acl.owner !== targetAcl.owner) {
             acl.owner = targetAcl.owner;
             changed = true;
@@ -789,14 +798,51 @@ class Admin extends adapter_core_1.Adapter {
         }
         return changed;
     }
+    async restoreObjectAclManagedByEos(id) {
+        const obj = await this.getForeignObjectAsync(id);
+        const native = obj?.native;
+        if (!obj || !native || native._nexowattEosAclManaged !== true) {
+            return false;
+        }
+        const targetAcl = this.getAdminOnlyAcl();
+        const currentAcl = obj.acl;
+        const stillManaged = !!currentAcl
+            && currentAcl.owner === targetAcl.owner
+            && currentAcl.ownerGroup === targetAcl.ownerGroup
+            && currentAcl.object === targetAcl.object;
+        const previous = native._nexowattEosAclPrevious;
+        if (stillManaged) {
+            if (typeof previous === 'string' && previous) {
+                try {
+                    obj.acl = JSON.parse(previous);
+                }
+                catch {
+                    delete obj.acl;
+                }
+            }
+            else {
+                delete obj.acl;
+            }
+        }
+        delete native._nexowattEosAclManaged;
+        delete native._nexowattEosAclPrevious;
+        await this.setForeignObjectAsync(id, obj);
+        return true;
+    }
     getLegacyAdminAclObjectIds() {
         return ['system.adapter.admin', LEGACY_ADMIN_INSTANCE_ID];
     }
     async ensureLegacyAdminVisibleOnlyToAdmins() {
+        let changed = false;
         if (!this.shouldHideLegacyAdminFromNonAdmins()) {
+            for (const id of this.getLegacyAdminAclObjectIds()) {
+                changed = (await this.restoreObjectAclManagedByEos(id)) || changed;
+            }
+            if (changed) {
+                this.log.info('EOS ACL guard restored legacy admin visibility because the restriction is disabled');
+            }
             return;
         }
-        let changed = false;
         for (const id of this.getLegacyAdminAclObjectIds()) {
             changed = (await this.ensureObjectAdminOnlyAcl(id)) || changed;
         }
@@ -1047,8 +1093,8 @@ class Admin extends adapter_core_1.Adapter {
             await this.ensureLegacyAdminLocked();
             await this.ensureLegacyAdminVisibleOnlyToAdmins();
             if (!this.eosDeleteLockRepairFinished) {
-                this.eosDeleteLockRepairFinished = true;
                 await this.repairStaleAdapterDeleteLocks();
+                this.eosDeleteLockRepairFinished = true;
             }
             if (this.config.eosProtectAdapterDeletion !== false) {
                 for (const adapter of this.getProtectedAdapterNames()) {
@@ -1064,12 +1110,15 @@ class Admin extends adapter_core_1.Adapter {
         }
     }
     startEosSecurityGuard() {
-        this.subscribeForeignObjects('system.adapter.*');
+        for (const adapter of this.getProtectedAdapterNames()) {
+            this.subscribeForeignObjects(`system.adapter.${adapter}`);
+            this.subscribeForeignObjects(`system.adapter.${adapter}.*`);
+        }
         void this.enforceEosSecurity('startup');
         if (!this.eosSecurityTimer) {
             this.eosSecurityTimer = setInterval(() => {
                 void this.enforceEosSecurity('periodic');
-            }, 30000);
+            }, 300000);
         }
     }
     async createUpdateInfo() {

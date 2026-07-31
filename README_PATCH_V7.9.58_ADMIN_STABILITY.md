@@ -1,4 +1,4 @@
-# NexoWatt EOS Admin v7.9.61 – Admin Stability / Delete / Version Install Fix
+# NexoWatt EOS Admin v7.9.58 – Admin Stability / Delete / Version Install Fix
 
 This patch keeps the native ioBroker Admin datapoint semantics and focuses on stability/performance around the NexoWatt EOS skin.
 

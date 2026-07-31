@@ -1,34 +1,16 @@
 {
-  "name": "NexoWatt EOS Admin",
-  "version": "7.9.69",
-  "variant": "nexowatt-eos-ui-v69-v57-header-baseline-restore",
-  "createdAt": "2026-07-20T15:39:35Z",
-  "fixes": [
-    "restore App.tsx and Drawer.tsx desktop header behavior from v7.9.57",
-    "restore the v7.9.57 EOS brand and drawer patch functions",
-    "remove the conflicting v63-v68 header experiments",
-    "keep the large NexoWatt EOS / Energy Operation System brand visible",
-    "hide only a small top-left native NexoWatt tab with a bounded geometry fallback",
-    "route all bootstrap compatibility shims to one v69 runtime"
-  ],
-  "protectedDeleteAdapters": [
-    "admin.0",
-    "eos-admin.0",
-    "backitup",
-    "nexowatt-devices",
-    "nexowatt-device",
-    "nexowatt-dev",
-    "nexowatt-ui"
-  ],
-  "notes": "The desktop App/Drawer header implementation and EOS header patching are restored to the known-good v7.9.57 baseline. Later module, instance, datapoint, modal and backend fixes remain. A narrowly bounded top-left geometry guard excludes the large NexoWatt EOS primary brand.",
-  "patch": "v7.9.69 v57 header baseline restore",
-  "description": "Restores the known-good v7.9.57 desktop header behavior and removes only the small native top-left NexoWatt tab.",
-  "build": "nexowatt-eos-ui-v69-v57-header-baseline-restore",
-  "uiVersion": "v69-v57-header-baseline-restore",
-  "changes": [
-    "publish index-CQZugZ1z-v69.js and bootstrap-COulQZax-v69.js",
-    "restore known-good v57 renderToolbar and Drawer.getHeader semantics",
-    "retain v60-v62 module action, modal layer and adapter overlay fixes",
-    "cache-bust EOS shell assets with v69"
+  "version": "7.9.70",
+  "channel": "stability",
+  "baseFrontend": "7.9.58 coherent runtime (derived from the proven 7.9.57 datapoint baseline)",
+  "runtimeEntry": "v70",
+  "releaseType": "consolidated-stability",
+  "notes": [
+    "No v62-v69 toolbar/overlay hotfix scripts are loaded.",
+    "All active module-federation entrypoints and route chunks use one v70 runtime.",
+    "One shared throttled MutationObserver coordinates branding, role and security DOM updates.",
+    "The v60 adapter-card action propagation fix is included without permitting concurrent commands.",
+    "Native ioBroker common.write semantics are retained.",
+    "Role policy failures retain unknown/last-good state instead of downgrading to enduser.",
+    "EOS-managed legacy Admin ACL changes can be restored without overwriting later external ACL changes."
   ]
 }

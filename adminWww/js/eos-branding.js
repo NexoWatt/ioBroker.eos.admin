@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v69-v57-header-baseline-restore';
+    window.NEXOWATT_EOS_UI_VERSION = 'v70-stability';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -142,6 +142,8 @@
             protectedAdapters: CORE_PROTECTED_ADAPTERS,
         },
         securityFetchStarted: false,
+        unsubscribePolicy: null,
+        unsubscribeDom: null,
         assistOpen: false,
     };
 
@@ -340,26 +342,27 @@
         document.documentElement.classList.toggle('eos-security-nonadmin', policy.loaded && !policy.isAdmin);
     };
 
-    const fetchSecurityPolicy = async () => {
+    const fetchSecurityPolicy = () => {
         if (state.securityFetchStarted) return;
         state.securityFetchStarted = true;
-        for (const url of securityEndpointUrls()) {
-            try {
-                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
-                if (!response.ok) continue;
-                const json = await response.json();
-                if (!json || json.error) continue;
-                state.securityPolicy = normalizeSecurityPolicy(json);
+        const connect = () => {
+            const client = window.NEXOWATT_EOS_POLICY_CLIENT;
+            if (!client) {
+                window.setTimeout(connect, 250);
+                return;
+            }
+            const apply = policy => {
+                if (!policy || policy.role === 'unknown') return;
+                state.securityPolicy = normalizeSecurityPolicy(policy);
                 applySecurityClasses();
                 scheduleFullPatch(0);
-                return;
-            } catch (e) {
-                // Security endpoint may be unavailable during login or old cache. Fallback below.
-            }
-        }
-        state.securityPolicy = normalizeSecurityPolicy({ isAdmin: false, protectedAdapters: CORE_PROTECTED_ADAPTERS });
-        applySecurityClasses();
-        scheduleFullPatch(0);
+            };
+            apply(client.getPolicy?.());
+            state.unsubscribePolicy?.();
+            state.unsubscribePolicy = client.subscribe?.(apply);
+            void client.refresh?.();
+        };
+        connect();
     };
 
     const isAdminUser = () => !!state.securityPolicy?.isAdmin;
@@ -475,14 +478,14 @@
         const selectors = [
             '.MuiDialog-root', '.MuiModal-root', '.MuiPopover-root', '.MuiPopper-root',
             '.MuiMenu-root', '.MuiAutocomplete-popper', '.MuiAutocomplete-listbox',
-            'body > [role="presentation"]', '[role="dialog"]', '[role="listbox"]', '[role="menu"]'
+            '[role="dialog"]', '[role="listbox"]', '[role="menu"]'
         ].join(',');
         document.querySelectorAll(selectors).forEach(el => {
             el.classList.add('eos-native-popup-safe');
             if (el.style) {
                 el.style.pointerEvents = 'auto';
-                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="listbox"],[role="menu"],body > [role="presentation"]');
-                if (isFloating && !el.closest('.MuiDialog-paper')) el.style.zIndex = '15000';
+                const isFloating = el.matches('.MuiPopover-root,.MuiPopper-root,.MuiMenu-root,.MuiAutocomplete-popper,[role="listbox"],[role="menu"]');
+                if (isFloating && !el.closest('.MuiDialog-paper')) el.style.zIndex = '6500';
             }
         });
     });
@@ -878,75 +881,6 @@
         }
     });
 
-
-    const removeSmallTopLeftNativeNexoWattTab = () => safe(() => {
-        if (!window.matchMedia?.('(min-width: 901px)').matches) return;
-
-        const primary = document.querySelector('.eos-brand-badge, .eos-primary-brand');
-        const isPrimary = element => !!element && (
-            element === primary ||
-            element.matches?.('.eos-brand-badge, .eos-primary-brand') ||
-            element.closest?.('.eos-brand-badge, .eos-primary-brand') ||
-            element.querySelector?.('.eos-brand-badge, .eos-primary-brand')
-        );
-        const hasShortNexoWattIdentity = element => {
-            if (!element || isPrimary(element)) return false;
-            const text = normalize(element.textContent || '');
-            if (/energy operation system|nexowatt eos/.test(text)) return false;
-            const image = element.querySelector?.('img, .MuiAvatar-img, .MuiAvatar-root');
-            const imageText = normalize(`${image?.getAttribute?.('alt') || ''} ${image?.getAttribute?.('src') || ''}`);
-            return /nexowatt/.test(text) || /nexowatt/.test(imageText);
-        };
-        const hide = element => {
-            if (!element || isPrimary(element)) return;
-            element.classList.add('eos-small-top-left-native-tab-hidden');
-            element.setAttribute('aria-hidden', 'true');
-            element.setAttribute('inert', '');
-            element.querySelectorAll?.('button, a, [role="button"]').forEach(control => {
-                control.setAttribute('tabindex', '-1');
-                control.setAttribute('aria-hidden', 'true');
-            });
-            if (element.style) {
-                for (const [name, value] of Object.entries({
-                    display: 'none', visibility: 'hidden', opacity: '0', pointerEvents: 'none',
-                    width: '0', minWidth: '0', maxWidth: '0', height: '0', minHeight: '0', maxHeight: '0',
-                    margin: '0', padding: '0', overflow: 'hidden', flex: '0 0 0', border: '0', boxShadow: 'none',
-                })) element.style.setProperty(name.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`), value, 'important');
-            }
-        };
-
-        const inspect = seed => {
-            if (!seed || isPrimary(seed)) return;
-            let element = seed.nodeType === 1 ? seed : seed.parentElement;
-            let best = null;
-            while (element && element !== document.body && element !== document.documentElement) {
-                if (isPrimary(element)) return;
-                const rect = element.getBoundingClientRect?.();
-                if (rect && rect.top >= -4 && rect.top <= 52 && rect.left >= -4 && rect.left <= 185 &&
-                    rect.width >= 45 && rect.width <= 190 && rect.height >= 16 && rect.height <= 58 &&
-                    hasShortNexoWattIdentity(element)) {
-                    best = element;
-                }
-                if (rect && (rect.width > 220 || rect.height > 75 || rect.left > 200 || rect.top > 70)) break;
-                element = element.parentElement;
-            }
-            if (best) hide(best);
-        };
-
-        // Known native locations plus a coordinate fallback matching the compact tab.
-        document.querySelectorAll([
-            '.MuiDrawer-paper a[href*="#easy"]',
-            '.MuiSwipeableDrawer-paper a[href*="#easy"]',
-            '.MuiAppBar-root a[href*="#easy"]',
-            '.MuiToolbar-root a[href*="#easy"]',
-            'img[alt*="NexoWatt" i]',
-            'img[src*="nexowatt" i]',
-        ].join(',')).forEach(inspect);
-        [[8, 18], [45, 22], [90, 22], [135, 22], [80, 36]].forEach(([x, y]) => {
-            document.elementsFromPoint?.(x, y).forEach(inspect);
-        });
-    });
-
     const patchShell = () => safe(() => {
         const hasApp = !!document.getElementById('app-paper');
         const login = isLoginView();
@@ -962,8 +896,7 @@
             toolbar.classList.add('eos-top-toolbar');
             ensureBrandBadge(toolbar);
         }
-        document.querySelectorAll('.MuiDrawer-paper, .MuiSwipeableDrawer-paper').forEach(patchDrawerHeader);
-        removeSmallTopLeftNativeNexoWattTab();
+        patchDrawerHeader(document.querySelector('.MuiDrawer-paper'));
         hideNativeLogoutNav();
         releaseNotificationControls();
         ensurePopupCompatibility();
@@ -1568,14 +1501,9 @@
     };
 
     const installObserver = () => safe(() => {
-        const observer = new MutationObserver(mutations => {
+        if (state.unsubscribeDom) return;
+        const onMutations = mutations => {
             for (const mutation of mutations) {
-                if (mutation.type === 'characterData') {
-                    if (isHighLoadAdminSurface() && isInsideAppPaper(mutation.target?.parentElement)) continue;
-                    if (isAdapterConfigSurface() && mutation.target?.parentElement?.closest?.('#app-paper')) patchMojibakeTextNode(mutation.target);
-                    else patchTextNode(mutation.target);
-                    continue;
-                }
                 if (mutation.type !== 'childList') continue;
                 mutation.addedNodes.forEach(node => {
                     if (!node) return;
@@ -1589,14 +1517,9 @@
                 });
             }
             if (state.pendingScopes.size) scheduleScopePatch();
-        });
-        observer.observe(document.documentElement, {
-            subtree: true,
-            childList: true,
-            // v57: characterData floods large ObjectBrowser tables. Text fixes are
-            // applied by scheduled scope/full patches instead.
-            characterData: false,
-        });
+        };
+        const coordinator = window.NEXOWATT_EOS_DOM_COORDINATOR;
+        if (coordinator?.subscribe) state.unsubscribeDom = coordinator.subscribe(onMutations);
     });
 
     forceLoginGlobals();
@@ -1605,13 +1528,13 @@
             fullPatch();
             fetchSecurityPolicy();
             installObserver();
-            [350, 1500].forEach(scheduleFullPatch);
+            [450].forEach(scheduleFullPatch);
         }, { once: true });
     } else {
         fullPatch();
         fetchSecurityPolicy();
         installObserver();
-        [350, 1500].forEach(scheduleFullPatch);
+        [450].forEach(scheduleFullPatch);
     }
     window.addEventListener('load', () => scheduleFullPatch(0), { once: true });
     window.addEventListener('hashchange', () => scheduleFullPatch(0));

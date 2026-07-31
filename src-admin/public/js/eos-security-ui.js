@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v65-native-drawer-header-hard-remove';
+    const VERSION = 'v70-stability';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];
@@ -27,6 +27,8 @@
         },
         scheduled: false,
         observer: null,
+        unsubscribePolicy: null,
+        unsubscribeDom: null,
     };
 
     const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
@@ -252,6 +254,9 @@
     };
 
     const applyPolicyToDom = () => {
+        // Unknown must stay unknown during a restart. Never apply non-admin restrictions
+        // until a valid policy has been received.
+        if (!state.loaded) return;
         // v57: the datapoints/logs pages belong to the native ObjectBrowser. Do not
         // walk those large virtualized tables or popup surfaces on every mutation.
         if (!isHighLoadAdminSurface()) replaceTextNodes();
@@ -299,42 +304,44 @@
         else window.requestAnimationFrame(run);
     };
 
-    const loadPolicy = async () => {
-        for (const url of SECURITY_URLS) {
-            try {
-                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
-                if (!response.ok) continue;
-                const policy = await response.json();
-                state.policy = { ...state.policy, ...policy };
-                state.loaded = true;
-                scheduleApply();
-                return;
-            } catch { /* try next */ }
-        }
-        state.loaded = false;
-        state.policy = { ...state.policy, isAdmin: false, isEosAdminGroup: false, isAdministrator: false };
-        console.warn('[NexoWatt EOS] Cannot read security policy, using safe non-admin UI mode');
+    const applyPolicy = policy => {
+        if (!policy || policy.role === 'unknown') return;
+        state.policy = { ...state.policy, ...policy };
+        state.loaded = true;
         scheduleApply();
     };
 
+    const connectPolicyClient = () => {
+        const client = window.NEXOWATT_EOS_POLICY_CLIENT;
+        if (!client) {
+            window.setTimeout(connectPolicyClient, 250);
+            return;
+        }
+        applyPolicy(client.getPolicy?.());
+        state.unsubscribePolicy?.();
+        state.unsubscribePolicy = client.subscribe?.(applyPolicy);
+        void client.refresh?.();
+    };
+
     const installObserver = () => {
-        if (state.observer) return;
-        state.observer = new MutationObserver(mutations => {
-            if (isHighLoadAdminSurface() && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
+        if (state.unsubscribeDom || state.observer) return;
+        const onMutations = mutations => {
+            if (isHighLoadAdminSurface() && mutations.length && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
             scheduleApply();
-        });
-        state.observer.observe(document.documentElement, { childList: true, subtree: true });
+        };
+        const coordinator = window.NEXOWATT_EOS_DOM_COORDINATOR;
+        if (coordinator?.subscribe) state.unsubscribeDom = coordinator.subscribe(onMutations);
     };
 
     // v47: No global capture listener for delete buttons. Protected adapter deletion is
     // handled in the React delete handlers; global DOM interception broke normal Dienste.
 
     const start = () => {
-        loadPolicy();
+        connectPolicyClient();
         installObserver();
         [500, 2000].forEach(ms => window.setTimeout(scheduleApply, ms));
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
     else start();
-    window.addEventListener('hashchange', () => { loadPolicy(); scheduleApply(); });
+    window.addEventListener('hashchange', () => { window.NEXOWATT_EOS_POLICY_CLIENT?.refresh?.(); scheduleApply(); });
 })();

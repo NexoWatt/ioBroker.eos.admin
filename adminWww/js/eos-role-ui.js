@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v65-native-drawer-header-hard-remove';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v70-stability';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;
@@ -16,13 +16,10 @@
         fallbackTimer: null,
         redirects: 0,
         lastTarget: '',
+        unsubscribePolicy: null,
+        unsubscribeDom: null,
     };
 
-    const securityEndpointUrls = () => [
-        new URL('nexowatt/security/context', ASSET_BASE).href,
-        new URL('nexowatt/security/session', ASSET_BASE).href,
-        new URL('eos/security/status', ASSET_BASE).href,
-    ];
 
     const safe = fn => {
         try { return fn(); } catch (_) { return undefined; }
@@ -263,39 +260,39 @@
         else requestAnimationFrame(run);
     };
 
-    const fetchPolicy = async () => {
-        for (const url of securityEndpointUrls()) {
-            try {
-                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
-                if (!response.ok) continue;
-                const json = await response.json();
-                const role = roleFromPolicy(json);
-                state.policy = { ...json, role };
-                state.role = role;
-                window.NEXOWATT_EOS_ROLE_POLICY = state.policy;
-                scheduleApply();
-                return;
-            } catch (_) {
-                // try next endpoint
-            }
-        }
-        state.policy = { role: 'enduser', isEndUser: true, groups: [] };
-        state.role = 'enduser';
+    const applyPolicy = policy => {
+        if (!policy || policy.role === 'unknown') return;
+        const role = roleFromPolicy(policy);
+        state.policy = { ...policy, role };
+        state.role = role;
         window.NEXOWATT_EOS_ROLE_POLICY = state.policy;
         scheduleApply();
     };
 
+    const connectPolicyClient = () => {
+        const client = window.NEXOWATT_EOS_POLICY_CLIENT;
+        if (!client) {
+            window.setTimeout(connectPolicyClient, 250);
+            return;
+        }
+        applyPolicy(client.getPolicy?.());
+        state.unsubscribePolicy?.();
+        state.unsubscribePolicy = client.subscribe?.(applyPolicy);
+        void client.refresh?.();
+    };
+
     const startObserver = () => safe(() => {
-        if (state.observer || !document.documentElement) return;
-        state.observer = new MutationObserver(mutations => {
-            if (isHighLoadAdminSurface() && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
+        if (state.unsubscribeDom || state.observer || !document.documentElement) return;
+        const onMutations = mutations => {
+            if (isHighLoadAdminSurface() && mutations.length && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
             scheduleApply();
-        });
-        state.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['href', 'class', 'aria-label'] });
+        };
+        const coordinator = window.NEXOWATT_EOS_DOM_COORDINATOR;
+        if (coordinator?.subscribe) state.unsubscribeDom = coordinator.subscribe(onMutations);
     });
 
     const start = () => {
-        fetchPolicy();
+        connectPolicyClient();
         startObserver();
         window.addEventListener('hashchange', () => {
             state.redirects = 0;

@@ -895,23 +895,10 @@ class Web {
             const sendSecuritySession = (req, res) => {
                 void this.sendEosSecuritySession(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot read EOS security session: ${e instanceof Error ? e.message : e}`);
-                    res.status(200).json({
-                        user: null,
-                        groups: [],
-                        groupNames: [],
-                        adminGroups: ['system.group.administrator'],
-                        installerGroups: this.getEosInstallerGroups(),
-                        endUserGroups: this.getEosEndUserGroups(),
-                        role: 'enduser',
-                        isAdministrator: false,
-                        isEosAdminGroup: false,
-                        isInstaller: false,
-                        isEndUser: true,
-                        isAdmin: false,
-                        hideLegacyAdminForNonAdmins: true,
-                        hideLegacyAdminFromNonAdmins: true,
-                        restrictProtectedAdapterControls: true,
-                        protectedAdapters: this.getEosProtectedAdapterNames(),
+                    res.status(503).json({
+                        error: 'EOS security context temporarily unavailable',
+                        transient: true,
+                        role: 'unknown',
                     });
                 });
             };
@@ -1140,6 +1127,21 @@ class Web {
             else {
                 this.server.app.get('/empty.html', (_req, res) => {
                     res.status(200).send('');
+                });
+                // Stability release: entrypoints and module-federation manifests must always
+                // revalidate. Hashed leaf assets remain cacheable through express.static.
+                this.server.app.use((req, res, next) => {
+                    const pathName = req.path || req.url.split('?')[0];
+                    if (pathName === '/'
+                        || pathName === '/index.html'
+                        || pathName === '/mf-manifest.json'
+                        || /^\/remoteEntry(?:-v\d+)?\.js$/.test(pathName)
+                        || /^\/assets\/(?:hostInit|index-CQZugZ1z)-[^/]+\.js$/.test(pathName)) {
+                        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                        res.setHeader('Pragma', 'no-cache');
+                        res.setHeader('Expires', '0');
+                    }
+                    next();
                 });
                 this.server.app.get('/index.html', async (_req, res) => {
                     this.indexHTML ||= await this.prepareIndex('/index.html');
