@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v70-stability';
+    const VERSION = 'v72-runtime-stability';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();
@@ -142,13 +142,35 @@
         else window.setTimeout(flushDom, 16);
     };
 
+    const isHighLoadRoute = () => /tab-(objects|adapter|adapters|instances|logs|host|hosts)\b/.test(
+        String(window.location.hash || '').toLowerCase(),
+    );
+    const isPopupOrShellNode = node => !!node?.closest?.(
+        '.MuiAppBar-root,.MuiDrawer-paper,.MuiDialog-root,.MuiModal-root,.MuiPopover-root,.MuiPopper-root,' +
+        '.MuiMenu-root,.MuiSnackbar-root,[role="dialog"],[role="menu"],[role="listbox"],.eos-top-toolbar,.eos-brand-badge',
+    );
+    const isTableOnlyMutation = mutation => {
+        const target = mutation.target?.nodeType === Node.ELEMENT_NODE
+            ? mutation.target
+            : mutation.target?.parentElement;
+        if (!target?.closest?.('#app-paper')) return false;
+        if (isPopupOrShellNode(target)) return false;
+        for (const node of mutation.addedNodes || []) {
+            const element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+            if (element && isPopupOrShellNode(element)) return false;
+        }
+        return true;
+    };
+
     const startDomObserver = () => {
         if (domObserver || domDestroyed || !document.documentElement) return;
         domObserver = new MutationObserver(mutations => {
-            // Bound the queue. Subscribers only need the newest scopes when a large
-            // virtualized table updates hundreds of rows in one frame.
-            if (domMutations.length + mutations.length > 600) domMutations = mutations.slice(-300);
-            else domMutations.push(...mutations);
+            // ObjectBrowser/adapter tables can add hundreds of virtual rows per frame.
+            // Those rows are owned by React and need no EOS branding/role/security pass.
+            const relevant = isHighLoadRoute() ? mutations.filter(mutation => !isTableOnlyMutation(mutation)) : mutations;
+            if (!relevant.length) return;
+            if (domMutations.length + relevant.length > 300) domMutations = relevant.slice(-120);
+            else domMutations.push(...relevant);
             scheduleDom();
         });
         domObserver.observe(document.documentElement, { childList: true, subtree: true });

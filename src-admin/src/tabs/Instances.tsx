@@ -207,6 +207,25 @@ class Instances extends Component<InstancesProps, InstancesState> {
 
     private closeCommands: Record<string, (() => void) | null> = {};
 
+    private instancesRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    private instancesRetryAttempt = 0;
+
+    private instancesUnmounted = false;
+
+    private scheduleInstancesRetry(): void {
+        if (this.instancesUnmounted || this.instancesRetryTimer) {
+            return;
+        }
+        const delays = [500, 1_000, 2_000, 4_000, 8_000, 12_000];
+        const delay = delays[Math.min(this.instancesRetryAttempt, delays.length - 1)];
+        this.instancesRetryAttempt++;
+        this.instancesRetryTimer = setTimeout(() => {
+            this.instancesRetryTimer = null;
+            void this.getInstances();
+        }, delay);
+    }
+
     constructor(props: InstancesProps) {
         super(props);
 
@@ -307,6 +326,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
     };
 
     async componentDidMount(): Promise<void> {
+        this.instancesUnmounted = false;
         this.props.instancesWorker.registerHandler(this.getInstances);
         // Load reverse proxy configuration first so link generation can map immediately
         try {
@@ -331,6 +351,11 @@ class Instances extends Component<InstancesProps, InstancesState> {
     }
 
     componentWillUnmount(): void {
+        this.instancesUnmounted = true;
+        if (this.instancesRetryTimer) {
+            clearTimeout(this.instancesRetryTimer);
+            this.instancesRetryTimer = null;
+        }
         this.subscribeStates(true);
         this.props.instancesWorker.unregisterHandler(this.getInstances);
     }
@@ -362,15 +387,15 @@ class Instances extends Component<InstancesProps, InstancesState> {
     }
 
     getInstances = async (): Promise<void> => {
-        const start = Date.now();
         let instances: ioBroker.InstanceObject[] = [];
         const instancesFromWorker = await this.props.instancesWorker.getObjects();
 
         if (!instancesFromWorker) {
-            window.alert('Cannot read instances!');
+            this.scheduleInstancesRetry();
             return;
         }
 
+        this.instancesRetryAttempt = 0;
         instances = Object.values(instancesFromWorker);
 
         let memRssId = `${this.state.currentHost}.memRss`;
@@ -553,11 +578,9 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 instance.stoppedWhenWebExtension = eId ? !!eId.val : undefined;
             }
 
-            console.log(obj._id);
             formatted[obj._id] = instance;
         }
 
-        console.log(`getInstances: ${Date.now() - start}`);
 
         for (let c = 1; c <= maxCompactGroupNumber; c++) {
             const compactGroupMemRssId = `${this.state.currentHost}.compactgroup${c}.memRss`;

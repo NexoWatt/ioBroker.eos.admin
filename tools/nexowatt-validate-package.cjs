@@ -42,7 +42,8 @@ for (const file of [
   'admin/admin.svg',
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
-  'THIRD_PARTY_NOTICES.md'
+  'THIRD_PARTY_NOTICES.md',
+  'tools/nexowatt-patch-built-frontend.cjs'
 ]) {
   if (!exists(file)) fail(`missing required file: ${file}`);
 }
@@ -73,6 +74,11 @@ if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('bui
 const srcPkg = readJson('src-admin/package.json');
 const srcVersion = readJson('src-admin/src/version.json');
 if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
-if (!index.includes('hostInit-v71.js?v=71') || !index.includes('index-CQZugZ1z-v71.js?v=71')) fail('adminWww/index.html must load the v71 runtime');
+if (!index.includes('hostInit-v72.js?v=72') || !index.includes('index-CQZugZ1z-v72.js?v=72')) fail('adminWww/index.html must load the v72 runtime');
+
+
+if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');
+const tasks = fs.readFileSync(path.join(root, 'tasks.mts'), 'utf8');
+if (!tasks.includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
 
 console.log('[NexoWatt EOS package validation] OK');

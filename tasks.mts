@@ -1,6 +1,7 @@
 import { statSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import less from 'less';
 import buildTools from '@iobroker/build-tools';
 import axios from 'axios';
@@ -12,6 +13,13 @@ const dirName = dirname(fileURLToPath(import.meta.url));
 const src = `${dirName}/${srcRx}`;
 const rootFolder = dirName;
 const dest = 'adminWww/';
+
+function patchNexoWattBuiltFrontend(): void {
+    execFileSync(process.execPath, [`${dirName}/tools/nexowatt-patch-built-frontend.cjs`], {
+        cwd: dirName,
+        stdio: 'inherit',
+    });
+}
 
 async function build(): Promise<void> {
     const socketNew = readFileSync(`${dirName}/node_modules/@iobroker/ws/build/esm/socket.io.min.js`).toString();
@@ -229,10 +237,12 @@ if (process.argv.includes('--backend-i18n')) {
         process.exit(1);
     });
 } else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-6-patch')) {
-    patchHtmlFile(`${dest}/index.html`).catch((e: unknown) => {
-        console.error(e);
-        process.exit(1);
-    });
+    patchHtmlFile(`${dest}/index.html`)
+        .then(() => patchNexoWattBuiltFrontend())
+        .catch((e: unknown) => {
+            console.error(e);
+            process.exit(1);
+        });
 } else {
     configCSS()
         .then(async () => {
@@ -246,6 +256,7 @@ if (process.argv.includes('--backend-i18n')) {
             await build();
             await copyAllFiles();
             await patchHtmlFile(`${dest}/index.html`);
+            patchNexoWattBuiltFrontend();
         })
         .catch((e: unknown) => {
             console.error(e);

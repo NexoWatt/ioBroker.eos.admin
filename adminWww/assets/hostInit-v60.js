@@ -1,1 +1,1 @@
-import "./hostInit-v71.js";
+import "./hostInit-v72.js";

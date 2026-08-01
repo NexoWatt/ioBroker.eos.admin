@@ -1,1 +1,1 @@
-export * from "./bootstrap-COulQZax-v71.js";
+export * from "./bootstrap-COulQZax-v72.js";

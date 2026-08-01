@@ -1,1 +1,1 @@
-export * from "./AdapterUpdateDialog-BMg84Hpf-v71.js";
+export * from "./AdapterUpdateDialog-BMg84Hpf-v72.js";

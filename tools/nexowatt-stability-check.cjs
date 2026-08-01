@@ -8,7 +8,7 @@ const json = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
 
 const version = json('package.json').version;
-if (version !== '7.9.71') fail(`expected 7.9.71, got ${version}`);
+if (version !== '7.9.72') fail(`expected 7.9.72, got ${version}`);
 for (const [file, value] of [
   ['io-package.json', json('io-package.json').common.version],
   ['src-admin/package.json', json('src-admin/package.json').version],
@@ -16,26 +16,26 @@ for (const [file, value] of [
 ]) if (value !== version) fail(`${file} version ${value} differs`);
 
 const index = read('adminWww/index.html');
-for (const marker of ['hostInit-v71.js?v=71','index-CQZugZ1z-v71.js?v=71','eos-policy-client.js?v=71']) {
+for (const marker of ['hostInit-v72.js?v=72','index-CQZugZ1z-v72.js?v=72','eos-policy-client.js?v=72']) {
   if (!index.includes(marker)) fail(`index missing ${marker}`);
 }
 if (/eos-(?:toolbar-ghost|adapter-surface)-cleanup/.test(index)) fail('heuristic v62+ cleanup script still loaded');
 const mf = read('adminWww/mf-manifest.json');
-if (!mf.includes('remoteEntry-v71.js')) fail('mf-manifest is not v71');
+if (!mf.includes('remoteEntry-v72.js')) fail('mf-manifest is not v72');
 if (mf.includes('-v58.js')) fail('mf-manifest still references v58');
 
 for (const file of [
-  'adminWww/assets/hostInit-v71.js','adminWww/assets/index-CQZugZ1z-v71.js',
-  'adminWww/assets/bootstrap-COulQZax-v71.js','adminWww/assets/Objects-DPan0bzw-v71.js',
-  'adminWww/assets/index-D2ymscJA-v71.js','adminWww/remoteEntry-v71.js'
+  'adminWww/assets/hostInit-v72.js','adminWww/assets/index-CQZugZ1z-v72.js',
+  'adminWww/assets/bootstrap-COulQZax-v72.js','adminWww/assets/Objects-DPan0bzw-v72.js',
+  'adminWww/assets/index-D2ymscJA-v72.js','adminWww/remoteEntry-v72.js'
 ]) if (!exists(file)) fail(`missing ${file}`);
 
-const activeFiles = fs.readdirSync(path.join(root,'adminWww/assets')).filter(f => /-v71\.js$/.test(f));
+const activeFiles = fs.readdirSync(path.join(root,'adminWww/assets')).filter(f => /-v72\.js$/.test(f));
 for (const file of activeFiles) {
   const text = read(`adminWww/assets/${file}`);
-  if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70)\.js/.test(text)) fail(`${file} imports an old runtime`);
+  if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71)\.js/.test(text)) fail(`${file} imports an old runtime`);
 }
-if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70)\.js/.test(read('adminWww/remoteEntry-v71.js'))) fail('remoteEntry-v71 imports old assets');
+if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71)\.js/.test(read('adminWww/remoteEntry-v72.js'))) fail('remoteEntry-v71 imports old assets');
 
 const policy = read('adminWww/js/eos-policy-client.js');
 if (!policy.includes('never downgrade an admin to enduser')) fail('policy client lacks transient-failure guard');
@@ -56,25 +56,25 @@ for (const marker of ['restoreObjectAclManagedByEos','300000','protected object 
 const web = read('build/lib/web.js');
 for (const marker of ["role: 'unknown'",'EOS security context temporarily unavailable','mf-manifest.json']) if (!web.includes(marker)) fail(`web backend missing ${marker}`);
 
-const objects = read('adminWww/assets/Objects-DPan0bzw-v71.js');
+const objects = read('adminWww/assets/index-D2ymscJA-v72.js');
 if (!objects.includes('common.write!==!1') && !objects.includes('common.write===!1')) fail('ObjectBrowser write semantics marker not found');
 if (read('adminWww/js/eos-objects-state-tools.js').includes('NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED = true')) fail('unrestricted datapoint write mode is active');
 
-// Compatibility shims must be tiny and point to the single v71 runtime.
+// Compatibility shims must be tiny and point to the single v72 runtime.
 const defaultRoutePrefixes = ['Adapters-B5_jQ7DE','CustomTab-B0wqoazH','DeviceManager-BFmQeYQ1','EasyMode-B1d9Vdc4','Enums-DbWYxKOo','Files-Cd2HOzIE','Hosts-Bg8QzW5i','Instances-YdaGnS5a','Intro-DkwRiz1n','Logs-CsVPSLJH','Objects-DPan0bzw','Users-BgnBRgwU'];
 const namedRoutePrefixes = ['AdapterUpdateDialog-BMg84Hpf','Config-hHK2UzGP','Fields-CX3rKuWb'];
-for (const v of [54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69]) {
+for (const v of [54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71]) {
   for (const file of [`adminWww/assets/bootstrap-COulQZax-v${v}.js`,`adminWww/assets/hostInit-v${v}.js`,`adminWww/remoteEntry-v${v}.js`]) {
     if (!exists(file)) continue;
     const text = read(file);
-    if (text.length > 300 || !text.includes('v71')) fail(`${file} is not a small v71 shim`);
+    if (text.length > 300 || !text.includes('v72')) fail(`${file} is not a small v72 shim`);
   }
   for (const prefix of [...defaultRoutePrefixes, ...namedRoutePrefixes]) {
     const file = `adminWww/assets/${prefix}-v${v}.js`;
     if (!exists(file)) fail(`missing compatibility shim ${file}`);
     else {
       const text = read(file);
-      if (text.length > 300 || !text.includes(`${prefix}-v71.js`)) fail(`${file} is not a small v71 route shim`);
+      if (text.length > 300 || !text.includes(`${prefix}-v72.js`)) fail(`${file} is not a small v72 route shim`);
     }
   }
 }
@@ -83,3 +83,9 @@ for (const rel of ['js/eos-policy-client.js','js/eos-branding.js','js/eos-securi
   if (read(`src-admin/public/${rel}`) !== read(`adminWww/${rel}`)) fail(`public/build drift: ${rel}`);
 }
 if (!process.exitCode) console.log('[NexoWatt EOS stability] OK');
+
+
+if (!exists('tools/nexowatt-patch-built-frontend.cjs')) fail('post-build ObjectBrowser patch tool missing');
+if (!read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('post-build ObjectBrowser patch is not wired into tasks.mts');
+
+// Detailed datapoint and update checks are executed by check:eos-stability.

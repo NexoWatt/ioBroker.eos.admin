@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v70-stability';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v72-runtime';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;

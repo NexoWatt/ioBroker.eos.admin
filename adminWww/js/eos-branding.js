@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v70-stability';
+    window.NEXOWATT_EOS_UI_VERSION = 'v72-runtime';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -1465,7 +1465,6 @@
         ensurePopupCompatibility();
         hideNativeLogoutNav();
         releaseNotificationControls();
-        ensurePopupCompatibility();
         if (!isHighLoadAdminSurface()) {
             ensureRightsHelper();
             ensurePermissionPresets();

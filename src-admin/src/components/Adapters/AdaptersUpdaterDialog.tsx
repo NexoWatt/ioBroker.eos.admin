@@ -81,6 +81,7 @@ interface AdaptersUpdaterDialogProps {
     toggleTranslation?: () => void;
     theme: IobTheme;
     rightDependenciesFunc: (adapterName: string) => boolean;
+    ready: boolean;
 }
 
 interface AdaptersUpdaterDialogState {
@@ -138,6 +139,10 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
     }
 
     onStartUpdate(): void {
+        if (!this.props.ready) {
+            window.alert(this.props.t('The connection is not ready yet. Please wait a moment and try again.'));
+            return;
+        }
         this.setState({ inProcess: true }, () => {
             this.props.onSetCommandRunning(true);
             this.processList = [...this.state.selected]
@@ -277,7 +282,7 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                                 <Command
                                     noSpacing
                                     key={this.state.current}
-                                    ready
+                                    ready={this.props.ready}
                                     host={this.props.currentHost}
                                     socket={this.props.socket}
                                     t={this.props.t}
@@ -359,7 +364,8 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                             this.state.stopped ||
                             this.state.inProcess ||
                             this.state.finished ||
-                            !this.state.selected.length
+                            !this.state.selected.length ||
+                            !this.props.ready
                         }
                         onClick={() => this.onStartUpdate()}
                         color="primary"

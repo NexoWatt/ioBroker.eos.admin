@@ -229,6 +229,32 @@ class Drawer extends Component<DrawerProps, DrawerState> {
 
     private readonly refEditButton: RefObject<HTMLDivElement>;
 
+    private tabsRetryTimer: ReturnType<typeof setTimeout> | null = null;
+    private tabsRetryAttempt = 0;
+    private drawerUnmounted = false;
+
+    private static isTransientConnectionError(error: unknown): boolean {
+        return /notconnected|not connected|connectionerror|close_abnormal|closed_no_status|websocket|timeout|networkerror/i.test(
+            String(error || ''),
+        );
+    }
+
+    private scheduleTabsRetry(update = true): void {
+        if (this.drawerUnmounted || this.tabsRetryAttempt >= 6) {
+            return;
+        }
+        const delays = [500, 1_000, 2_000, 4_000, 8_000, 12_000];
+        const delay = delays[Math.min(this.tabsRetryAttempt, delays.length - 1)];
+        this.tabsRetryAttempt++;
+        if (this.tabsRetryTimer) {
+            clearTimeout(this.tabsRetryTimer);
+        }
+        this.tabsRetryTimer = setTimeout(() => {
+            this.tabsRetryTimer = null;
+            void this.getTabs(update);
+        }, delay);
+    }
+
     constructor(props: DrawerProps) {
         super(props);
 
@@ -310,7 +336,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
 
     componentDidMount(): void {
         this.props.instancesWorker.registerHandler(this.instanceChangedHandler, true);
-        this.getTabs().catch(e => window.alert(`Cannot get tabs: ${e}`));
+        void this.getTabs();
 
         void this.onNotificationsHandler().then((): void => {
             this.props.hostsWorker.registerNotificationHandler(this.onNotificationsHandler);
@@ -327,7 +353,11 @@ class Drawer extends Component<DrawerProps, DrawerState> {
         this.props.hostsWorker
             .getNotifications()
             .then(notifications => this.calculateWarning(notifications))
-            .catch(error => window.alert(`Cannot get notifications: ${error}`));
+            .catch(error => {
+                if (!Drawer.isTransientConnectionError(error)) {
+                    window.alert(`Cannot get notifications: ${error}`);
+                }
+            });
 
     onErrorsUpdates = (logErrors: number): void => {
         this.setState({ logErrors });
@@ -364,6 +394,11 @@ class Drawer extends Component<DrawerProps, DrawerState> {
     };
 
     componentWillUnmount(): void {
+        this.drawerUnmounted = true;
+        if (this.tabsRetryTimer) {
+            clearTimeout(this.tabsRetryTimer);
+            this.tabsRetryTimer = null;
+        }
         this.props.instancesWorker.unregisterHandler(this.instanceChangedHandler);
         this.props.hostsWorker.unregisterNotificationHandler(this.onNotificationsHandler);
 
@@ -383,6 +418,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
     async getTabs(update?: boolean): Promise<void> {
         try {
             const _instances = await this.props.socket.getCompactInstances(update);
+            this.tabsRetryAttempt = 0;
             const instances = _instances as any as Record<string, ioBroker.AdapterCommon>;
             const dynamicTabs: AdminTab[] = [];
             if (instances) {
@@ -559,6 +595,11 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                 });
             });
         } catch (error) {
+            if (Drawer.isTransientConnectionError(error)) {
+                this.scheduleTabsRetry(true);
+                return;
+            }
+            this.tabsRetryAttempt = 0;
             window.alert(`Cannot get instances: ${error}`);
         }
     }

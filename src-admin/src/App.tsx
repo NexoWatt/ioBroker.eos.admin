@@ -521,6 +521,14 @@ class App extends Router<AppProps, AppState> {
     private newsInstance: number = 0;
     private doNotAskSessionExpiration: number = 0;
     private tabsInfo: AdminTab[] | null = null;
+    private pendingCommandTimer: ReturnType<typeof setTimeout> | null = null;
+    private pendingCommand: {
+        cmd: string;
+        host?: string | null;
+        callback?: (exitCode: number) => void;
+        files?: CommandFile[];
+        started: number;
+    } | null = null;
 
     constructor(props: AppProps) {
         super(props);
@@ -1283,6 +1291,13 @@ class App extends Router<AppProps, AppState> {
             this.expireInSecInterval = null;
         }
 
+        if (this.pendingCommandTimer) {
+            clearTimeout(this.pendingCommandTimer);
+            this.pendingCommandTimer = null;
+        }
+        this.pendingCommand = null;
+
+
         if (window._localStorage) {
             window._localStorage = null;
             window._sessionStorage = null;
@@ -1890,7 +1905,7 @@ class App extends Router<AppProps, AppState> {
                             adminHost={this.state.ownHost}
                             hostsWorker={this.hostsWorker}
                             currentHost={this.state.currentHost}
-                            ready={this.state.ready}
+                            ready={this.state.ready && this.state.connected}
                             t={I18n.t}
                             lang={I18n.getLanguage()}
                             expertMode={this.state.expertMode}
@@ -2308,6 +2323,61 @@ class App extends Router<AppProps, AppState> {
             host = null;
         }
 
+        const connectionReady =
+            this.state.connected &&
+            this.state.ready &&
+            !!this.socket &&
+            (typeof this.socket.isConnected !== 'function' || this.socket.isConnected());
+
+        if (!connectionReady) {
+            if (this.pendingCommand) {
+                this.showAlert(
+                    'EOS stellt die Verbindung noch her. Ein Installations- oder Updatebefehl wartet bereits.',
+                    'warning',
+                );
+                return;
+            }
+
+            const pending = { cmd, host, callback, files, started: Date.now() };
+            this.pendingCommand = pending;
+            this.showAlert(
+                'EOS stellt die Verbindung noch her. Der Befehl wird automatisch gestartet, sobald das System bereit ist.',
+                'info',
+            );
+
+            const retry = (): void => {
+                if (this.pendingCommand !== pending) {
+                    return;
+                }
+                const ready =
+                    this.state.connected &&
+                    this.state.ready &&
+                    !!this.socket &&
+                    (typeof this.socket.isConnected !== 'function' || this.socket.isConnected());
+                if (ready) {
+                    this.pendingCommand = null;
+                    this.pendingCommandTimer = null;
+                    this.executeCommand(pending.cmd, pending.host || undefined, pending.callback, pending.files);
+                } else if (Date.now() - pending.started >= 60_000) {
+                    this.pendingCommand = null;
+                    this.pendingCommandTimer = null;
+                    this.showAlert(
+                        'Der Befehl wurde nicht gestartet, weil die EOS-Verbindung innerhalb von 60 Sekunden nicht bereit war.',
+                        'error',
+                    );
+                } else {
+                    this.pendingCommandTimer = setTimeout(retry, 500);
+                }
+            };
+            this.pendingCommandTimer = setTimeout(retry, 250);
+            return;
+        }
+
+        if (this.state.commandRunning) {
+            this.showAlert('Es läuft bereits ein Installations- oder Updatebefehl.', 'warning');
+            return;
+        }
+
         if (this.state.performed || this.state.commandError) {
             this.setState(
                 {
@@ -2324,6 +2394,7 @@ class App extends Router<AppProps, AppState> {
                         cmd,
                         cmdDialog: true,
                         callback,
+                        commandHost: host || this.state.currentHost,
                         cmdFiles: files || null,
                     }),
             );
@@ -2469,7 +2540,7 @@ class App extends Router<AppProps, AppState> {
                 commandError={this.state.commandError}
                 socket={this.socket}
                 host={this.state.commandHost || this.state.currentHost}
-                ready={this.state.ready}
+                ready={this.state.ready && this.state.connected}
                 t={I18n.t}
             />
         ) : null;

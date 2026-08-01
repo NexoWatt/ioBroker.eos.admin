@@ -1,15 +1,23 @@
 {
-  "version": "7.9.71",
+  "version": "7.9.72",
   "channel": "stability",
   "baseFrontend": "7.9.58 coherent runtime (derived from the proven 7.9.57 datapoint baseline)",
-  "runtimeEntry": "v71",
-  "releaseType": "module-popup-runtime-hardening",
+  "runtimeEntry": "v72",
+  "releaseType": "datapoint-update-runtime-stability",
   "notes": [
-    "Module filter menus are unmounted when closed and use explicit MUI anchor/origin settings.",
-    "Generic EOS CSS no longer forces hidden MUI Menu/Popover descendants visible.",
-    "Popup compatibility DOM work only touches open native overlay roots.",
-    "All active module-federation entrypoints and route chunks use one v71 runtime.",
-    "Native ioBroker common.write semantics are retained.",
-    "The original Admin React frontend remains the functional core; no second Admin frontend is started."
+    "All active module-federation entrypoints, shared bundles and route chunks use the v72 runtime.",
+    "Folders/channels/devices/meta objects do not render synthetic null values.",
+    "Writable states follow common.write and the native ObjectBrowser value path.",
+    "Adapter update commands wait for a ready websocket and adapter pages retry transient startup reads.",
+    "High-load tables are excluded from broad EOS DOM scans."
+  ],
+  "release": "datapoint-update-runtime-stability",
+  "label": "v72",
+  "changes": [
+    "Native ObjectBrowser value handling restored: non-state objects render no value and writable states use the native dialog/direct control path.",
+    "Update/install commands wait for a stable socket/ready state instead of failing during initial loading.",
+    "Drawer tab discovery retries transient websocket errors without interrupting the UI.",
+    "High-load table mutations are filtered at the shared DOM coordinator before branding/role/security subscribers run.",
+    "All active module-federation routes use one cache-separated v72 runtime."
   ]
 }

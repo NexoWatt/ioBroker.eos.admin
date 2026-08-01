@@ -73,6 +73,22 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
 
     private forceUpdate: boolean = false;
 
+    private static isTransientConnectionError(error: unknown): boolean {
+        return /notconnected|not connected|connectionerror|close_abnormal|closed_no_status|websocket|timeout|networkerror/i.test(
+            String(error || ''),
+        );
+    }
+
+    private reportConnectionError(message: string, error: unknown): void {
+        this.forceUpdate = true;
+        this.promise = null;
+        if (GenericWorker.isTransientConnectionError(error)) {
+            console.warn(`${message}: ${String(error)}`);
+        } else {
+            console.error(`${message}: ${String(error)}`);
+        }
+    }
+
     protected constructor(socket: AdminConnection, root: string, objectType: ioBroker.ObjectType) {
         this.socket = socket;
         this.root = root;
@@ -171,7 +187,10 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
                 return this.objects;
             })
             .catch((e: unknown): null => {
-                window.alert(`Cannot get objects of type ${this.objectType}, with root "${this.root}": ${e as Error}`);
+                this.reportConnectionError(
+                    `Cannot get objects of type ${this.objectType}, with root "${this.root}"`,
+                    e,
+                );
                 return null;
             });
 
@@ -198,7 +217,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
                             }
                         });
                     })
-                    .catch(e => window.alert(`Cannot subscribe on object "${this.root}": ${e}`));
+                    .catch(e => this.reportConnectionError(`Cannot subscribe on object "${this.root}"`, e));
             }
             this.connectionPostHandler(true);
         } else if (!isConnected && this.connected) {
@@ -226,7 +245,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
                             });
                         }
                     })
-                    .catch(e => window.alert(`Cannot subscribe on objects "${this.root}": ${e}`));
+                    .catch(e => this.reportConnectionError(`Cannot subscribe on objects "${this.root}"`, e));
             }
         }
     }
@@ -238,7 +257,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
             if (!this.handlers.length && this.connected) {
                 this.socket
                     .unsubscribeObject(this.root ? `${this.root}.*` : '*', this.objectChangeHandler)
-                    .catch(e => window.alert(`Cannot unsubscribe from objects "${this.root}": ${e}`));
+                    .catch(e => this.reportConnectionError(`Cannot unsubscribe from objects "${this.root}"`, e));
             }
         }
     }

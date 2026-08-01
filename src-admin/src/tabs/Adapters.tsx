@@ -239,6 +239,81 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
     private hostAdapterWorker: HostAdapterWorker | null = null;
 
+    private initializing = false;
+
+    private initialized = false;
+
+    private unmounted = false;
+
+    private initializationRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    private initializationRetryAttempt = 0;
+
+    private workerHandlersRegistered = false;
+
+    private static isTransientConnectionError(error: unknown): boolean {
+        return /notconnected|not connected|connectionerror|close_abnormal|closed_no_status|websocket|timeout|networkerror/i.test(
+            String(error || ''),
+        );
+    }
+
+    private scheduleInitializationRetry(): void {
+        if (this.unmounted || this.initializationRetryTimer) {
+            return;
+        }
+        const delays = [250, 500, 1_000, 2_000, 4_000, 8_000, 12_000, 15_000];
+        const delay = delays[Math.min(this.initializationRetryAttempt, delays.length - 1)];
+        this.initializationRetryAttempt++;
+        this.initializationRetryTimer = setTimeout(() => {
+            this.initializationRetryTimer = null;
+            void this.initializeAdapters();
+        }, delay);
+    }
+
+    private async initializeAdapters(): Promise<void> {
+        if (this.unmounted || this.initialized || this.initializing || !this.props.ready) {
+            return;
+        }
+
+        this.initializing = true;
+        try {
+            if (!this.hostAdapterWorker || this.hostAdapterWorker.getHost() !== this.props.currentHost) {
+                this.hostAdapterWorker?.destroy();
+                this.hostAdapterWorker = new HostAdapterWorker(this.props.socket, this.props.currentHost);
+                this.hostAdapterWorker.registerHandler(this.onHostAdapterChanged);
+            }
+
+            const hostObjects = await this.hostAdapterWorker.getObjects();
+            if (!hostObjects) {
+                throw new Error('Host adapter data are not available yet');
+            }
+
+            await this.updateAll();
+            if (this.unmounted) {
+                return;
+            }
+            if (this.state.search) {
+                this.filterAdapters();
+            }
+            if (!this.workerHandlersRegistered) {
+                this.props.adaptersWorker.registerHandler(this.onAdaptersChanged);
+                this.props.instancesWorker.registerHandler(this.onAdaptersChanged);
+                this.workerHandlersRegistered = true;
+            }
+            this.initialized = true;
+            this.initializationRetryAttempt = 0;
+        } catch (error) {
+            if (!this.unmounted) {
+                if (!Adapters.isTransientConnectionError(error)) {
+                    console.error(`Cannot initialize adapter list: ${error as Error}`);
+                }
+                this.scheduleInitializationRetry();
+            }
+        } finally {
+            this.initializing = false;
+        }
+    }
+
     constructor(props: AdaptersProps) {
         super(props);
 
@@ -319,19 +394,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         );
     }
 
-    async componentDidMount(): Promise<void> {
-        if (this.props.ready) {
-            this.hostAdapterWorker = new HostAdapterWorker(this.props.socket, this.props.currentHost);
-            this.hostAdapterWorker.registerHandler(this.onHostAdapterChanged);
-            // wait till data is loaded
-            await this.hostAdapterWorker.getObjects();
-            await this.updateAll();
-            if (this.state.search) {
-                this.filterAdapters();
-            }
-            this.props.adaptersWorker.registerHandler(this.onAdaptersChanged);
-            this.props.instancesWorker.registerHandler(this.onAdaptersChanged);
-        }
+    componentDidMount(): void {
+        this.unmounted = false;
+        void this.initializeAdapters();
     }
 
     async updateAll(update?: boolean, bigUpdate?: boolean, indicateUpdate?: boolean): Promise<void> {
@@ -339,7 +404,11 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         await this.getAdaptersInfo(update, indicateUpdate);
     }
 
-    componentDidUpdate(): void {
+    componentDidUpdate(prevProps: AdaptersProps): void {
+        if (this.props.ready && (!prevProps.ready || !this.initialized)) {
+            void this.initializeAdapters();
+        }
+
         const descWidth = this.getDescWidth();
         if (this.state.descWidth !== descWidth) {
             this.setState({ descWidth });
@@ -350,6 +419,11 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
     }
 
     componentWillUnmount(): void {
+        this.unmounted = true;
+        if (this.initializationRetryTimer) {
+            clearTimeout(this.initializationRetryTimer);
+            this.initializationRetryTimer = null;
+        }
         if (this.updateTimeout) {
             clearTimeout(this.updateTimeout);
             this.updateTimeout = null;
@@ -375,9 +449,12 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             this.onHostAdapterTimer = null;
         }
 
-        this.props.adaptersWorker.unregisterHandler(this.onAdaptersChanged);
-        this.props.instancesWorker.unregisterHandler(this.onAdaptersChanged);
-        this.hostAdapterWorker.destroy();
+        if (this.workerHandlersRegistered) {
+            this.props.adaptersWorker.unregisterHandler(this.onAdaptersChanged);
+            this.props.instancesWorker.unregisterHandler(this.onAdaptersChanged);
+            this.workerHandlersRegistered = false;
+        }
+        this.hostAdapterWorker?.destroy();
         this.hostAdapterWorker = null;
     }
 
@@ -1524,6 +1601,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 onClose={reload => this.setState({ showUpdater: false }, () => reload && this.updateAll(true, false))}
                 socket={this.props.socket}
                 rightDependenciesFunc={this.rightDependencies}
+                ready={this.props.ready}
             />
         );
     }
@@ -2062,8 +2140,8 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                             forceUpdateAdapters: this.props.forceUpdateAdapters,
                         },
                         async () => {
-                            if (this.hostAdapterWorker.getHost() !== this.props.currentHost) {
-                                this.hostAdapterWorker.destroy();
+                            if (!this.hostAdapterWorker || this.hostAdapterWorker.getHost() !== this.props.currentHost) {
+                                this.hostAdapterWorker?.destroy();
                                 this.hostAdapterWorker = new HostAdapterWorker(
                                     this.props.socket,
                                     this.props.currentHost,

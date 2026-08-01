@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v70-stability';
+    const VERSION = 'v72-runtime';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];

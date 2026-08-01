@@ -4,15 +4,15 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..', 'adminWww');
 const entries = [
-    path.join(root, 'assets', 'hostInit-v71.js'),
-    path.join(root, 'assets', 'index-CQZugZ1z-v71.js'),
-    path.join(root, 'remoteEntry-v71.js'),
+    path.join(root, 'assets', 'hostInit-v72.js'),
+    path.join(root, 'assets', 'index-CQZugZ1z-v72.js'),
+    path.join(root, 'remoteEntry-v72.js'),
 ];
 const importPatterns = [
     /\b(?:import|export)\s*(?:[^"']*?\sfrom\s*)?["']([^"']+)["']/g,
     /\bimport\(\s*["']([^"']+)["']\s*\)/g,
 ];
-const oldRuntime = /-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70)\.js/;
+const oldRuntime = /-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71)\.js/;
 const seen = new Set();
 const queue = [...entries];
 const missing = [];
