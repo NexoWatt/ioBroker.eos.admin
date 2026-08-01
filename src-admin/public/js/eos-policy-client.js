@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v73-runtime-stability';
+    const VERSION = 'v74-scalar-value-dialog-stability';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();

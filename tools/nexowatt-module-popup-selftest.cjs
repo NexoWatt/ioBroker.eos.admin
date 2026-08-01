@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const fail = msg => { console.error(`[NexoWatt EOS module popup selftest] ${msg}`); process.exit(1); };
 const source = read('src-admin/src/components/CustomSelectButton.tsx');
-const built = read('adminWww/assets/sentry-B7YeoTAx-v73.js');
+const built = read('adminWww/assets/sentry-B7YeoTAx-v74.js');
 const css = read('adminWww/css/eos-branding.css');
 const branding = read('adminWww/js/eos-branding.js');
 if (/\bkeepMounted\b/.test(source)) fail('CustomSelectButton still keep-mounts closed menus');

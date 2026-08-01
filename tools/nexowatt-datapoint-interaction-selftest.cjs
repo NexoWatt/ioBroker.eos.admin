@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const code = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v73.js'), 'utf8');
+const code = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v74.js'), 'utf8');
 const fail = m => { console.error(`[NexoWatt EOS DP interaction selftest] ${m}`); process.exit(1); };
 if (!code.includes('"data-eos-object-writable":y?"1":"0"')) fail('writable marker missing');
 if (!code.includes('onMouseDown:Y=>{y&&Y.stopPropagation&&Y.stopPropagation()}')) fail('value-cell mousedown isolation missing');

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.73",
+    "version": "7.9.74",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,7 +18,7 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.73": {
+      "7.9.74": {
         "en": "Fixes manual editing of writable data points by isolating value-cell mouse events from row selection. Expert mode and header filter styling no longer affect the native value dialog.",
         "de": "Behebt die manuelle Bearbeitung beschreibbarer Datenpunkte, indem Mausereignisse der Wertzelle von der Zeilenauswahl getrennt werden. Expertenmodus und Filterdarstellung beeinflussen den nativen Wertdialog nicht."
       },
@@ -273,7 +273,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.73/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.74/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -284,7 +284,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.73/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.74/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -353,7 +353,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.73/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.74/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1032,5 +1032,5 @@
       }
     }
   },
-  "version": "7.9.73"
+  "version": "7.9.74"
 }

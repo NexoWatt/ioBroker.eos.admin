@@ -1,7 +1,7 @@
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.73",
+    "version": "7.9.74",
     "title": "NexoWatt EOS Admin",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
@@ -21,7 +21,7 @@
       "de": "Eigenständige NexoWatt EOS Administrationsoberfläche mit rollenbasierter Sichtbarkeit, Legacy-Admin-Sperre und geschützten Systemadaptern für Energy Operation System Installationen."
     },
     "news": {
-      "7.9.73": {
+      "7.9.74": {
         "en": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
         "de": "Datenpunktbearbeitung und Adapter-Updates stabilisiert: Schreibbare States nutzen den nativen Wertdialog, Ordner zeigen kein (null) mehr und temporäre WebSocket-Startfehler werden automatisch erneut versucht.",
         "nl": "Datapuntbewerking en adapterupdates gestabiliseerd: schrijfbare states gebruiken het native waardedialoog, mappen tonen geen (null) meer en tijdelijke WebSocket-startfouten worden opnieuw geprobeerd.",
@@ -250,9 +250,9 @@
         "nl": "Stabiliteitsconsolidatie: één consistente frontend-runtime, robuuste rolcontrole, herstelbare EOS-ACLs, native datapuntlogica en veiligere updatecache."
       }
     },
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.73/io-package.json",
-    "icon": "https://unpkg.com/iobroker.eos-admin@7.9.73/admin/admin.png",
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.73/admin/admin.svg",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.74/io-package.json",
+    "icon": "https://unpkg.com/iobroker.eos-admin@7.9.74/admin/admin.png",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.74/admin/admin.svg",
     "type": "general",
     "mode": "daemon",
     "platform": "Javascript/Node.js",
@@ -275,7 +275,7 @@
     "stopBeforeUpdate": false,
     "dontDelete": false,
     "nondeletable": false,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.73/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.74/README.md",
     "packetName": "iobroker.eos-admin",
     "npmPackage": "iobroker.eos-admin",
     "allowAdapterUpdate": true,

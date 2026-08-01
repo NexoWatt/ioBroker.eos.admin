@@ -1,18 +1,19 @@
 {
-  "version": "7.9.73",
+  "version": "7.9.74",
   "channel": "stability",
   "baseFrontend": "7.9.58 coherent runtime (derived from the proven 7.9.57 datapoint baseline)",
-  "runtimeEntry": "v73",
+  "runtimeEntry": "v74",
   "releaseType": "datapoint-update-runtime-stability",
   "notes": [
     "All active module-federation entrypoints, shared bundles and route chunks use the v73 runtime.",
     "Folders/channels/devices/meta objects do not render synthetic null values.",
     "Writable states follow common.write and the native ObjectBrowser value path.",
     "Adapter update commands wait for a ready websocket and adapter pages retry transient startup reads.",
-    "High-load tables are excluded from broad EOS DOM scans."
+    "High-load tables are excluded from broad EOS DOM scans.",
+    "Writable scalar datapoints use a capture-phase native dialog path; the dialog portal is raised above the EOS shell."
   ],
   "release": "datapoint-update-runtime-stability",
-  "label": "v73",
+  "label": "v74",
   "changes": [
     "Native ObjectBrowser value handling restored: non-state objects render no value and writable states use the native dialog/direct control path.",
     "Update/install commands wait for a stable socket/ready state instead of failing during initial loading.",

@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin stable runtime with reliable module filter popups and native datapoint semantics",
-  "version": "7.9.73",
+  "version": "7.9.74",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",

@@ -1,4 +1,4 @@
-# NexoWatt EOS Admin v7.9.73
+# NexoWatt EOS Admin v7.9.74
 
 Targeted datapoint interaction stabilization on top of v7.9.72.
 

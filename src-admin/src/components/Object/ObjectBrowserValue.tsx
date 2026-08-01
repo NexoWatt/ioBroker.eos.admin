@@ -505,6 +505,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
 
         return (
             <Dialog
+                className="eos-object-value-dialog"
                 open={!0}
                 maxWidth={
                     this.state.type === 'number' || this.state.type === 'boolean' || this.state.type === 'states'
@@ -522,7 +523,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                 onClose={() => this.props.onClose()}
                 aria-labelledby="edit-value-dialog-title"
                 aria-describedby="edit-value-dialog-description"
-                sx={{ '&. MuiDialog-paper': this.state.type === 'json' ? styles.dialog : undefined }}
+                sx={{
+                    zIndex: 10000,
+                    '& .MuiDialog-paper': this.state.type === 'json' ? styles.dialog : undefined,
+                }}
             >
                 <DialogTitle id="edit-value-dialog-title">
                     {this.props.t('Write value')}

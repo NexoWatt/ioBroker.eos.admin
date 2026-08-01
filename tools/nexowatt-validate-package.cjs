@@ -74,7 +74,7 @@ if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('bui
 const srcPkg = readJson('src-admin/package.json');
 const srcVersion = readJson('src-admin/src/version.json');
 if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
-if (!index.includes('hostInit-v73.js?v=72') || !index.includes('index-CQZugZ1z-v73.js?v=72')) fail('adminWww/index.html must load the v73 runtime');
+if (!index.includes('hostInit-v74.js?v=74') || !index.includes('index-CQZugZ1z-v74.js?v=74')) fail('adminWww/index.html must load the v74 runtime');
 
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');

@@ -4,9 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..', 'adminWww');
 const entries = [
-    path.join(root, 'assets', 'hostInit-v73.js'),
-    path.join(root, 'assets', 'index-CQZugZ1z-v73.js'),
-    path.join(root, 'remoteEntry-v73.js'),
+    path.join(root, 'assets', 'hostInit-v74.js'),
+    path.join(root, 'assets', 'index-CQZugZ1z-v74.js'),
+    path.join(root, 'remoteEntry-v74.js'),
 ];
 const importPatterns = [
     /\b(?:import|export)\s*(?:[^"']*?\sfrom\s*)?["']([^"']+)["']/g,
