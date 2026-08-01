@@ -64,9 +64,20 @@ if (!/let [A-Za-z_$][\w$]*=!this\.props\.notEditable&&[A-Za-z_$][\w$]*==="state"
     fail('strict common.write semantics were not found after patching');
 }
 
-// Historic EOS capture handlers blocked the native React click path.
-if (/onMouseDown:[A-Za-z_$][\w$]*=>\{[^}]*stopPropagation/.test(code) && code.includes('data-eos-object-value-cell')) {
-    fail('legacy ObjectBrowser mousedown capture handler is still present');
+// Keep the value cell isolated from the row's onMouseDown selection. The row
+// selection can otherwise re-render the virtual row before React emits click,
+// so the native value dialog never opens. Do not call preventDefault here.
+if (code.includes('data-eos-object-value-cell') && !/onMouseDown:([A-Za-z_$][\w$]*)=>\{[^}]*\1&&\1\.stopPropagation/.test(code)) {
+    const valueClick = /},onClick:([A-Za-z_$][\w$]*)=>\{var ([^;]+);if\(([A-Za-z_$][\w$]*)\)\{/;
+    if (!valueClick.test(code)) fail('cannot locate the native writable value-cell click handler');
+    code = code.replace(valueClick, '},onMouseDown:$1=>{$3&&$1.stopPropagation&&$1.stopPropagation()},onClick:$1=>{var $2;$3&&$1.stopPropagation&&$1.stopPropagation();if($3){');
+    changed = true;
+}
+if (!code.includes('closest("[data-eos-object-value-cell]")')) {
+    const rowMouseDown = /onMouseDown:([A-Za-z_$][\w$]*)=>\{this\.onSelect\(([A-Za-z_$][\w$]*)\);let ([A-Za-z_$][\w$]*);/;
+    if (!rowMouseDown.test(code)) fail('cannot locate ObjectBrowser row mousedown handler');
+    code = code.replace(rowMouseDown, 'onMouseDown:$1=>{if($1.target&&$1.target.closest&&$1.target.closest("[data-eos-object-value-cell]"))return;this.onSelect($2);let $3;');
+    changed = true;
 }
 
 if (changed) fs.writeFileSync(bundlePath, code);

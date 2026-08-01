@@ -1,1 +1,1 @@
-export * from "./remoteEntry-v72.js";
+export * from "./remoteEntry-v73.js";

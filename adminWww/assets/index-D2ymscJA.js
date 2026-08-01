@@ -1,1 +1,1 @@
-export * from "./index-D2ymscJA-v72.js";
+export * from "./index-D2ymscJA-v73.js";

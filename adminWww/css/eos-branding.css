@@ -3706,3 +3706,31 @@ html.eos-app .MuiTooltip-popper {
     z-index: 9100 !important;
     pointer-events: none !important;
 }
+
+
+/* === NexoWatt EOS v7.9.73: reliable native writable-value hit target =====
+   The dark header/filter background is only a filter visual and does not
+   control write access. Writable state cells are isolated from row selection
+   and receive a full-width keyboard/mouse target. */
+html .eos-object-value-cell[data-eos-object-writable="1"] {
+    position: relative !important;
+    z-index: 1 !important;
+    pointer-events: auto !important;
+    cursor: text !important;
+    touch-action: manipulation;
+    user-select: text;
+    min-height: 30px !important;
+    border-radius: 7px !important;
+    background: rgba(0, 0, 0, .055);
+}
+html .eos-object-value-cell[data-eos-object-writable="1"]:hover {
+    background: rgba(0, 255, 136, .14) !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 255, 136, .38) !important;
+}
+html .eos-object-value-cell[data-eos-object-writable="1"]:focus-visible {
+    outline: 2px solid rgba(0, 255, 170, .9) !important;
+    outline-offset: -2px !important;
+}
+html .eos-object-value-cell[data-eos-object-writable="0"] {
+    cursor: default !important;
+}

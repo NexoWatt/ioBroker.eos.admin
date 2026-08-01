@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.72",
+    "version": "7.9.73",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,18 +18,9 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.72": {
-        "en": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "de": "Datenpunktbearbeitung und Adapter-Updates stabilisiert: Schreibbare States nutzen den nativen Wertdialog, Ordner zeigen kein (null) mehr und temporäre WebSocket-Startfehler werden automatisch erneut versucht.",
-        "nl": "Datapuntbewerking en adapterupdates gestabiliseerd: schrijfbare states gebruiken het native waardedialoog, mappen tonen geen (null) meer en tijdelijke WebSocket-startfouten worden opnieuw geprobeerd.",
-        "ru": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "pt": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "fr": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "it": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "es": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "pl": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "zh-cn": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried.",
-        "uk": "Stabilized datapoint editing and adapter updates: writable states use the native value path, non-state folders no longer show (null), and transient websocket startup errors are retried."
+      "7.9.73": {
+        "en": "Fixes manual editing of writable data points by isolating value-cell mouse events from row selection. Expert mode and header filter styling no longer affect the native value dialog.",
+        "de": "Behebt die manuelle Bearbeitung beschreibbarer Datenpunkte, indem Mausereignisse der Wertzelle von der Zeilenauswahl getrennt werden. Expertenmodus und Filterdarstellung beeinflussen den nativen Wertdialog nicht."
       },
       "7.9.71": {
         "en": "Fixed Module filter popups: closed keep-mounted MUI menus can no longer become visible, menu anchors remain stable, popup DOM work is scoped to open overlays, and runtime cache paths were advanced.",
@@ -282,7 +273,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.72/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.73/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -293,7 +284,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.72/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.73/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -362,7 +353,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.72/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.73/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1041,5 +1032,5 @@
       }
     }
   },
-  "version": "7.9.72"
+  "version": "7.9.73"
 }
