@@ -3813,10 +3813,10 @@ html .eos-object-value-cell[data-eos-expert-only="1"]:hover {
 }
 
 
-/* === NexoWatt EOS v7.9.77: value-column alignment ========================
-   Writable/manual state controls must sit visually in the value column.
-   Align the complete value-cell content to the right edge of the value area
-   so numbers, dialogs and switches appear directly under the "Wert" column. */
+/* === NexoWatt EOS v7.9.78: value-column alignment ========================
+   Manual controls and scalar values remain inside the native ObjectBrowser
+   value column. The native inline column width is intentionally preserved;
+   only the content alignment is changed. */
 html.eos-app.eos-objects-surface .eos-object-value-cell,
 html.eos-objects-surface .eos-object-value-cell {
     display: flex !important;
@@ -3824,7 +3824,6 @@ html.eos-objects-surface .eos-object-value-cell {
     justify-content: flex-end !important;
     text-align: right !important;
     box-sizing: border-box !important;
-    width: 100% !important;
     min-width: 0 !important;
     padding-left: 8px !important;
     padding-right: 8px !important;
@@ -3834,12 +3833,6 @@ html.eos-objects-surface .eos-object-value-cell > * {
     margin-left: auto !important;
     text-align: right !important;
     max-width: 100% !important;
-}
-html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-scalar-capture="1"],
-html.eos-objects-surface .eos-object-value-cell[data-eos-scalar-capture="1"],
-html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"],
-html.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] {
-    justify-content: flex-end !important;
 }
 html.eos-app.eos-objects-surface .eos-object-value-cell .MuiSwitch-root,
 html.eos-objects-surface .eos-object-value-cell .MuiSwitch-root,

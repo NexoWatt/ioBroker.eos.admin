@@ -1,6 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
+    "version": "7.9.78",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -17,7 +18,7 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.75": {
+      "7.9.76": {
         "en": "Makes every writable datapoint operable by its native type: button/trigger, boolean switch, or scalar value dialog. Safety-relevant commands are available only in expert mode and direct writes are deduplicated.",
         "de": "Macht jeden beschreibbaren Datenpunkt entsprechend seinem Grundtyp bedienbar: Button/Trigger, boolescher Schalter oder Wertdialog. Sicherheitsrelevante Befehle sind nur im Expertenmodus verfügbar und direkte Schreibbefehle werden gegen Doppelauslösung geschützt.",
         "nl": "Maakt elk beschrijfbaar datapunt bedienbaar volgens het basistype: knop/trigger, booleaanse schakelaar of waardedialoog. Veiligheidsrelevante opdrachten zijn alleen beschikbaar in expertmodus en directe schrijfopdrachten worden tegen dubbele activering beveiligd."
@@ -273,7 +274,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.75/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.78/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -284,7 +285,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.75/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.78/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -353,7 +354,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.75/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.78/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1013,7 +1014,6 @@
                 "label": "monday",
                 "value": "monday"
               },
-
               {
                 "label": "sunday",
                 "value": "sunday"
@@ -1033,5 +1033,5 @@
       }
     }
   },
-  "version": "7.9.75"
+  "version": "7.9.76"
 }

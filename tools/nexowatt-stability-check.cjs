@@ -8,7 +8,8 @@ const json = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
 
 const version = json('package.json').version;
-if (version !== '7.9.76') fail(`expected 7.9.76, got ${version}`);
+if (!/^7\.9\.\d+$/.test(version)) fail(`unexpected package version ${version}`);
+if (json('NEXOWATT_EOS_BUILD_INFO.json').version !== version) fail('NEXOWATT_EOS_BUILD_INFO.json version differs');
 for (const [file, value] of [
   ['io-package.json', json('io-package.json').common.version],
   ['src-admin/package.json', json('src-admin/package.json').version],
