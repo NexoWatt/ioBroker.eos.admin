@@ -1,16 +1,21 @@
-# NexoWatt EOS manual datapoint write policy
+# NexoWatt EOS – manuelle Datenpunkt-Bedienung
 
-The EOS Admin ObjectBrowser follows `common.write` as the mandatory ioBroker write flag.
+Der EOS-Datenpunktbrowser verwendet `common.write` als verbindliche ioBroker-Schreibfreigabe.
 
-- `common.write === false`: always read-only.
-- writable button/trigger: writes `true` with `ack: false`.
-- writable boolean: toggles the current value with `ack: false`.
-- writable number/string/enum/JSON: opens the native value dialog.
-- safety-relevant commands: enabled only while expert mode is active.
+- `common.write === false`: immer nur lesend.
+- Button/Trigger: typgerechter Direktwert (`common.def`, sonst `true`, `1` oder `"true"`).
+- Binärer Schalter: typgerechtes Umschalten, auch für `0/1`, `ON/OFF` und zweistufige `common.states`.
+- Mehrstufiger Schalter/Enum: nativer Wertdialog statt falschem Boolean-Toggle.
+- Number/String/Enum: nativer Wertdialog mit Typkonvertierung und Min-/Max-Prüfung.
+- Array/Object/Mixed: universeller JSON-Editor; `mixed` kann Zahl, Boolean, String, Array oder Objekt enthalten.
+- Schreibfehler schließen den Dialog nicht und werden mit der Datenpunkt-ID angezeigt.
+- ioBroker-ACLs und adapterseitige Validierung bleiben maßgeblich und werden nicht umgangen.
 
-## Explicit safety override
+## Sicherheitsrelevante Befehle
 
-Device adapters should explicitly mark safety-relevant command states where possible:
+Sicherheitsrelevante Befehle sind nur im Expertenmodus manuell bedienbar. Dazu gehören insbesondere Reset-/Neustartbefehle sowie Lade-, Entlade-, Strom- und Leistungsgrenzen beziehungsweise Sollwerte.
+
+Geräteadapter sollten die Einstufung möglichst ausdrücklich setzen:
 
 ```json
 {
@@ -29,14 +34,12 @@ Device adapters should explicitly mark safety-relevant command states where poss
 }
 ```
 
-To override a conservative heuristic for a known-safe command, set the same flag to `false`.
+Eine nachweislich ungefährliche Schreibadresse kann mit `manualWriteExpertOnly: false` von einer konservativen automatischen Einstufung ausgenommen werden.
 
-Supported compatibility locations are:
+Unterstützte Kompatibilitätsstellen:
 
 - `native.nexowatt.manualWriteExpertOnly`
 - `native.manualWriteExpertOnly`
 - `common.custom.nexowatt.manualWriteExpertOnly`
 - `common.custom["nexowatt.eos"].manualWriteExpertOnly`
 - `common.custom["eos-admin"].manualWriteExpertOnly`
-
-The ioBroker ACL remains authoritative. The EOS policy never bypasses socket permissions or adapter-side validation.

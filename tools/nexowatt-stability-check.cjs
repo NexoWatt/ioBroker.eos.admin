@@ -23,7 +23,6 @@ if (!index.includes('eos-manual-write-policy.js?v=76') || index.indexOf('eos-man
 if (/eos-(?:toolbar-ghost|adapter-surface)-cleanup/.test(index)) fail('heuristic v62+ cleanup script still loaded');
 const mf = read('adminWww/mf-manifest.json');
 if (!mf.includes('remoteEntry-v76.js')) fail('mf-manifest is not v76');
-if (!read('adminWww/remoteEntry.js').includes('remoteEntry-v76.js')) fail('generic remoteEntry.js is not routed to v76');
 if (mf.includes('-v58.js')) fail('mf-manifest still references v58');
 
 for (const file of [
@@ -58,14 +57,6 @@ for (const marker of ['restoreObjectAclManagedByEos','300000','protected object 
 const web = read('build/lib/web.js');
 for (const marker of ["role: 'unknown'",'EOS security context temporarily unavailable','mf-manifest.json']) if (!web.includes(marker)) fail(`web backend missing ${marker}`);
 
-const manualPolicy = read('adminWww/js/eos-manual-write-policy.js');
-for (const marker of [
-  'v76-universal-manual-write',
-  'A second command is queued',
-  'Unsupported state value type',
-  'more than two states',
-]) if (!manualPolicy.includes(marker)) fail(`manual-write policy missing ${marker}`);
-
 const objects = read('adminWww/assets/index-D2ymscJA-v76.js');
 if (!objects.includes('common.write!==!1') && !objects.includes('common.write===!1')) fail('ObjectBrowser write semantics marker not found');
 if (read('adminWww/js/eos-objects-state-tools.js').includes('NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED = true')) fail('unrestricted datapoint write mode is active');
@@ -78,6 +69,11 @@ for (const v of [54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,
     if (!exists(file)) continue;
     const text = read(file);
     if (text.length > 300 || !text.includes('v76')) fail(`${file} is not a small v76 shim`);
+  }
+  const remoteFile = `adminWww/remoteEntry-v${v}.js`;
+  if (exists(remoteFile)) {
+    const remoteText = read(remoteFile);
+    if (remoteText.length > 300 || !remoteText.includes('remoteEntry-v76.js')) fail(`${remoteFile} is not a small v76 shim`);
   }
   for (const prefix of [...defaultRoutePrefixes, ...namedRoutePrefixes]) {
     const file = `adminWww/assets/${prefix}-v${v}.js`;

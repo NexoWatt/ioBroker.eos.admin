@@ -1,27 +1,23 @@
 {
   "version": "7.9.76",
   "channel": "stability",
-  "baseFrontend": "7.9.75 consolidated runtime with universal native manual datapoint controls",
+  "baseFrontend": "7.9.75 runtime consolidated with a universal manual state editor",
   "runtimeEntry": "v76",
-  "releaseType": "universal-manual-datapoint-write",
-  "release": "universal-manual-datapoint-write",
+  "releaseType": "universal-manual-state-editor",
+  "release": "universal-manual-state-editor",
   "label": "v76",
   "notes": [
-    "Every state with common.write not equal to false has a deterministic manual control path based on its declared type and role.",
-    "Read-only states remain read-only; safety-relevant commands are writable only in expert mode and cannot be bypassed through the context menu.",
-    "Number, string, enum, mixed and JSON-backed values use the native ObjectBrowser value dialog with strict validation and visible write errors.",
-    "Boolean switches and button/trigger states use type-correct direct values, including numeric and string state mappings.",
-    "Write-only states remain visible and provide an explicit value target even when no current state exists.",
-    "All active module-federation entrypoints use the cache-separated v76 runtime."
+    "Every writable state follows common.write and its declared common.type.",
+    "Boolean, numeric and string binary controls use type-aware direct values.",
+    "Number, string, enum, array, object and mixed states use one native value dialog.",
+    "Safety-relevant command states remain expert-only without bypassing ioBroker ACLs.",
+    "The writable cell has one deterministic click path; duplicate capture and bubble writes are removed."
   ],
   "changes": [
-    "Support common.type number, boolean, string, mixed, object, array, json and legacy multi-type declarations.",
-    "Support object and array editors as validated JSON strings because ioBroker StateValue is scalar.",
-    "Preserve numeric enum keys and string enum keys without replacing values by translated labels.",
-    "Serialize repeated writes per datapoint instead of dropping concurrent manual commands.",
-    "Do not prefill write-only numeric states with zero; an explicit valid value is required.",
-    "Use common.def and explicit NexoWatt metadata for typed trigger values when available.",
-    "Protect expert-only commands in direct clicks, keyboard actions and the native context menu.",
-    "Keep source and delivered value-dialog behavior aligned for future clean builds."
+    "Universal editor normalization for number/string/boolean/states/array/object/mixed values.",
+    "Queued writes preserve distinct consecutive commands and deduplicate only identical pending writes.",
+    "Direct controls update their local cache only after a successful socket write.",
+    "Write-only and not-yet-readable states show a clickable set-value placeholder.",
+    "Context-menu value editing obeys the same safety and common.write policy."
   ]
 }

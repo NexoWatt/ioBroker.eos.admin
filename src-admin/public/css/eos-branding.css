@@ -3764,7 +3764,7 @@ html.eos-objects-surface [data-eos-scalar-capture="1"]:hover {
     box-shadow: inset 0 0 0 1px rgba(0, 255, 136, .30) !important;
 }
 
-/* === NexoWatt EOS v7.9.76: universal manual datapoint controls =========
+/* === NexoWatt EOS v7.9.76: universal manual state editor =========
    Button/trigger and boolean switch states use the whole value cell as one
    deterministic action target. Safety-relevant commands remain visible but
    are locked outside expert mode. */
@@ -3812,40 +3812,40 @@ html .eos-object-value-cell[data-eos-expert-only="1"]:hover {
     box-shadow: inset 0 0 0 1px rgba(255, 177, 0, .25) !important;
 }
 
-/* === NexoWatt EOS v7.9.76: universal manual write surface ================
-   Every declared writable state gets a deterministic full-cell hit target.
-   Write-only states without a current read value show a visible placeholder.
-   The object browser remains responsible for ACL and common.write semantics. */
-html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"],
-html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"] {
-    min-height: 32px !important;
+
+/* === NexoWatt EOS v7.9.77: value-column alignment ========================
+   Writable/manual state controls must sit visually in the value column.
+   Align the complete value-cell content to the right edge of the value area
+   so numbers, dialogs and switches appear directly under the "Wert" column. */
+html.eos-app.eos-objects-surface .eos-object-value-cell,
+html.eos-objects-surface .eos-object-value-cell {
     display: flex !important;
     align-items: center !important;
-    width: 100% !important;
+    justify-content: flex-end !important;
+    text-align: right !important;
     box-sizing: border-box !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
 }
-html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-write-behavior="dialog"],
-html.eos-objects-surface .eos-object-value-cell[data-eos-write-behavior="dialog"] {
-    cursor: text !important;
+html.eos-app.eos-objects-surface .eos-object-value-cell > *,
+html.eos-objects-surface .eos-object-value-cell > * {
+    margin-left: auto !important;
+    text-align: right !important;
+    max-width: 100% !important;
 }
-html.eos-app.eos-objects-surface .eos-write-placeholder,
-html.eos-objects-surface .eos-write-placeholder {
-    display: inline-flex !important;
-    align-items: center !important;
-    min-height: 26px !important;
-    padding: 0 8px !important;
-    border: 1px dashed rgba(0, 255, 170, .42) !important;
-    border-radius: 7px !important;
-    color: rgba(226, 255, 246, .82) !important;
-    background: rgba(0, 255, 170, .055) !important;
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    pointer-events: none !important;
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-scalar-capture="1"],
+html.eos-objects-surface .eos-object-value-cell[data-eos-scalar-capture="1"],
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"],
+html.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] {
+    justify-content: flex-end !important;
 }
-html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"]:focus-visible,
-html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"]:focus-visible {
-    outline: 2px solid rgba(0, 255, 170, .75) !important;
-    outline-offset: -2px !important;
+html.eos-app.eos-objects-surface .eos-object-value-cell .MuiSwitch-root,
+html.eos-objects-surface .eos-object-value-cell .MuiSwitch-root,
+html.eos-app.eos-objects-surface .eos-object-value-cell button,
+html.eos-objects-surface .eos-object-value-cell button,
+html.eos-app.eos-objects-surface .eos-object-value-cell .admin-button,
+html.eos-objects-surface .eos-object-value-cell .admin-button {
+    margin-left: auto !important;
 }

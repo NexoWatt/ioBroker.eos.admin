@@ -1,104 +1,131 @@
 #!/usr/bin/env node
 'use strict';
-const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
-const root = path.resolve(__dirname, '..');
-const source = fs.readFileSync(path.join(root, 'src-admin/public/js/eos-manual-write-policy.js'), 'utf8');
-const sandbox = { window: {}, globalThis: null, console, Map, Promise, Error, String, Object, Boolean, Number, JSON, Array, setTimeout, clearTimeout };
-sandbox.globalThis = sandbox.window;
-vm.runInNewContext(source, sandbox, { filename: 'eos-manual-write-policy.js' });
-const w = sandbox.window;
-const policy = {
-    getWriteBehavior: w.NEXOWATT_EOS_GET_WRITE_BEHAVIOR,
-    isExpertOnlyState: w.NEXOWATT_EOS_IS_EXPERT_ONLY_STATE,
-    toBoolean: w.NEXOWATT_EOS_COERCE_BOOLEAN,
-    writeManualState: w.NEXOWATT_EOS_WRITE_MANUAL_STATE,
-    resolveEditorType: w.NEXOWATT_EOS_RESOLVE_EDITOR_TYPE,
-    prepareEditorValue: w.NEXOWATT_EOS_PREPARE_EDITOR_VALUE,
-    coerceWriteValue: w.NEXOWATT_EOS_COERCE_WRITE_VALUE,
-    getDirectWriteValue: w.NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE,
-    normalizeStates: w.NEXOWATT_EOS_NORMALIZE_STATES,
-};
+const policy = require(path.join(__dirname, '..', 'adminWww/js/eos-manual-write-policy.js'));
 const fail = message => { throw new Error(`[NexoWatt EOS manual write policy selftest] ${message}`); };
-const equal = (actual, expected, message) => {
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) fail(`${message}: ${JSON.stringify(actual)} !== ${JSON.stringify(expected)}`);
+const state = (type, role = 'state', extra = {}) => ({
+    _id: extra._id || 'test.0.state',
+    type: 'state',
+    common: { name: 'Test', read: true, write: true, type, role, ...extra.common },
+    native: extra.native || {},
+});
+const item = data => ({ data: data || {} });
+const eq = (actual, expected, message) => {
+    const a = typeof actual === 'object' ? JSON.stringify(actual) : String(actual);
+    const e = typeof expected === 'object' ? JSON.stringify(expected) : String(expected);
+    if (a !== e) fail(`${message}: expected ${e}, got ${a}`);
 };
 
 (async () => {
-    for (const [name, fn] of Object.entries(policy)) if (typeof fn !== 'function') fail(`missing ${name}`);
-    const state = (id, common, item = { data: {} }, expert = false) => policy.getWriteBehavior(id, { type: 'state', common }, item, expert);
-    if (state('x.read', { write: false, type: 'number' }) !== 'readonly') fail('read-only state became writable');
-    if (state('ocpp.0.availability', { write: true, type: 'boolean', role: 'switch' }, { data: { switch: true } }) !== 'switch') fail('availability switch must be directly operable');
-    if (state('ocpp.0.hardReset', { write: true, type: 'boolean', role: 'button' }, { data: { button: true } }, false) !== 'expert-only') fail('hard reset must be expert-only');
-    if (state('ocpp.0.hardReset', { write: true, type: 'boolean', role: 'button' }, { data: { button: true } }, true) !== 'button') fail('hard reset must work in expert mode');
-    if (state('ess.ctrl.chargePowerW', { write: true, type: 'number', role: 'level.power' }, { data: {} }, false) !== 'expert-only') fail('charge power must be expert-only');
-    if (state('ess.ctrl.chargePowerW', { write: true, type: 'number', role: 'level.power' }, { data: {} }, true) !== 'dialog') fail('charge power must use dialog in expert mode');
-    if (state('test.temperatureSetpoint', { write: true, type: 'number', role: 'level.temperature' }) !== 'dialog') fail('normal scalar value must use dialog');
-    if (state('test.flag', { write: true, type: 'boolean', role: 'state' }) !== 'switch') fail('writable boolean must toggle');
-    if (!policy.toBoolean('true') || policy.toBoolean('false') || policy.toBoolean(null)) fail('boolean coercion is not deterministic');
+    for (const name of [
+        'getWriteBehavior', 'getDirectWriteValue', 'prepareEditor', 'parseEditorValue',
+        'getBinaryOptions', 'isExpertOnlyState', 'toBoolean', 'writeManualState',
+    ]) if (typeof policy[name] !== 'function') fail(`missing ${name}`);
 
-    const explicitObj = { type: 'state', common: { write: true, type: 'number', role: 'level.power', custom: { nexowatt: { manualWriteExpertOnly: false } } } };
-    if (policy.getWriteBehavior('custom.safePower', explicitObj, { data: {} }, false) !== 'dialog') fail('explicit safe override ignored');
+    const ro = state('number'); ro.common.write = false;
+    eq(policy.getWriteBehavior(ro._id, ro, item(), true), 'readonly', 'read-only state became writable');
 
+    const bool = state('boolean', 'switch');
+    eq(policy.getWriteBehavior(bool._id, bool, item({ switch: true }), false), 'switch', 'boolean switch behavior');
+    eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), false, 'switch'), true, 'boolean switch ON');
+    eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), true, 'switch'), false, 'boolean switch OFF');
 
-    if (state('test.mode', { write: true, type: 'number', role: 'switch.mode', states: { 0: 'Auto', 1: 'On', 2: 'Off' } }, { data: { switch: true } }) !== 'dialog') fail('multi-state mode must use selector dialog');
-    if (state('test.binaryMode', { write: true, type: 'number', role: 'switch.mode', states: { 0: 'Off', 1: 'On' } }, { data: { switch: true } }) !== 'switch') fail('two-state mode should remain a switch');
-    const explicitDialog = { type: 'state', common: { write: true, type: 'boolean', role: 'switch', custom: { nexowatt: { manualWriteControl: 'dialog' } } } };
-    if (policy.getWriteBehavior('custom.booleanDialog', explicitDialog, { data: { switch: true } }, false) !== 'dialog') fail('explicit dialog control ignored');
+    const numeric = state('number', 'switch', { common: { states: { 0: 'OFF', 1: 'ON' } } });
+    eq(policy.getDirectWriteValue(numeric._id, numeric, item({ switch: true }), 0, 'switch'), 1, 'numeric switch ON');
+    eq(policy.getDirectWriteValue(numeric._id, numeric, item({ switch: true }), 1, 'switch'), 0, 'numeric switch OFF');
 
-    // Complete editor type coverage.
-    equal(policy.resolveEditorType({ common: { type: 'number' } }, 12), 'number', 'number editor');
-    equal(policy.resolveEditorType({ common: { type: 'boolean' } }, false), 'boolean', 'boolean editor');
-    equal(policy.resolveEditorType({ common: { type: 'object' } }, { a: 1 }), 'json', 'object editor');
-    equal(policy.resolveEditorType({ common: { type: 'array' } }, [1, 2]), 'json', 'array editor');
-    equal(policy.resolveEditorType({ common: { type: 'mixed' } }, 4), 'number', 'mixed number editor');
-    equal(policy.resolveEditorType({ common: { type: 'mixed' } }, { a: 1 }), 'json', 'mixed object editor');
-    equal(policy.resolveEditorType({ common: { type: 'number', states: { 0: 'Off', 1: 'On' } } }, 0), 'states', 'states editor');
+    const strings = state('string', 'switch', { common: { states: { OFF: 'Aus', ON: 'Ein' } } });
+    eq(policy.getDirectWriteValue(strings._id, strings, item({ switch: true }), 'OFF', 'switch'), 'ON', 'string switch ON');
+    eq(policy.getDirectWriteValue(strings._id, strings, item({ switch: true }), 'ON', 'switch'), 'OFF', 'string switch OFF');
 
-    // Scalar and structured value coercion.
-    equal(policy.coerceWriteValue({ common: { write: true, type: 'number', min: 0, max: 100 } }, '23,5', 'number', 'number', 0), 23.5, 'decimal comma conversion');
-    equal(policy.coerceWriteValue({ common: { write: true, type: 'boolean' } }, 'false', 'boolean', 'boolean', true), false, 'boolean conversion');
-    equal(policy.coerceWriteValue({ common: { write: true, type: 'number', states: { 0: 'Off', 1: 'On' } } }, '1', 'states', 'number', 0), 1, 'typed enum conversion');
-    equal(policy.coerceWriteValue({ common: { write: true, type: 'object' } }, '{"a":1}', 'json', 'object', null), '{"a":1}', 'object JSON scalar conversion');
-    equal(policy.coerceWriteValue({ common: { write: true, type: 'array' } }, '[1,2]', 'json', 'array', null), '[1,2]', 'array JSON scalar conversion');
-    let invalidNumber = false;
-    try { policy.coerceWriteValue({ common: { write: true, type: 'number' } }, 'not-a-number', 'number', 'number', 0); } catch { invalidNumber = true; }
-    if (!invalidNumber) fail('invalid number was silently converted');
+    const multi = state('number', 'switch', { common: { states: { 0: 'Off', 1: 'Auto', 2: 'On' } } });
+    eq(policy.getWriteBehavior(multi._id, multi, item({ switch: true }), true), 'dialog', 'multi-state switch must use dialog');
 
-    // Type-correct direct controls.
-    equal(policy.getDirectWriteValue('x', { common: { type: 'boolean' } }, { data: {} }, 'switch', false), true, 'boolean switch');
-    equal(policy.getDirectWriteValue('x', { common: { type: 'number', min: 0, max: 100 } }, { data: {} }, 'switch', 0), 100, 'number switch max');
-    equal(policy.getDirectWriteValue('x', { common: { type: 'number', states: { 0: 'Aus', 1: 'Ein' } } }, { data: {} }, 'switch', 0), 1, 'number states switch');
-    equal(policy.getDirectWriteValue('x', { common: { type: 'string', states: { OFF: 'Aus', ON: 'Ein' } } }, { data: {} }, 'switch', 'OFF'), 'ON', 'string states switch');
-    equal(policy.getDirectWriteValue('x', { common: { type: 'number', role: 'button' } }, { data: { button: true } }, 'button', 0), 1, 'number trigger');
+    const boolButton = state('boolean', 'button');
+    eq(policy.getDirectWriteValue(boolButton._id, boolButton, item({ button: true }), false, 'button'), true, 'boolean button value');
+    const numericButton = state('number', 'button');
+    eq(policy.getDirectWriteValue(numericButton._id, numericButton, item({ button: true }), null, 'button'), 1, 'numeric button value');
+    const defaultButton = state('string', 'button', { common: { def: 'START' } });
+    eq(policy.getDirectWriteValue(defaultButton._id, defaultButton, item({ button: true }), null, 'button'), 'START', 'button common.def');
+    const objectButton = state('object', 'button', { common: { def: { command: 'start' } } });
+    eq(policy.getWriteBehavior(objectButton._id, objectButton, item({ button: true }), true), 'button', 'object button with common.def');
+    eq(policy.getDirectWriteValue(objectButton._id, objectButton, item({ button: true }), null, 'button'), { command: 'start' }, 'object button common.def');
 
+    const scalar = state('number', 'level.temperature');
+    eq(policy.getWriteBehavior(scalar._id, scalar, item(), false), 'dialog', 'safe scalar behavior');
+    const prepNumber = policy.prepareEditor(scalar, 21.5);
+    eq(prepNumber.editorType, 'number', 'number editor type');
+    eq(policy.parseEditorValue(scalar, prepNumber.editorType, '22,75'), 22.75, 'number comma parsing');
 
-    // Legacy and mixed metadata coverage.
-    equal(policy.resolveEditorType({ common: { type: ['number', 'string'] } }, 12), 'number', 'multi-type current number editor');
-    equal(policy.resolveEditorType({ common: { type: ['number', 'string'] } }, 'auto'), 'string', 'multi-type current string editor');
-    equal(policy.resolveEditorType({ common: { type: 'number', states: '0:Aus;1:Ein' } }, 0), 'states', 'legacy string states editor');
-    const emptyNumber = policy.prepareEditorValue({ common: { write: true, read: false, type: 'number' } }, null, null);
-    if (emptyNumber.value !== '' || emptyNumber.valid !== false) fail('write-only number must require an explicit value');
-    const emptyObject = policy.prepareEditorValue({ common: { write: true, read: false, type: 'object' } }, null, null);
-    if (emptyObject.value !== '{}' || emptyObject.valid !== true) fail('write-only object editor initialization invalid');
-    equal(policy.getDirectWriteValue('x', { common: { type: 'string' } }, { data: {} }, 'switch', 'OFF'), 'ON', 'string token switch casing');
-    equal(policy.getDirectWriteValue('x', { common: { type: 'number', role: 'button', def: 42 } }, { data: { button: true } }, 'button', null), 42, 'button default command value');
-    let unsupportedStructured = false;
-    try { await policy.writeManualState({ setState: async () => undefined }, 'test.object', { a: 1 }); } catch { unsupportedStructured = true; }
-    if (!unsupportedStructured) fail('non-scalar StateValue was accepted');
+    const enumState = state('number', 'level', { common: { states: { 0: 'Auto', 1: 'Manual' } } });
+    const prepEnum = policy.prepareEditor(enumState, 0);
+    eq(prepEnum.editorType, 'states', 'enum editor type');
+    eq(policy.parseEditorValue(enumState, prepEnum.editorType, '1'), 1, 'numeric enum parsing');
 
-    // Writes are queued, never silently deduplicated/dropped.
-    let calls = 0;
-    const states = [];
-    const socket = { setState: async (_id, value) => { calls++; states.push(value); await new Promise(resolve => setTimeout(resolve, 5)); } };
-    const first = policy.writeManualState(socket, 'test.switch', true);
-    const second = policy.writeManualState(socket, 'test.switch', false);
-    if (first === second) fail('parallel writes must be queued, not deduplicated');
-    await Promise.all([first, second]);
-    if (calls !== 2) fail(`expected two queued socket writes, got ${calls}`);
-    equal(states.map(s => s.val), [true, false], 'queued write order');
-    if (states.some(s => s.ack !== false || s.q !== 0)) fail('manual write state envelope is invalid');
+    const arrayEnum = state('number', 'level', { common: { states: ['Aus', 'Ein'] } });
+    eq(policy.normalizeStates(arrayEnum.common.states), [{ key: '0', label: 'Aus' }, { key: '1', label: 'Ein' }], 'array common.states normalization');
+    eq(policy.parseEditorValue(arrayEnum, 'states', '1'), 1, 'array enum numeric parsing');
+
+    const legacyEnum = state('string', 'level', { common: { states: 'OFF:Aus;AUTO:Automatik;ON:Ein' } });
+    eq(policy.normalizeStates(legacyEnum.common.states), [
+        { key: 'OFF', label: 'Aus' },
+        { key: 'AUTO', label: 'Automatik' },
+        { key: 'ON', label: 'Ein' },
+    ], 'legacy common.states normalization');
+    eq(policy.parseEditorValue(legacyEnum, 'states', 'AUTO'), 'AUTO', 'legacy enum string parsing');
+
+    const limited = state('number', 'level.temperature', { common: { min: 5, max: 30 } });
+    eq(policy.parseEditorValue(limited, 'number', '20,5'), 20.5, 'number min/max accepted');
+    let belowRejected = false;
+    try { policy.parseEditorValue(limited, 'number', '4.9'); } catch { belowRejected = true; }
+    if (!belowRejected) fail('number below common.min was accepted');
+    let aboveRejected = false;
+    try { policy.parseEditorValue(limited, 'number', '30.1'); } catch { aboveRejected = true; }
+    if (!aboveRejected) fail('number above common.max was accepted');
+
+    const arrayState = state('array');
+    const prepArray = policy.prepareEditor(arrayState, [1, 2]);
+    eq(prepArray.editorType, 'json', 'array editor type');
+    eq(policy.parseEditorValue(arrayState, prepArray.editorType, '[3,4]'), [3, 4], 'array parsing');
+    let arrayRejected = false;
+    try { policy.parseEditorValue(arrayState, 'json', '{"x":1}'); } catch { arrayRejected = true; }
+    if (!arrayRejected) fail('array accepted a JSON object');
+
+    const objectState = state('object');
+    const prepObject = policy.prepareEditor(objectState, { a: 1 });
+    eq(prepObject.editorType, 'json', 'object editor type');
+    eq(policy.parseEditorValue(objectState, prepObject.editorType, '{"a":2}'), { a: 2 }, 'object parsing');
+
+    const mixedState = state('mixed');
+    eq(policy.prepareEditor(mixedState, null).editorType, 'json', 'mixed universal editor type');
+    eq(policy.prepareEditor(mixedState, 'text').value, '"text"', 'mixed string JSON preparation');
+    eq(policy.parseEditorValue(mixedState, 'json', '12.5'), 12.5, 'mixed number parsing');
+    eq(policy.parseEditorValue(mixedState, 'json', 'true'), true, 'mixed boolean parsing');
+    eq(policy.parseEditorValue(mixedState, 'json', '"text"'), 'text', 'mixed string parsing');
+    eq(policy.parseEditorValue(mixedState, 'json', '{"a":1}'), { a: 1 }, 'mixed JSON parsing');
+
+    const reset = state('boolean', 'button', { _id: 'ocpp.0.hardReset' });
+    eq(policy.getWriteBehavior(reset._id, reset, item({ button: true }), false), 'expert-only', 'hard reset normal mode');
+    eq(policy.getWriteBehavior(reset._id, reset, item({ button: true }), true), 'button', 'hard reset expert mode');
+    const power = state('number', 'level.power', { _id: 'ess.0.chargePowerW' });
+    eq(policy.getWriteBehavior(power._id, power, item(), false), 'expert-only', 'power setpoint normal mode');
+    eq(policy.getWriteBehavior(power._id, power, item(), true), 'dialog', 'power setpoint expert mode');
+
+    const explicitSafe = state('number', 'level.power', {
+        _id: 'safe.0.power', common: { custom: { nexowatt: { manualWriteExpertOnly: false } } },
+    });
+    eq(policy.getWriteBehavior(explicitSafe._id, explicitSafe, item(), false), 'dialog', 'explicit safe override');
+
+    const calls = [];
+    const socket = { setState: async (id, envelope) => { calls.push({ id, envelope }); await new Promise(r => setTimeout(r, 4)); } };
+    const first = policy.writeManualState(socket, 'test.0.switch', true);
+    const same = policy.writeManualState(socket, 'test.0.switch', true);
+    if (first !== same) fail('identical pending writes were not deduplicated');
+    const secondValue = policy.writeManualState(socket, 'test.0.switch', false);
+    if (secondValue === first) fail('a distinct second value was incorrectly discarded');
+    await Promise.all([first, same, secondValue]);
+    eq(calls.map(c => c.envelope.val), [true, false], 'queued write order');
+    if (calls.some(c => c.envelope.ack !== false || c.envelope.q !== 0)) fail('invalid write envelope');
 
     console.log('[NexoWatt EOS manual write policy selftest] OK');
 })().catch(error => {
