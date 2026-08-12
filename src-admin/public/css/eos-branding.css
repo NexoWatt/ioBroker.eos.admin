@@ -3763,3 +3763,51 @@ html.eos-objects-surface [data-eos-scalar-capture="1"]:hover {
     background: rgba(0, 255, 136, .12) !important;
     box-shadow: inset 0 0 0 1px rgba(0, 255, 136, .30) !important;
 }
+
+/* === NexoWatt EOS v7.9.75: type-aware manual datapoint controls =========
+   Button/trigger and boolean switch states use the whole value cell as one
+   deterministic action target. Safety-relevant commands remain visible but
+   are locked outside expert mode. */
+html .eos-object-value-cell[data-eos-direct-control="1"] {
+    cursor: pointer !important;
+    user-select: none !important;
+    touch-action: manipulation;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] *,
+html.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] *,
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] .admin-button,
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] button,
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] input,
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] .MuiSwitch-root,
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] .MuiButtonBase-root {
+    pointer-events: none !important;
+}
+html .eos-object-value-cell[data-eos-direct-control="1"]:active {
+    transform: translateY(1px);
+    background: rgba(0, 255, 136, .22) !important;
+}
+html.eos-app.eos-objects-surface .eos-object-value-cell[data-eos-expert-only="1"] *,
+html.eos-objects-surface .eos-object-value-cell[data-eos-expert-only="1"] * {
+    pointer-events: none !important;
+}
+html .eos-object-value-cell[data-eos-expert-only="1"] {
+    position: relative !important;
+    cursor: not-allowed !important;
+    opacity: .72 !important;
+    padding-right: 24px !important;
+    background: rgba(255, 177, 0, .055) !important;
+}
+html .eos-object-value-cell[data-eos-expert-only="1"]::after {
+    content: "🔒";
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    opacity: .85;
+    pointer-events: none;
+}
+html .eos-object-value-cell[data-eos-expert-only="1"]:hover {
+    background: rgba(255, 177, 0, .11) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 177, 0, .25) !important;
+}

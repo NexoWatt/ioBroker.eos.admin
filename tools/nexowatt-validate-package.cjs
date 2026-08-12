@@ -37,6 +37,7 @@ for (const [field, expected] of Object.entries({
 for (const file of [
   'adminWww/index.html',
   'adminWww/js/eos-branding.js',
+  'adminWww/js/eos-manual-write-policy.js',
   'adminWww/css/eos-branding.css',
   'adminWww/img/eos/nexowatt-192.png',
   'admin/admin.svg',
@@ -74,7 +75,9 @@ if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('bui
 const srcPkg = readJson('src-admin/package.json');
 const srcVersion = readJson('src-admin/src/version.json');
 if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
-if (!index.includes('hostInit-v74.js?v=74') || !index.includes('index-CQZugZ1z-v74.js?v=74')) fail('adminWww/index.html must load the v74 runtime');
+if (!index.includes('hostInit-v75.js?v=75') || !index.includes('index-CQZugZ1z-v75.js?v=75')) fail('adminWww/index.html must load the v75 runtime');
+if (!index.includes('eos-manual-write-policy.js?v=75')) fail('adminWww/index.html must load the v75 manual-write policy');
+if (index.indexOf('eos-manual-write-policy.js?v=75') > index.indexOf('index-CQZugZ1z-v75.js?v=75')) fail('manual-write policy must load before the React runtime');
 
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');

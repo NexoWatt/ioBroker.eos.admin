@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const fail = message => { console.error(`[NexoWatt EOS datapoint selftest] ${message}`); process.exit(1); };
 
-const shared = read('adminWww/assets/index-D2ymscJA-v74.js');
+const shared = read('adminWww/assets/index-D2ymscJA-v75.js');
 if (!shared.includes('if(!i||i.type!=="state"||!this.states)return null')) fail('non-state value guard missing');
 if (!shared.includes('this.subscribe(e);return null')) fail('missing-state subscription must render empty until a state arrives');
 if (shared.includes('renderColumnValue(e,t,M){var c,N;const i=t.data.obj;if(!i)return null;this.states=this.states||{}')) fail('legacy artificial null-state path remains');
@@ -18,8 +18,15 @@ if (!shared.includes('closest("[data-eos-object-value-cell]")')) fail('row selec
 if (/onMouseDown:[A-Za-z_$][\w$]*=>\{[^}]*preventDefault/.test(shared)) fail('value-cell mousedown must not call preventDefault');
 if (!shared.includes('this.setState({updateOpened:!0})')) fail('native value dialog path missing');
 if (!shared.includes('data-eos-scalar-capture')) fail('scalar click-capture path missing');
-if (!shared.includes('this.props.socket.setState(i,!0)')) fail('native button write path missing');
-if (!shared.includes('e.data.switch')) fail('native switch write path missing');
+if (!shared.includes('data-eos-direct-control')) fail('direct button/switch control marker missing');
+if (!shared.includes('data-eos-write-behavior')) fail('type-aware behavior marker missing');
+if (!shared.includes('NEXOWATT_EOS_WRITE_MANUAL_STATE')) fail('deduplicating manual write helper missing');
+if (/!this\.state\.filter\.expertMode&&e\.data\.(?:button|switch)/.test(shared)) fail('button/switch are still disabled in expert mode');
+if (!shared.includes('e.data.eosWriteBehavior==="button"')) fail('button behavior path missing');
+if (!shared.includes('e.data.eosWriteBehavior==="switch"')) fail('switch behavior path missing');
+if (!shared.includes('NEXOWATT_EOS_COERCE_BOOLEAN')) fail('robust boolean toggle path missing');
+if (shared.includes('this.state.filter.expertMode||(t.data.button')) fail('button/switch controls are hidden in expert mode');
+if (!shared.includes('t.data.switch||((i.common==null?void 0:i.common.type)==="boolean")')) fail('plain writable boolean states do not render as switches');
 if (!shared.includes('onClose:async o=>')) fail('value dialog does not wait for a successful write');
 if (!shared.includes('return this.props.socket.setState(this.edit.id')) fail('value update does not return the write promise');
 

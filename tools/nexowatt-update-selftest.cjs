@@ -12,9 +12,9 @@ const adapters = read('src-admin/src/tabs/Adapters.tsx');
 const updater = read('src-admin/src/components/Adapters/AdaptersUpdaterDialog.tsx');
 const worker = read('src-admin/src/Workers/GenericWorker.tsx');
 const instances = read('src-admin/src/tabs/Instances.tsx');
-const bootstrap = read('adminWww/assets/bootstrap-COulQZax-v74.js');
-const adaptersBuilt = read('adminWww/assets/Adapters-B5_jQ7DE-v74.js');
-const instancesBuilt = read('adminWww/assets/Instances-YdaGnS5a-v74.js');
+const bootstrap = read('adminWww/assets/bootstrap-COulQZax-v75.js');
+const adaptersBuilt = read('adminWww/assets/Adapters-B5_jQ7DE-v75.js');
+const instancesBuilt = read('adminWww/assets/Instances-YdaGnS5a-v75.js');
 
 for (const marker of ['this.state.connected', 'this.state.ready', 'pendingCommand', '60_000', 'commandRunning']) if (!app.includes(marker)) fail(`App source missing ${marker}`);
 if (!app.includes('ready={this.state.ready && this.state.connected}')) fail('App does not pass connection-aware readiness');

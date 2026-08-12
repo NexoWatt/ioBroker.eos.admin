@@ -1,24 +1,23 @@
 {
-  "version": "7.9.74",
+  "version": "7.9.75",
   "channel": "stability",
-  "baseFrontend": "7.9.58 coherent runtime (derived from the proven 7.9.57 datapoint baseline)",
-  "runtimeEntry": "v74",
-  "releaseType": "datapoint-update-runtime-stability",
+  "baseFrontend": "7.9.74 scalar-dialog runtime with deterministic type-aware manual controls",
+  "runtimeEntry": "v75",
+  "releaseType": "type-aware-manual-datapoint-control",
   "notes": [
-    "All active module-federation entrypoints, shared bundles and route chunks use the v73 runtime.",
-    "Folders/channels/devices/meta objects do not render synthetic null values.",
-    "Writable states follow common.write and the native ObjectBrowser value path.",
-    "Adapter update commands wait for a ready websocket and adapter pages retry transient startup reads.",
-    "High-load tables are excluded from broad EOS DOM scans.",
-    "Writable scalar datapoints use a capture-phase native dialog path; the dialog portal is raised above the EOS shell."
+    "All writable states are handled according to their native data type: button, boolean switch, or scalar dialog.",
+    "Direct button and switch actions work in normal and expert mode; safety-relevant commands are expert-only.",
+    "Safety classification supports explicit NexoWatt metadata and conservative fallback patterns for reset, charging/current/power limits and setpoints.",
+    "Read-only states remain read-only and writes still pass through ioBroker ACL enforcement.",
+    "All active module-federation entrypoints use the cache-separated v75 runtime."
   ],
-  "release": "datapoint-update-runtime-stability",
-  "label": "v74",
+  "release": "type-aware-manual-datapoint-control",
+  "label": "v75",
   "changes": [
-    "Native ObjectBrowser value handling restored: non-state objects render no value and writable states use the native dialog/direct control path.",
-    "Update/install commands wait for a stable socket/ready state instead of failing during initial loading.",
-    "Drawer tab discovery retries transient websocket errors without interrupting the UI.",
-    "High-load table mutations are filtered at the shared DOM coordinator before branding/role/security subscribers run.",
-    "All active module-federation routes use one cache-separated v73 runtime."
+    "Button/trigger states write true directly regardless of expert mode when policy permits.",
+    "Writable boolean states toggle reliably even from null/string/number representations.",
+    "Writable number/string/enum/json states open the native ObjectBrowser value dialog.",
+    "Safety-relevant write states are disabled outside expert mode and visibly marked.",
+    "A central deduplicating write helper prevents accidental double commands."
   ]
 }

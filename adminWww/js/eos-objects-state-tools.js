@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v73-native-objectbrowser-click-isolation';
+    window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_VERSION = 'v75-type-aware-manual-controls';
     window.NEXOWATT_EOS_OBJECTS_STATE_TOOLS_MODE = 'passive-native-objectbrowser';
 
     // Keep this file intentionally passive. The datapoints page must use the

@@ -8,7 +8,7 @@ const json = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
 
 const version = json('package.json').version;
-if (version !== '7.9.74') fail(`expected 7.9.74, got ${version}`);
+if (version !== '7.9.75') fail(`expected 7.9.75, got ${version}`);
 for (const [file, value] of [
   ['io-package.json', json('io-package.json').common.version],
   ['src-admin/package.json', json('src-admin/package.json').version],
@@ -16,26 +16,27 @@ for (const [file, value] of [
 ]) if (value !== version) fail(`${file} version ${value} differs`);
 
 const index = read('adminWww/index.html');
-for (const marker of ['hostInit-v74.js?v=74','index-CQZugZ1z-v74.js?v=74','eos-policy-client.js?v=74']) {
+for (const marker of ['hostInit-v75.js?v=75','index-CQZugZ1z-v75.js?v=75','eos-policy-client.js?v=75']) {
   if (!index.includes(marker)) fail(`index missing ${marker}`);
 }
+if (!index.includes('eos-manual-write-policy.js?v=75') || index.indexOf('eos-manual-write-policy.js?v=75') > index.indexOf('hostInit-v75.js?v=75')) fail('manual-write policy is not synchronously loaded before the runtime');
 if (/eos-(?:toolbar-ghost|adapter-surface)-cleanup/.test(index)) fail('heuristic v62+ cleanup script still loaded');
 const mf = read('adminWww/mf-manifest.json');
-if (!mf.includes('remoteEntry-v74.js')) fail('mf-manifest is not v74');
+if (!mf.includes('remoteEntry-v75.js')) fail('mf-manifest is not v75');
 if (mf.includes('-v58.js')) fail('mf-manifest still references v58');
 
 for (const file of [
-  'adminWww/assets/hostInit-v74.js','adminWww/assets/index-CQZugZ1z-v74.js',
-  'adminWww/assets/bootstrap-COulQZax-v74.js','adminWww/assets/Objects-DPan0bzw-v74.js',
-  'adminWww/assets/index-D2ymscJA-v74.js','adminWww/remoteEntry-v74.js'
+  'adminWww/assets/hostInit-v75.js','adminWww/assets/index-CQZugZ1z-v75.js',
+  'adminWww/assets/bootstrap-COulQZax-v75.js','adminWww/assets/Objects-DPan0bzw-v75.js',
+  'adminWww/assets/index-D2ymscJA-v75.js','adminWww/remoteEntry-v75.js'
 ]) if (!exists(file)) fail(`missing ${file}`);
 
-const activeFiles = fs.readdirSync(path.join(root,'adminWww/assets')).filter(f => /-v74\.js$/.test(f));
+const activeFiles = fs.readdirSync(path.join(root,'adminWww/assets')).filter(f => /-v75\.js$/.test(f));
 for (const file of activeFiles) {
   const text = read(`adminWww/assets/${file}`);
   if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71|72|73)\.js/.test(text)) fail(`${file} imports an old runtime`);
 }
-if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71|72|73)\.js/.test(read('adminWww/remoteEntry-v74.js'))) fail('remoteEntry-v74 imports old assets');
+if (/-v(?:54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71|72|73)\.js/.test(read('adminWww/remoteEntry-v75.js'))) fail('remoteEntry-v75 imports old assets');
 
 const policy = read('adminWww/js/eos-policy-client.js');
 if (!policy.includes('never downgrade an admin to enduser')) fail('policy client lacks transient-failure guard');
@@ -56,30 +57,30 @@ for (const marker of ['restoreObjectAclManagedByEos','300000','protected object 
 const web = read('build/lib/web.js');
 for (const marker of ["role: 'unknown'",'EOS security context temporarily unavailable','mf-manifest.json']) if (!web.includes(marker)) fail(`web backend missing ${marker}`);
 
-const objects = read('adminWww/assets/index-D2ymscJA-v74.js');
+const objects = read('adminWww/assets/index-D2ymscJA-v75.js');
 if (!objects.includes('common.write!==!1') && !objects.includes('common.write===!1')) fail('ObjectBrowser write semantics marker not found');
 if (read('adminWww/js/eos-objects-state-tools.js').includes('NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED = true')) fail('unrestricted datapoint write mode is active');
 
-// Compatibility shims must be tiny and point to the single v74 runtime.
+// Compatibility shims must be tiny and point to the single v75 runtime.
 const defaultRoutePrefixes = ['Adapters-B5_jQ7DE','CustomTab-B0wqoazH','DeviceManager-BFmQeYQ1','EasyMode-B1d9Vdc4','Enums-DbWYxKOo','Files-Cd2HOzIE','Hosts-Bg8QzW5i','Instances-YdaGnS5a','Intro-DkwRiz1n','Logs-CsVPSLJH','Objects-DPan0bzw','Users-BgnBRgwU'];
 const namedRoutePrefixes = ['AdapterUpdateDialog-BMg84Hpf','Config-hHK2UzGP','Fields-CX3rKuWb'];
-for (const v of [54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73]) {
+for (const v of [54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74]) {
   for (const file of [`adminWww/assets/bootstrap-COulQZax-v${v}.js`,`adminWww/assets/hostInit-v${v}.js`,`adminWww/remoteEntry-v${v}.js`]) {
     if (!exists(file)) continue;
     const text = read(file);
-    if (text.length > 300 || !text.includes('v74')) fail(`${file} is not a small v74 shim`);
+    if (text.length > 300 || !text.includes('v75')) fail(`${file} is not a small v75 shim`);
   }
   for (const prefix of [...defaultRoutePrefixes, ...namedRoutePrefixes]) {
     const file = `adminWww/assets/${prefix}-v${v}.js`;
     if (!exists(file)) fail(`missing compatibility shim ${file}`);
     else {
       const text = read(file);
-      if (text.length > 300 || !text.includes(`${prefix}-v74.js`)) fail(`${file} is not a small v74 route shim`);
+      if (text.length > 300 || !text.includes(`${prefix}-v75.js`)) fail(`${file} is not a small v75 route shim`);
     }
   }
 }
 
-for (const rel of ['js/eos-policy-client.js','js/eos-branding.js','js/eos-security-ui.js','js/eos-role-ui.js','css/eos-branding.css']) {
+for (const rel of ['js/eos-policy-client.js','js/eos-branding.js','js/eos-security-ui.js','js/eos-role-ui.js','js/eos-manual-write-policy.js','css/eos-branding.css']) {
   if (read(`src-admin/public/${rel}`) !== read(`adminWww/${rel}`)) fail(`public/build drift: ${rel}`);
 }
 if (!process.exitCode) console.log('[NexoWatt EOS stability] OK');
