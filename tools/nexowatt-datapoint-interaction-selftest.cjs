@@ -3,18 +3,22 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const code = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v75.js'), 'utf8');
+const code = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v76.js'), 'utf8');
 const fail = m => { console.error(`[NexoWatt EOS DP interaction selftest] ${m}`); process.exit(1); };
-if (!code.includes('"data-eos-object-writable":y?"1":"0"')) fail('writable marker missing');
-if (!code.includes('onMouseDown:Y=>{y&&Y.stopPropagation&&Y.stopPropagation()}')) fail('value-cell mousedown isolation missing');
-if (!code.includes('y&&Y.stopPropagation&&Y.stopPropagation();if(y){')) fail('value-cell click isolation missing');
-if (!code.includes('closest("[data-eos-object-value-cell]")')) fail('row selection guard missing');
-if (!code.includes('this.setState({updateOpened:!0})')) fail('native value dialog path missing');
-if (!code.includes('data-eos-direct-control')) fail('direct action capture marker missing');
-if (!code.includes('NEXOWATT_EOS_GET_WRITE_BEHAVIOR')) fail('write policy integration missing');
-if (!code.includes('NEXOWATT_EOS_WRITE_MANUAL_STATE')) fail('manual writer integration missing');
-if (code.includes('this.state.filter.expertMode||(t.data.button')) fail('expert mode hides native button/switch controls');
-if (!code.includes('NEXOWATT_EOS_COERCE_BOOLEAN(this.states[e].val)')) fail('switch visual state does not use robust boolean coercion');
-if (!code.includes('onKeyDown:Y=>{y&&(Y.key==="Enter"||Y.key===" ")')) fail('keyboard edit path missing');
+for (const marker of [
+    '"data-eos-object-writable":y?"1":"0"',
+    'onMouseDown:Y=>{y&&Y.stopPropagation&&Y.stopPropagation()}',
+    'closest("[data-eos-object-value-cell]")',
+    'this.setState({updateOpened:!0})',
+    'data-eos-direct-control',
+    'NEXOWATT_EOS_GET_WRITE_BEHAVIOR',
+    'NEXOWATT_EOS_WRITE_MANUAL_STATE',
+    'NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE',
+    'NEXOWATT_EOS_GET_WRITE_LABEL',
+    'onKeyDown:Y=>{y&&(Y.key==="Enter"||Y.key===" ")',
+    'onDoubleClick:Y=>{y&&Y.stopPropagation',
+]) if (!code.includes(marker)) fail(`missing marker: ${marker}`);
 if (/onMouseDown:Y=>\{[^}]*preventDefault/.test(code)) fail('mousedown preventDefault would suppress the native click');
+if (!code.includes('.then(()=>{const ve=Date.now()')) fail('capture direct control does not update local UI after successful write');
+if (!code.includes('eos-write-placeholder')) fail('write-only state has no visible action target');
 console.log('[NexoWatt EOS DP interaction selftest] OK');

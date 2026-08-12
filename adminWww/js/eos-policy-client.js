@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v75-type-aware-manual-controls';
+    const VERSION = 'v76-universal-manual-write';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();

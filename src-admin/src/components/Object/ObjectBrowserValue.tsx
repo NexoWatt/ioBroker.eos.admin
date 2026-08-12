@@ -97,7 +97,7 @@ interface ObjectBrowserValueProps {
     value: string | number | boolean | null;
     /** If expert mode is enabled */
     expertMode: boolean;
-    onClose: (newValue?: { val: ioBroker.StateValue; ack: boolean; q: number; expire: number | undefined }) => void;
+    onClose: (newValue?: { val: ioBroker.StateValue; ack: boolean; q: number; expire: number | undefined }) => void | Promise<void>;
     /** Configured theme */
     themeType: ThemeType;
     theme: IobTheme;
@@ -126,6 +126,11 @@ interface ObjectBrowserValueState {
 }
 
 class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowserValueState> {
+    private mounted = false;
+
+    private static getPolicy(): any {
+        return window as any;
+    }
     /** The state value */
     private readonly propsValue: any;
 
@@ -147,44 +152,28 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     constructor(props: ObjectBrowserValueProps) {
         super(props);
 
-        let type: 'states' | 'string' | 'number' | 'boolean' | 'json' = this.props.type;
-        if (!type) {
-            type = typeof this.props.value as 'boolean' | 'string' | 'number';
-        }
+        const policy = ObjectBrowserValue.getPolicy();
+        const prepared = typeof policy.NEXOWATT_EOS_PREPARE_EDITOR_VALUE === 'function'
+            ? policy.NEXOWATT_EOS_PREPARE_EDITOR_VALUE(this.props.object, this.props.value, this.props.states)
+            : null;
 
-        let value = this.props.value;
-        this.propsValue = value;
+        let type: 'states' | 'string' | 'number' | 'boolean' | 'json' =
+            prepared?.type || this.props.type || (typeof this.props.value as any) || 'string';
+        let value: any = prepared ? prepared.value : this.props.value;
+        this.propsValue = prepared ? prepared.propsValue : this.props.value;
 
-        if (this.propsValue === null) {
-            this.propsValue = 'null';
-        } else if (this.propsValue === undefined) {
-            this.propsValue = 'undefined';
-        }
-
-        if (this.props.states) {
-            type = 'states';
-        } else if (type === 'string' || type === 'json') {
-            if (
-                value &&
-                typeof value === 'string' &&
-                ((value.startsWith('[') && value.endsWith(']')) || (value.startsWith('{') && value.endsWith('}')))
-            ) {
-                try {
-                    value = JSON.parse(value);
-                    value = JSON.stringify(value, null, 2);
-                    this.propsValue = value;
+        if (!prepared) {
+            if (this.props.states) {
+                type = 'states';
+            } else if ((type as string) === 'object' || (type as string) === 'array' || (type as string) === 'mixed') {
+                if (value !== null && typeof value === 'object') {
                     type = 'json';
-                } catch {
-                    // ignore
+                    value = JSON.stringify(value, null, 2);
+                } else {
+                    type = typeof value === 'number' ? 'number' : typeof value === 'boolean' ? 'boolean' : 'string';
                 }
             }
-        } else if (type === 'number') {
-            value = parseFloat(this.propsValue) || 0;
-        } else if (type === 'boolean') {
-            if (value !== null && value !== undefined && value !== 'null' && value !== 'undefined') {
-                value = ObjectBrowserValue.parseBoolean(value);
-                this.propsValue = value;
-            }
+            if (value === null || value === undefined) value = type === 'number' ? 0 : type === 'boolean' ? false : '';
         }
 
         this.state = {
@@ -195,8 +184,17 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             fullScreen: ((window as any)._localStorage || window.localStorage).getItem('App.fullScreen') === 'true',
             targetValue: value,
             /** If input is invalid, set value button is disabled */
-            valid: true,
-            jsonError: false,
+            valid:
+                prepared?.valid !== undefined
+                    ? Boolean(prepared.valid)
+                    : type === 'number'
+                      ? ObjectBrowserValue.isNumberValid({ value, common: this.props.object.common })
+                      : type === 'json'
+                        ? !ObjectBrowserValue.checkJsonError(String(value ?? ''))
+                        : type === 'states'
+                          ? value !== '' && value !== null && value !== undefined
+                          : true,
+            jsonError: type === 'json' ? ObjectBrowserValue.checkJsonError(String(value ?? '')) : false,
             writing: false,
         };
 
@@ -210,6 +208,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     }
 
     componentDidMount(): void {
+        this.mounted = true;
         if (
             this.props.defaultHistory &&
             this.props.object?.common?.custom &&
@@ -240,6 +239,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         }, 200);
     }
 
+    componentWillUnmount(): void {
+        this.mounted = false;
+    }
+
     static parseBoolean(value: unknown): boolean {
         if (value === true || value === 1) {
             return true;
@@ -251,58 +254,47 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         return false;
     }
 
-    onUpdate(e: React.KeyboardEvent | React.MouseEvent): void {
+    async onUpdate(e: React.KeyboardEvent | React.MouseEvent): Promise<void> {
         if (e) {
             e.stopPropagation();
             e.preventDefault();
         }
 
-        if (this.state.writing) {
-            return;
-        }
-
-        let value = this.state.targetValue;
-        if (this.state.type === 'states') {
-            if (value === 'null') {
-                value = null;
-            } else {
-                const type = this.props.type || typeof this.state.targetValue;
-                // @ts-expect-error deprecated
-                value = typeof value === 'object' ? value.value : value;
-
-                if (type === 'number') {
-                    if (typeof value === 'string') {
-                        value = parseFloat(value.replace(',', '.')) || 0;
-                    }
-                } else if (type === 'boolean') {
-                    value = ObjectBrowserValue.parseBoolean(value);
-                }
-            }
-        } else if (this.state.type === 'number') {
-            if (value === 'null') {
-                value = null;
-            } else if (typeof value === 'string') {
-                value = parseFloat(value.replace(',', '.')) || 0;
-            }
-        } else if (this.state.type === 'boolean') {
-            if (value === 'null') {
-                value = null;
-            } else {
-                value = ObjectBrowserValue.parseBoolean(value);
-            }
-        }
-
+        if (this.state.writing) return;
         if (this.props.object.common?.write === false) {
             window.alert(`Cannot write state "${this.props.object._id}": common.write=false`);
             return;
         }
 
-        this.props.onClose({
-            val: value,
-            ack: this.ack,
-            q: this.q,
-            expire: parseInt(this.expire as any as string, 10) || undefined,
-        });
+        let value: any;
+        try {
+            const policy = ObjectBrowserValue.getPolicy();
+            value = typeof policy.NEXOWATT_EOS_COERCE_WRITE_VALUE === 'function'
+                ? policy.NEXOWATT_EOS_COERCE_WRITE_VALUE(
+                      this.props.object,
+                      this.state.targetValue,
+                      this.state.type,
+                      this.props.type,
+                      this.props.value,
+                  )
+                : this.state.targetValue;
+        } catch (error) {
+            window.alert(error instanceof Error ? error.message : String(error));
+            return;
+        }
+
+        this.setState({ writing: true });
+        try {
+            await this.props.onClose({
+                val: value,
+                ack: this.ack,
+                q: this.q,
+                expire: parseInt(this.expire as any as string, 10) || undefined,
+            });
+        } catch (error) {
+            window.alert(`Cannot write state "${this.props.object._id}": ${error instanceof Error ? error.message : String(error)}`);
+            if (this.mounted) this.setState({ writing: false });
+        }
     }
 
     /**
@@ -401,7 +393,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                 error={this.state.jsonError}
                 editValueMode
                 themeType={this.props.themeType}
-                defaultValue={(this.propsValue || '').toString()}
+                defaultValue={this.state.targetValue == null ? '' : String(this.state.targetValue)}
                 onChange={(newValue: string) =>
                     this.setState({
                         targetValue: newValue,
@@ -413,64 +405,36 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     }
 
     renderStates(): JSX.Element | null {
-        if (!this.props.states) {
-            return null;
-        }
-        if (
-            this.props.type === 'number' &&
-            this.props.object.common.max !== undefined &&
-            this.props.object.common.min !== undefined
-        ) {
-            const options = Object.keys(this.props.states).map(key => ({
-                label: this.props.states[key],
-                value: key,
-            }));
+        if (!this.props.states) return null;
+        const current =
+            this.state.targetValue && typeof this.state.targetValue === 'object' && 'value' in this.state.targetValue
+                ? String((this.state.targetValue as any).value)
+                : this.state.targetValue == null
+                  ? ''
+                  : String(this.state.targetValue);
 
-            return (
-                <Autocomplete
-                    style={styles.formControl}
-                    disablePortal
-                    defaultValue={
-                        this.props.states[this.propsValue] !== undefined
-                            ? this.props.states[this.propsValue]
-                            : this.propsValue
-                    }
-                    options={options}
-                    noOptionsText=""
-                    freeSolo
-                    getOptionLabel={option =>
-                        option?.label || (option !== undefined && option !== null ? option.toString() : '')
-                    }
-                    onChange={(e, value) => this.setState({ targetValue: value })}
-                    onInputChange={(e, value) => this.setState({ targetValue: value })}
-                    onKeyUp={e => e.key === 'Enter' && this.onUpdate(e)}
-                    renderInput={params => (
-                        <TextField
-                            {...params}
-                            label={this.props.t('Value')}
-                            variant="standard"
-                        />
-                    )}
-                />
-            );
-        }
         return (
             <FormControl
                 variant="standard"
                 style={styles.formControl}
+                fullWidth
             >
                 <InputLabel>{this.props.t('Value')}</InputLabel>
                 <Select
                     variant="standard"
-                    defaultValue={this.propsValue}
-                    onChange={e => this.setState({ targetValue: e.target.value })}
+                    value={current}
+                    displayEmpty
+                    onChange={e => this.setState({ targetValue: e.target.value, valid: e.target.value !== '' })}
                 >
-                    {Object.keys(this.props.states).map((key, i) => (
+                    <MenuItem value="" disabled>
+                        {this.props.t('Select value')}
+                    </MenuItem>
+                    {Object.keys(this.props.states).map(key => (
                         <MenuItem
-                            key={i}
+                            key={key}
                             value={key}
                         >
-                            {this.props.states[key]}
+                            {this.props.states?.[key]}
                         </MenuItem>
                     ))}
                 </Select>
@@ -520,7 +484,9 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     (this.state.chart && this.state.chartEnabled)
                 }
                 fullScreen={this.state.type === 'json' && this.state.fullScreen}
-                onClose={() => this.props.onClose()}
+                onClose={() => {
+                    if (!this.state.writing) this.props.onClose();
+                }}
                 aria-labelledby="edit-value-dialog-title"
                 aria-describedby="edit-value-dialog-description"
                 sx={{
@@ -621,7 +587,17 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                                                           common: this.props.object
                                                                                               .common,
                                                                                       })
-                                                                                    : true,
+                                                                                    : e.target.value === 'states'
+                                                                                      ? Boolean(
+                                                                                            this.props.states &&
+                                                                                                Object.prototype.hasOwnProperty.call(
+                                                                                                    this.props.states,
+                                                                                                    String(
+                                                                                                        this.state.targetValue ?? '',
+                                                                                                    ),
+                                                                                                ),
+                                                                                        )
+                                                                                      : true,
                                                                             jsonError: false,
                                                                         },
                                                                         () => {
@@ -692,7 +668,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                         <Switch
                                                             autoFocus
                                                             checked={ObjectBrowserValue.parseBoolean(this.state.targetValue)}
-                                                            onKeyUp={e => e.key === 'Enter' && this.onUpdate(e)}
+                                                            onKeyUp={e => e.key === 'Enter' && !this.state.writing && this.onUpdate(e)}
                                                             onChange={e =>
                                                                 this.setState({ targetValue: e.target.checked })
                                                             }
@@ -720,7 +696,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 helperText={this.props.t(
                                                     'Press ENTER to write the value, when focused',
                                                 )}
-                                                value={this.state.targetValue.toString()}
+                                                value={this.state.targetValue == null ? '' : String(this.state.targetValue)}
                                                 label={
                                                     this.props.t('Value') +
                                                     (this.props.object.common.min !== undefined ||
@@ -732,7 +708,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                         ? `, ${this.props.t('max:')} ${this.props.object.common.max !== undefined ? this.props.object.common.max : 100}`
                                                         : '')
                                                 }
-                                                onKeyUp={e => e.key === 'Enter' && this.state.valid && this.onUpdate(e)}
+                                                onKeyUp={e => e.key === 'Enter' && this.state.valid && !this.state.writing && this.onUpdate(e)}
                                                 onChange={e => {
                                                     this.setState({
                                                         targetValue: e.target.value,
@@ -758,8 +734,8 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 )}
                                                 label={this.props.t('Value')}
                                                 multiline
-                                                onKeyDown={e => e.ctrlKey && e.key === 'Enter' && this.onUpdate(e)}
-                                                defaultValue={this.propsValue.toString()}
+                                                onKeyDown={e => e.ctrlKey && e.key === 'Enter' && this.state.valid && !this.state.writing && this.onUpdate(e)}
+                                                value={this.state.targetValue == null ? '' : String(this.state.targetValue)}
                                                 onChange={e => this.setState({ targetValue: e.target.value })}
                                             />
                                         )}
@@ -858,7 +834,12 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     {!this.props.expertMode ? <div style={{ flexGrow: 1 }} /> : null}
                     <Button
                         variant="contained"
-                        disabled={!this.state.valid || this.props.object.common?.write === false}
+                        disabled={
+                            !this.state.valid ||
+                            Boolean(this.state.jsonError) ||
+                            this.state.writing ||
+                            this.props.object.common?.write === false
+                        }
                         onClick={e => this.onUpdate(e)}
                         color="primary"
                         startIcon={this.props.width !== 'xs' ? <IconCheck /> : undefined}
@@ -868,7 +849,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     </Button>
                     <Button
                         variant="contained"
-                        onClick={() => this.props.onClose()}
+                        disabled={this.state.writing}
+                        onClick={() => {
+                            if (!this.state.writing) this.props.onClose();
+                        }}
                         color="grey"
                         startIcon={this.props.width !== 'xs' ? <IconCancel /> : undefined}
                     >

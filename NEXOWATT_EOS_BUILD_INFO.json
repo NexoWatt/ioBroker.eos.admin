@@ -1,23 +1,27 @@
 {
-  "version": "7.9.75",
+  "version": "7.9.76",
   "channel": "stability",
-  "baseFrontend": "7.9.74 scalar-dialog runtime with deterministic type-aware manual controls",
-  "runtimeEntry": "v75",
-  "releaseType": "type-aware-manual-datapoint-control",
+  "baseFrontend": "7.9.75 consolidated runtime with universal native manual datapoint controls",
+  "runtimeEntry": "v76",
+  "releaseType": "universal-manual-datapoint-write",
+  "release": "universal-manual-datapoint-write",
+  "label": "v76",
   "notes": [
-    "All writable states are handled according to their native data type: button, boolean switch, or scalar dialog.",
-    "Direct button and switch actions work in normal and expert mode; safety-relevant commands are expert-only.",
-    "Safety classification supports explicit NexoWatt metadata and conservative fallback patterns for reset, charging/current/power limits and setpoints.",
-    "Read-only states remain read-only and writes still pass through ioBroker ACL enforcement.",
-    "All active module-federation entrypoints use the cache-separated v75 runtime."
+    "Every state with common.write not equal to false has a deterministic manual control path based on its declared type and role.",
+    "Read-only states remain read-only; safety-relevant commands are writable only in expert mode and cannot be bypassed through the context menu.",
+    "Number, string, enum, mixed and JSON-backed values use the native ObjectBrowser value dialog with strict validation and visible write errors.",
+    "Boolean switches and button/trigger states use type-correct direct values, including numeric and string state mappings.",
+    "Write-only states remain visible and provide an explicit value target even when no current state exists.",
+    "All active module-federation entrypoints use the cache-separated v76 runtime."
   ],
-  "release": "type-aware-manual-datapoint-control",
-  "label": "v75",
   "changes": [
-    "Button/trigger states write true directly regardless of expert mode when policy permits.",
-    "Writable boolean states toggle reliably even from null/string/number representations.",
-    "Writable number/string/enum/json states open the native ObjectBrowser value dialog.",
-    "Safety-relevant write states are disabled outside expert mode and visibly marked.",
-    "A central deduplicating write helper prevents accidental double commands."
+    "Support common.type number, boolean, string, mixed, object, array, json and legacy multi-type declarations.",
+    "Support object and array editors as validated JSON strings because ioBroker StateValue is scalar.",
+    "Preserve numeric enum keys and string enum keys without replacing values by translated labels.",
+    "Serialize repeated writes per datapoint instead of dropping concurrent manual commands.",
+    "Do not prefill write-only numeric states with zero; an explicit valid value is required.",
+    "Use common.def and explicit NexoWatt metadata for typed trigger values when available.",
+    "Protect expert-only commands in direct clicks, keyboard actions and the native context menu.",
+    "Keep source and delivered value-dialog behavior aligned for future clean builds."
   ]
 }

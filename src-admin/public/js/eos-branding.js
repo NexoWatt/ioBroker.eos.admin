@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v75-type-aware-manual-controls';
+    window.NEXOWATT_EOS_UI_VERSION = 'v76-universal-manual-write';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

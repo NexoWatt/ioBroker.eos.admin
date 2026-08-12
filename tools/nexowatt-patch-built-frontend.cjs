@@ -102,7 +102,7 @@ if (!code.includes('closest("[data-eos-object-value-cell]")')) {
     changed = true;
 }
 
-// EOS v7.9.75: type-aware manual controls. Buttons/triggers and boolean
+// EOS v7.9.76: type-aware manual controls. Buttons/triggers and boolean
 // switches are direct controls in both modes when policy permits. Safety-
 // relevant states are exposed only in expert mode by the central policy.
 if (!code.includes('NEXOWATT_EOS_GET_WRITE_BEHAVIOR')) {
@@ -117,7 +117,7 @@ if (!code.includes('NEXOWATT_EOS_GET_WRITE_BEHAVIOR')) {
 
     const captureBefore = '"data-eos-scalar-capture":y&&!e.data.button&&!e.data.switch&&(N==null?void 0:N.type)!=="file"?"1":void 0,onClickCapture:Y=>{if(y&&!e.data.button&&!e.data.switch&&(N==null?void 0:N.type)!=="file"&&!(e.data.url&&Y.ctrlKey)){ Y.stopPropagation&&Y.stopPropagation();const V=this.states&&this.states[i]?this.states[i]:null;this.edit={val:V?V.val:"",q:V&&V.q||0,ack:!1,id:i};this.setState({updateOpened:!0})}},onClick:Y=>{var ';
     const captureBeforeCompact = captureBefore.replace('{ Y.stopPropagation', '{Y.stopPropagation');
-    const captureAfter = '"data-eos-scalar-capture":y&&e.data.eosWriteBehavior==="dialog"?"1":void 0,"data-eos-direct-control":y&&(e.data.eosWriteBehavior==="button"||e.data.eosWriteBehavior==="switch")?"1":void 0,onClickCapture:Y=>{if(!y||e.data.url&&Y.ctrlKey)return;const V=e.data.eosWriteBehavior;if(V==="button"||V==="switch"){Y.preventDefault&&Y.preventDefault(),Y.stopPropagation&&Y.stopPropagation(),Y.nativeEvent&&(Y.nativeEvent.__eosManualWriteHandled=!0);const Te=typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_WRITE_MANUAL_STATE==="function"?window.NEXOWATT_EOS_WRITE_MANUAL_STATE:(ve,pe,ge)=>ve.setState(pe,{val:ge,ack:!1,q:0});let ne=!0;if(V==="switch"){const ve=this.states&&this.states[i]?this.states[i].val:!1;ne=typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_COERCE_BOOLEAN==="function"?!window.NEXOWATT_EOS_COERCE_BOOLEAN(ve):!(ve===!0||ve===1||ve==="1"||String(ve).trim().toLowerCase()==="true")}Te(this.props.socket,i,ne).catch(ve=>this.showError(`Cannot write value: ${ve}`));return}if(V==="dialog"){Y.stopPropagation&&Y.stopPropagation(),Y.nativeEvent&&(Y.nativeEvent.__eosManualWriteHandled=!0);const Te=this.states&&this.states[i]?this.states[i]:null;this.edit={val:Te?Te.val:"",q:Te&&Te.q||0,ack:!1,id:i},this.setState({updateOpened:!0})}},onClick:Y=>{var ';
+    const captureAfter = '"data-eos-scalar-capture":y&&e.data.eosWriteBehavior==="dialog"?"1":void 0,"data-eos-direct-control":y&&(e.data.eosWriteBehavior==="button"||e.data.eosWriteBehavior==="switch")?"1":void 0,onClickCapture:Y=>{if(!y||e.data.url&&Y.ctrlKey)return;const V=e.data.eosWriteBehavior;if(V==="button"||V==="switch"){Y.preventDefault&&Y.preventDefault(),Y.stopPropagation&&Y.stopPropagation(),Y.nativeEvent&&(Y.nativeEvent.__eosManualWriteHandled=!0);const Te=typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_WRITE_MANUAL_STATE==="function"?window.NEXOWATT_EOS_WRITE_MANUAL_STATE:(ve,pe,ge)=>ve.setState(pe,{val:ge,ack:!1,q:0});let ne;try{const ve=this.states&&this.states[i]?this.states[i].val:null;ne=typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE==="function"?window.NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE(i,r,e,V,ve):V==="button"?!0:!ve}catch(ve){this.showError(`Cannot prepare value: ${ve}`);return}Te(this.props.socket,i,ne).then(()=>{const ve=Date.now(),pe=this.states&&this.states[i]?this.states[i]:{};this.states[i]={...pe,val:ne,ack:!1,ts:ve,lc:ve},delete e.data.state,this.forceUpdate()}).catch(ve=>this.showError(`Cannot write value: ${ve}`));return}if(V==="dialog"){Y.preventDefault&&Y.preventDefault(),Y.stopPropagation&&Y.stopPropagation(),Y.nativeEvent&&(Y.nativeEvent.__eosManualWriteHandled=!0);const Te=this.states&&this.states[i]?this.states[i]:null;this.edit={val:Te?Te.val:"",q:Te&&Te.q||0,ack:!1,id:i},this.setState({updateOpened:!0})}},onClick:Y=>{var ';
     if (code.includes(captureBefore)) code = code.replace(captureBefore, captureAfter);
     else if (code.includes(captureBeforeCompact)) code = code.replace(captureBeforeCompact, captureAfter);
     else fail('cannot locate scalar capture block for type-aware direct controls');
@@ -143,10 +143,60 @@ if (code.includes('!this.state.filter.expertMode&&e.data.switch')) {
     code = code.replaceAll('!this.state.filter.expertMode&&e.data.switch', 'e.data.eosWriteBehavior==="switch"');
     changed = true;
 }
+
+// Do not swallow a failed state write in the parent ObjectBrowser. The value
+// dialog must receive the rejection so it can re-enable its controls and keep
+// the entered value available for correction/retry.
+const swallowedWrite = /try\{await this\.onUpdate\(([A-Za-z_$][\w$]*)\),this\.setState\(\{updateOpened:!1\}\)\}catch\{\}/;
+if (swallowedWrite.test(code)) {
+    code = code.replace(swallowedWrite, 'try{await this.onUpdate($1),this.setState({updateOpened:!1})}catch(e){throw e}');
+    changed = true;
+}
+
+// v7.9.76 universal manual write additions.
+const editorTypeOld = 'const e=(i=this.objects[this.edit.id].common)!=null&&i.type?this.objects[this.edit.id].common.type:typeof this.edit.val,t=this.objects[this.edit.id].common.role,M=this.props.objectBrowserValue;';
+if (code.includes(editorTypeOld)) {
+    code = code.replace(editorTypeOld, 'const o=p.getStates(this.objects[this.edit.id]),r=typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_NORMALIZE_STATES==="function"?window.NEXOWATT_EOS_NORMALIZE_STATES(o||this.objects[this.edit.id].common.states):o,e=typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_RESOLVE_EDITOR_TYPE==="function"?window.NEXOWATT_EOS_RESOLVE_EDITOR_TYPE(this.objects[this.edit.id],this.edit.val,r):(i=this.objects[this.edit.id].common)!=null&&i.type?this.objects[this.edit.id].common.type:typeof this.edit.val,t=this.objects[this.edit.id].common.role,M=this.props.objectBrowserValue;');
+    changed = true;
+}
+// Pass normalized common.states to the value dialog. Otherwise a legacy or
+// translated enum may be classified as a selector while the dialog receives
+// null and renders no control at all.
+const rawStatesProp = 'states:p.getStates(this.objects[this.edit.id]),themeType:';
+if (code.includes(rawStatesProp) && code.includes('NEXOWATT_EOS_NORMALIZE_STATES')) {
+    code = code.replace(rawStatesProp, 'states:r,themeType:');
+    changed = true;
+}
+const titleOld = 'title:e.data.eosWriteBehavior==="expert-only"?"Nur im Expertenmodus beschreibbar":void 0,className:"eos-object-value-cell"';
+if (code.includes(titleOld)) {
+    code = code.replace(titleOld, 'title:typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_GET_WRITE_LABEL==="function"?window.NEXOWATT_EOS_GET_WRITE_LABEL(i,r,e.data.eosWriteBehavior,this.state.filter.expertMode,!!(this.states&&this.states[i])):e.data.eosWriteBehavior==="expert-only"?"Nur im Expertenmodus beschreibbar":void 0,className:"eos-object-value-cell"');
+    changed = true;
+}
+const missingStateOld = 'if(!this.states[e]){this.recordStates.includes(e)||this.recordStates.push(e),this.states[e]={val:null,q:0,ack:!0},this.subscribe(e);return null}';
+if (code.includes(missingStateOld)) {
+    code = code.replace(missingStateOld, 'if(!this.states[e]){if(((i.common==null?void 0:i.common.read)!==!1)){this.recordStates.includes(e)||this.recordStates.push(e),this.states[e]={val:null,q:0,ack:!0},this.subscribe(e)}return null}');
+    changed = true;
+}
+const cellEndOld = 'onKeyDown:Y=>{y&&(Y.key==="Enter"||Y.key===" ")&&(Y.preventDefault(),Y.currentTarget.click())}},ae):null,me=';
+if (code.includes(cellEndOld)) {
+    code = code.replace(cellEndOld, 'onDoubleClick:Y=>{y&&Y.stopPropagation&&Y.stopPropagation()},onKeyDown:Y=>{y&&(Y.key==="Enter"||Y.key===" ")&&(Y.preventDefault(),Y.currentTarget.click())}},ae||y&&a.createElement("span",{className:"eos-write-placeholder"},typeof window!=="undefined"&&typeof window.NEXOWATT_EOS_GET_WRITE_LABEL==="function"?window.NEXOWATT_EOS_GET_WRITE_LABEL(i,r,e.data.eosWriteBehavior,this.state.filter.expertMode,!1):"Wert setzen")):null,me=');
+    changed = true;
+}
+
+// A non-expert user must not bypass the safety policy through the native
+// right-click context menu. The active runtime has this guard patched directly;
+// a future upstream build must expose the same policy marker or fail loudly.
+if (!code.includes('!["readonly","expert-only"].includes(window.NEXOWATT_EOS_GET_WRITE_BEHAVIOR')) {
+    fail('context-menu write safety policy is missing');
+}
+
+if (/try\{await this\.onUpdate\([^)]+\),this\.setState\(\{updateOpened:!1\}\)\}catch\{\}/.test(code)) fail('value-dialog write errors are still swallowed');
 if (!code.includes('data-eos-write-behavior')) fail('type-aware write behavior marker missing');
 if (!code.includes('data-eos-direct-control')) fail('direct-control marker missing');
-if (!code.includes('NEXOWATT_EOS_WRITE_MANUAL_STATE')) fail('deduplicating manual write helper missing');
-if (!code.includes('NEXOWATT_EOS_COERCE_BOOLEAN')) fail('robust boolean conversion missing');
+if (!code.includes('NEXOWATT_EOS_WRITE_MANUAL_STATE')) fail('queued manual write helper missing');
+if (!code.includes('NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE')) fail('type-correct direct write helper missing');
+if (!code.includes('NEXOWATT_EOS_RESOLVE_EDITOR_TYPE')) fail('universal editor type resolver missing');
+if (!code.includes('NEXOWATT_EOS_NORMALIZE_STATES')) fail('normalized enum-state transport missing');
 if (/!this\.state\.filter\.expertMode&&e\.data\.(?:button|switch)/.test(code)) fail('button/switch direct actions are still incorrectly disabled in expert mode');
 if (code.includes('this.state.filter.expertMode||(t.data.button')) fail('button/switch visuals are still hidden in expert mode');
 

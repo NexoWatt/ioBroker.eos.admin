@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.75",
+    "version": "7.9.76",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,10 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.75": {
-        "en": "Makes every writable datapoint operable by its native type: button/trigger, boolean switch, or scalar value dialog. Safety-relevant commands are available only in expert mode and direct writes are deduplicated.",
-        "de": "Macht jeden beschreibbaren Datenpunkt entsprechend seinem Grundtyp bedienbar: Button/Trigger, boolescher Schalter oder Wertdialog. Sicherheitsrelevante Befehle sind nur im Expertenmodus verfügbar und direkte Schreibbefehle werden gegen Doppelauslösung geschützt.",
-        "nl": "Maakt elk beschrijfbaar datapunt bedienbaar volgens het basistype: knop/trigger, booleaanse schakelaar of waardedialoog. Veiligheidsrelevante opdrachten zijn alleen beschikbaar in expertmodus en directe schrijfopdrachten worden tegen dubbele activering beveiligd."
+      "7.9.76": {
+        "en": "Universal manual datapoint writing: all native state types, write-only values, typed enums, buttons and switches are handled deterministically. Safety-relevant commands remain expert-only and repeated writes are queued instead of dropped.",
+        "de": "Universelles manuelles Beschreiben von Datenpunkten: native State-Typen, reine Schreibwerte, typisierte Enums, Buttons und Schalter werden eindeutig behandelt. Sicherheitsrelevante Befehle bleiben dem Expertenmodus vorbehalten; wiederholte Schreibbefehle werden geordnet statt verworfen.",
+        "nl": "Universeel handmatig schrijven van datapunten: native state-typen, write-only waarden, getypeerde enums, knoppen en schakelaars worden eenduidig verwerkt. Veiligheidsrelevante opdrachten blijven expert-only; herhaalde schrijfopdrachten worden in een wachtrij uitgevoerd."
       },
       "7.9.71": {
         "en": "Fixed Module filter popups: closed keep-mounted MUI menus can no longer become visible, menu anchors remain stable, popup DOM work is scoped to open overlays, and runtime cache paths were advanced.",
@@ -274,7 +274,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.75/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.76/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -285,7 +285,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.75/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.76/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -354,7 +354,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.75/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.76/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1033,5 +1033,5 @@
       }
     }
   },
-  "version": "7.9.75"
+  "version": "7.9.76"
 }
