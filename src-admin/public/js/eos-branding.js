@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v80-modern-nav-icons';
+    window.NEXOWATT_EOS_UI_VERSION = 'v81-modern-nav-icons-validation-fix';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';

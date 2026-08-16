@@ -1,21 +1,22 @@
 {
-  "version": "7.9.80",
+  "version": "7.9.81",
   "channel": "stability",
   "baseFrontend": "7.9.78 package baseline with corrected direct manual-write semantics",
   "runtimeEntry": "v79",
-  "releaseType": "modern-nav-icons",
-  "release": "modern-nav-icons",
-  "label": "v79",
+  "releaseType": "modern-nav-icons-validation-fix",
+  "release": "modern-nav-icons-validation-fix",
+  "label": "v81",
   "notes": [
-    "Introduced a new modern icon set for the horizontal navigation rail.",
-    "Polished the top action bar buttons with a more modern glass/outline treatment.",
-    "Kept the accepted v79 direct-control runtime intact while refreshing EOS navigation visuals.",
-    "Bumped branding asset cache keys so the updated icon styling loads immediately after update."
+    "Keeps the accepted v79 React/ObjectBrowser runtime while delivering the modern navigation icons through branding cache v81.",
+    "Synchronizes package.json, both package-lock files, io-package.json, src-admin/package.json and src-admin/src/version.json.",
+    "Separates frontend runtime versioning from branding asset cache versioning so validation no longer reports a false mismatch.",
+    "Strengthens future package checks for top-level io-package and lockfile version drift."
   ],
   "changes": [
-    "Added runtime DOM patching that maps EOS navigation labels to dedicated modern SVG icons.",
-    "Added CSS for icon pills, hover/active states and compact-safe layout handling.",
-    "Kept runtimeEntry on v79 to avoid unnecessary React bundle churn.",
-    "Advanced branding/cache query strings to v80 for eos-branding assets."
-  ]
+    "Added brandingCacheVersion=81 to NEXOWATT_EOS_BUILD_INFO.json.",
+    "Updated the value-column self-test to validate the declared branding cache instead of assuming it equals runtimeEntry.",
+    "Updated package validation and stability checks to verify all package and lockfile versions.",
+    "Preserved the v80 modern navigation icon implementation and moved its UI marker/cache key to v81."
+  ],
+  "brandingCacheVersion": 81
 }

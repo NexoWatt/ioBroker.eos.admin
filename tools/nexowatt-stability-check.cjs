@@ -8,20 +8,31 @@ const json = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
 
 const version = json('package.json').version;
+const packageLock = json('package-lock.json');
+const srcPackageLock = json('src-admin/package-lock.json');
+const ioPackage = json('io-package.json');
 const buildInfo = json('NEXOWATT_EOS_BUILD_INFO.json');
 const runtime = buildInfo.runtimeEntry;
 const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
 const oldRuntimeVersions = Array.from({ length: Math.max(0, runtimeNumber - 54) }, (_, index) => index + 54);
 if (!/^7\.9\.\d+$/.test(version)) fail(`unexpected package version ${version}`);
 if (buildInfo.version !== version) fail('NEXOWATT_EOS_BUILD_INFO.json version differs');
+if (ioPackage.version !== version) fail(`io-package.json top-level version ${ioPackage.version} differs`);
+if (packageLock.version !== version || packageLock.packages?.['']?.version !== version) fail('package-lock.json version differs');
+if (srcPackageLock.version !== version || srcPackageLock.packages?.['']?.version !== version) fail('src-admin/package-lock.json version differs');
 for (const [file, value] of [
-  ['io-package.json', json('io-package.json').common.version],
+  ['io-package.json', ioPackage.common.version],
   ['src-admin/package.json', json('src-admin/package.json').version],
   ['src-admin/src/version.json', json('src-admin/src/version.json').version],
 ]) if (value !== version) fail(`${file} version ${value} differs`);
 
 const index = read('adminWww/index.html');
 for (const marker of [`hostInit-${runtime}.js?v=${runtimeNumber}`,`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`,`eos-policy-client.js?v=${runtimeNumber}`]) {
+  if (!index.includes(marker)) fail(`index missing ${marker}`);
+}
+const brandingCacheVersion = Number(buildInfo.brandingCacheVersion ?? runtimeNumber);
+if (!Number.isFinite(brandingCacheVersion)) fail(`invalid brandingCacheVersion ${buildInfo.brandingCacheVersion}`);
+for (const marker of [`eos-branding.css?v=${brandingCacheVersion}`, `eos-branding.js?v=${brandingCacheVersion}`]) {
   if (!index.includes(marker)) fail(`index missing ${marker}`);
 }
 if (!index.includes(`eos-manual-write-policy.js?v=${runtimeNumber}`) || index.indexOf(`eos-manual-write-policy.js?v=${runtimeNumber}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy is not synchronously loaded before the runtime');

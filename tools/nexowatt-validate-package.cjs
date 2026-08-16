@@ -11,11 +11,22 @@ const readJson = file => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8
 const exists = file => fs.existsSync(path.join(root, file));
 
 const pkg = readJson('package.json');
+const pkgLock = readJson('package-lock.json');
 const io = readJson('io-package.json');
+const srcPkg = readJson('src-admin/package.json');
+const srcPkgLock = readJson('src-admin/package-lock.json');
+const srcVersion = readJson('src-admin/src/version.json');
+const buildInfo = readJson('NEXOWATT_EOS_BUILD_INFO.json');
 
 if (pkg.name !== 'iobroker.eos-admin') fail(`package.json name must be iobroker.eos-admin, got ${pkg.name}`);
 if (pkg.private !== false) fail('package.json private must be false for npm publishing');
-if (pkg.version !== io.common.version) fail(`package.json and io-package.json versions differ: ${pkg.version} vs ${io.common.version}`);
+if (pkg.version !== io.common.version) fail(`package.json and io-package.json common.version differ: ${pkg.version} vs ${io.common.version}`);
+if (io.version !== pkg.version) fail(`io-package top-level version must match package.json: ${io.version} vs ${pkg.version}`);
+if (pkgLock.version !== pkg.version || pkgLock.packages?.['']?.version !== pkg.version) fail('package-lock.json versions must match package.json');
+if (srcPkg.version !== pkg.version) fail('src-admin/package.json version must match package.json');
+if (srcPkgLock.version !== pkg.version || srcPkgLock.packages?.['']?.version !== pkg.version) fail('src-admin/package-lock.json versions must match package.json');
+if (srcVersion.version !== pkg.version) fail('src-admin/src/version.json version must match package.json');
+if (buildInfo.version !== pkg.version) fail('NEXOWATT_EOS_BUILD_INFO.json version must match package.json');
 if (io.common.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common.name}`);
 
 if (io.common.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common.packetName}`);
@@ -72,14 +83,14 @@ const mainBuild = fs.readFileSync(path.join(root, 'build/main.js'), 'utf8');
 if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks v37 BackItUp compatibility guard');
 
 
-const srcPkg = readJson('src-admin/package.json');
-const srcVersion = readJson('src-admin/src/version.json');
 if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
-const buildInfo = readJson('NEXOWATT_EOS_BUILD_INFO.json');
 const runtime = buildInfo.runtimeEntry;
 const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
+const brandingCacheVersion = Number(buildInfo.brandingCacheVersion ?? runtimeNumber);
 if (!runtime || !Number.isFinite(runtimeNumber)) fail(`invalid runtimeEntry ${runtime}`);
+if (!Number.isFinite(brandingCacheVersion)) fail(`invalid brandingCacheVersion ${buildInfo.brandingCacheVersion}`);
 if (!index.includes(`hostInit-${runtime}.js?v=${runtimeNumber}`) || !index.includes(`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`)) fail(`adminWww/index.html must load the ${runtime} runtime`);
+if (!index.includes(`css/eos-branding.css?v=${brandingCacheVersion}`) || !index.includes(`js/eos-branding.js?v=${brandingCacheVersion}`)) fail(`adminWww/index.html must load branding cache v${brandingCacheVersion}`);
 if (!index.includes(`eos-manual-write-policy.js?v=${runtimeNumber}`)) fail(`adminWww/index.html must load the ${runtime} manual-write policy`);
 if (index.indexOf(`eos-manual-write-policy.js?v=${runtimeNumber}`) > index.indexOf(`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 
