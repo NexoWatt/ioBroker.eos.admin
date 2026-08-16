@@ -5,8 +5,8 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const fail = m => { throw new Error(`[NexoWatt EOS datapoint selftest] ${m}`); };
-const shared = read('adminWww/assets/index-D2ymscJA-v76.js');
-const route = read('adminWww/assets/Objects-DPan0bzw-v76.js');
+const shared = read('adminWww/assets/index-D2ymscJA-v79.js');
+const route = read('adminWww/assets/Objects-DPan0bzw-v79.js');
 const sourceDialog = read('src-admin/src/components/Object/ObjectBrowserValue.tsx');
 const policy = read('adminWww/js/eos-manual-write-policy.js');
 

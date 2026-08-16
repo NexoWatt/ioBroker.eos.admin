@@ -7,12 +7,14 @@
  * The shared ObjectBrowser comes from @iobroker/adapter-react-v5. A dependency
  * update must never silently remove EOS manual-write semantics. This guard
  * validates the generated runtime and deliberately fails the build when the
- * generated structure no longer contains the reviewed v7.9.76 integration.
+ * generated structure no longer contains the reviewed v7.9.79 integration.
  */
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const adminWww = path.join(root, 'adminWww');
+const buildInfo = JSON.parse(fs.readFileSync(path.join(root, 'NEXOWATT_EOS_BUILD_INFO.json'), 'utf8'));
+const runtime = buildInfo.runtimeEntry;
 const fail = message => { throw new Error(`[NexoWatt EOS post-build guard] ${message}`); };
 const read = file => fs.readFileSync(file, 'utf8');
 
@@ -29,7 +31,8 @@ const shared = read(sharedPath);
 const requiredShared = [
     'if(!i||i.type!=="state"||!this.states)return null', // Non-state objects never render values
     'NEXOWATT_EOS_GET_WRITE_BEHAVIOR',                  // common.write + safety policy
-    'NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE',              // type-aware button/switch values
+    'NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE',              // type-aware fallback values
+    'NEXOWATT_EOS_RESOLVE_DIRECT_WRITE_VALUE',           // fresh-state switch resolution
     'NEXOWATT_EOS_PREPARE_MANUAL_EDITOR',                // array/object/mixed editor normalization
     'NEXOWATT_EOS_WRITE_MANUAL_STATE',                   // queued socket writes
     '"data-eos-object-writable":y?"1":"0"',
@@ -43,10 +46,10 @@ if (/onMouseDown:Y=>\{[^}]*preventDefault/.test(shared)) fail('value-cell moused
 if (!shared.includes('!["readonly","expert-only"].includes(window.NEXOWATT_EOS_GET_WRITE_BEHAVIOR')) fail('context-menu edit does not obey policy');
 
 const objectCandidates = fs.readdirSync(path.join(adminWww, 'assets'))
-    .filter(file => /^Objects-.*-v76\.js$/.test(file))
+    .filter(file => new RegExp(`^Objects-.*-${runtime}\\.js$`).test(file))
     .map(file => ({ file, size: fs.statSync(path.join(adminWww, 'assets', file)).size }))
     .sort((a, b) => b.size - a.size);
-if (!objectCandidates.length) fail('cannot locate v76 Objects route');
+if (!objectCandidates.length) fail(`cannot locate ${runtime} Objects route`);
 const objects = read(path.join(adminWww, 'assets', objectCandidates[0].file));
 for (const marker of [
     'NEXOWATT_EOS_MANUAL_WRITE_POLICY',

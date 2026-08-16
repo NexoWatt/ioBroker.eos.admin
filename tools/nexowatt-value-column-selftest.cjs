@@ -12,5 +12,7 @@ const block = src.slice(src.indexOf('v7.9.78: value-column alignment'));
 if (!block.includes('justify-content: flex-end !important')) fail('value content is not right-aligned');
 if (/(?:^|\n)\s*width:\s*100%\s*!important/.test(block)) fail('alignment patch must not override native value-column width');
 const index = read('adminWww/index.html');
-if (!index.includes('css/eos-branding.css?v=78')) fail('branding CSS cache key is not v78');
+const runtime = JSON.parse(fs.readFileSync(path.join(root, 'NEXOWATT_EOS_BUILD_INFO.json'), 'utf8')).runtimeEntry;
+const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
+if (!index.includes(`css/eos-branding.css?v=${runtimeNumber}`)) fail(`branding CSS cache key is not ${runtime}`);
 console.log('[NexoWatt EOS value column] OK');

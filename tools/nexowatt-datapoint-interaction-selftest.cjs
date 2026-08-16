@@ -3,14 +3,15 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const shared = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v76.js'), 'utf8');
-const dialog = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v76.js'), 'utf8');
+const shared = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v79.js'), 'utf8');
+const dialog = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v79.js'), 'utf8');
 const fail = m => { throw new Error(`[NexoWatt EOS DP interaction selftest] ${m}`); };
 
 for (const marker of [
     '"data-eos-object-writable":y?"1":"0"',
     'NEXOWATT_EOS_GET_WRITE_BEHAVIOR',
     'NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE',
+    'NEXOWATT_EOS_RESOLVE_DIRECT_WRITE_VALUE',
     'NEXOWATT_EOS_WRITE_MANUAL_STATE',
     'NEXOWATT_EOS_PREPARE_MANUAL_EDITOR',
     'Wert setzen …',
@@ -23,7 +24,8 @@ if (!shared.includes('onMouseDown:Y=>{y&&Y.stopPropagation&&Y.stopPropagation()}
 if (/onMouseDown:Y=>\{[^}]*preventDefault/.test(shared)) fail('mousedown preventDefault would suppress click');
 if (!shared.includes('closest(".copyButton")')) fail('copy button exclusion missing');
 if (!shared.includes('e.data.state=null,this.forceUpdate()')) fail('post-write local refresh missing');
-if (!shared.includes('NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE(i,r,e,pe,ne)')) fail('type-aware direct value calculation missing');
+if (!shared.includes('NEXOWATT_EOS_RESOLVE_DIRECT_WRITE_VALUE(this.props.socket,i,r,e,pe,ne)')) fail('fresh-state direct value resolution missing');
+if (!shared.includes('if(ne==="switch")')) fail('switch-only optimistic state update guard missing');
 if (!shared.includes('await this.onUpdate(n),this.setState({updateOpened:!1})')) fail('value dialog does not wait for write success');
 if (shared.includes('catch{}},width:this.props.width')) fail('value-dialog write errors are swallowed');
 

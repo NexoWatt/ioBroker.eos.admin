@@ -1,14 +1,15 @@
-/* NexoWatt EOS manual datapoint write policy v7.9.76 */
+/* NexoWatt EOS manual datapoint write policy v7.9.79 */
 (function (root, factory) {
     'use strict';
     const api = factory();
     if (typeof module === 'object' && module.exports) module.exports = api;
     if (!root) return;
 
-    root.NEXOWATT_EOS_MANUAL_WRITE_POLICY_VERSION = 'v76-universal-manual-state-editor';
+    root.NEXOWATT_EOS_MANUAL_WRITE_POLICY_VERSION = 'v79-direct-control-runtime-fix';
     root.NEXOWATT_EOS_MANUAL_WRITE_POLICY = api;
     root.NEXOWATT_EOS_GET_WRITE_BEHAVIOR = api.getWriteBehavior;
     root.NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE = api.getDirectWriteValue;
+    root.NEXOWATT_EOS_RESOLVE_DIRECT_WRITE_VALUE = api.resolveDirectWriteValue;
     root.NEXOWATT_EOS_GET_EXPERT_ONLY_REASON = api.getExpertOnlyReason;
     root.NEXOWATT_EOS_IS_EXPERT_ONLY_STATE = api.isExpertOnlyState;
     root.NEXOWATT_EOS_COERCE_BOOLEAN = api.toBoolean;
@@ -82,6 +83,39 @@
             if (typeof value === 'boolean') return value;
         }
         return undefined;
+    };
+
+    const getExplicitManualValue = (obj, name) => {
+        const common = obj && obj.common ? obj.common : {};
+        const native = obj && obj.native ? obj.native : {};
+        const custom = common.custom || {};
+        const sources = [
+            common,
+            native,
+            native.nexowatt || {},
+            custom.nexowatt || {},
+            custom['nexowatt.eos'] || {},
+            custom['eos-admin'] || {},
+        ];
+        for (const source of sources) {
+            if (source && Object.prototype.hasOwnProperty.call(source, name)) {
+                return { found: true, value: source[name] };
+            }
+        }
+        return { found: false, value: undefined };
+    };
+
+    const getExplicitBinaryOptions = obj => {
+        const off = getExplicitManualValue(obj, 'manualFalseValue');
+        const on = getExplicitManualValue(obj, 'manualTrueValue');
+        return off.found && on.found ? { off: off.value, on: on.value } : null;
+    };
+
+    const isInactiveTriggerValue = value => {
+        if (value == null || value === false || value === 0) return true;
+        if (typeof value !== 'string') return false;
+        const normalized = normalizeText(value).trim();
+        return ['', 'false', '0', 'off', 'no', 'nein', 'disabled', 'inactive', 'closed', 'stop', 'aus', 'null', '(null)'].includes(normalized);
     };
 
     const getExpertOnlyReason = (id, obj) => {
@@ -187,6 +221,20 @@
         return String(left) === String(right);
     };
 
+    const sameTypedValue = (left, right, type) => {
+        if (type === 'boolean') return toBoolean(left) === toBoolean(right);
+        if (type === 'number') {
+            try { return parseNumber(left) === parseNumber(right); } catch { return sameValue(left, right); }
+        }
+        if (type === 'mixed') {
+            if (typeof right === 'boolean') return toBoolean(left) === right;
+            if (typeof right === 'number') {
+                try { return parseNumber(left) === right; } catch { return false; }
+            }
+        }
+        return sameValue(left, right);
+    };
+
     const optionScore = (option, mode) => {
         const text = normalizeText(`${option.key} ${option.label}`).replace(/[^a-z0-9]+/g, ' ');
         const offWords = ['false', '0', 'off', 'no', 'nein', 'disabled', 'inactive', 'closed', 'stop', 'aus'];
@@ -197,6 +245,8 @@
 
     const getBinaryOptions = obj => {
         const common = obj && obj.common ? obj.common : {};
+        const explicit = getExplicitBinaryOptions(obj);
+        if (explicit) return explicit;
         const type = normalizeCommonType(obj);
         const entries = normalizeStates(common.states);
         if (entries.length > 2) return null;
@@ -243,7 +293,8 @@
         if (common.write === false) return 'readonly';
         if (isExpertOnlyState(id, obj) && !expertMode) return 'expert-only';
         if (normalizeCommonType(obj) === 'file') return 'file';
-        if (isButtonState(obj, item) && (common.def !== undefined || !['array', 'object'].includes(normalizeCommonType(obj)))) return 'button';
+        const explicitTrigger = getExplicitManualValue(obj, 'manualTriggerValue');
+        if (isButtonState(obj, item) && (explicitTrigger.found || common.def !== undefined || !['array', 'object'].includes(normalizeCommonType(obj)))) return 'button';
         if (isSwitchState(obj, item)) return 'switch';
         return 'dialog';
     };
@@ -253,21 +304,53 @@
         const type = normalizeCommonType(obj, currentValue);
         const mode = behavior || getWriteBehavior(id, obj, item, true);
         if (mode === 'button') {
-            if (common.def !== undefined) return common.def;
+            const explicit = getExplicitManualValue(obj, 'manualTriggerValue');
+            if (explicit.found) return explicit.value;
+            // A default false/0/empty value describes the idle state of most
+            // ioBroker buttons (not the trigger payload). Only active defaults
+            // are allowed to become the command value.
+            if (common.def !== undefined && !isInactiveTriggerValue(common.def)) return common.def;
             const options = getBinaryOptions(obj);
             if (options) return options.on;
             if (type === 'boolean') return true;
             if (type === 'number') return 1;
             if (type === 'string') return 'true';
             if (type === 'mixed') return true;
+            if (common.def !== undefined) return common.def;
             throw new Error(`Button-Datenpunkt ${id} benötigt einen expliziten Vorgabewert`);
         }
         if (mode === 'switch') {
             const options = getBinaryOptions(obj);
             if (!options) throw new Error(`Datenpunkt ${id} ist kein binärer Schalter`);
-            return sameValue(currentValue, options.on) ? options.off : options.on;
+            return sameTypedValue(currentValue, options.on, type) ? options.off : options.on;
         }
         throw new Error(`Direktes Schreiben ist für ${mode} nicht vorgesehen`);
+    };
+
+    const readFreshStateValue = async (socket, id, fallbackValue, timeoutMs = 1500) => {
+        if (!socket || typeof socket.getState !== 'function') return fallbackValue;
+        let timeoutHandle;
+        try {
+            const timeout = new Promise(resolve => {
+                timeoutHandle = setTimeout(() => resolve(null), timeoutMs);
+            });
+            const state = await Promise.race([Promise.resolve(socket.getState(id)), timeout]);
+            if (state && Object.prototype.hasOwnProperty.call(state, 'val')) return state.val;
+        } catch {
+            // A transient read failure must not block manual operation. The
+            // ObjectBrowser cache remains a safe fallback for the toggle.
+        } finally {
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+        }
+        return fallbackValue;
+    };
+
+    const resolveDirectWriteValue = async (socket, id, obj, item, currentValue, behavior) => {
+        const mode = behavior || getWriteBehavior(id, obj, item, true);
+        const effectiveValue = mode === 'switch'
+            ? await readFreshStateValue(socket, id, currentValue)
+            : currentValue;
+        return getDirectWriteValue(id, obj, item, effectiveValue, mode);
     };
 
     const inferEditorType = (obj, currentValue) => {
@@ -385,6 +468,8 @@
         getBinaryOptions,
         getWriteBehavior,
         getDirectWriteValue,
+        resolveDirectWriteValue,
+        readFreshStateValue,
         inferEditorType,
         prepareEditor,
         parseEditorValue,

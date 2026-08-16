@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v76-universal-manual-state-editor';
+    const VERSION = 'v79-direct-control-runtime-fix';
     const LEGACY_ADMIN = 'admin';
     const LEGACY_ADMIN_INSTANCE = 'admin.0';
     const CORE_PROTECTED_ADAPTERS = ['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui'];

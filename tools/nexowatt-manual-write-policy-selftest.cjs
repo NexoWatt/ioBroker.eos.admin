@@ -19,7 +19,7 @@ const eq = (actual, expected, message) => {
 (async () => {
     for (const name of [
         'getWriteBehavior', 'getDirectWriteValue', 'prepareEditor', 'parseEditorValue',
-        'getBinaryOptions', 'isExpertOnlyState', 'toBoolean', 'writeManualState',
+        'getBinaryOptions', 'isExpertOnlyState', 'toBoolean', 'resolveDirectWriteValue', 'writeManualState',
     ]) if (typeof policy[name] !== 'function') fail(`missing ${name}`);
 
     const ro = state('number'); ro.common.write = false;
@@ -29,6 +29,9 @@ const eq = (actual, expected, message) => {
     eq(policy.getWriteBehavior(bool._id, bool, item({ switch: true }), false), 'switch', 'boolean switch behavior');
     eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), false, 'switch'), true, 'boolean switch ON');
     eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), true, 'switch'), false, 'boolean switch OFF');
+    eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), 'true', 'switch'), false, 'boolean string true switch OFF');
+    eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), 1, 'switch'), false, 'boolean numeric one switch OFF');
+    eq(policy.getDirectWriteValue(bool._id, bool, item({ switch: true }), 'false', 'switch'), true, 'boolean string false switch ON');
 
     const numeric = state('number', 'switch', { common: { states: { 0: 'OFF', 1: 'ON' } } });
     eq(policy.getDirectWriteValue(numeric._id, numeric, item({ switch: true }), 0, 'switch'), 1, 'numeric switch ON');
@@ -43,6 +46,12 @@ const eq = (actual, expected, message) => {
 
     const boolButton = state('boolean', 'button');
     eq(policy.getDirectWriteValue(boolButton._id, boolButton, item({ button: true }), false, 'button'), true, 'boolean button value');
+    const idleFalseButton = state('boolean', 'button', { _id: 'ocpp21.0.station.control.hardReset', common: { def: false } });
+    eq(policy.getDirectWriteValue(idleFalseButton._id, idleFalseButton, item({ button: true }), false, 'button'), true, 'boolean button def=false must trigger true');
+    const idleZeroButton = state('number', 'button', { common: { def: 0 } });
+    eq(policy.getDirectWriteValue(idleZeroButton._id, idleZeroButton, item({ button: true }), 0, 'button'), 1, 'number button def=0 must trigger active value');
+    const explicitFalseButton = state('boolean', 'button', { native: { nexowatt: { manualTriggerValue: false } } });
+    eq(policy.getDirectWriteValue(explicitFalseButton._id, explicitFalseButton, item({ button: true }), true, 'button'), false, 'explicit false trigger value');
     const numericButton = state('number', 'button');
     eq(policy.getDirectWriteValue(numericButton._id, numericButton, item({ button: true }), null, 'button'), 1, 'numeric button value');
     const defaultButton = state('string', 'button', { common: { def: 'START' } });
@@ -115,6 +124,16 @@ const eq = (actual, expected, message) => {
         _id: 'safe.0.power', common: { custom: { nexowatt: { manualWriteExpertOnly: false } } },
     });
     eq(policy.getWriteBehavior(explicitSafe._id, explicitSafe, item(), false), 'dialog', 'explicit safe override');
+
+    const freshSocket = {
+        getState: async () => ({ val: true, ack: true }),
+        setState: async () => undefined,
+    };
+    eq(await policy.resolveDirectWriteValue(freshSocket, bool._id, bool, item({ switch: true }), false, 'switch'), false, 'fresh state must override stale switch cache');
+    const encodedFreshSocket = { getState: async () => ({ val: '1', ack: true }) };
+    eq(await policy.resolveDirectWriteValue(encodedFreshSocket, bool._id, bool, item({ switch: true }), false, 'switch'), false, 'fresh encoded true switch OFF');
+    const failedFreshSocket = { getState: async () => { throw new Error('temporary'); } };
+    eq(await policy.resolveDirectWriteValue(failedFreshSocket, bool._id, bool, item({ switch: true }), false, 'switch'), true, 'failed fresh read must use cache fallback');
 
     const calls = [];
     const socket = { setState: async (id, envelope) => { calls.push({ id, envelope }); await new Promise(r => setTimeout(r, 4)); } };

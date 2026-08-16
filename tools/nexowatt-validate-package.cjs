@@ -75,9 +75,13 @@ if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('bui
 const srcPkg = readJson('src-admin/package.json');
 const srcVersion = readJson('src-admin/src/version.json');
 if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
-if (!index.includes('hostInit-v76.js?v=76') || !index.includes('index-CQZugZ1z-v76.js?v=76')) fail('adminWww/index.html must load the v76 runtime');
-if (!index.includes('eos-manual-write-policy.js?v=76')) fail('adminWww/index.html must load the v76 manual-write policy');
-if (index.indexOf('eos-manual-write-policy.js?v=76') > index.indexOf('index-CQZugZ1z-v76.js?v=76')) fail('manual-write policy must load before the React runtime');
+const buildInfo = readJson('NEXOWATT_EOS_BUILD_INFO.json');
+const runtime = buildInfo.runtimeEntry;
+const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
+if (!runtime || !Number.isFinite(runtimeNumber)) fail(`invalid runtimeEntry ${runtime}`);
+if (!index.includes(`hostInit-${runtime}.js?v=${runtimeNumber}`) || !index.includes(`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`)) fail(`adminWww/index.html must load the ${runtime} runtime`);
+if (!index.includes(`eos-manual-write-policy.js?v=${runtimeNumber}`)) fail(`adminWww/index.html must load the ${runtime} manual-write policy`);
+if (index.indexOf(`eos-manual-write-policy.js?v=${runtimeNumber}`) > index.indexOf(`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');

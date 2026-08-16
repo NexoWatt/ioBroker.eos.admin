@@ -1,19 +1,21 @@
 {
-  "version": "7.9.78",
+  "version": "7.9.79",
   "channel": "stability",
-  "baseFrontend": "7.9.75 runtime consolidated with a universal manual state editor",
-  "runtimeEntry": "v76",
-  "releaseType": "value-column-alignment-validation-fix",
-  "release": "value-column-alignment-validation-fix",
-  "label": "v78",
+  "baseFrontend": "7.9.78 package baseline with corrected direct manual-write semantics",
+  "runtimeEntry": "v79",
+  "releaseType": "direct-control-runtime-fix",
+  "release": "direct-control-runtime-fix",
+  "label": "v79",
   "notes": [
-    "Manual write behavior remains on the validated v76 runtime.",
-    "Value content is right-aligned inside the existing native value column without overriding its width.",
-    "All package, src-admin, lockfile and build-info versions are synchronized."
+    "Boolean buttons with common.def=false now emit the active trigger value instead of false.",
+    "Switch controls read a fresh state from the socket before calculating the opposite value.",
+    "Button writes no longer optimistically leave a momentary command state at true.",
+    "All active module-federation and ObjectBrowser assets use the v79 runtime path."
   ],
   "changes": [
-    "Removed the faulty width: 100% override from the value-cell alignment patch.",
-    "Added a release-independent stability version check and a value-column regression self-test.",
-    "Bumped only the EOS branding stylesheet cache key to v78."
+    "Added explicit manualTriggerValue and manualTrueValue/manualFalseValue metadata support.",
+    "Added typed equivalence for true/false, 1/0 and string encodings.",
+    "Added OCPP hardReset/softReset def:false and fresh availability regression tests.",
+    "Advanced the complete active frontend graph and EOS script cache keys to v79."
   ]
 }

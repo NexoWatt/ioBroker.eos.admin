@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.78",
+    "version": "7.9.79",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.79": {
+        "en": "Fixes direct manual OCPP and generic datapoint controls: button states with def=false now send the active trigger value, switches read a fresh state before toggling, boolean/string/number encodings are normalized, and all active frontend runtime files use v79.",
+        "de": "Korrigiert direkte manuelle OCPP- und allgemeine Datenpunktbedienung: Buttons mit def=false senden jetzt den aktiven Triggerwert, Schalter lesen vor dem Umschalten den aktuellen State, Boolean-/String-/Number-Darstellungen werden typgerecht normalisiert und alle aktiven Frontend-Dateien verwenden v79.",
+        "nl": "Herstelt directe handmatige OCPP- en algemene datapuntbediening: knoppen met def=false sturen nu de actieve triggerwaarde, schakelaars lezen vóór het omschakelen de actuele state, boolean-/string-/number-weergaven worden genormaliseerd en alle actieve frontendbestanden gebruiken v79."
+      },
       "7.9.76": {
         "en": "Makes every writable datapoint operable by its native type: button/trigger, boolean switch, or scalar value dialog. Safety-relevant commands are available only in expert mode and direct writes are deduplicated.",
         "de": "Macht jeden beschreibbaren Datenpunkt entsprechend seinem Grundtyp bedienbar: Button/Trigger, boolescher Schalter oder Wertdialog. Sicherheitsrelevante Befehle sind nur im Expertenmodus verfügbar und direkte Schreibbefehle werden gegen Doppelauslösung geschützt.",
@@ -274,7 +279,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.78/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.79/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -285,7 +290,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.78/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.79/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -354,7 +359,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.78/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.79/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1033,5 +1038,5 @@
       }
     }
   },
-  "version": "7.9.76"
+  "version": "7.9.79"
 }
