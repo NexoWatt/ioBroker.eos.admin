@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_UI_VERSION = 'v79-direct-control-runtime-fix';
+    window.NEXOWATT_EOS_UI_VERSION = 'v80-modern-nav-icons';
 
     const BRAND = 'NexoWatt EOS';
     const EOS_MEANING = 'Energy Operation System';
@@ -905,6 +905,7 @@
             ensureBrandBadge(toolbar);
         }
         patchDrawerHeader(document.querySelector('.MuiDrawer-paper'));
+        applyModernNavIcons();
         hideNativeLogoutNav();
         releaseNotificationControls();
         ensurePopupCompatibility();
@@ -942,6 +943,70 @@
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
         .trim();
+
+
+    const MODERN_NAV_ICONS = {
+        cockpit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></svg>',
+        modules: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.7 18.7 7.5v8.9L12 20.3 5.3 16.4V7.5L12 3.7Z"/><path d="M12 3.7v8.3m6.7-4.5L12 12 5.3 7.5"/></svg>',
+        services: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="5" rx="2"/><rect x="4" y="14.5" width="16" height="5" rx="2"/><path d="M8 7h.01M8 17h.01M12 7h5M12 17h5"/></svg>',
+        datapoints: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.3"/><circle cx="18" cy="6" r="2.3"/><circle cx="18" cy="18" r="2.3"/><path d="M8.2 11l7.4-4M8.2 13l7.4 4"/></svg>',
+        structure: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="7" height="4.5" rx="1.4"/><rect x="13.5" y="4" width="7" height="4.5" rx="1.4"/><rect x="8.5" y="15.5" width="7" height="4.5" rx="1.4"/><path d="M7 8.5v3h10v-3M12 11.5v4"/></svg>',
+        logs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5h14M5 12h9M5 17.5h14"/><path d="m15.5 10.5 2.2 2.2 3.3-4"/></svg>',
+        rights: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 18.5 6v5.1c0 4.2-2.7 7.3-6.5 9.4-3.8-2.1-6.5-5.2-6.5-9.4V6L12 3.5Z"/><path d="M9.6 11.8 11 13.2l3.6-3.6"/></svg>',
+        scripts: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8.8 7 4.5 12l4.3 5M15.2 7l4.3 5-4.3 5M13.2 5 10.8 19"/></svg>',
+        eos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v4.3M12 16.2v4.3M4.9 6.2l3 3M16.1 14.8l3 3M3.5 12h4.3M16.2 12h4.3M4.9 17.8l3-3M16.1 9.2l3-3"/><circle cx="12" cy="12" r="3.7"/></svg>',
+        hosts: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="10" rx="2.2"/><path d="M8 19.5h8M12 14.5v5M7.5 8.5h.01M11 8.5h6"/></svg>',
+        backup: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h10a3 3 0 0 1 3 3v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 16.5V8a2 2 0 0 1 2-2Z"/><path d="M9 6V4.5h4V6M9 12.5h6M12 9.5v6"/></svg>',
+        files: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2h5.5A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"/></svg>',
+        default: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.6 2.6"/></svg>'
+    };
+
+    const navKeyFromLabel = label => {
+        const text = normalize(label);
+        if (!text) return '';
+        if (/cockpit|ubersicht|overview/.test(text)) return 'cockpit';
+        if (/module|adapter/.test(text)) return 'modules';
+        if (/dienste|instanzen|instances|services/.test(text)) return 'services';
+        if (/datenpunkte|objekte|objects|states/.test(text)) return 'datapoints';
+        if (/struktur|kategorien|categories|tree|enum/.test(text)) return 'structure';
+        if (/systemlogs|protokolle|logs/.test(text)) return 'logs';
+        if (/zugange|rechte|benutzer|users|permissions/.test(text)) return 'rights';
+        if (/skripte|scripts|javascript/.test(text)) return 'scripts';
+        if (/eos cockpit|nexowatt eos|nexowatt ems/.test(text)) return 'eos';
+        if (/system-hosts|hosts|host/.test(text)) return 'hosts';
+        if (/sicherung|backup|backitup/.test(text)) return 'backup';
+        if (/dateien|files/.test(text)) return 'files';
+        return '';
+    };
+
+    const applyModernNavIcons = () => safe(() => {
+        const navRoot = document.querySelector('.eos-scroll-nav');
+        if (!navRoot) return;
+        const items = Array.from(navRoot.querySelectorAll('.MuiListItemButton-root, .MuiButtonBase-root.MuiListItemButton-root, a, button'));
+        items.forEach(item => {
+            if (!item || item.closest('.eos-native-drawer-header') || item.classList.contains('eos-hidden-logout')) return;
+            const labelNode = item.querySelector('.MuiListItemText-root .MuiTypography-root, .MuiListItemText-root, .MuiTypography-root') || item;
+            const rawText = labelNode.textContent || item.getAttribute('aria-label') || item.getAttribute('title') || item.textContent || '';
+            const key = navKeyFromLabel(rawText);
+            if (!key) return;
+            item.dataset.eosNavKey = key;
+            let icon = item.querySelector(':scope > .eos-modern-nav-icon');
+            if (!icon) {
+                icon = document.createElement('span');
+                icon.className = 'eos-modern-nav-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                const before = item.querySelector('.MuiListItemText-root') || item.firstElementChild || null;
+                item.insertBefore(icon, before);
+            }
+            const svg = MODERN_NAV_ICONS[key] || MODERN_NAV_ICONS.default;
+            if (icon.dataset.svg !== svg) {
+                icon.dataset.svg = svg;
+                icon.innerHTML = svg;
+            }
+            const legacyIcon = item.querySelector('.MuiListItemIcon-root');
+            if (legacyIcon) legacyIcon.classList.add('eos-legacy-nav-icon');
+        });
+    });
 
     const permissionKey = label => {
         const text = normalize(label);

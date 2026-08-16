@@ -1,21 +1,21 @@
 {
-  "version": "7.9.79",
+  "version": "7.9.80",
   "channel": "stability",
   "baseFrontend": "7.9.78 package baseline with corrected direct manual-write semantics",
   "runtimeEntry": "v79",
-  "releaseType": "direct-control-runtime-fix",
-  "release": "direct-control-runtime-fix",
+  "releaseType": "modern-nav-icons",
+  "release": "modern-nav-icons",
   "label": "v79",
   "notes": [
-    "Boolean buttons with common.def=false now emit the active trigger value instead of false.",
-    "Switch controls read a fresh state from the socket before calculating the opposite value.",
-    "Button writes no longer optimistically leave a momentary command state at true.",
-    "All active module-federation and ObjectBrowser assets use the v79 runtime path."
+    "Introduced a new modern icon set for the horizontal navigation rail.",
+    "Polished the top action bar buttons with a more modern glass/outline treatment.",
+    "Kept the accepted v79 direct-control runtime intact while refreshing EOS navigation visuals.",
+    "Bumped branding asset cache keys so the updated icon styling loads immediately after update."
   ],
   "changes": [
-    "Added explicit manualTriggerValue and manualTrueValue/manualFalseValue metadata support.",
-    "Added typed equivalence for true/false, 1/0 and string encodings.",
-    "Added OCPP hardReset/softReset def:false and fresh availability regression tests.",
-    "Advanced the complete active frontend graph and EOS script cache keys to v79."
+    "Added runtime DOM patching that maps EOS navigation labels to dedicated modern SVG icons.",
+    "Added CSS for icon pills, hover/active states and compact-safe layout handling.",
+    "Kept runtimeEntry on v79 to avoid unnecessary React bundle churn.",
+    "Advanced branding/cache query strings to v80 for eos-branding assets."
   ]
 }

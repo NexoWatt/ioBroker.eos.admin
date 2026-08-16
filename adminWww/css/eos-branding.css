@@ -3842,3 +3842,111 @@ html.eos-app.eos-objects-surface .eos-object-value-cell .admin-button,
 html.eos-objects-surface .eos-object-value-cell .admin-button {
     margin-left: auto !important;
 }
+
+/* === NexoWatt EOS v80: modern navigation icon refresh ==================== */
+html.eos-app .eos-top-toolbar .MuiIconButton-root,
+html.eos-app .eos-top-toolbar button.MuiButtonBase-root:not(.eos-brand-badge) {
+    border: 1px solid rgba(104, 208, 255, 0.16) !important;
+    background: linear-gradient(180deg, rgba(10, 30, 46, 0.88), rgba(7, 19, 32, 0.94)) !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
+}
+
+html.eos-app .eos-top-toolbar .MuiIconButton-root:hover,
+html.eos-app .eos-top-toolbar button.MuiButtonBase-root:not(.eos-brand-badge):hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 255, 136, 0.30) !important;
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0,255,136,0.12) inset !important;
+}
+
+html.eos-app .eos-top-toolbar .MuiSvgIcon-root {
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.10));
+}
+
+html.eos-app .eos-scroll-nav .MuiListItemButton-root,
+html.eos-app .eos-scroll-nav .MuiButtonBase-root.MuiListItemButton-root,
+html.eos-app .eos-scroll-nav a,
+html.eos-app .eos-scroll-nav button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+html.eos-app .eos-scroll-nav .MuiListItemIcon-root.eos-legacy-nav-icon {
+    display: none !important;
+}
+
+html.eos-app .eos-scroll-nav .MuiListItemText-root {
+    margin: 0 !important;
+}
+
+html.eos-app .eos-scroll-nav .MuiListItemText-root .MuiTypography-root,
+html.eos-app .eos-scroll-nav .MuiTypography-root {
+    font-weight: 800 !important;
+    letter-spacing: -0.01em;
+}
+
+.eos-modern-nav-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: rgba(225, 244, 255, 0.92);
+    background:
+        radial-gradient(circle at 30% 30%, rgba(0,255,136,0.18), transparent 48%),
+        linear-gradient(180deg, rgba(17, 43, 66, 0.96), rgba(7, 19, 33, 0.96));
+    border: 1px solid rgba(96, 189, 255, 0.18);
+    box-shadow:
+        0 9px 18px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        0 0 0 1px rgba(0,255,136,0.05);
+    transition: transform .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.eos-modern-nav-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+html.eos-app .eos-scroll-nav .MuiListItemButton-root:hover .eos-modern-nav-icon,
+html.eos-app .eos-scroll-nav .MuiButtonBase-root.MuiListItemButton-root:hover .eos-modern-nav-icon,
+html.eos-app .eos-scroll-nav a:hover .eos-modern-nav-icon,
+html.eos-app .eos-scroll-nav button:hover .eos-modern-nav-icon {
+    transform: translateY(-1px);
+    color: #f9ffff;
+    border-color: rgba(0, 255, 136, 0.30);
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.26),
+        0 0 20px rgba(0, 255, 136, 0.10),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+html.eos-app .eos-scroll-nav .Mui-selected .eos-modern-nav-icon,
+html.eos-app .eos-scroll-nav .MuiListItemButton-root[aria-current="page"] .eos-modern-nav-icon,
+html.eos-app .eos-scroll-nav .MuiButtonBase-root.MuiListItemButton-root[aria-current="page"] .eos-modern-nav-icon {
+    color: #022031;
+    background: linear-gradient(135deg, rgba(0,255,136,0.98), rgba(0,212,255,0.92));
+    border-color: rgba(255,255,255,0.30);
+    box-shadow:
+        0 12px 24px rgba(0, 0, 0, 0.28),
+        0 0 22px rgba(0,255,136,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.26);
+}
+
+html.eos-app.eos-nav-compact .eos-modern-nav-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: 10px;
+}
+
+html.eos-app.eos-nav-compact .eos-modern-nav-icon svg {
+    width: 16px;
+    height: 16px;
+}
