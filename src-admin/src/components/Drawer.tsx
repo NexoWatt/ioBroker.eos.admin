@@ -91,6 +91,25 @@ const styles: Record<string, any> = {
         width: 50,
         height: 50,
     },
+    brandFrame: {
+        minHeight: 52,
+        minWidth: 138,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '4px 10px',
+        borderRadius: 14,
+        border: '1px solid rgba(0,255,136,0.22)',
+        background: 'linear-gradient(180deg, rgba(4,14,22,0.96), rgba(3,10,18,0.98))',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 18px rgba(0,0,0,0.24)',
+    },
+    brandImageWrap: {
+        height: 50,
+        width: 138,
+        lineHeight: '50px',
+        display: 'flex',
+        alignItems: 'center',
+    },
     avatarBlock: {
         width: '100%',
         display: 'flex',
@@ -673,20 +692,24 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                         style={{ color: 'inherit', textDecoration: 'none' }}
                     >
                         {this.props.adminGuiConfig.icon ? (
-                            <div style={{ height: 50, width: 102, lineHeight: '50px' }}>
-                                <img
-                                    src={this.props.adminGuiConfig.icon}
-                                    alt="NexoWatt EOS"
-                                    style={{ maxWidth: '100%', maxHeight: '100%', verticalAlign: 'middle' }}
-                                />
+                            <div style={styles.brandFrame}>
+                                <div style={styles.brandImageWrap}>
+                                    <img
+                                        src={this.props.adminGuiConfig.icon}
+                                        alt="NexoWatt EOS"
+                                        style={{ maxWidth: '100%', maxHeight: '100%', verticalAlign: 'middle' }}
+                                    />
+                                </div>
                             </div>
                         ) : (
-                            <Avatar
-                                onClick={() => handleNavigation('easy')}
-                                style={styles.logoSize}
-                                alt="NexoWatt EOS"
-                                src="img/eos/eos-logo.svg"
-                            />
+                            <div style={styles.brandFrame}>
+                                <Avatar
+                                    onClick={() => handleNavigation('easy')}
+                                    style={styles.logoSize}
+                                    alt="NexoWatt EOS"
+                                    src="img/eos/eos-logo.svg"
+                                />
+                            </div>
                         )}
                     </a>
                     {!this.props.adminGuiConfig.icon && this.props.versionAdmin && (

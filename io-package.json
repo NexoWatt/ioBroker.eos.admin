@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.85",
+    "version": "7.9.86",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -284,7 +284,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.85/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.86/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -295,7 +295,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.85/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.86/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -364,7 +364,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.85/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.86/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -1043,5 +1043,5 @@
       }
     }
   },
-  "version": "7.9.85"
+  "version": "7.9.86"
 }

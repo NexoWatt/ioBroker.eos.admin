@@ -133,6 +133,7 @@ html.eos-app .eos-top-toolbar {
     height: auto;
     max-height: 56px;
     object-fit: contain;
+    object-position: left center;
     display: block;
     filter: drop-shadow(0 0 12px rgba(0,255,136,.24));
 }

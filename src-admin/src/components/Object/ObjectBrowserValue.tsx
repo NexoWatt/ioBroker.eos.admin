@@ -126,6 +126,10 @@ interface ObjectBrowserValueState {
 }
 
 class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowserValueState> {
+    static hasStatesOptions(states: ObjectBrowserValueProps['states']): boolean {
+        return !!states && typeof states === 'object' && !Array.isArray(states) && Object.keys(states).length > 0;
+    }
+
     /** The state value */
     private readonly propsValue: any;
 
@@ -148,11 +152,12 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         super(props);
 
         const policy = (window as any).NEXOWATT_EOS_MANUAL_WRITE_POLICY;
+        const hasStatesOptions = ObjectBrowserValue.hasStatesOptions(this.props.states);
         const prepared = policy?.prepareEditor
             ? policy.prepareEditor(this.props.object, this.props.value)
-            : { editorType: this.props.states ? 'states' : this.props.type || typeof this.props.value, value: this.props.value };
+            : { editorType: hasStatesOptions ? 'states' : this.props.type || typeof this.props.value, value: this.props.value };
 
-        let type = (this.props.states ? 'states' : prepared.editorType) as 'states' | 'string' | 'number' | 'boolean' | 'json';
+        let type = (hasStatesOptions ? 'states' : prepared.editorType) as 'states' | 'string' | 'number' | 'boolean' | 'json';
         let value = prepared.value;
         this.propsValue = value;
 
@@ -373,7 +378,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     }
 
     renderStates(): JSX.Element | null {
-        if (!this.props.states) {
+        if (!ObjectBrowserValue.hasStatesOptions(this.props.states)) {
             return null;
         }
         if (
@@ -455,6 +460,8 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     }
 
     render(): JSX.Element {
+        const hasStatesOptions = ObjectBrowserValue.hasStatesOptions(this.props.states);
+
         const ackCheckbox = (
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 <FormControlLabel
@@ -623,7 +630,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                                 <MenuItem value="number">Number</MenuItem>
                                                                 <MenuItem value="boolean">Boolean</MenuItem>
                                                                 <MenuItem value="json">JSON/Object</MenuItem>
-                                                                {this.props.states ? (
+                                                                {hasStatesOptions ? (
                                                                     <MenuItem value="states">States</MenuItem>
                                                                 ) : null}
                                                             </Select>

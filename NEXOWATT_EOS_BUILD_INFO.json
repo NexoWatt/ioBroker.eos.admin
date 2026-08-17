@@ -1,24 +1,24 @@
 {
-  "version": "7.9.85",
+  "version": "7.9.86",
   "channel": "stability",
-  "baseFrontend": "validated v84 market-readiness runtime with NexoWatt brand logo and separated EOS Assist/ioBroker assistant paths",
+  "baseFrontend": "validated v84 runtime with datapoint write dialog fallback fix and darker NexoWatt brand badge",
   "runtimeEntry": "v84",
-  "releaseType": "brand-logo-and-assistant-separation",
-  "release": "brand-logo-and-assistant-separation",
-  "label": "v85",
+  "releaseType": "datapoint-write-fix-dark-logo",
+  "release": "datapoint-write-fix-dark-logo",
+  "label": "v86",
   "notes": [
-    "Restored the local NexoWatt EOS Assist helper and removed only the upstream ioBroker assistant integration.",
-    "Disabled mounting of the external/MCP ChatPanel in both source and the active v84 runtime bundle.",
-    "Installed the new wide NexoWatt EOS brand logo in the top-left native shell badge.",
-    "Kept the validated v84 React/ObjectBrowser runtime unchanged and advanced only shell/cache assets to v85."
+    "Fixed manual datapoint write dialogs so empty or invalid states lists no longer block value entry.",
+    "Manual write now falls back to the correct editor type when no selectable states are available.",
+    "Darkened the top-left NexoWatt logo background for cleaner contrast on the dark header.",
+    "Kept the validated v84 runtime entry and patched the active UI assets for this release."
   ],
   "changes": [
-    "App.tsx no longer imports or renders ChatPanel.",
-    "The active bootstrap no longer mounts the ioBroker ChatPanel even when MCP is enabled.",
-    "EOS Assist remains available as a local context helper without an external AI connection.",
-    "Added a release self-test that enforces separation between EOS Assist and the upstream ioBroker assistant."
+    "ObjectBrowserValue now checks whether common.states really contains options before forcing the States editor.",
+    "The expert-mode Value type selector only shows States when valid options exist.",
+    "Updated the native shell badge styling and drawer logo frame for a darker branded background.",
+    "Advanced shell/manual-write cache assets to v86 while keeping the active runtime entry on v84."
   ],
-  "brandingCacheVersion": 85,
-  "shellCacheVersion": 85,
-  "nativeShellVersion": 85
+  "brandingCacheVersion": 86,
+  "shellCacheVersion": 86,
+  "nativeShellVersion": 86
 }
