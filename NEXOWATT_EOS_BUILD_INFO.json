@@ -1,24 +1,24 @@
 {
-  "version": "7.9.84",
+  "version": "7.9.85",
   "channel": "stability",
-  "baseFrontend": "single cache-safe v84 NexoWatt native shell runtime rebuilt from the validated v82 source with repaired ESM output",
+  "baseFrontend": "validated v84 market-readiness runtime with NexoWatt brand logo and separated EOS Assist/ioBroker assistant paths",
   "runtimeEntry": "v84",
-  "releaseType": "market-readiness-runtime-repair",
-  "release": "market-readiness-runtime-repair",
-  "label": "v84",
+  "releaseType": "brand-logo-and-assistant-separation",
+  "release": "brand-logo-and-assistant-separation",
+  "label": "v85",
   "notes": [
-    "Fixed the fatal ESM syntax error in the native Drawer/navigation bootstrap.",
-    "Rebuilt every active runtime and route chunk under v84 cache-safe filenames.",
-    "Restored all versioned lazy dependencies required by adapter updates, users, hosts, enums and instance configuration.",
-    "Added executable ESM syntax and import-integrity regression checks to the release gate."
+    "Restored the local NexoWatt EOS Assist helper and removed only the upstream ioBroker assistant integration.",
+    "Disabled mounting of the external/MCP ChatPanel in both source and the active v84 runtime bundle.",
+    "Installed the new wide NexoWatt EOS brand logo in the top-left native shell badge.",
+    "Kept the validated v84 React/ObjectBrowser runtime unchanged and advanced only shell/cache assets to v85."
   ],
   "changes": [
-    "Repaired the invalid statement boundary before NEXOWATT_NATIVE_SHELL_VERSION.",
-    "Added v84 versions of Config, Fields, AdapterUpdateDialog and Sentry lazy chunks.",
-    "Repointed all unversioned compatibility entries to v84.",
-    "Added active-module syntax, missing-import and browser-load smoke validation."
+    "App.tsx no longer imports or renders ChatPanel.",
+    "The active bootstrap no longer mounts the ioBroker ChatPanel even when MCP is enabled.",
+    "EOS Assist remains available as a local context helper without an external AI connection.",
+    "Added a release self-test that enforces separation between EOS Assist and the upstream ioBroker assistant."
   ],
-  "brandingCacheVersion": 84,
-  "shellCacheVersion": 84,
-  "nativeShellVersion": 84
+  "brandingCacheVersion": 85,
+  "shellCacheVersion": 85,
+  "nativeShellVersion": 85
 }

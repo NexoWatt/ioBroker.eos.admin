@@ -169,6 +169,8 @@ if (pkg.scripts['precheck:eos-stability'] !== 'npm run clean:eos-runtime') fail(
 if (pkg.scripts.prepack !== 'node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must silently clean stale runtime files');
 if (!pkg.scripts.build?.includes('npm run clean:eos-runtime')) fail('build must finish with runtime cleanup');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftest.cjs')) fail('native shell selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-assistant-separation-selftest.cjs')) fail('assistant separation selftest is not part of check:eos-stability');
+if (!exists('adminWww/img/eos/nexowatt-eos-brand-wide.png')) fail('new NexoWatt EOS brand logo asset missing');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-runtime-cleanup-selftest.cjs')) fail('runtime cleanup selftest is not part of check:eos-stability');
 if (!read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
 

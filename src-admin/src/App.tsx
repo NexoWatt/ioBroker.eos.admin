@@ -102,7 +102,6 @@ import { ObjectsWorker } from './Workers/ObjectsWorker';
 import DiscoveryDialog from './dialogs/DiscoveryDialog';
 import SlowConnectionWarningDialog, { SlowConnectionWarningDialogClass } from './dialogs/SlowConnectionWarningDialog';
 import IsVisible from './components/IsVisible';
-import ChatPanel from './components/Chat/ChatPanel';
 import type { CompactInstanceInfo } from './components/Adapters/AdapterUpdateDialog';
 
 import enLocal from './i18n/en.json';
@@ -3317,18 +3316,7 @@ class App extends Router<AppProps, AppState> {
                         <Connecting />
                     ) : null}
                     {this.renderShowGuiSettings()}
-                    {this.state.connected && this.socket && this.state.disableMcp === false ? (
-                        <ChatPanel
-                            socket={this.socket}
-                            instance={this.adminInstance}
-                            theme={this.state.theme}
-                            themeType={this.state.themeType}
-                            host={this.state.currentHost}
-                            executeCommand={(cmd, host, callback) => this.executeCommand(cmd, host, callback)}
-                            onNavigate={tab => this.handleNavigation(tab)}
-                            onDockWidthChange={chatDockWidth => this.setState({ chatDockWidth })}
-                        />
-                    ) : null}
+                    {/* NexoWatt EOS: upstream ioBroker assistant / external AI binding disabled. Custom EOS Assist remains active. */}
                 </ThemeProvider>
             </StyledEngineProvider>
         );

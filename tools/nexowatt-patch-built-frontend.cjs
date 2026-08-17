@@ -86,6 +86,22 @@ for (const marker of [
 ]) if (!objects.includes(marker)) fail(`ObjectBrowserValue dialog missing invariant: ${marker}`);
 if (!objects.includes('!!this.state.jsonError||this.state.writing')) fail('value dialog does not block invalid or concurrent writes');
 
+const activeBootstrapPath = path.join(adminWww, `assets/bootstrap-COulQZax-${runtime}.js`);
+if (!fs.existsSync(activeBootstrapPath)) fail(`active bootstrap is missing: ${path.basename(activeBootstrapPath)}`);
+const activeBootstrap = read(activeBootstrapPath);
+if (activeBootstrap.includes('this.state.connected&&this.socket&&this.state.disableMcp===!1?jsxRuntimeExports.jsx(ChatPanel')) {
+    fail('upstream ioBroker ChatPanel/external AI binding was re-enabled by the frontend build');
+}
+if (!activeBootstrap.includes('NEXOWATT_EXTERNAL_IOBROKER_ASSISTANT_DISABLED=!0')) {
+    fail('assistant separation marker missing from active bootstrap');
+}
+const eosAssistPath = path.join(adminWww, 'js', 'eos-assistant.js');
+const eosAssist = read(eosAssistPath);
+for (const marker of ['eos-assist-root', 'EOS Assist', 'EOS Hilfe']) {
+    if (!eosAssist.includes(marker)) fail(`custom EOS Assist missing marker ${marker}`);
+}
+if (eosAssist.includes('disabled-market-hotfix')) fail('custom EOS Assist is disabled');
+
 const importCheck = spawnSync(process.execPath, [path.join(root, 'tools', 'nexowatt-import-integrity-selftest.cjs')], {
     cwd: root,
     encoding: 'utf8',

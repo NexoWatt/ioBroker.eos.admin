@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v84-nexowatt-native-shell-cleanup';
+    const VERSION = 'v85-local-eos-assist';
     const previous = window.NEXOWATT_EOS_ASSIST;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();
@@ -45,7 +45,7 @@
             root.className = 'eos-assist-root';
             root.innerHTML = `
                 <button class="eos-assist-button" type="button" aria-expanded="false">
-                    <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>KI-Hilfe</small>
+                    <span class="eos-assist-dot"></span><strong>EOS Assist</strong><small>EOS Hilfe</small>
                 </button>
                 <div class="eos-assist-panel" role="dialog" aria-label="EOS Assist">
                     <div class="eos-assist-head"><img src="${logoUrl}" alt="NexoWatt EOS"><div><strong class="eos-assist-title"></strong><span class="eos-assist-text"></span></div><button class="eos-assist-close" type="button">×</button></div>

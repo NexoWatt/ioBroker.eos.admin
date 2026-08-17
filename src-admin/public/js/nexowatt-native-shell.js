@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v84-nexowatt-native-shell-cleanup';
+    const VERSION = 'v85-nexowatt-native-shell-brand-eos-assist';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();
@@ -11,7 +11,7 @@
     const scriptUrl = document.currentScript?.src ||
         document.querySelector('script[src*="nexowatt-native-shell.js"]')?.src || window.location.href;
     const baseUrl = new URL('../', scriptUrl);
-    const logoUrl = new URL('img/eos/nexowatt-192.png', baseUrl).href;
+    const brandLogoUrl = new URL('img/eos/nexowatt-eos-brand-wide.png', baseUrl).href;
     const abort = new AbortController();
     let unsubscribeDom = null;
     let retryTimer = 0;
@@ -76,11 +76,11 @@
         if (!badge) {
             badge = document.createElement('span');
             badge.className = 'eos-brand-badge eos-system-brand';
-            badge.innerHTML = `<span class="eos-brand-badge-mark"><img class="eos-brand-badge-logo" alt="NexoWatt EOS"></span><span class="eos-brand-badge-copy"><strong>NexoWatt EOS</strong><small>Energy Operation System</small></span><span class="eos-brand-led" aria-hidden="true"></span>`;
+            badge.innerHTML = `<span class="eos-brand-badge-full"><img class="eos-brand-badge-full-logo" alt="NexoWatt EOS"></span><span class="eos-brand-led" aria-hidden="true"></span>`;
             toolbar.insertBefore(badge, toolbar.firstChild || null);
         }
         const image = badge.querySelector('img');
-        if (image && image.src !== logoUrl) image.src = logoUrl;
+        if (image && image.src !== brandLogoUrl) image.src = brandLogoUrl;
 
         // Only the compact upstream identity is hidden. Navigation labels and
         // icons are rendered natively by Drawer.tsx and are never rewritten here.
