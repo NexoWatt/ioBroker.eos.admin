@@ -1,0 +1,471 @@
+/* NexoWatt EOS native shell v82
+   Clean presentation layer for the NexoWatt fork of ioBroker Admin.
+   This stylesheet deliberately avoids broad pointer-event, visibility and DOM-structure overrides. */
+
+:root {
+    --nx-bg-0: #020914;
+    --nx-bg-1: #061526;
+    --nx-bg-2: #0a2438;
+    --nx-panel: rgba(8, 25, 41, 0.91);
+    --nx-panel-strong: rgba(4, 16, 29, 0.97);
+    --nx-border: rgba(108, 192, 255, 0.18);
+    --nx-border-accent: rgba(0, 255, 136, 0.34);
+    --nx-text: #edf8ff;
+    --nx-muted: rgba(220, 238, 249, 0.70);
+    --nx-accent: #00ff88;
+    --nx-accent-2: #00d4ff;
+    --nx-danger: #ff4d67;
+    --nx-warning: #ffc933;
+    --nx-page-x: 16px;
+    --nx-shell-top: 12px;
+    --nx-header-h: 70px;
+    --nx-nav-gap: 12px;
+    --nx-nav-h: 74px;
+    --nx-content-top: calc(var(--nx-shell-top) + var(--nx-header-h) + var(--nx-nav-gap) + var(--nx-nav-h) + 12px);
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+    color: var(--nx-text);
+    background:
+        radial-gradient(circle at 12% 12%, rgba(0, 255, 136, 0.10), transparent 33%),
+        radial-gradient(circle at 82% 14%, rgba(0, 170, 255, 0.10), transparent 36%),
+        linear-gradient(135deg, var(--nx-bg-0), var(--nx-bg-1) 54%, #01050b) !important;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(115deg, rgba(0, 255, 136, 0.026) 0 1px, transparent 1px 24px),
+        linear-gradient(180deg, rgba(255,255,255,0.025), transparent 38%);
+    opacity: .5;
+}
+
+#root { position: relative; z-index: 1; }
+
+/* Login */
+html.eos-login #root {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+}
+html.eos-login main.MuiPaper-root {
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+html.eos-login .MuiPaper-root:has(#username),
+html.eos-login .MuiPaper-root:has(#password) {
+    width: min(430px, calc(100vw - 36px)) !important;
+    padding: 30px !important;
+    border-radius: 26px !important;
+    color: var(--nx-text) !important;
+    background: linear-gradient(180deg, rgba(14,36,56,.97), rgba(4,15,27,.96)) !important;
+    border: 1px solid var(--nx-border-accent) !important;
+    box-shadow: 0 26px 70px rgba(0,0,0,.52), 0 0 42px rgba(0,255,136,.12) !important;
+}
+html.eos-login img[src*="admin"],
+html.eos-login .MuiAvatar-img { object-fit: contain !important; filter: drop-shadow(0 0 18px rgba(0,255,136,.35)); }
+
+/* Main header */
+html.eos-app .MuiAppBar-root {
+    position: fixed !important;
+    top: var(--nx-shell-top) !important;
+    left: var(--nx-page-x) !important;
+    right: var(--nx-page-x) !important;
+    width: auto !important;
+    height: var(--nx-header-h) !important;
+    min-height: var(--nx-header-h) !important;
+    margin: 0 !important;
+    color: var(--nx-text) !important;
+    border-radius: 23px !important;
+    overflow: visible !important;
+    border: 1px solid var(--nx-border-accent) !important;
+    background:
+        radial-gradient(circle at 8% 50%, rgba(0,255,136,.16), transparent 27%),
+        radial-gradient(circle at 90% 50%, rgba(0,212,255,.08), transparent 30%),
+        linear-gradient(135deg, rgba(4,24,36,.98), rgba(2,9,20,.97)) !important;
+    box-shadow: 0 16px 42px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06) !important;
+    z-index: 1400 !important;
+}
+
+html.eos-app .eos-top-toolbar {
+    height: var(--nx-header-h) !important;
+    min-height: var(--nx-header-h) !important;
+    padding: 0 16px !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+    color: var(--nx-text) !important;
+}
+
+.eos-brand-badge {
+    min-width: 310px;
+    min-height: 52px;
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    padding: 6px 14px 6px 8px;
+    border-radius: 19px;
+    border: 1px solid rgba(0,255,136,.40);
+    background:
+        radial-gradient(circle at 20% 50%, rgba(0,255,136,.22), transparent 48%),
+        linear-gradient(135deg, rgba(0,255,136,.11), rgba(0,212,255,.055));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 10px 22px rgba(0,0,0,.22);
+    flex: 0 0 auto;
+}
+.eos-brand-badge-mark {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    background: rgba(0,255,136,.08);
+    border: 1px solid rgba(0,255,136,.22);
+}
+.eos-brand-badge-logo { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(0,255,136,.34)); }
+.eos-brand-badge-copy { display: flex; flex-direction: column; min-width: 0; line-height: 1.05; }
+.eos-brand-badge-copy strong { color: #f5fcff; font-size: 13px; font-weight: 950; white-space: nowrap; }
+.eos-brand-badge-copy small { margin-top: 4px; color: rgba(222,238,255,.75); font-size: 7.5px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+.eos-brand-led { width: 8px; height: 8px; margin-left: auto; border-radius: 50%; background: var(--nx-accent); box-shadow: 0 0 12px rgba(0,255,136,.85); }
+
+.eos-native-toolbar-identity-hidden,
+.eos-native-toolbar-menu-hidden {
+    display: none !important;
+}
+
+html.eos-app .eos-top-toolbar .MuiIconButton-root,
+html.eos-app .eos-top-toolbar button.MuiButtonBase-root {
+    color: rgba(229,245,255,.92) !important;
+    border: 1px solid rgba(108,192,255,.15) !important;
+    background: linear-gradient(180deg, rgba(11,31,48,.88), rgba(5,17,29,.94)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 8px 18px rgba(0,0,0,.20) !important;
+    transition: transform .16s ease, border-color .16s ease, color .16s ease, background .16s ease !important;
+}
+html.eos-app .eos-top-toolbar .MuiIconButton-root:hover,
+html.eos-app .eos-top-toolbar button.MuiButtonBase-root:hover {
+    transform: translateY(-1px);
+    color: #fff !important;
+    border-color: rgba(0,255,136,.30) !important;
+    background: linear-gradient(180deg, rgba(14,42,60,.96), rgba(6,23,36,.96)) !important;
+}
+
+/* Horizontal NexoWatt navigation */
+html.eos-app .MuiDrawer-root { width: 0 !important; flex: 0 0 0 !important; }
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer {
+    position: fixed !important;
+    top: calc(var(--nx-shell-top) + var(--nx-header-h) + var(--nx-nav-gap)) !important;
+    left: var(--nx-page-x) !important;
+    right: var(--nx-page-x) !important;
+    width: auto !important;
+    height: var(--nx-nav-h) !important;
+    min-height: var(--nx-nav-h) !important;
+    max-height: var(--nx-nav-h) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 8px 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    color: var(--nx-text) !important;
+    border-radius: 23px !important;
+    border: 1px solid rgba(0,255,136,.28) !important;
+    background:
+        radial-gradient(circle at 4% 50%, rgba(0,255,136,.12), transparent 30%),
+        linear-gradient(135deg, rgba(7,28,43,.97), rgba(2,9,20,.96)) !important;
+    box-shadow: 0 14px 38px rgba(0,0,0,.31), inset 0 1px 0 rgba(255,255,255,.055) !important;
+    z-index: 1300 !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,255,136,.72) rgba(3,15,26,.65);
+}
+html.eos-app .MuiDrawer-paper::-webkit-scrollbar { height: 6px; }
+html.eos-app .MuiDrawer-paper::-webkit-scrollbar-track { background: rgba(3,15,26,.65); border-radius: 999px; }
+html.eos-app .MuiDrawer-paper::-webkit-scrollbar-thumb { background: linear-gradient(90deg, var(--nx-accent), var(--nx-accent-2)); border-radius: 999px; }
+
+html.eos-app .eos-native-drawer-header { display: none !important; }
+
+.eos-standalone-nav-toggle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    display: grid;
+    place-items: center;
+    color: #efffff;
+    border-radius: 16px;
+    border: 1px solid rgba(0,255,136,.34);
+    background: linear-gradient(145deg, rgba(0,255,136,.14), rgba(0,212,255,.07));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 18px rgba(0,0,0,.22);
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+.eos-standalone-nav-toggle:hover { border-color: rgba(0,255,136,.58); background: linear-gradient(145deg, rgba(0,255,136,.22), rgba(0,212,255,.10)); }
+.eos-standalone-nav-toggle svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s ease; }
+html.eos-nav-compact .eos-standalone-nav-toggle svg { transform: rotate(180deg); }
+
+html.eos-app .eos-scroll-nav,
+html.eos-app .MuiDrawer-paper > .MuiList-root {
+    height: 56px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: max-content !important;
+    overflow: visible !important;
+}
+
+html.eos-app .eos-scroll-nav > div,
+html.eos-app .eos-scroll-nav > li { width: auto !important; flex: 0 0 auto !important; }
+html.eos-app .eos-scroll-nav a { color: inherit !important; text-decoration: none !important; }
+
+html.eos-app .nexowatt-native-nav-item {
+    height: 52px !important;
+    min-height: 52px !important;
+    min-width: max-content !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 0 15px !important;
+    margin: 0 !important;
+    border-radius: 17px !important;
+    color: rgba(234,247,255,.92) !important;
+    border: 1px solid rgba(123,204,255,.12) !important;
+    background: rgba(2,12,22,.38) !important;
+    transition: transform .17s ease, border-color .17s ease, background .17s ease, box-shadow .17s ease !important;
+}
+html.eos-app .nexowatt-native-nav-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0,255,136,.28) !important;
+    background: linear-gradient(135deg, rgba(0,255,136,.10), rgba(0,212,255,.055)) !important;
+}
+html.eos-app .nexowatt-native-nav-item.Mui-selected,
+html.eos-app .nexowatt-native-nav-item[aria-selected="true"] {
+    color: #f8ffff !important;
+    border-color: rgba(0,255,136,.48) !important;
+    background: linear-gradient(135deg, rgba(0,255,136,.32), rgba(0,212,255,.18)) !important;
+    box-shadow: 0 0 22px rgba(0,255,136,.13), inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+
+.eos-native-nav-icon,
+.nexowatt-native-nav-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    display: inline-grid;
+    place-items: center;
+    color: rgba(229,246,255,.94);
+    border-radius: 12px;
+    border: 1px solid rgba(98,190,255,.18);
+    background:
+        radial-gradient(circle at 30% 28%, rgba(0,255,136,.18), transparent 48%),
+        linear-gradient(180deg, rgba(17,43,66,.96), rgba(7,19,33,.96));
+    box-shadow: 0 8px 17px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.055);
+    transition: transform .16s ease, color .16s ease, border-color .16s ease, background .16s ease;
+}
+.eos-native-nav-icon svg,
+.nexowatt-native-nav-icon svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.nexowatt-native-nav-item:hover .eos-native-nav-icon,
+.nexowatt-native-nav-item:hover .nexowatt-native-nav-icon {
+    transform: translateY(-1px);
+    border-color: rgba(0,255,136,.30);
+}
+.nexowatt-native-nav-item.Mui-selected .eos-native-nav-icon,
+.nexowatt-native-nav-item[aria-selected="true"] .eos-native-nav-icon,
+.nexowatt-native-nav-item.Mui-selected .nexowatt-native-nav-icon,
+.nexowatt-native-nav-item[aria-selected="true"] .nexowatt-native-nav-icon {
+    color: #022030;
+    border-color: rgba(255,255,255,.30);
+    background: linear-gradient(135deg, rgba(0,255,136,.98), rgba(0,212,255,.92));
+    box-shadow: 0 0 20px rgba(0,255,136,.20), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.eos-native-legacy-icon { display: none !important; }
+html.eos-app .nexowatt-native-nav-item .MuiListItemText-root { margin: 0 !important; }
+html.eos-app .nexowatt-native-nav-item .MuiTypography-root { color: inherit !important; font-size: 14px !important; font-weight: 800 !important; white-space: nowrap !important; }
+
+html.eos-nav-compact .nexowatt-native-nav-item { width: 48px !important; min-width: 48px !important; padding: 0 6px !important; justify-content: center !important; }
+html.eos-nav-compact .nexowatt-native-nav-item .MuiListItemText-root { display: none !important; }
+html.eos-nav-compact .eos-native-nav-icon,
+html.eos-nav-compact .nexowatt-native-nav-icon { width: 32px; height: 32px; min-width: 32px; }
+
+/* Full-width content surface */
+html.eos-app #app-paper {
+    margin-top: var(--nx-content-top) !important;
+    margin-left: var(--nx-page-x) !important;
+    margin-right: var(--nx-page-x) !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: calc(100vh - var(--nx-content-top) - 12px) !important;
+    color: var(--nx-text) !important;
+    border-radius: 23px !important;
+    border: 1px solid var(--nx-border) !important;
+    background: linear-gradient(180deg, rgba(8,25,41,.82), rgba(3,12,23,.86)) !important;
+    box-shadow: 0 14px 36px rgba(0,0,0,.24) !important;
+    overflow: hidden;
+}
+html.eos-app main,
+html.eos-app [role="main"] { margin-left: 0 !important; width: auto !important; max-width: none !important; }
+
+/* Native MUI surfaces keep their behavior; only visual styling changes. */
+html.eos-app .MuiPaper-root,
+html.eos-app .MuiCard-root,
+html.eos-app .MuiDialog-paper,
+html.eos-app .MuiPopover-paper,
+html.eos-app .MuiMenu-paper {
+    color: var(--nx-text) !important;
+    background-color: var(--nx-panel) !important;
+    border-color: var(--nx-border) !important;
+}
+html.eos-app .MuiDialog-root,
+html.eos-app .MuiModal-root { z-index: 9000 !important; }
+html.eos-app .MuiPopover-root,
+html.eos-app .MuiMenu-root,
+html.eos-app .MuiPopper-root { z-index: 9100 !important; }
+html.eos-app .MuiTooltip-popper { z-index: 9200 !important; pointer-events: none !important; }
+
+html.eos-app .MuiTableCell-root,
+html.eos-app .MuiDataGrid-cell,
+html.eos-app .MuiDataGrid-columnHeaders,
+html.eos-app .MuiDivider-root { color: var(--nx-text) !important; border-color: rgba(120,190,255,.14) !important; }
+html.eos-app .MuiInputBase-root,
+html.eos-app .MuiOutlinedInput-root,
+html.eos-app .MuiInputBase-input,
+html.eos-app .MuiSelect-select { color: var(--nx-text) !important; background-color: rgba(4,17,29,.60) !important; }
+html.eos-app .MuiOutlinedInput-notchedOutline { border-color: rgba(93,190,255,.30) !important; }
+html.eos-app .MuiInputLabel-root,
+html.eos-app .MuiFormLabel-root,
+html.eos-app .MuiTypography-colorTextSecondary { color: var(--nx-muted) !important; }
+html.eos-app .MuiButton-contained { color: #02101d !important; font-weight: 900 !important; background: linear-gradient(135deg, var(--nx-accent), var(--nx-accent-2)) !important; }
+html.eos-app .MuiButton-outlined { color: var(--nx-text) !important; border-color: rgba(0,255,136,.30) !important; }
+
+html.eos-route-adapters #app-paper .MuiCard-root,
+html.eos-route-intro #app-paper .MuiCard-root {
+    border-radius: 20px !important;
+    border: 1px solid rgba(108,192,255,.18) !important;
+    background: linear-gradient(180deg, rgba(9,31,48,.96), rgba(5,18,31,.96)) !important;
+    box-shadow: 0 14px 30px rgba(0,0,0,.24) !important;
+    transition: transform .17s ease, border-color .17s ease, box-shadow .17s ease !important;
+}
+html.eos-route-adapters #app-paper .MuiCard-root:hover,
+html.eos-route-intro #app-paper .MuiCard-root:hover { transform: translateY(-2px); border-color: rgba(0,255,136,.28) !important; box-shadow: 0 18px 36px rgba(0,0,0,.30), 0 0 20px rgba(0,255,136,.06) !important; }
+
+/* Datapoints: native interaction remains authoritative. */
+html.eos-objects-surface .eos-object-value-cell {
+    min-height: 30px !important;
+    border-radius: 7px !important;
+    pointer-events: auto !important;
+    transition: background .12s ease, box-shadow .12s ease;
+}
+html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"] { cursor: pointer !important; }
+html.eos-objects-surface .eos-object-value-cell[data-eos-object-writable="1"]:hover {
+    background: rgba(0,255,136,.12) !important;
+    box-shadow: inset 0 0 0 1px rgba(0,255,136,.28) !important;
+}
+html.eos-objects-surface .eos-object-value-cell[data-eos-expert-only="1"] { cursor: not-allowed !important; opacity: .72; background: rgba(255,201,51,.055) !important; }
+html.eos-objects-surface .eos-object-value-cell[data-eos-direct-control="1"] * { pointer-events: none !important; }
+html.eos-objects-surface .eos-object-value-dialog,
+html.eos-objects-surface .MuiDialog-root:has(#edit-value-dialog-title) { z-index: 10000 !important; }
+
+/* Roles */
+.eos-role-hidden { display: none !important; }
+
+/* Assistant */
+.eos-assist-root {
+    position: fixed;
+    right: 118px;
+    bottom: 22px;
+    z-index: 8700;
+}
+.eos-assist-button {
+    min-width: 156px;
+    min-height: 46px;
+    display: grid;
+    grid-template-columns: 12px 1fr;
+    align-items: center;
+    gap: 2px 10px;
+    padding: 7px 15px;
+    color: #effffc;
+    border: 1px solid rgba(0,255,136,.38);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(0,255,136,.20), rgba(0,212,255,.10)), rgba(2,12,22,.96);
+    box-shadow: 0 14px 34px rgba(0,0,0,.35), 0 0 20px rgba(0,255,136,.10);
+    cursor: pointer;
+}
+.eos-assist-dot { grid-row: 1 / span 2; width: 10px; height: 10px; border-radius: 50%; background: var(--nx-accent); box-shadow: 0 0 12px rgba(0,255,136,.9); }
+.eos-assist-button strong { grid-column: 2; font-size: 13px; line-height: 1; }
+.eos-assist-button small { grid-column: 2; color: rgba(226,255,247,.72); font-size: 10px; }
+.eos-assist-panel {
+    position: absolute;
+    right: 0;
+    bottom: 58px;
+    width: min(430px, calc(100vw - 30px));
+    padding: 18px;
+    color: var(--nx-text);
+    border: 1px solid rgba(0,255,136,.30);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(8,28,44,.98), rgba(3,13,24,.98));
+    box-shadow: 0 24px 60px rgba(0,0,0,.48);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px) scale(.98);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+}
+.eos-assist-open .eos-assist-panel { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.eos-assist-head { display: grid; grid-template-columns: 38px 1fr 32px; align-items: start; gap: 10px; }
+.eos-assist-head img { width: 36px; height: 36px; object-fit: contain; }
+.eos-assist-head strong { display: block; font-size: 16px; }
+.eos-assist-head span { display: block; margin-top: 4px; color: var(--nx-muted); font-size: 12px; line-height: 1.35; }
+.eos-assist-close { width: 32px; height: 32px; color: #fff; border: 1px solid rgba(0,255,136,.24); border-radius: 11px; background: rgba(0,0,0,.30); cursor: pointer; }
+.eos-assist-input-row { display: flex; gap: 8px; margin-top: 14px; }
+.eos-assist-input { flex: 1; min-width: 0; padding: 10px 12px; color: var(--nx-text); border: 1px solid rgba(98,190,255,.26); border-radius: 13px; background: rgba(0,7,13,.60); outline: none; }
+.eos-assist-send { padding: 0 14px; color: #001019; font-weight: 900; border: 0; border-radius: 13px; background: linear-gradient(135deg, var(--nx-accent), var(--nx-accent-2)); cursor: pointer; }
+.eos-assist-answer { margin-top: 12px; padding: 12px; color: rgba(238,255,250,.92); font-size: 12px; line-height: 1.45; border: 1px solid rgba(0,212,255,.18); border-radius: 15px; background: rgba(0,0,0,.25); }
+.eos-assist-config-hidden { display: none !important; }
+
+@media (max-width: 1220px) {
+    :root { --nx-page-x: 10px; --nx-header-h: 64px; --nx-nav-h: 68px; }
+    .eos-brand-badge { min-width: 66px; padding: 6px 9px; }
+    .eos-brand-badge-copy, .eos-brand-led { display: none; }
+    html.eos-app .nexowatt-native-nav-item { padding: 0 12px !important; }
+    .eos-native-nav-icon,
+    .nexowatt-native-nav-icon { width: 31px; height: 31px; min-width: 31px; }
+}
+
+@media (max-width: 760px) {
+    :root { --nx-page-x: 7px; --nx-shell-top: 7px; --nx-header-h: 58px; --nx-nav-gap: 8px; --nx-nav-h: 64px; }
+    html.eos-app .eos-top-toolbar { padding: 0 8px !important; gap: 5px !important; }
+    .eos-brand-badge { min-width: 52px; min-height: 48px; }
+    .eos-brand-badge-mark { width: 40px; height: 40px; }
+    .eos-brand-badge-logo { width: 36px; height: 36px; }
+    html.eos-app .nexowatt-native-nav-item { height: 48px !important; min-height: 48px !important; }
+    .eos-assist-root { right: 14px; bottom: 14px; }
+    .eos-assist-button { min-width: 52px; width: 52px; height: 52px; padding: 0; place-items: center; grid-template-columns: 1fr; }
+    .eos-assist-button strong, .eos-assist-button small { display: none; }
+    .eos-assist-dot { grid-column: 1; grid-row: 1; width: 14px; height: 14px; }
+}
+
+/* Native React icon slot */
+.nexowatt-native-nav-icon-slot {
+    min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}

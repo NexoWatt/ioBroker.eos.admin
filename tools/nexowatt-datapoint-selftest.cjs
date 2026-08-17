@@ -5,8 +5,9 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const fail = m => { throw new Error(`[NexoWatt EOS datapoint selftest] ${m}`); };
-const shared = read('adminWww/assets/index-D2ymscJA-v79.js');
-const route = read('adminWww/assets/Objects-DPan0bzw-v79.js');
+const runtime = JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json')).runtimeEntry;
+const shared = read(`adminWww/assets/index-D2ymscJA-${runtime}.js`);
+const route = read(`adminWww/assets/Objects-DPan0bzw-${runtime}.js`);
 const sourceDialog = read('src-admin/src/components/Object/ObjectBrowserValue.tsx');
 const policy = read('adminWww/js/eos-manual-write-policy.js');
 
@@ -28,6 +29,6 @@ if (!route.includes('NEXOWATT_EOS_PARSE_MANUAL_VALUE')) fail('built value dialog
 if (!route.includes('this.state.writing')) fail('built value dialog lacks write lock');
 if (!sourceDialog.includes('NEXOWATT_EOS_MANUAL_WRITE_POLICY')) fail('source value dialog lacks universal policy');
 if (!sourceDialog.includes('await Promise.resolve')) fail('source value dialog does not await write');
-if (read('adminWww/js/eos-objects-state-tools.js').includes('NEXOWATT_EOS_WRITE_STATE_UNRESTRICTED = true')) fail('unrestricted write mode active');
+if (read('adminWww/index.html').includes('eos-objects-state-tools.js')) fail('legacy ObjectBrowser overlay is active');
 
 console.log('[NexoWatt EOS datapoint selftest] OK');

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 const fs = require('fs');
 const path = require('path');
 
@@ -7,7 +8,8 @@ const fail = msg => {
   console.error(`[NexoWatt EOS package validation] ${msg}`);
   process.exit(1);
 };
-const readJson = file => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const readJson = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
 
 const pkg = readJson('package.json');
@@ -20,83 +22,135 @@ const buildInfo = readJson('NEXOWATT_EOS_BUILD_INFO.json');
 
 if (pkg.name !== 'iobroker.eos-admin') fail(`package.json name must be iobroker.eos-admin, got ${pkg.name}`);
 if (pkg.private !== false) fail('package.json private must be false for npm publishing');
-if (pkg.version !== io.common.version) fail(`package.json and io-package.json common.version differ: ${pkg.version} vs ${io.common.version}`);
-if (io.version !== pkg.version) fail(`io-package top-level version must match package.json: ${io.version} vs ${pkg.version}`);
-if (pkgLock.version !== pkg.version || pkgLock.packages?.['']?.version !== pkg.version) fail('package-lock.json versions must match package.json');
-if (srcPkg.version !== pkg.version) fail('src-admin/package.json version must match package.json');
-if (srcPkgLock.version !== pkg.version || srcPkgLock.packages?.['']?.version !== pkg.version) fail('src-admin/package-lock.json versions must match package.json');
-if (srcVersion.version !== pkg.version) fail('src-admin/src/version.json version must match package.json');
-if (buildInfo.version !== pkg.version) fail('NEXOWATT_EOS_BUILD_INFO.json version must match package.json');
-if (io.common.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common.name}`);
+for (const [label, value] of [
+  ['io-package common.version', io.common?.version],
+  ['io-package top-level version', io.version],
+  ['package-lock version', pkgLock.version],
+  ['package-lock root version', pkgLock.packages?.['']?.version],
+  ['src-admin package version', srcPkg.version],
+  ['src-admin lock version', srcPkgLock.version],
+  ['src-admin lock root version', srcPkgLock.packages?.['']?.version],
+  ['src-admin source version', srcVersion.version],
+  ['build-info version', buildInfo.version],
+]) if (value !== pkg.version) fail(`${label} must match package.json (${pkg.version}), got ${value}`);
 
-if (io.common.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common.packetName}`);
-if (io.common.npmPackage !== 'iobroker.eos-admin') fail(`io-package common.npmPackage must be iobroker.eos-admin, got ${io.common.npmPackage}`);
-if (io.native.port !== 8091 && io.native.port !== 8081) fail(`unexpected default port ${io.native.port}`);
-if (io.common.stopBeforeUpdate !== false) fail('io-package common.stopBeforeUpdate must be false so EOS Admin can self-update from older UI builds');
-if (io.common.dontDelete === true) fail('io-package common.dontDelete must not be true because it blocks clean updates');
-if (io.common.nondeletable === true) fail('io-package common.nondeletable must not be true because it blocks updates');
+if (io.common?.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common?.name}`);
+if (io.common?.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common?.packetName}`);
+if (io.common?.npmPackage !== 'iobroker.eos-admin') fail(`io-package common.npmPackage must be iobroker.eos-admin, got ${io.common?.npmPackage}`);
+if (io.native?.port !== 8091 && io.native?.port !== 8081) fail(`unexpected default port ${io.native?.port}`);
+if (io.common?.stopBeforeUpdate !== false) fail('io-package common.stopBeforeUpdate must be false');
+if (io.common?.dontDelete === true || io.common?.nondeletable === true) fail('adapter-level delete flags must not block updates');
 
 const expectedBase = `https://unpkg.com/iobroker.eos-admin@${pkg.version}`;
 for (const [field, expected] of Object.entries({
   extIcon: `${expectedBase}/admin/admin.svg`,
   readme: `${expectedBase}/README.md`,
   meta: `${expectedBase}/io-package.json`,
-})) {
-  if (io.common[field] !== expected) fail(`io-package common.${field} must be ${expected}, got ${io.common[field]}`);
-}
+})) if (io.common?.[field] !== expected) fail(`io-package common.${field} must be ${expected}, got ${io.common?.[field]}`);
+
+const repositoryEntry = readJson('nexowatt-eos-admin-repository-entry-v82.json')['eos-admin'];
+if (!repositoryEntry) fail('v82 repository entry is missing eos-admin');
+if (repositoryEntry.version !== pkg.version) fail(`repository entry version must be ${pkg.version}, got ${repositoryEntry.version}`);
+for (const [field, expected] of Object.entries({
+  meta: `${expectedBase}/io-package.json`,
+  icon: `${expectedBase}/admin/admin.png`,
+  extIcon: `${expectedBase}/admin/admin.svg`,
+  readme: `${expectedBase}/README.md`,
+})) if (repositoryEntry[field] !== expected) fail(`repository entry ${field} must be ${expected}, got ${repositoryEntry[field]}`);
 
 for (const file of [
   'adminWww/index.html',
-  'adminWww/js/eos-branding.js',
   'adminWww/js/eos-manual-write-policy.js',
-  'adminWww/css/eos-branding.css',
+  'adminWww/js/eos-policy-client.js',
+  'adminWww/js/nexowatt-native-shell.js',
+  'adminWww/js/eos-native-security.js',
+  'adminWww/js/eos-role-ui.js',
+  'adminWww/css/nexowatt-native-shell.css',
   'adminWww/img/eos/nexowatt-192.png',
+  'src-admin/src/components/NexoWattNavIcon.tsx',
+  'src-admin/src/components/Drawer.tsx',
+  'src-admin/src/components/DrawerItem.tsx',
   'admin/admin.svg',
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'tools/nexowatt-patch-built-frontend.cjs'
-]) {
-  if (!exists(file)) fail(`missing required file: ${file}`);
-}
+  'tools/nexowatt-patch-built-frontend.cjs',
+  'tools/nexowatt-native-shell-selftest.cjs',
+  'nexowatt-eos-admin-repository-entry-v82.json',
+]) if (!exists(file)) fail(`missing required file: ${file}`);
 
-const index = fs.readFileSync(path.join(root, 'adminWww/index.html'), 'utf8');
+const index = read('adminWww/index.html');
 const refs = [...index.matchAll(/(?:src|href)="\.\/([^"?#]+)(?:\?[^"#]*)?"/g)].map(m => m[1]);
 const missing = refs.filter(ref => !exists(path.join('adminWww', ref)));
 if (missing.length) fail(`adminWww/index.html references missing files:\n${missing.join('\n')}`);
 
-const bootstrapFiles = fs.readdirSync(path.join(root, 'adminWww/assets')).filter(f => /^bootstrap-.*\.js$/.test(f));
-if (!bootstrapFiles.length) fail('missing bootstrap bundle');
-const bootstrap = bootstrapFiles.map(f => fs.readFileSync(path.join(root, 'adminWww/assets', f), 'utf8')).join('\n');
-if (!bootstrap.includes('window.adapterName="eos-admin"')) fail('frontend bootstrap does not set window.adapterName="eos-admin"');
-if (bootstrap.includes('window.adapterName="admin"')) fail('frontend bootstrap still contains window.adapterName="admin"');
-
-const webBuild = fs.readFileSync(path.join(root, 'build/lib/web.js'), 'utf8');
-const branding = fs.readFileSync(path.join(root, 'adminWww/js/eos-branding.js'), 'utf8');
-if (!webBuild.includes('refreshLifetime: 60 * 60 * 24 * 7')) fail('build/lib/web.js must keep upstream-compatible refresh lifetime');
-if (!webBuild.includes('Follow upstream admin semantics again')) fail('build/lib/web.js does not contain the v36 session compatibility fix');
-if (index.includes('eos-hard-logout.js')) fail('adminWww/index.html must not load the removed custom hard-logout timer');
-if (!branding.includes('isAdapterConfigSurface')) fail('eos-branding.js lacks native adapter config safe-mode detection');
-if (!branding.includes('Adapter UIs must remain 100% functional')) fail('eos-branding.js lacks native adapter config interaction guard');
-if (!branding.includes('v38: All native Admin dialogs') || !branding.includes('ensurePopupCompatibility')) fail('eos-branding.js lacks v38 popup compatibility guard');
-const mainBuild = fs.readFileSync(path.join(root, 'build/main.js'), 'utf8');
-if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks v37 BackItUp compatibility guard');
-
-
-if (srcPkg.version !== pkg.version || srcVersion.version !== pkg.version) fail('src-admin versions must match package.json');
 const runtime = buildInfo.runtimeEntry;
 const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
-const brandingCacheVersion = Number(buildInfo.brandingCacheVersion ?? runtimeNumber);
+const shellCache = Number(buildInfo.shellCacheVersion ?? buildInfo.nativeShellVersion ?? runtimeNumber);
 if (!runtime || !Number.isFinite(runtimeNumber)) fail(`invalid runtimeEntry ${runtime}`);
-if (!Number.isFinite(brandingCacheVersion)) fail(`invalid brandingCacheVersion ${buildInfo.brandingCacheVersion}`);
-if (!index.includes(`hostInit-${runtime}.js?v=${runtimeNumber}`) || !index.includes(`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`)) fail(`adminWww/index.html must load the ${runtime} runtime`);
-if (!index.includes(`css/eos-branding.css?v=${brandingCacheVersion}`) || !index.includes(`js/eos-branding.js?v=${brandingCacheVersion}`)) fail(`adminWww/index.html must load branding cache v${brandingCacheVersion}`);
-if (!index.includes(`eos-manual-write-policy.js?v=${runtimeNumber}`)) fail(`adminWww/index.html must load the ${runtime} manual-write policy`);
-if (index.indexOf(`eos-manual-write-policy.js?v=${runtimeNumber}`) > index.indexOf(`index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
+if (!Number.isFinite(shellCache)) fail(`invalid shellCacheVersion ${buildInfo.shellCacheVersion}`);
+for (const marker of [
+  `hostInit-${runtime}.js?v=${runtimeNumber}`,
+  `index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`,
+  `eos-manual-write-policy.js?v=${runtimeNumber}`,
+  `nexowatt-native-shell.css?v=${shellCache}`,
+  `nexowatt-native-shell.js?v=${shellCache}`,
+  `eos-native-security.js?v=${shellCache}`,
+]) if (!index.includes(marker)) fail(`adminWww/index.html missing ${marker}`);
+if (index.indexOf(`eos-manual-write-policy.js?v=${runtimeNumber}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
+if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
+for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
+  if (index.includes(legacy)) fail(`legacy browser overlay still loaded: ${legacy}`);
+}
 
+const activeBootstrapFile = `adminWww/assets/bootstrap-COulQZax-${runtime}.js`;
+for (const file of [
+  `adminWww/assets/hostInit-${runtime}.js`,
+  `adminWww/assets/index-CQZugZ1z-${runtime}.js`,
+  activeBootstrapFile,
+  `adminWww/assets/Objects-DPan0bzw-${runtime}.js`,
+  `adminWww/assets/index-D2ymscJA-${runtime}.js`,
+  `adminWww/remoteEntry-${runtime}.js`,
+]) if (!exists(file)) fail(`missing active runtime file ${file}`);
+
+const bootstrap = read(activeBootstrapFile);
+if (!bootstrap.includes('window.adapterName="eos-admin"')) fail('frontend bootstrap does not set window.adapterName="eos-admin"');
+if (bootstrap.includes('window.adapterName="admin"')) fail('frontend bootstrap still contains window.adapterName="admin"');
+for (const marker of ['NEXOWATT_TAB_ICON', 'nexowatt-native-nav-item', 'nexowatt-native-nav-icon', 'tabName:h.name', 'NexoWatt EOS', 'Zugänge & Rechte']) {
+  if (!bootstrap.includes(marker)) fail(`active bootstrap missing native navigation marker ${marker}`);
+}
+
+const drawer = read('src-admin/src/components/Drawer.tsx');
+const drawerItem = read('src-admin/src/components/DrawerItem.tsx');
+const navIcon = read('src-admin/src/components/NexoWattNavIcon.tsx');
+for (const marker of ['getNexoWattTabTitle', 'getNexoWattTabIcon', "'tab-intro': 'Cockpit'", "'tab-users': 'Zugänge & Rechte'"]) {
+  if (!drawer.includes(marker)) fail(`Drawer source missing ${marker}`);
+}
+if (!drawerItem.includes('className="nexowatt-native-nav-item"') || !drawerItem.includes('data-eos-tab={tabName}')) fail('DrawerItem is not native-shell aware');
+if (!navIcon.includes('eos-native-nav-icon-source') || !navIcon.includes('nexowatt-native-nav-icon')) fail('native SVG navigation icon component is incomplete');
+
+const shell = read('adminWww/js/nexowatt-native-shell.js');
+const shellCss = read('adminWww/css/nexowatt-native-shell.css');
+const nativeSecurity = read('adminWww/js/eos-native-security.js');
+if (!shell.includes("const VERSION = 'v82-nexowatt-native-shell'")) fail('native shell version marker missing');
+if (!shell.includes('Navigation labels and') || !shell.includes('rendered natively by Drawer.tsx')) fail('native shell ownership guard missing');
+if (shell.includes('innerHTML = cfg.svg') || shell.includes('textNode.textContent = cfg.label')) fail('native shell still rewrites navigation icons or labels after render');
+if (!shell.includes('NEXOWATT_EOS_DOM_COORDINATOR')) fail('native shell does not use the shared DOM coordinator');
+if (!shellCss.includes('.nexowatt-native-nav-item') || !shellCss.includes('.eos-native-nav-icon') || !shellCss.includes('.nexowatt-native-nav-icon')) fail('native shell CSS lacks React navigation selectors');
+if (!nativeSecurity.includes('shouldBlockInstanceDelete')) fail('minimal native security API missing instance protection');
+if (/addEventListener\(['"]click['"]/.test(nativeSecurity)) fail('native security must not globally intercept clicks');
+
+const mf = read('adminWww/mf-manifest.json');
+if (!mf.includes(`remoteEntry-${runtime}.js`) || !mf.includes(`index-D2ymscJA-${runtime}.js`)) fail('module federation manifest is not on the active runtime');
+
+const webBuild = read('build/lib/web.js');
+if (!webBuild.includes('refreshLifetime: 60 * 60 * 24 * 7')) fail('build/lib/web.js must keep upstream-compatible refresh lifetime');
+if (!webBuild.includes('Follow upstream admin semantics again')) fail('build/lib/web.js lacks session compatibility fix');
+const mainBuild = read('build/main.js');
+if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks BackItUp compatibility guard');
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');
-const tasks = fs.readFileSync(path.join(root, 'tasks.mts'), 'utf8');
-if (!tasks.includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftest.cjs')) fail('native shell selftest is not part of check:eos-stability');
+if (!read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
 
 console.log('[NexoWatt EOS package validation] OK');

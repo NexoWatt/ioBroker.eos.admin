@@ -1,22 +1,22 @@
 #!/usr/bin/env node
+'use strict';
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const fail = msg => { console.error(`[NexoWatt EOS value column] ${msg}`); process.exit(1); };
-const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
-const src = read('src-admin/public/css/eos-branding.css');
-const built = read('adminWww/css/eos-branding.css');
-if (src !== built) fail('source and delivered branding CSS differ');
-if (!src.includes('v7.9.78: value-column alignment')) fail('v7.9.78 alignment marker missing');
-const block = src.slice(src.indexOf('v7.9.78: value-column alignment'));
-if (!block.includes('justify-content: flex-end !important')) fail('value content is not right-aligned');
-if (/(?:^|\n)\s*width:\s*100%\s*!important/.test(block)) fail('alignment patch must not override native value-column width');
+const fail = message => { console.error(`[NexoWatt EOS value column] ${message}`); process.exit(1); };
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const src = read('src-admin/public/css/nexowatt-native-shell.css');
+const built = read('adminWww/css/nexowatt-native-shell.css');
+if (src !== built) fail('source and delivered native shell CSS differ');
+for (const marker of [
+    '.eos-object-value-cell[data-eos-object-writable="1"]',
+    '.eos-object-value-cell[data-eos-direct-control="1"] *',
+    '.eos-object-value-dialog',
+]) if (!src.includes(marker)) fail(`value-cell marker missing: ${marker}`);
+if (src.includes('.eos-object-value-cell {\n    width: 100% !important')) fail('native value-column width is overridden');
+const buildInfo = JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json'));
+const shellVersion = Number(buildInfo.shellCacheVersion ?? buildInfo.brandingCacheVersion);
 const index = read('adminWww/index.html');
-const buildInfo = JSON.parse(fs.readFileSync(path.join(root, 'NEXOWATT_EOS_BUILD_INFO.json'), 'utf8'));
-const runtime = buildInfo.runtimeEntry;
-const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
-const brandingCacheVersion = Number(buildInfo.brandingCacheVersion ?? runtimeNumber);
-if (!Number.isFinite(brandingCacheVersion)) fail(`invalid branding cache version ${buildInfo.brandingCacheVersion}`);
-if (!index.includes(`css/eos-branding.css?v=${brandingCacheVersion}`)) fail(`branding CSS cache key is not v${brandingCacheVersion}`);
-if (!index.includes(`js/eos-branding.js?v=${brandingCacheVersion}`)) fail(`branding JS cache key is not v${brandingCacheVersion}`);
+if (!index.includes(`css/nexowatt-native-shell.css?v=${shellVersion}`)) fail(`native shell CSS cache key is not v${shellVersion}`);
+if (!index.includes(`js/nexowatt-native-shell.js?v=${shellVersion}`)) fail(`native shell JS cache key is not v${shellVersion}`);
 console.log('[NexoWatt EOS value column] OK');

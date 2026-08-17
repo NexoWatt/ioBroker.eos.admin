@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v79-direct-control-runtime-fix';
+    const VERSION = 'v82-nexowatt-native-shell';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();

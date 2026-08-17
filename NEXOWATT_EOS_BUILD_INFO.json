@@ -1,22 +1,25 @@
 {
-  "version": "7.9.81",
+  "version": "7.9.82",
   "channel": "stability",
-  "baseFrontend": "7.9.78 package baseline with corrected direct manual-write semantics",
-  "runtimeEntry": "v79",
-  "releaseType": "modern-nav-icons-validation-fix",
-  "release": "modern-nav-icons-validation-fix",
-  "label": "v81",
+  "baseFrontend": "single v82 NexoWatt native shell runtime built from the ioBroker Admin functional core",
+  "runtimeEntry": "v82",
+  "releaseType": "native-nexowatt-admin-phase1",
+  "release": "native-nexowatt-admin-phase1",
+  "label": "v82",
   "notes": [
-    "Keeps the accepted v79 React/ObjectBrowser runtime while delivering the modern navigation icons through branding cache v81.",
-    "Synchronizes package.json, both package-lock files, io-package.json, src-admin/package.json and src-admin/src/version.json.",
-    "Separates frontend runtime versioning from branding asset cache versioning so validation no longer reports a false mismatch.",
-    "Strengthens future package checks for top-level io-package and lockfile version drift."
+    "The browser loads one v82 module-federation runtime and the NexoWatt-native React navigation.",
+    "Core navigation labels and icons are rendered in Drawer.tsx, not injected after render.",
+    "The legacy eos-branding and eos-security DOM overlays are no longer loaded.",
+    "The native ObjectBrowser and direct-control semantics remain the functional datapoint core."
   ],
   "changes": [
-    "Added brandingCacheVersion=81 to NEXOWATT_EOS_BUILD_INFO.json.",
-    "Updated the value-column self-test to validate the declared branding cache instead of assuming it equals runtimeEntry.",
-    "Updated package validation and stability checks to verify all package and lockfile versions.",
-    "Preserved the v80 modern navigation icon implementation and moved its UI marker/cache key to v81."
+    "Introduced NexoWattNavIcon.tsx and native Drawer/DrawerItem integration.",
+    "Introduced a small shell coordinator for layout, logo and navigation container only.",
+    "Introduced a minimal security API without page-wide click interception.",
+    "Removed passive console and object helper scripts from the browser entry point.",
+    "Reduced navigation DOM work to stable container classes; native React owns labels, icons, focus and clicks."
   ],
-  "brandingCacheVersion": 81
+  "brandingCacheVersion": 82,
+  "shellCacheVersion": 82,
+  "nativeShellVersion": 82
 }

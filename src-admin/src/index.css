@@ -92,3 +92,68 @@ body {
 .leaflet-control-attribution {
     display: none;
 }
+
+/* NexoWatt EOS native shell v7.9.82 */
+.nexowatt-native-nav-item {
+    border-radius: 14px !important;
+    gap: 10px;
+}
+
+.nexowatt-native-nav-icon-slot {
+    min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.nexowatt-native-nav-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: rgba(225, 244, 255, 0.94);
+    background:
+        radial-gradient(circle at 30% 30%, rgba(0, 255, 136, 0.18), transparent 48%),
+        linear-gradient(180deg, rgba(17, 43, 66, 0.96), rgba(7, 19, 33, 0.96));
+    border: 1px solid rgba(96, 189, 255, 0.18);
+    box-shadow:
+        0 9px 18px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 0 0 1px rgba(0, 255, 136, 0.05);
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
+}
+
+.nexowatt-native-nav-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.nexowatt-native-nav-item:hover .nexowatt-native-nav-icon {
+    transform: translateY(-1px);
+    color: #f9ffff;
+    border-color: rgba(0, 255, 136, 0.30);
+    box-shadow:
+        0 12px 22px rgba(0, 0, 0, 0.26),
+        0 0 20px rgba(0, 255, 136, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.nexowatt-native-nav-item[aria-current='page'] .nexowatt-native-nav-icon {
+    color: #022031;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.98), rgba(0, 212, 255, 0.92));
+    border-color: rgba(255, 255, 255, 0.30);
+    box-shadow:
+        0 12px 24px rgba(0, 0, 0, 0.28),
+        0 0 22px rgba(0, 255, 136, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.26);
+}

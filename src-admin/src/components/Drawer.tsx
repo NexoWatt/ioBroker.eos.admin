@@ -2,22 +2,7 @@ import React, { Component, type RefObject, type JSX } from 'react';
 
 import { Avatar, Drawer as MaterialDrawer, IconButton, List, Typography, SwipeableDrawer, Box } from '@mui/material';
 
-import {
-    ChevronLeft as ChevronLeftIcon,
-    Apps as AppsIcon,
-    Info as InfoIcon,
-    Store as StoreIcon,
-    Subtitles as SubtitlesIcon,
-    ViewList as ViewListIcon,
-    ArtTrack as ArtTrackIcon,
-    ViewHeadline as ViewHeadlineIcon,
-    Subscriptions as SubscriptionsIcon,
-    FlashOn as FlashOnIcon,
-    PersonOutline as PersonOutlineIcon,
-    Storage as StorageIcon,
-    FileCopy as FilesIcon,
-    DeveloperBoard as DeviceManagerIcon,
-} from '@mui/icons-material';
+import { ChevronLeft as ChevronLeftIcon } from '@mui/icons-material';
 
 import {
     Utils,
@@ -41,6 +26,7 @@ import CustomDragLayer from './CustomDragLayer';
 import { ContextWrapper } from './ContextWrapper';
 import CustomPopper from './CustomPopper';
 import DrawerItem from './DrawerItem';
+import NexoWattNavIcon, { type NexoWattNavIconName } from './NexoWattNavIcon';
 
 export const DRAWER_FULL_WIDTH = 180;
 export const DRAWER_COMPACT_WIDTH = 50;
@@ -143,19 +129,73 @@ export const STATES = {
     compact: 2,
 };
 
+const NEXOWATT_CORE_TAB_TITLES: Record<string, string> = {
+    'tab-intro': 'Cockpit',
+    'tab-adapters': 'Module',
+    'tab-instances': 'Dienste',
+    'tab-objects': 'Datenpunkte',
+    'tab-enums': 'Struktur',
+    'tab-logs': 'Systemlogs',
+    'tab-users': 'Zugänge & Rechte',
+    'tab-javascript': 'Skripte',
+    'tab-hosts': 'System-Hosts',
+    'tab-files': 'Dateien',
+    'tab-devicemanager': 'Geräte',
+};
+
+const NEXOWATT_CORE_TAB_ICONS: Record<string, NexoWattNavIconName> = {
+    'tab-intro': 'cockpit',
+    'tab-adapters': 'modules',
+    'tab-instances': 'services',
+    'tab-objects': 'datapoints',
+    'tab-enums': 'structure',
+    'tab-logs': 'logs',
+    'tab-users': 'rights',
+    'tab-javascript': 'scripts',
+    'tab-hosts': 'hosts',
+    'tab-files': 'files',
+    'tab-devicemanager': 'devices',
+};
+
+function getNexoWattDynamicTabMeta(tab: string): { title?: string; icon?: NexoWattNavIconName } {
+    const normalized = tab.toLowerCase();
+    if (/^tab-(?:nexowatt-ui|nexowatt-eos|eos-cockpit)(?:-|$)/.test(normalized)) {
+        return { title: 'NexoWatt EOS', icon: 'eos' };
+    }
+    if (/^tab-(?:backitup|backup)(?:-|$)/.test(normalized)) {
+        return { title: 'Sicherung', icon: 'backup' };
+    }
+    if (/^tab-(?:javascript)(?:-|$)/.test(normalized)) {
+        return { title: 'Skripte', icon: 'scripts' };
+    }
+    if (/^tab-(?:files)(?:-|$)/.test(normalized)) {
+        return { title: 'Dateien', icon: 'files' };
+    }
+    return {};
+}
+
+function getNexoWattTabTitle(tab: string, fallback: string): string {
+    return NEXOWATT_CORE_TAB_TITLES[tab] || getNexoWattDynamicTabMeta(tab).title || fallback;
+}
+
+function getNexoWattTabIcon(tab: string): JSX.Element | undefined {
+    const iconName = NEXOWATT_CORE_TAB_ICONS[tab] || getNexoWattDynamicTabMeta(tab).icon;
+    return iconName ? <NexoWattNavIcon name={iconName} /> : undefined;
+}
+
 const tabsInfo: Record<string, { order: number; icon?: JSX.Element; host?: boolean; instance?: number }> = {
-    'tab-intro': { order: 1, icon: <AppsIcon /> },
-    'tab-info': { order: 5, icon: <InfoIcon />, host: true },
-    'tab-adapters': { order: 10, icon: <StoreIcon />, host: true },
-    'tab-instances': { order: 15, icon: <SubtitlesIcon />, host: true },
-    'tab-objects': { order: 20, icon: <ViewListIcon /> },
-    'tab-enums': { order: 25, icon: <ArtTrackIcon /> },
+    'tab-intro': { order: 1, icon: getNexoWattTabIcon('tab-intro') },
+    'tab-info': { order: 5, host: true },
+    'tab-adapters': { order: 10, icon: getNexoWattTabIcon('tab-adapters'), host: true },
+    'tab-instances': { order: 15, icon: getNexoWattTabIcon('tab-instances'), host: true },
+    'tab-objects': { order: 20, icon: getNexoWattTabIcon('tab-objects') },
+    'tab-enums': { order: 25, icon: getNexoWattTabIcon('tab-enums') },
     'tab-devices': { order: 27, host: true },
-    'tab-logs': { order: 30, icon: <ViewHeadlineIcon />, host: true },
-    'tab-scenes': { order: 35, icon: <SubscriptionsIcon /> },
-    'tab-events': { order: 40, icon: <FlashOnIcon /> },
-    'tab-users': { order: 45, icon: <PersonOutlineIcon /> },
-    'tab-javascript': { order: 50 },
+    'tab-logs': { order: 30, icon: getNexoWattTabIcon('tab-logs'), host: true },
+    'tab-scenes': { order: 35 },
+    'tab-events': { order: 40 },
+    'tab-users': { order: 45, icon: getNexoWattTabIcon('tab-users') },
+    'tab-javascript': { order: 50, icon: getNexoWattTabIcon('tab-javascript') },
     'tab-text2command-0': { order: 55, instance: 0 },
     'tab-text2command-1': { order: 56, instance: 1 },
     'tab-text2command-2': { order: 57, instance: 2 },
@@ -169,9 +209,9 @@ const tabsInfo: Record<string, { order: number; icon?: JSX.Element; host?: boole
     'tab-eventlist-0': { order: 80, instance: 0 },
     'tab-eventlist-1': { order: 81, instance: 1 },
     'tab-eventlist-2': { order: 82, instance: 2 },
-    'tab-hosts': { order: 100, icon: <StorageIcon /> },
-    'tab-files': { order: 110, icon: <FilesIcon /> },
-    'tab-devicemanager': { order: 120, icon: <DeviceManagerIcon /> },
+    'tab-hosts': { order: 100, icon: getNexoWattTabIcon('tab-hosts') },
+    'tab-files': { order: 110, icon: getNexoWattTabIcon('tab-files') },
+    'tab-devicemanager': { order: 120, icon: getNexoWattTabIcon('tab-devicemanager') },
 };
 
 export interface AdminTab {
@@ -485,7 +525,8 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                         obj.icon = `adapter/${instance.name}/${obj.icon}`;
                     }
 
-                    obj.title = title;
+                    obj.title = getNexoWattTabTitle(tab, title);
+                    obj.icon = getNexoWattTabIcon(tab) || obj.icon;
 
                     if (!singleton) {
                         // obj.instance = instance;
@@ -517,7 +558,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
 
             let tabs: AdminTab[] = tabNames.map(name => {
                 const obj: AdminTab = { name, ...tabsInfo[name] };
-                obj.title = I18n.t(
+                const defaultTitle = I18n.t(
                     ucFirst(
                         name
                             .replace('tab-', '')
@@ -525,6 +566,8 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                             .replace(/-(\d+)$/, ' $1'),
                     ),
                 );
+                obj.title = getNexoWattTabTitle(name, defaultTitle);
+                obj.icon = getNexoWattTabIcon(name) || obj.icon;
                 obj.visible = true;
                 return obj;
             });
@@ -743,6 +786,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                 >
                     <DrawerItem
                         key={tab.name}
+                        tabName={tab.name}
                         editMenuList={this.props.editMenuList}
                         visible={tab.visible}
                         color={tab.color}

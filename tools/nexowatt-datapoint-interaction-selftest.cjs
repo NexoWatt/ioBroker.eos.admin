@@ -3,8 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const shared = fs.readFileSync(path.join(root, 'adminWww/assets/index-D2ymscJA-v79.js'), 'utf8');
-const dialog = fs.readFileSync(path.join(root, 'adminWww/assets/Objects-DPan0bzw-v79.js'), 'utf8');
+const runtime = JSON.parse(fs.readFileSync(path.join(root, 'NEXOWATT_EOS_BUILD_INFO.json'), 'utf8')).runtimeEntry;
+const shared = fs.readFileSync(path.join(root, `adminWww/assets/index-D2ymscJA-${runtime}.js`), 'utf8');
+const dialog = fs.readFileSync(path.join(root, `adminWww/assets/Objects-DPan0bzw-${runtime}.js`), 'utf8');
 const fail = m => { throw new Error(`[NexoWatt EOS DP interaction selftest] ${m}`); };
 
 for (const marker of [
