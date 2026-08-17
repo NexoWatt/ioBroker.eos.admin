@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v83-nexowatt-native-shell-cleanup';
+    const VERSION = 'v84-nexowatt-native-shell-cleanup';
     const protectedAdapters = new Set([
         'admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui',
     ]);

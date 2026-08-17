@@ -80,6 +80,9 @@ for (const file of [
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
   'tools/nexowatt-runtime-cleanup-selftest.cjs',
+  'tools/nexowatt-esm-syntax-selftest.cjs',
+  'tools/nexowatt-import-integrity-selftest.cjs',
+  'tools/nexowatt-entrypoint-smoke-selftest.cjs',
   repositoryEntryFile,
 ]) if (!exists(file)) fail(`missing required file: ${file}`);
 
@@ -154,6 +157,12 @@ const mainBuild = read('build/main.js');
 if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks BackItUp compatibility guard');
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');
+if (pkg.scripts['check:eos-esm'] !== 'node tools/nexowatt-esm-syntax-selftest.cjs') fail('check:eos-esm script is missing or incorrect');
+if (pkg.scripts['check:eos-imports'] !== 'node tools/nexowatt-import-integrity-selftest.cjs') fail('check:eos-imports script is missing or incorrect');
+if (pkg.scripts['check:eos-entry'] !== 'node tools/nexowatt-entrypoint-smoke-selftest.cjs') fail('check:eos-entry script is missing or incorrect');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-esm-syntax-selftest.cjs')) fail('ESM syntax selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-import-integrity-selftest.cjs')) fail('import integrity selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-entrypoint-smoke-selftest.cjs')) fail('entrypoint smoke selftest is not part of check:eos-stability');
 if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
 if (pkg.scripts['precheck:eos-package'] !== 'npm run clean:eos-runtime') fail('precheck:eos-package must clean stale runtime files');
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run clean:eos-runtime') fail('precheck:eos-stability must clean stale runtime files');

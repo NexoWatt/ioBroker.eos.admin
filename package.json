@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin stable runtime with reliable module filter popups and native datapoint semantics",
-  "version": "7.9.83",
+  "version": "7.9.84",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -140,12 +140,16 @@
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
     "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
     "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs",
-    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs",
+    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-esm-syntax-selftest.cjs && node tools/nexowatt-import-integrity-selftest.cjs && node tools/nexowatt-entrypoint-smoke-selftest.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs",
     "nexowatt:patch-built-frontend": "node tools/nexowatt-patch-built-frontend.cjs",
     "clean:eos-runtime": "node tools/nexowatt-clean-legacy-runtime.cjs",
     "precheck:eos-package": "npm run clean:eos-runtime",
     "precheck:eos-stability": "npm run clean:eos-runtime",
-    "prepack": "node tools/nexowatt-clean-legacy-runtime.cjs --quiet"
+    "prepack": "node tools/nexowatt-clean-legacy-runtime.cjs --quiet",
+    "check:eos-esm": "node tools/nexowatt-esm-syntax-selftest.cjs",
+    "check:eos-imports": "node tools/nexowatt-import-integrity-selftest.cjs",
+    "check:eos-release": "npm run check:eos-package && npm run check:eos-stability && npm pack --dry-run",
+    "check:eos-entry": "node tools/nexowatt-entrypoint-smoke-selftest.cjs"
   },
   "author": "NexoWatt",
   "private": false,

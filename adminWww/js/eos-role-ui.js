@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v83-nexowatt-native-shell-cleanup';
+    window.NEXOWATT_EOS_ROLE_UI_VERSION = 'v84-nexowatt-native-shell-cleanup';
 
     const ASSET_BASE = (() => {
         const script = document.currentScript?.src || document.querySelector('script[src*="eos-role-ui.js"]')?.src || window.location.href;

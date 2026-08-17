@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v83-nexowatt-native-shell-cleanup';
+    const VERSION = 'v84-nexowatt-native-shell-cleanup';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();
