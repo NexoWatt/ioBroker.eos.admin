@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin stable runtime with reliable module filter popups and native datapoint semantics",
-  "version": "7.9.82",
+  "version": "7.9.83",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -103,7 +103,9 @@
     "tools/nexowatt-patch-repo.cjs",
     "NEXOWATT_EOS_STANDALONE.md",
     "tools/nexowatt-generate-eos-admin-repo-entry.cjs",
-    "tools/nexowatt-repair-eos-admin-update.cjs"
+    "tools/nexowatt-repair-eos-admin-update.cjs",
+    "tools/nexowatt-clean-legacy-runtime.cjs",
+    "tools/nexowatt-runtime-cleanup-selftest.cjs"
   ],
   "scripts": {
     "npm": "npm i -f && cd src-admin && npm i -f",
@@ -115,7 +117,7 @@
     "test:rule": "mocha test/rule --exit",
     "test:gui": "mocha test/*.gui.js --exit",
     "prepublishOnly": "npm run check:eos-package && npm run check:eos-stability",
-    "build": "npm run build:frontend && npm run build:backend",
+    "build": "npm run build:frontend && npm run build:backend && npm run clean:eos-runtime",
     "build:backend": "tsc -p tsconfig.build.json && tsx tasks.mts --backend-i18n",
     "build:frontend": "tsx tasks.mts",
     "clean": "rimraf src-admin/build",
@@ -138,8 +140,12 @@
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
     "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
     "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs",
-    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs",
-    "nexowatt:patch-built-frontend": "node tools/nexowatt-patch-built-frontend.cjs"
+    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs",
+    "nexowatt:patch-built-frontend": "node tools/nexowatt-patch-built-frontend.cjs",
+    "clean:eos-runtime": "node tools/nexowatt-clean-legacy-runtime.cjs",
+    "precheck:eos-package": "npm run clean:eos-runtime",
+    "precheck:eos-stability": "npm run clean:eos-runtime",
+    "prepack": "node tools/nexowatt-clean-legacy-runtime.cjs --quiet"
   },
   "author": "NexoWatt",
   "private": false,

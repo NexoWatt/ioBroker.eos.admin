@@ -5,7 +5,7 @@
     if (typeof module === 'object' && module.exports) module.exports = api;
     if (!root) return;
 
-    root.NEXOWATT_EOS_MANUAL_WRITE_POLICY_VERSION = 'v82-nexowatt-native-shell';
+    root.NEXOWATT_EOS_MANUAL_WRITE_POLICY_VERSION = 'v83-nexowatt-native-shell-cleanup';
     root.NEXOWATT_EOS_MANUAL_WRITE_POLICY = api;
     root.NEXOWATT_EOS_GET_WRITE_BEHAVIOR = api.getWriteBehavior;
     root.NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE = api.getDirectWriteValue;

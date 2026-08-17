@@ -3,6 +3,13 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
+const { cleanLegacyRuntime } = require('./nexowatt-clean-legacy-runtime.cjs');
+try {
+  cleanLegacyRuntime({ root, quiet: true });
+} catch (error) {
+  console.error(`[NexoWatt EOS stability] runtime cleanup failed: ${error?.message || error}`);
+  process.exit(1);
+}
 let bad = false;
 const fail = m => { console.error(`[NexoWatt EOS stability] ${m}`); bad = true; };
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');

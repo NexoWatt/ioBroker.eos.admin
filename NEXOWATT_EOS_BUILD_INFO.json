@@ -1,25 +1,24 @@
 {
-  "version": "7.9.82",
+  "version": "7.9.83",
   "channel": "stability",
-  "baseFrontend": "single v82 NexoWatt native shell runtime built from the ioBroker Admin functional core",
+  "baseFrontend": "single v82 NexoWatt native shell runtime with automatic legacy-file cleanup before checks, build and publishing",
   "runtimeEntry": "v82",
-  "releaseType": "native-nexowatt-admin-phase1",
-  "release": "native-nexowatt-admin-phase1",
-  "label": "v82",
+  "releaseType": "automatic-legacy-runtime-cleanup",
+  "release": "automatic-legacy-runtime-cleanup",
+  "label": "v83",
   "notes": [
-    "The browser loads one v82 module-federation runtime and the NexoWatt-native React navigation.",
-    "Core navigation labels and icons are rendered in Drawer.tsx, not injected after render.",
-    "The legacy eos-branding and eos-security DOM overlays are no longer loaded.",
-    "The native ObjectBrowser and direct-control semantics remain the functional datapoint core."
+    "Legacy runtime files are removed automatically before package checks, stability checks and npm packing.",
+    "The cleanup is idempotent and preserves the active v82 module-federation runtime.",
+    "Dirty working directories from older EOS Admin versions no longer cause the release check to fail.",
+    "A dedicated regression self-test verifies removal of old runtime bundles and legacy DOM overlays."
   ],
   "changes": [
-    "Introduced NexoWattNavIcon.tsx and native Drawer/DrawerItem integration.",
-    "Introduced a small shell coordinator for layout, logo and navigation container only.",
-    "Introduced a minimal security API without page-wide click interception.",
-    "Removed passive console and object helper scripts from the browser entry point.",
-    "Reduced navigation DOM work to stable container classes; native React owns labels, icons, focus and clicks."
+    "Added tools/nexowatt-clean-legacy-runtime.cjs.",
+    "Added automatic precheck/prepack/build cleanup hooks.",
+    "Added nexowatt-runtime-cleanup-selftest.cjs to the stability suite.",
+    "Stability validation now self-heals stale runtime files before checking the active graph."
   ],
-  "brandingCacheVersion": 82,
-  "shellCacheVersion": 82,
-  "nativeShellVersion": 82
+  "brandingCacheVersion": 83,
+  "shellCacheVersion": 83,
+  "nativeShellVersion": 83
 }

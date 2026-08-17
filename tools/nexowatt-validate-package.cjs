@@ -48,8 +48,10 @@ for (const [field, expected] of Object.entries({
   meta: `${expectedBase}/io-package.json`,
 })) if (io.common?.[field] !== expected) fail(`io-package common.${field} must be ${expected}, got ${io.common?.[field]}`);
 
-const repositoryEntry = readJson('nexowatt-eos-admin-repository-entry-v82.json')['eos-admin'];
-if (!repositoryEntry) fail('v82 repository entry is missing eos-admin');
+const releaseNo = String(pkg.version).split('.').pop();
+const repositoryEntryFile = `nexowatt-eos-admin-repository-entry-v${releaseNo}.json`;
+const repositoryEntry = readJson(repositoryEntryFile)['eos-admin'];
+if (!repositoryEntry) fail(`${repositoryEntryFile} is missing eos-admin`);
 if (repositoryEntry.version !== pkg.version) fail(`repository entry version must be ${pkg.version}, got ${repositoryEntry.version}`);
 for (const [field, expected] of Object.entries({
   meta: `${expectedBase}/io-package.json`,
@@ -76,7 +78,9 @@ for (const file of [
   'THIRD_PARTY_NOTICES.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
-  'nexowatt-eos-admin-repository-entry-v82.json',
+  'tools/nexowatt-clean-legacy-runtime.cjs',
+  'tools/nexowatt-runtime-cleanup-selftest.cjs',
+  repositoryEntryFile,
 ]) if (!exists(file)) fail(`missing required file: ${file}`);
 
 const index = read('adminWww/index.html');
@@ -92,12 +96,12 @@ if (!Number.isFinite(shellCache)) fail(`invalid shellCacheVersion ${buildInfo.sh
 for (const marker of [
   `hostInit-${runtime}.js?v=${runtimeNumber}`,
   `index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`,
-  `eos-manual-write-policy.js?v=${runtimeNumber}`,
+  `eos-manual-write-policy.js?v=${shellCache}`,
   `nexowatt-native-shell.css?v=${shellCache}`,
   `nexowatt-native-shell.js?v=${shellCache}`,
   `eos-native-security.js?v=${shellCache}`,
 ]) if (!index.includes(marker)) fail(`adminWww/index.html missing ${marker}`);
-if (index.indexOf(`eos-manual-write-policy.js?v=${runtimeNumber}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
+if (index.indexOf(`eos-manual-write-policy.js?v=${shellCache}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
   if (index.includes(legacy)) fail(`legacy browser overlay still loaded: ${legacy}`);
@@ -132,7 +136,7 @@ if (!navIcon.includes('eos-native-nav-icon-source') || !navIcon.includes('nexowa
 const shell = read('adminWww/js/nexowatt-native-shell.js');
 const shellCss = read('adminWww/css/nexowatt-native-shell.css');
 const nativeSecurity = read('adminWww/js/eos-native-security.js');
-if (!shell.includes("const VERSION = 'v82-nexowatt-native-shell'")) fail('native shell version marker missing');
+if (!shell.includes(`const VERSION = 'v${shellCache}-nexowatt-native-shell`)) fail(`native shell version marker v${shellCache} missing`);
 if (!shell.includes('Navigation labels and') || !shell.includes('rendered natively by Drawer.tsx')) fail('native shell ownership guard missing');
 if (shell.includes('innerHTML = cfg.svg') || shell.includes('textNode.textContent = cfg.label')) fail('native shell still rewrites navigation icons or labels after render');
 if (!shell.includes('NEXOWATT_EOS_DOM_COORDINATOR')) fail('native shell does not use the shared DOM coordinator');
@@ -150,7 +154,13 @@ const mainBuild = read('build/main.js');
 if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks BackItUp compatibility guard');
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');
+if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
+if (pkg.scripts['precheck:eos-package'] !== 'npm run clean:eos-runtime') fail('precheck:eos-package must clean stale runtime files');
+if (pkg.scripts['precheck:eos-stability'] !== 'npm run clean:eos-runtime') fail('precheck:eos-stability must clean stale runtime files');
+if (pkg.scripts.prepack !== 'node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must silently clean stale runtime files');
+if (!pkg.scripts.build?.includes('npm run clean:eos-runtime')) fail('build must finish with runtime cleanup');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftest.cjs')) fail('native shell selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-runtime-cleanup-selftest.cjs')) fail('runtime cleanup selftest is not part of check:eos-stability');
 if (!read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
 
 console.log('[NexoWatt EOS package validation] OK');
