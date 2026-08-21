@@ -13,6 +13,12 @@ Standard-Port:          8081
 
 Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die alte ioBroker-Admin-Oberfläche kann parallel vorhanden bleiben, während NexoWatt-Systeme über `eos-admin.0` die EOS-Oberfläche nutzen.
 
+## Aktuelle Stable 7.9.89
+
+Die Verkaufsversion 7.9.89 verwendet die aktuelle **Übersicht** als Startseite, integriert EOS Assist in den Header und führt Zugangsverwaltung ausschließlich unter **Zugänge & Rechte**. Installer und Guest aktivieren ihr Konto beim ersten Login im normalen Anmeldeformular einmalig ohne Startpasswort und vergeben anschließend ein persönliches Passwort. Admin / Service bleibt unverändert.
+
+Der interne Admin und die interne BackItUp-Notfallreserve bleiben installiert, sind aber ausschließlich für Admin / Service sichtbar. Für den regulären Betrieb wird die NexoWatt Sicherung verwendet.
+
 ## Installation über das NexoWatt Repository
 
 Im NexoWatt Repository muss der Adapter unter dem Key `eos-admin` stehen. Da das npm-Paket unscoped `iobroker.eos-admin` heißt, ist kein `packetName` nötig.
@@ -23,7 +29,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.29",
+    "version": "7.9.89",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -81,7 +87,7 @@ Danach läuft NexoWatt EOS Admin unter:
 http://DEINE-IP:8081
 ```
 
-Den offiziellen `admin`-Adapter erst löschen, wenn der Zugriff über `eos-admin.0` zuverlässig funktioniert.
+Den internen `admin`-Adapter nicht löschen. Er bleibt deaktiviert auf `127.0.0.1:18081` als geschützte Service-Reserve erhalten.
 
 
 ## EOS Rollen- und Löschschutz
@@ -97,7 +103,12 @@ Standardmäßig geschützt:
 
 ```text
 eos-admin
+admin
 backitup
+nexowatt-backup
+eos-backup
+nexowatt-devices
+nexowatt-ui
 ```
 
 Administratoren können weitere Adapter in der Tabelle `Protected adapters` ergänzen. Die sichtbaren Admin-Gruppen werden über `EOS admin groups` definiert, standardmäßig `administrator`.

@@ -37,6 +37,8 @@ if (!pkg.scripts.prepublishOnly?.startsWith('npm run check:eos-publish-channel')
 if (pkg.scripts['test:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-selftest.cjs') fail('publish channel selftest script is missing');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-publish-channel-selftest.cjs')) fail('stability check must execute the publish channel selftest');
 if (io.native?.auth !== true) fail('fresh sales installations must default to authenticated access');
+if (io.native?.eosHideLegacyBackupFromNonAdmins !== true) fail('internal BackItUp reserve must default to Admin/Service visibility');
+if (io.native?.nexowattHideLegacyBackupFromNonAdmins !== true) fail('NexoWatt backup visibility compatibility flag must default to true');
 for (const [label, value] of [
   ['io-package common.version', io.common?.version],
   ['io-package top-level version', io.version],
@@ -86,6 +88,7 @@ for (const file of [
   'adminWww/js/eos-basic-settings.js',
   'adminWww/js/eos-role-ui.js',
   'adminWww/js/eos-account-management.js',
+  'adminWww/js/eos-assistant.js',
   'adminWww/css/nexowatt-native-shell.css',
   'adminWww/img/eos/nexowatt-192.png',
   'src-admin/src/components/NexoWattNavIcon.tsx',
@@ -95,10 +98,10 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.87_RC4.md',
-  'PUBLISH_RC_V7.9.87_RC4.md',
-  'INSTALL_TEST_V7.9.87_RC4.md',
-  'RELEASE_ACCEPTANCE_V7.9.87_RC4.md',
+  'README_STABILITY_V7.9.89.md',
+  'PUBLISH_STABLE_V7.9.89.md',
+  'INSTALL_TEST_V7.9.89.md',
+  'RELEASE_ACCEPTANCE_V7.9.89.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -110,6 +113,7 @@ for (const file of [
   'tools/nexowatt-first-login-selftest.cjs',
   'tools/nexowatt-account-management-selftest.cjs',
   'tools/nexowatt-modern-ui-selftest.cjs',
+  'tools/nexowatt-internal-reserve-selftest.cjs',
   'tools/nexowatt-branding-selftest.cjs',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',
@@ -142,6 +146,7 @@ if (!index.includes(`eos-role-bootstrap.js?v=${shellTag}`)) fail('role bootstrap
 if (!index.includes(`eos-branding-sanitizer.js?v=${shellTag}`)) fail('branding sanitizer cache key mismatch');
 if (!index.includes(`eos-role-ui.js?v=${shellTag}`)) fail('role UI cache key mismatch');
 if (!index.includes(`eos-account-management.js?v=${shellTag}`)) fail('account management cache key mismatch');
+if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache key mismatch');
 if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
@@ -168,7 +173,7 @@ for (const marker of ['NEXOWATT_TAB_ICON', 'nexowatt-native-nav-item', 'nexowatt
 const drawer = read('src-admin/src/components/Drawer.tsx');
 const drawerItem = read('src-admin/src/components/DrawerItem.tsx');
 const navIcon = read('src-admin/src/components/NexoWattNavIcon.tsx');
-for (const marker of ['getNexoWattTabTitle', 'getNexoWattTabIcon', "'tab-intro': 'Cockpit'", "'tab-users': 'Zugänge & Rechte'"]) {
+for (const marker of ['getNexoWattTabTitle', 'getNexoWattTabIcon', "'tab-intro': 'Übersicht'", "'tab-users': 'Zugänge & Rechte'", 'System-Notfallsicherung', 'NexoWatt Sicherung']) {
   if (!drawer.includes(marker)) fail(`Drawer source missing ${marker}`);
 }
 if (!drawerItem.includes('className="nexowatt-native-nav-item"') || !drawerItem.includes('data-eos-tab={tabName}')) fail('DrawerItem is not native-shell aware');
@@ -185,9 +190,15 @@ if (!shell.includes('NEXOWATT_EOS_DOM_COORDINATOR')) fail('native shell does not
 if (!shellCss.includes('.nexowatt-native-nav-item') || !shellCss.includes('.eos-native-nav-icon') || !shellCss.includes('.nexowatt-native-nav-icon')) fail('native shell CSS lacks React navigation selectors');
 if (!nativeSecurity.includes('shouldBlockInstanceDelete')) fail('minimal native security API missing instance protection');
 if (/addEventListener\(['"]click['"]/.test(nativeSecurity)) fail('native security must not globally intercept clicks');
-if (!accountManagement.includes('NEXOWATT_EOS_ACCOUNT_MANAGEMENT') || !accountManagement.includes('X-NexoWatt-EOS-Account-Reset')) fail('account-management runtime is incomplete');
+if (!accountManagement.includes('NEXOWATT_EOS_ACCOUNT_MANAGEMENT') || !accountManagement.includes('X-NexoWatt-EOS-Account-Reset') || !accountManagement.includes('ensureEntrySurface')) fail('account-management runtime is incomplete');
+if (accountManagement.includes("launcher.className = 'eos-account-management-launcher'")) fail('account management must not create a separate launcher');
 if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account-management source/build drift');
+const roleBootstrap = read('adminWww/js/eos-role-bootstrap.js');
+if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('eos-login-role-selector')) fail('integrated first-login is incomplete');
+if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher remains active');
+const assistant = read('adminWww/js/eos-assistant.js');
+if (!assistant.includes('eos-assist-header-root') || !assistant.includes('insertBefore(root, userAnchor)')) fail('EOS Assist is not header-integrated');
 
 const mf = read('adminWww/mf-manifest.json');
 if (!mf.includes(`remoteEntry-${runtime}.js`) || !mf.includes(`index-D2ymscJA-${runtime}.js`)) fail('module federation manifest is not on the active runtime');
@@ -214,6 +225,7 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-first-login-selftest.cjs')) fail('first-login selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-management-selftest.cjs')) fail('account-management selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-modern-ui-selftest.cjs')) fail('modern-UI selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-internal-reserve-selftest.cjs')) fail('internal reserve selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-branding-selftest.cjs')) fail('branding selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftest.cjs')) fail('native shell selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-assistant-separation-selftest.cjs')) fail('assistant separation selftest is not part of check:eos-stability');

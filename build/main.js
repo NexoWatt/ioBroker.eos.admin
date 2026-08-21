@@ -47,12 +47,16 @@ const LEGACY_ADMIN_ADAPTER_NAME = 'admin';
 const CORE_PROTECTED_ADAPTER_NAMES = [
     EOS_ADMIN_ADAPTER_NAME,
     'backitup',
+    'nexowatt-backup',
+    'eos-backup',
     'nexowatt-devices',
     'nexowatt-device',
     'nexowatt-dev',
     'nexowatt-ui',
 ];
 const LEGACY_ADMIN_INSTANCE_ID = 'system.adapter.admin.0';
+const LEGACY_BACKUP_ADAPTER_NAME = 'backitup';
+const CUSTOMER_BACKUP_ADAPTER_NAMES = ['nexowatt-backup', 'eos-backup'];
 const DEFAULT_LEGACY_ADMIN_LOCK_PORT = 18_081;
 const DEFAULT_LEGACY_ADMIN_LOCK_BIND = '127.0.0.1';
 const DEFAULT_EOS_ADMIN_GROUPS = ['system.group.administrator'];
@@ -776,6 +780,11 @@ class Admin extends adapter_core_1.Adapter {
             && config.eosHideLegacyAdminForNonAdmins !== false
             && config.nexowattHideLegacyAdminForNonAdmins !== false;
     }
+    shouldHideLegacyBackupFromNonAdmins() {
+        const config = this.config;
+        return config.eosHideLegacyBackupFromNonAdmins !== false
+            && config.nexowattHideLegacyBackupFromNonAdmins !== false;
+    }
     shouldApplyAdminOnlyAclToProtectedAdapters() {
         // v37: Do not apply hard object ACLs to runtime/business adapters by default.
         // BackItUp and adapter-specific configuration pages can break when their adapter/instance
@@ -1181,13 +1190,20 @@ class Admin extends adapter_core_1.Adapter {
                 if (/^system\.(?:config|repositories|certificates|licenses|credentials\.|user\.|group\.|host\.)/.test(objectId)) {
                     return deny(socketClient, command, callback, 'sensitive system objects are Service-only');
                 }
+                if (/^system\.adapter\.(?:admin|backitup)(?:\.|$)/.test(objectId)) {
+                    return deny(socketClient, command, callback, 'internal Service reserve is Admin/Service-only');
+                }
                 const adapterObject = objectId.match(/^system\.adapter\.([^.]+)/)?.[1];
                 if (command === 'delObject' && adapterObject && this.getProtectedAdapterNames().includes(adapterObject)) {
                     return deny(socketClient, command, callback, 'protected EOS system module');
                 }
-                if (role === 'enduser' && !/^enum\.(?:rooms|functions)\./.test(objectId)) {
+                if (role === 'enduser' && !/^enum\.(?:rooms|functions)(?:\.|$)/.test(objectId)) {
                     return deny(socketClient, command, callback, 'end users may only maintain Smart Home assignments');
                 }
+            }
+            if (['setState', 'delState', 'createState'].includes(command)
+                && /^(?:admin|backitup)\.\d+(?:\.|$)/.test(objectId)) {
+                return deny(socketClient, command, callback, 'internal Service reserve is Admin/Service-only');
             }
             return original(socketClient, command, callback, ...args);
         };
@@ -1383,6 +1399,43 @@ class Admin extends adapter_core_1.Adapter {
         }
         if (changed) {
             this.log.info(`EOS ACL guard restricted legacy admin visibility to ${this.getAdminOnlyGroup()}`);
+        }
+    }
+    async getLegacyBackupAclObjectIds() {
+        const ids = new Set([`system.adapter.${LEGACY_BACKUP_ADAPTER_NAME}`]);
+        try {
+            const rows = await this.getObjectListAsync({
+                startkey: `system.adapter.${LEGACY_BACKUP_ADAPTER_NAME}.`,
+                endkey: `system.adapter.${LEGACY_BACKUP_ADAPTER_NAME}.\u9999`,
+            });
+            for (const row of rows.rows || []) {
+                if (new RegExp(`^system\\.adapter\\.${LEGACY_BACKUP_ADAPTER_NAME}\\.\\d+$`).test(row.id || '')) {
+                    ids.add(row.id);
+                }
+            }
+        }
+        catch (e) {
+            this.log.debug(`Cannot scan internal backup instances for EOS visibility guard: ${e instanceof Error ? e.message : e}`);
+        }
+        return [...ids];
+    }
+    async ensureLegacyBackupVisibleOnlyToAdmins() {
+        let changed = false;
+        const ids = await this.getLegacyBackupAclObjectIds();
+        if (!this.shouldHideLegacyBackupFromNonAdmins()) {
+            for (const id of ids) {
+                changed = (await this.restoreObjectAclManagedByEos(id)) || changed;
+            }
+            if (changed) {
+                this.log.info('EOS ACL guard restored internal backup visibility because the restriction is disabled');
+            }
+            return;
+        }
+        for (const id of ids) {
+            changed = (await this.ensureObjectAdminOnlyAcl(id)) || changed;
+        }
+        if (changed) {
+            this.log.info(`EOS ACL guard restricted internal ${LEGACY_BACKUP_ADAPTER_NAME} reserve to ${this.getAdminOnlyGroup()}`);
         }
     }
     getLegacyAdminLockPort() {
@@ -1650,6 +1703,7 @@ class Admin extends adapter_core_1.Adapter {
             await this.ensureEosSmartHomeEnumAccess();
             await this.ensureLegacyAdminLocked();
             await this.ensureLegacyAdminVisibleOnlyToAdmins();
+            await this.ensureLegacyBackupVisibleOnlyToAdmins();
             if (!this.eosDeleteLockRepairFinished) {
                 await this.repairStaleAdapterDeleteLocks();
                 this.eosDeleteLockRepairFinished = true;

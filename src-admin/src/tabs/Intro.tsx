@@ -1552,6 +1552,20 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 this.setState(newState as IntroState, () => resolve());
             });
         } catch (error: any) {
+            const eosRole = (window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown';
+            if (eosRole !== 'admin') {
+                // Installer and end-user dashboards are rendered by the role-safe EOS overview.
+                // Do not show an upstream permission alert or leave the surface in a loading loop.
+                this.setState({
+                    instances: [],
+                    hosts: [],
+                    deactivated: [],
+                    introLinks: [],
+                    hostsData: {},
+                    alive: {},
+                } as unknown as IntroState);
+                return;
+            }
             window.alert(`Cannot get data: ${error}`);
         }
     }
@@ -1585,6 +1599,14 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 overflow="visible"
             >
                 {this.renderCopiedToast()}
+                <section id="eos-native-overview-hero" className="eos-overview-hero eos-native-overview-hero">
+                    <div>
+                        <span className="eos-overview-eyebrow">NexoWatt EOS</span>
+                        <h1>Übersicht</h1>
+                        <p>Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.</p>
+                    </div>
+                    <div className="eos-overview-role"><span className="eos-overview-status-dot" />Admin / Service</div>
+                </section>
                 {this.state.nodeUpdateDialog ? (
                     <NodeUpdateDialog
                         onClose={() => this.setState({ nodeUpdateDialog: null })}

@@ -149,7 +149,7 @@ export const STATES = {
 };
 
 const NEXOWATT_CORE_TAB_TITLES: Record<string, string> = {
-    'tab-intro': 'Cockpit',
+    'tab-intro': 'Übersicht',
     'tab-adapters': 'Module',
     'tab-instances': 'Dienste',
     'tab-objects': 'Datenpunkte',
@@ -181,7 +181,13 @@ function getNexoWattDynamicTabMeta(tab: string): { title?: string; icon?: NexoWa
     if (/^tab-(?:nexowatt-ui|nexowatt-eos|eos-cockpit)(?:-|$)/.test(normalized)) {
         return { title: 'NexoWatt EOS', icon: 'eos' };
     }
-    if (/^tab-(?:backitup|backup)(?:-|$)/.test(normalized)) {
+    if (/^tab-backitup(?:-|$)/.test(normalized)) {
+        return { title: 'System-Notfallsicherung', icon: 'backup' };
+    }
+    if (/^tab-(?:nexowatt-backup|eos-backup|nexowatt-sicherung)(?:-|$)/.test(normalized)) {
+        return { title: 'NexoWatt Sicherung', icon: 'backup' };
+    }
+    if (/^tab-backup(?:-|$)/.test(normalized)) {
         return { title: 'Sicherung', icon: 'backup' };
     }
     if (/^tab-(?:javascript)(?:-|$)/.test(normalized)) {
@@ -687,8 +693,8 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                     }}
                 >
                     <a
-                        href="/#easy"
-                        onClick={event => event.preventDefault()}
+                        href="/#tab-intro"
+                        onClick={event => { event.preventDefault(); handleNavigation('tab-intro'); }}
                         style={{ color: 'inherit', textDecoration: 'none' }}
                     >
                         {this.props.adminGuiConfig.icon ? (
@@ -704,7 +710,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                         ) : (
                             <div style={styles.brandFrame}>
                                 <Avatar
-                                    onClick={() => handleNavigation('easy')}
+                                    onClick={() => handleNavigation('tab-intro')}
                                     style={styles.logoSize}
                                     alt="NexoWatt EOS"
                                     src="img/eos/eos-logo.svg"

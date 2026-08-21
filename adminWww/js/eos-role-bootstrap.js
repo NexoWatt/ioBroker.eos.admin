@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc4-passwordless-first-activation-bootstrap';
+    const VERSION = 'v89-integrated-first-login-bootstrap';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -22,11 +22,15 @@
         return 'enduser';
     };
 
+    const isCustomerBackupTab = tab => /^(?:tab-)?(?:nexowatt-backup|eos-backup|nexowatt-sicherung)(?:-|$)/.test(normalize(tab));
     const isReleasedEndUserTab = tab => /^(?:tab-)?(?:nexowatt-ui|nexowatt-cockpit|eos-cockpit|eos-dashboard|kunden-cockpit|endkunden-cockpit|lovelace|jarvis|vis|iqontrol|material)(?:-|$)/.test(normalize(tab));
-    const isInstallerDenied = tab => /(?:tab-users|tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-admin|tab-system|users|hosts|files|console|terminal|backup|security)/.test(normalize(tab));
-    const isAllowed = (role, route) => role === 'admin'
-        || (role === 'installer' ? route === 'easy' || !isInstallerDenied(route) : route === 'easy' || route === 'tab-enums' || isReleasedEndUserTab(route));
-    const defaultTab = role => role === 'installer' ? 'tab-instances' : role === 'enduser' ? 'easy' : 'tab-intro';
+    const isOfficialReserveTab = tab => /^(?:tab-)?(?:admin|backitup)(?:-\d+)?$/.test(normalize(tab));
+    const isInstallerDenied = tab => /(?:tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-system|hosts|files|console|terminal|security)/.test(normalize(tab)) || isOfficialReserveTab(tab);
+    const isAllowed = (role, route) => route !== 'easy' && (role === 'admin'
+        || (role === 'installer'
+            ? route === 'tab-intro' || route === 'tab-users' || isCustomerBackupTab(route) || !isInstallerDenied(route)
+            : route === 'tab-intro' || route === 'tab-enums' || isCustomerBackupTab(route) || isReleasedEndUserTab(route)));
+    const defaultTab = () => 'tab-intro';
     const currentRoute = () => {
         const hash = decodeURIComponent(window.location.hash || '').toLowerCase();
         if (/^#\/?easy(?:[/?&]|$)/.test(hash)) return 'easy';
@@ -35,7 +39,7 @@
         const match = hash.match(/tab-[a-z0-9_-]+(?:-\d+)?/i);
         return match ? match[0].toLowerCase() : 'tab-intro';
     };
-    const navigate = route => { window.location.hash = route === 'easy' ? '#easy' : `#${route}`; };
+    const navigate = route => { window.location.hash = `#${route === 'easy' ? 'tab-intro' : route}`; };
 
     const lockExpertMode = role => {
         if (role === 'admin') return;
@@ -78,10 +82,10 @@
             easy: 'Das Passwort ist zu leicht oder enthält den Kontonamen.', generic: 'Das Passwort konnte nicht gespeichert werden.', success: 'Passwort gespeichert. Die Anmeldung wird neu gestartet …',
             securityTitle: 'Zugriff wird geprüft', securityIntro: 'Die sichere Anmeldung wird gerade geprüft. Die Oberfläche bleibt gesperrt, bis die Berechtigungen eindeutig geladen wurden.',
             securityRetry: 'Jetzt erneut prüfen', securityLogout: 'Zur Anmeldung', securityAuto: seconds => `Automatischer neuer Versuch in ${seconds} Sekunden …`,
-            claimLauncher: 'Erstanmeldung ohne Passwort', claimTitle: 'Konto erstmals aktivieren',
-            claimIntro: 'Für das vorbereitete Installateur- oder Guest/Endkunden-Konto ist bei der allerersten Anmeldung noch kein Passwort erforderlich. Danach muss sofort ein persönliches Passwort vergeben werden.',
+            claimLauncher: 'Erstanmeldung', claimTitle: 'Konto erstmals aktivieren',
+            claimIntro: 'Wähle Installateur oder Gast/Endkunde und melde dich bei der allerersten Anmeldung einmalig mit leerem Passwort an. Danach muss sofort ein persönliches Passwort vergeben werden.',
             claimAccount: 'Kontoname', claimContinue: 'Erstanmeldung starten', claimChecking: 'Konto wird geprüft …',
-            claimHint: 'Standardkonten: installer oder guest', claimUnavailable: 'Die Erstanmeldung ist für dieses Konto nicht verfügbar oder wurde bereits abgeschlossen.',
+            claimHint: 'Bei der ersten Anmeldung das Passwortfeld leer lassen.', claimUnavailable: 'Die Erstanmeldung ist für dieses Konto nicht verfügbar oder wurde bereits abgeschlossen.',
             claimPrivate: 'Die Erstanmeldung ist nur im lokalen Netzwerk möglich.', claimExpired: 'Die Aktivierung ist abgelaufen. Bitte erneut starten.',
             claimReady: 'Konto bestätigt. Lege jetzt dein persönliches Passwort fest.', claimSuccess: 'Passwort gespeichert. Du kannst dich jetzt normal anmelden.',
             claimLogin: 'Zur normalen Anmeldung', claimBack: 'Zurück',
@@ -97,10 +101,10 @@
             easy: 'The password is too easy or contains the account name.', generic: 'The password could not be saved.', success: 'Password saved. Restarting sign-in …',
             securityTitle: 'Checking access', securityIntro: 'The secure sign-in is being verified. The interface stays locked until the permissions are loaded unambiguously.',
             securityRetry: 'Check again now', securityLogout: 'Return to sign-in', securityAuto: seconds => `Retrying automatically in ${seconds} seconds …`,
-            claimLauncher: 'First sign-in without password', claimTitle: 'Activate account for the first time',
-            claimIntro: 'The prepared Installer or Guest/End User account does not need a password for its very first activation. A personal password must be created immediately afterwards.',
+            claimLauncher: 'First sign-in', claimTitle: 'Activate account for the first time',
+            claimIntro: 'Choose Installer or Guest/End User and leave the password field empty for the very first sign-in. A personal password must be created immediately afterwards.',
             claimAccount: 'Account name', claimContinue: 'Start first sign-in', claimChecking: 'Checking account …',
-            claimHint: 'Default accounts: installer or guest', claimUnavailable: 'First activation is unavailable for this account or has already been completed.',
+            claimHint: 'Leave the password field empty only for the first sign-in.', claimUnavailable: 'First activation is unavailable for this account or has already been completed.',
             claimPrivate: 'First activation is only available on the local network.', claimExpired: 'The activation has expired. Please start again.',
             claimReady: 'Account confirmed. Create your personal password now.', claimSuccess: 'Password saved. You can now sign in normally.',
             claimLogin: 'Return to normal sign-in', claimBack: 'Back',
@@ -116,10 +120,10 @@
             easy: 'Het wachtwoord is te eenvoudig of bevat de accountnaam.', generic: 'Het wachtwoord kon niet worden opgeslagen.', success: 'Wachtwoord opgeslagen. De aanmelding wordt opnieuw gestart …',
             securityTitle: 'Toegang wordt gecontroleerd', securityIntro: 'De veilige aanmelding wordt gecontroleerd. De interface blijft vergrendeld totdat de rechten eenduidig zijn geladen.',
             securityRetry: 'Nu opnieuw controleren', securityLogout: 'Terug naar aanmelden', securityAuto: seconds => `Automatisch opnieuw proberen over ${seconds} seconden …`,
-            claimLauncher: 'Eerste aanmelding zonder wachtwoord', claimTitle: 'Account voor het eerst activeren',
-            claimIntro: 'Voor het voorbereide installateur- of guest/eindgebruikersaccount is bij de allereerste activering nog geen wachtwoord nodig. Daarna moet direct een persoonlijk wachtwoord worden ingesteld.',
+            claimLauncher: 'Eerste aanmelding', claimTitle: 'Account voor het eerst activeren',
+            claimIntro: 'Kies Installateur of Gast/Eindgebruiker en laat bij de allereerste aanmelding het wachtwoordveld leeg. Daarna moet direct een persoonlijk wachtwoord worden ingesteld.',
             claimAccount: 'Accountnaam', claimContinue: 'Eerste aanmelding starten', claimChecking: 'Account wordt gecontroleerd …',
-            claimHint: 'Standaardaccounts: installer of guest', claimUnavailable: 'Eerste activering is voor dit account niet beschikbaar of al voltooid.',
+            claimHint: 'Laat het wachtwoordveld alleen bij de eerste aanmelding leeg.', claimUnavailable: 'Eerste activering is voor dit account niet beschikbaar of al voltooid.',
             claimPrivate: 'Eerste activering is alleen mogelijk in het lokale netwerk.', claimExpired: 'De activering is verlopen. Start opnieuw.',
             claimReady: 'Account bevestigd. Stel nu je persoonlijke wachtwoord in.', claimSuccess: 'Wachtwoord opgeslagen. Je kunt nu normaal aanmelden.',
             claimLogin: 'Naar normale aanmelding', claimBack: 'Terug',
@@ -283,80 +287,155 @@
         window.setTimeout(() => password.focus(), 0);
     };
 
-    const installPasswordlessFirstLoginLauncher = base => {
+    const installIntegratedFirstLogin = base => {
         const t = translations[language()];
-        document.documentElement.classList.add('eos-modern-login');
-        const ensureLauncher = () => {
-            if (!document.body || document.querySelector('.eos-passwordless-launcher')) return;
-            const launcher = document.createElement('button');
-            launcher.type = 'button';
-            launcher.className = 'eos-passwordless-launcher';
-            launcher.innerHTML = '<span aria-hidden="true">↗</span><strong></strong><small></small>';
-            launcher.querySelector('strong').textContent = t.claimLauncher;
-            launcher.querySelector('small').textContent = t.claimHint;
-            document.body.appendChild(launcher);
-            launcher.addEventListener('click', () => {
-                const existing = document.querySelector('.eos-passwordless-claim-overlay');
-                if (existing) { existing.remove(); return; }
-                const overlay = document.createElement('main');
-                overlay.className = 'eos-first-login-overlay eos-passwordless-claim-overlay';
-                overlay.innerHTML = `
-                    <section class="eos-first-login-card eos-passwordless-card" role="dialog" aria-modal="true" aria-labelledby="eos-passwordless-claim-title">
-                        <button class="eos-passwordless-close" type="button" aria-label="${t.claimBack}">×</button>
-                        <img class="eos-first-login-logo" src="./img/eos/eos-logo.svg" alt="NexoWatt EOS" />
-                        <div class="eos-first-login-kicker">Energy Operation System</div>
-                        <div class="eos-activation-steps"><span class="active">1</span><i></i><span>2</span><i></i><span>3</span></div>
-                        <h1 id="eos-passwordless-claim-title"></h1>
-                        <p class="eos-first-login-intro"></p>
-                        <form novalidate>
-                            <label><span class="account-label"></span><input name="user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required /></label>
-                            <div class="eos-passwordless-quick"><button type="button" data-account="installer">Installer</button><button type="button" data-account="guest">Gast / Endkunde</button></div>
-                            <p class="eos-first-login-rules"></p>
-                            <div class="eos-first-login-status" aria-live="polite"></div>
-                            <button class="eos-first-login-submit" type="submit"></button>
-                            <button class="eos-passwordless-secondary" type="button"></button>
-                        </form>
-                    </section>`;
-                document.body.appendChild(overlay);
-                overlay.querySelector('h1').textContent = t.claimTitle;
-                overlay.querySelector('.eos-first-login-intro').textContent = t.claimIntro;
-                overlay.querySelector('.account-label').textContent = t.claimAccount;
-                overlay.querySelector('.eos-first-login-rules').textContent = t.claimHint;
-                overlay.querySelector('.eos-first-login-submit').textContent = t.claimContinue;
-                overlay.querySelector('.eos-passwordless-secondary').textContent = t.claimBack;
-                const form = overlay.querySelector('form');
-                const user = form.elements.user;
-                const status = overlay.querySelector('.eos-first-login-status');
-                const submit = overlay.querySelector('.eos-first-login-submit');
-                const close = () => overlay.remove();
-                overlay.querySelector('.eos-passwordless-close').onclick = close;
-                overlay.querySelector('.eos-passwordless-secondary').onclick = close;
-                overlay.querySelectorAll('[data-account]').forEach(button => button.addEventListener('click', () => { user.value = button.dataset.account; user.focus(); }));
-                const setStatus = (message, kind = '') => { status.textContent = message || ''; status.dataset.kind = kind; };
-                form.addEventListener('submit', async event => {
-                    event.preventDefault();
-                    const account = String(user.value || '').trim();
-                    if (!account) return setStatus(t.required, 'error');
-                    submit.disabled = true; submit.textContent = t.claimChecking; setStatus('', '');
-                    try {
-                        const response = await fetch(new URL('nexowatt/account/passwordless-claim', base).href, {
-                            method: 'POST', credentials: 'same-origin', cache: 'no-store',
-                            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Passwordless-Claim': '1' },
-                            body: JSON.stringify({ user: account }),
-                        });
-                        const data = await response.json().catch(() => ({}));
-                        if (!response.ok || data.error) throw new Error(data.error === 'privateNetworkRequired' ? t.claimPrivate : t.claimUnavailable);
-                        showPasswordlessClaimPassword(data, base);
-                    } catch (error) {
-                        submit.disabled = false; submit.textContent = t.claimContinue;
-                        setStatus(error?.message || t.claimUnavailable, 'error');
-                    }
-                });
-                window.setTimeout(() => user.focus(), 0);
-            });
+        const managedAccounts = new Set(['installer', 'guest']);
+        let busy = false;
+        let unsubscribeDom = null;
+
+        document.documentElement.classList.add('eos-modern-login', 'eos-integrated-first-login');
+        document.querySelectorAll('.eos-passwordless-launcher').forEach(element => element.remove());
+
+        const accountName = input => String(input?.value || '').trim().toLowerCase().replace(/^system\.user\./, '');
+        const setInputValue = (input, value) => {
+            if (!input) return;
+            const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+            if (setter) setter.call(input, value); else input.value = value;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         };
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureLauncher, { once: true }); else ensureLauncher();
-        [300, 900, 1800].forEach(delay => window.setTimeout(ensureLauncher, delay));
+        const loginElements = () => {
+            const username = document.querySelector('input#username,input[name="username"]');
+            const password = document.querySelector('input#password,input[name="password"]');
+            const card = username?.closest?.('.MuiPaper-root,form,main,section') || password?.closest?.('.MuiPaper-root,form,main,section');
+            const submit = card?.querySelector?.('button[type="submit"]') || Array.from(card?.querySelectorAll?.('button') || []).find(button => /anmelden|login|sign in|aanmelden/.test(normalize(button.textContent || '')));
+            return { username, password, card, submit };
+        };
+        const statusNode = card => card?.querySelector?.('.eos-login-first-status');
+        const setStatus = (card, message, kind = '') => {
+            const status = statusNode(card);
+            if (!status) return;
+            status.textContent = message || '';
+            status.dataset.kind = kind;
+        };
+        const updateLoginState = () => {
+            const { username, password, card, submit } = loginElements();
+            if (!username || !password || !card) return;
+            const account = accountName(username);
+            const blankManaged = managedAccounts.has(account) && !password.value;
+            card.querySelectorAll('[data-eos-account]').forEach(button => button.classList.toggle('active', button.dataset.eosAccount === account));
+            card.classList.toggle('eos-login-first-ready', blankManaged);
+            if (submit && blankManaged && !busy) {
+                submit.disabled = false;
+                submit.removeAttribute('disabled');
+                submit.dataset.eosPasswordlessSubmit = '1';
+            } else if (submit) {
+                delete submit.dataset.eosPasswordlessSubmit;
+            }
+            const hint = card.querySelector('.eos-login-first-hint');
+            if (hint) hint.textContent = blankManaged ? t.claimIntro : t.claimHint;
+        };
+        const startClaim = async requestedAccount => {
+            const { username, password, card, submit } = loginElements();
+            const account = String(requestedAccount || accountName(username)).trim().toLowerCase();
+            if (!managedAccounts.has(account) || password?.value || busy) return false;
+            busy = true;
+            if (submit) submit.disabled = true;
+            setStatus(card, t.claimChecking, '');
+            try {
+                const response = await fetch(new URL('nexowatt/account/passwordless-claim', base).href, {
+                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Passwordless-Claim': '1' },
+                    body: JSON.stringify({ user: account }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.error) {
+                    const message = data.error === 'privateNetworkRequired' ? t.claimPrivate : t.claimUnavailable;
+                    throw new Error(message);
+                }
+                setStatus(card, '', '');
+                showPasswordlessClaimPassword(data, base);
+                return true;
+            } catch (error) {
+                setStatus(card, error?.message || t.claimUnavailable, 'error');
+                return false;
+            } finally {
+                busy = false;
+                updateLoginState();
+            }
+        };
+        const ensureIntegratedLogin = () => {
+            document.querySelectorAll('.eos-passwordless-launcher').forEach(element => element.remove());
+            const { username, password, card } = loginElements();
+            if (!username || !password || !card) return;
+            card.classList.add('eos-login-card-modern');
+            let selector = card.querySelector('.eos-login-role-selector');
+            if (!selector) {
+                selector = document.createElement('section');
+                selector.className = 'eos-login-role-selector';
+                selector.setAttribute('aria-label', t.claimAccount);
+                selector.innerHTML = `
+                    <div class="eos-login-role-heading"><strong>${t.claimAccount}</strong><span>${t.claimHint}</span></div>
+                    <div class="eos-login-role-buttons">
+                        <button type="button" data-eos-account="admin"><span>◆</span><strong>Admin / Service</strong></button>
+                        <button type="button" data-eos-account="installer"><span>⚙</span><strong>Installateur</strong></button>
+                        <button type="button" data-eos-account="guest"><span>⌂</span><strong>Gast / Endkunde</strong></button>
+                    </div>
+                    <p class="eos-login-first-hint"></p>
+                    <div class="eos-login-first-status" aria-live="polite"></div>`;
+                const usernameControl = username.closest('.MuiFormControl-root') || username.parentElement;
+                card.insertBefore(selector, usernameControl || card.firstChild);
+                selector.querySelectorAll('[data-eos-account]').forEach(button => button.addEventListener('click', () => {
+                    setInputValue(username, button.dataset.eosAccount || '');
+                    setInputValue(password, '');
+                    window.setTimeout(() => password.focus(), 0);
+                    updateLoginState();
+                }));
+            }
+            if (!username.dataset.eosFirstLoginBound) {
+                username.dataset.eosFirstLoginBound = '1';
+                username.addEventListener('input', updateLoginState);
+                password.addEventListener('input', updateLoginState);
+            }
+            updateLoginState();
+        };
+
+        document.addEventListener('click', event => {
+            const { username, password, card, submit } = loginElements();
+            if (!submit || !card || !submit.contains(event.target)) return;
+            const account = accountName(username);
+            if (!managedAccounts.has(account) || password?.value) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            void startClaim(account);
+        }, { capture: true });
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            const { username, password, card } = loginElements();
+            if (!card?.contains(event.target)) return;
+            const account = accountName(username);
+            if (!managedAccounts.has(account) || password?.value) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            void startClaim(account);
+        }, { capture: true });
+
+        const connectCoordinator = () => {
+            const coordinator = window.NEXOWATT_EOS_DOM_COORDINATOR;
+            if (!coordinator?.subscribe) { window.setTimeout(connectCoordinator, 250); return; }
+            unsubscribeDom?.();
+            unsubscribeDom = coordinator.subscribe(ensureIntegratedLogin);
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureIntegratedLogin, { once: true });
+        else ensureIntegratedLogin();
+        connectCoordinator();
+        [150, 350, 750, 1400, 2600].forEach(delay => window.setTimeout(ensureIntegratedLogin, delay));
+
+        window.NEXOWATT_EOS_FIRST_LOGIN = Object.freeze({
+            version: VERSION,
+            start: account => startClaim(account),
+            refresh: ensureIntegratedLogin,
+        });
     };
 
     const showSecurityRecovery = (base, error) => {
@@ -412,7 +491,7 @@
     const isLoginRequest = /(?:^|[?&])login(?:[=&]|$)/i.test(window.location.search || '');
     if (isLoginRequest) {
         launch();
-        installPasswordlessFirstLoginLauncher(base);
+        installIntegratedFirstLogin(base);
         return;
     }
 

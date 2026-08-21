@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v88-nexowatt-native-shell-passwordless-account-modern';
+    const VERSION = 'v89-nexowatt-native-shell-modern-overview';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();
@@ -74,9 +74,15 @@
         toolbar.classList.add('eos-top-toolbar');
         let badge = toolbar.querySelector(':scope > .eos-brand-badge');
         if (!badge) {
-            badge = document.createElement('span');
+            badge = document.createElement('button');
+            badge.type = 'button';
             badge.className = 'eos-brand-badge eos-system-brand';
+            badge.setAttribute('aria-label', 'Zur NexoWatt EOS Übersicht');
             badge.innerHTML = `<span class="eos-brand-badge-full"><img class="eos-brand-badge-full-logo" alt="NexoWatt EOS"></span><span class="eos-brand-led" aria-hidden="true"></span>`;
+            badge.addEventListener('click', event => {
+                event.preventDefault();
+                window.location.hash = '#tab-intro';
+            }, { signal: abort.signal });
             toolbar.insertBefore(badge, toolbar.firstChild || null);
         }
         const image = badge.querySelector('img');
@@ -140,12 +146,34 @@
         toggle.setAttribute('aria-pressed', compact ? 'true' : 'false');
     };
 
+    const ensureModernOverview = () => {
+        const paper = document.getElementById('app-paper');
+        const role = window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown';
+        if (!paper || isLogin() || currentTab() !== 'tab-intro' || role !== 'admin') {
+            document.getElementById('eos-native-overview-hero')?.remove();
+            return;
+        }
+        let hero = document.getElementById('eos-native-overview-hero');
+        if (!hero) {
+            hero = document.createElement('section');
+            hero.id = 'eos-native-overview-hero';
+            hero.className = 'eos-overview-hero eos-native-overview-hero';
+            hero.innerHTML = `
+                <div><span class="eos-overview-eyebrow">NexoWatt EOS</span><h1>Übersicht</h1><p>Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.</p></div>
+                <div class="eos-overview-role"><span class="eos-overview-status-dot"></span>Admin / Service</div>`;
+            paper.insertBefore(hero, paper.firstChild || null);
+        }
+    };
+
     const apply = () => {
         if (destroyed) return;
         setShellClasses();
         if (!isLogin()) {
             ensureBrand();
             ensureNavigationContainer();
+            ensureModernOverview();
+        } else {
+            document.getElementById('eos-native-overview-hero')?.remove();
         }
     };
 

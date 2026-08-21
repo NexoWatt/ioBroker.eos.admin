@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.87-rc.4",
+    "version": "7.9.89",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.89": {
+        "de": "Stable 7.9.89 finalisiert die rollenbasierte NexoWatt-EOS-Verkaufsoberfläche: Admin/Service behält Vollzugriff und Expertenmodus, Installateure erhalten Inbetriebnahme und Fehlersuche, Gast/Endkunde die freigegebene Smart-Home-Bedienung. Die Erstanmeldung ist direkt in die normale Anmeldung integriert: Installer und Guest wählen ihre Ebene und lassen das Passwort einmalig leer, danach wird zwingend ein persönliches Passwort vergeben. EOS Assist sitzt kollisionsfrei im Kopfbereich; Zugangsverwaltung liegt ausschließlich unter „Zugänge & Rechte“. Die aktuelle Übersicht wurde modernisiert, die Easy-Übersicht wird nicht verwendet. Interner Admin und interne BackItUp-Notfallreserve sind nur für Admin/Service sichtbar; die NexoWatt-Sicherung bleibt für die freigegebenen Rollen nutzbar. Standardport ist 8081.",
+        "en": "Stable 7.9.89 finalizes the role-based NexoWatt EOS sales interface: Admin/Service retains full access and expert mode, installers receive commissioning and troubleshooting functions, and Guest/End User receives the approved smart-home controls. First activation is integrated into the normal sign-in card: Installer and Guest select their level and leave the password empty once, then must create a personal password. EOS Assist is positioned safely in the header; account management exists only under “Access & Rights”. The current overview was modernized and the Easy overview is not used. The internal admin and internal BackItUp emergency reserve are visible only to Admin/Service, while NexoWatt Backup remains available to approved roles. Default port is 8081.",
+        "nl": "Stable 7.9.89 voltooit de rolgebaseerde NexoWatt EOS-verkoopinterface: Admin/Service behoudt volledige toegang en expertmodus, installateurs krijgen inbedrijfstelling en foutdiagnose, en Gast/Eindgebruiker de vrijgegeven smart-homebediening. De eerste activatie is geïntegreerd in de normale aanmelding: Installer en Guest kiezen hun niveau en laten het wachtwoord eenmalig leeg, waarna verplicht een persoonlijk wachtwoord wordt ingesteld. EOS Assist staat zonder overlap in de kop; toegangsbeheer staat uitsluitend onder “Toegangen & rechten”. Het actuele overzicht is gemoderniseerd en Easy wordt niet gebruikt. De interne admin en BackItUp-noodreserve zijn alleen zichtbaar voor Admin/Service; NexoWatt Backup blijft beschikbaar voor vrijgegeven rollen. Standaardpoort is 8081."
+      },
       "7.9.87-rc.4": {
         "en": "RC4 adds passwordless one-time first activation for Installer and Guest/End User accounts, role-controlled password reset, a modern NexoWatt account-management dialog, and a refined product interface. Admin/Service can reset installer and end-user access; installers can reset end-user access only.",
         "de": "RC4 ergänzt die einmalige Erstanmeldung ohne Passwort für Installateur und Gast/Endkunde, rollenabhängiges Zurücksetzen von Zugängen, eine moderne NexoWatt-Zugangsverwaltung und eine weiter modernisierte Produktoberfläche. Admin/Service kann Installateur- und Endkundenzugänge zurücksetzen; Installateure ausschließlich Endkundenzugänge.",
@@ -299,7 +304,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.4/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.89/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -310,7 +315,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.4/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.89/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -379,7 +384,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.4/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.89/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -435,7 +440,17 @@
       },
       {
         "adapter": "backitup",
-        "note": "Backup- und Restore-System",
+        "note": "Interne Notfallreserve – nur Admin / Service",
+        "enabled": true
+      },
+      {
+        "adapter": "nexowatt-backup",
+        "note": "NexoWatt Sicherung – freigegebene Produktsicherung",
+        "enabled": true
+      },
+      {
+        "adapter": "eos-backup",
+        "note": "NexoWatt Sicherung – technischer Kompatibilitätsname",
         "enabled": true
       },
       {
@@ -503,7 +518,9 @@
     "eosAutoAssignDefaultRoleUsers": true,
     "eosPasswordlessFirstLogin": true,
     "eosPasswordlessFirstLoginPrivateNetworkOnly": true,
-    "eosPasswordClaimTtlMinutes": 10
+    "eosPasswordClaimTtlMinutes": 10,
+    "eosHideLegacyBackupFromNonAdmins": true,
+    "nexowattHideLegacyBackupFromNonAdmins": true
   },
   "notifications": [
     {
@@ -1071,5 +1088,5 @@
       }
     }
   },
-  "version": "7.9.87-rc.4"
+  "version": "7.9.89"
 }

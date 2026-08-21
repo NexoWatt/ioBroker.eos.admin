@@ -1,4 +1,4 @@
-/* NexoWatt EOS native shell v82
+/* NexoWatt EOS native shell v89
    Clean presentation layer for the NexoWatt fork of ioBroker Admin.
    This stylesheet deliberately avoids broad pointer-event, visibility and DOM-structure overrides. */
 
@@ -79,6 +79,7 @@ html.eos-login .MuiAvatar-img { object-fit: contain !important; filter: drop-sha
 /* Main header */
 html.eos-app .MuiAppBar-root {
     position: fixed !important;
+    z-index: 1600 !important;
     top: var(--nx-shell-top) !important;
     left: var(--nx-page-x) !important;
     right: var(--nx-page-x) !important;
@@ -510,7 +511,7 @@ html.eos-security-nonadmin [data-eos-admin-only-control="1"] { display: none !im
 .eos-basic-settings-actions button:disabled { opacity: .55; cursor: wait; }
 @media (max-width: 760px) { .eos-basic-settings-overlay { padding: 8px; } .eos-basic-settings-dialog { width: 100%; max-height: 96vh; } .eos-basic-settings-form { grid-template-columns: 1fr; } .eos-basic-settings-actions { flex-direction: column-reverse; } .eos-basic-settings-actions button { width: 100%; } }
 
-/* v87-rc4: blocking first-login password setup for installer/end-user accounts */
+/* v89: blocking first-login password setup for installer/end-user accounts */
 html.eos-first-login-active,html.eos-first-login-active body { min-height: 100%; overflow: hidden !important; background: #020914 !important; }
 .eos-first-login-overlay { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; box-sizing: border-box; padding: 24px; color: #effbff; background: radial-gradient(circle at 20% 0%,rgba(0,229,138,.15),transparent 38%),linear-gradient(145deg,#020914,#061927); font-family: Inter,Roboto,Arial,sans-serif; }
 .eos-first-login-card { width: min(520px,100%); box-sizing: border-box; padding: 30px; border: 1px solid rgba(0,229,138,.34); border-radius: 22px; background: rgba(4,21,33,.96); box-shadow: 0 28px 90px rgba(0,0,0,.58),0 0 42px rgba(0,229,138,.08); }
@@ -821,4 +822,333 @@ html.eos-modern-login body::before {
     .eos-account-management-dialog>footer button { width: 100%; }
     .eos-account-management-launcher span { display: none; }
     .eos-account-management-launcher { min-width: 40px; padding: 7px 9px; }
+}
+
+
+/* ========================================================================== 
+   NexoWatt EOS 7.9.89 – stable product layout
+   Integrated first login, header assistant, role-safe overview and account
+   management exclusively below "Zugänge & Rechte".
+   ========================================================================== */
+
+html.eos-app .eos-top-toolbar {
+    overflow: visible !important;
+}
+
+.eos-brand-badge:is(button) {
+    appearance: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+.eos-brand-badge:is(button):focus-visible {
+    outline: 3px solid rgba(69, 213, 255, .78);
+    outline-offset: 3px;
+}
+
+/* First login is part of the normal login card – never a floating page action. */
+.eos-passwordless-launcher,
+.eos-account-management-launcher,
+.eos-account-management-floating {
+    display: none !important;
+}
+html.eos-login .eos-login-card-modern {
+    max-height: min(760px, calc(100vh - 30px)) !important;
+    overflow: auto !important;
+}
+.eos-login-role-selector {
+    width: 100%;
+    margin: 14px 0 5px;
+    padding: 13px;
+    border: 1px solid rgba(69, 213, 255, .18);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(4, 23, 36, .82), rgba(2, 12, 23, .74));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+.eos-login-role-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.eos-login-role-heading strong { color: #effcff; font-size: 13px; }
+.eos-login-role-heading span { color: #88aab8; font-size: 10px; text-align: right; }
+.eos-login-role-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.eos-login-role-buttons button {
+    min-width: 0;
+    min-height: 58px;
+    display: grid;
+    grid-template-columns: 25px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    padding: 8px 9px;
+    color: #dceff6;
+    text-align: left;
+    border: 1px solid rgba(133, 193, 218, .18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .028);
+    cursor: pointer;
+    transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+.eos-login-role-buttons button span {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    color: #03151c;
+    font-size: 14px;
+    font-weight: 900;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #00e58a, #45d5ff);
+}
+.eos-login-role-buttons button strong {
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+}
+.eos-login-role-buttons button:hover,
+.eos-login-role-buttons button.active {
+    transform: translateY(-1px);
+    border-color: rgba(0, 229, 138, .46);
+    background: linear-gradient(145deg, rgba(0, 229, 138, .10), rgba(69, 213, 255, .055));
+}
+.eos-login-first-hint {
+    min-height: 29px;
+    margin: 10px 2px 0;
+    color: #91b2bf;
+    font-size: 11px;
+    line-height: 1.35;
+}
+.eos-login-first-ready .eos-login-first-hint { color: #5cefb0; }
+.eos-login-first-status {
+    min-height: 20px;
+    margin: 4px 2px 0;
+    color: #9dbcc9;
+    font-size: 12px;
+}
+.eos-login-first-status[data-kind="error"] { color: #ff8d98; }
+.eos-login-first-status[data-kind="success"] { color: #54f1aa; }
+.eos-login-first-ready button[type="submit"] {
+    box-shadow: 0 0 0 1px rgba(0, 229, 138, .28), 0 12px 28px rgba(0, 229, 138, .14) !important;
+}
+
+/* EOS Assist lives in the fixed header and opens below it. */
+.eos-assist-root.eos-assist-header-root {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 1500 !important;
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+.eos-assist-header-root .eos-assist-button {
+    min-width: 132px;
+    height: 46px;
+    padding: 6px 13px;
+    border-radius: 15px;
+}
+.eos-assist-header-root .eos-assist-panel {
+    position: fixed !important;
+    top: calc(var(--nx-shell-top) + var(--nx-header-h) + 8px) !important;
+    right: calc(var(--nx-page-x) + 10px) !important;
+    bottom: auto !important;
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100vh - var(--nx-content-top) - 12px);
+    overflow: auto;
+    transform-origin: top right;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .58), 0 0 36px rgba(0, 229, 138, .13);
+}
+.eos-assist-header-root.eos-assist-open .eos-assist-panel {
+    transform: translateY(0) scale(1);
+}
+
+/* Modern overview – current Overview tab, never Easy mode. */
+#app-paper { position: relative !important; }
+.eos-overview-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 14px 16px 18px;
+    padding: clamp(20px, 2.6vw, 32px);
+    color: #edfbff;
+    border: 1px solid rgba(0, 229, 138, .24);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 8% 30%, rgba(0, 229, 138, .14), transparent 35%),
+        radial-gradient(circle at 90% 20%, rgba(69, 213, 255, .10), transparent 34%),
+        linear-gradient(145deg, rgba(6, 31, 44, .97), rgba(2, 13, 23, .98));
+    box-shadow: 0 22px 56px rgba(0, 0, 0, .31), inset 0 1px 0 rgba(255, 255, 255, .055);
+}
+.eos-overview-eyebrow {
+    color: #00e58a;
+    font-size: 11px;
+    font-weight: 950;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+}
+.eos-overview-hero h1 {
+    margin: 6px 0 5px;
+    font-size: clamp(26px, 3.7vw, 42px);
+    line-height: 1.05;
+}
+.eos-overview-hero p {
+    max-width: 760px;
+    margin: 0;
+    color: #a3c0cc;
+    font-size: 14px;
+    line-height: 1.55;
+}
+.eos-overview-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    color: #dff8ff;
+    font-size: 12px;
+    font-weight: 850;
+    border: 1px solid rgba(69, 213, 255, .20);
+    border-radius: 999px;
+    background: rgba(69, 213, 255, .055);
+}
+.eos-overview-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #00e58a;
+    box-shadow: 0 0 13px rgba(0, 229, 138, .88);
+}
+.eos-native-overview-hero + .MuiPaper-root,
+.eos-native-overview-hero + div { border-radius: 18px; }
+.eos-role-safe-overview {
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    overflow: auto;
+    padding: 0 0 24px;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(0, 229, 138, .07), transparent 33%),
+        linear-gradient(180deg, rgba(3, 15, 27, .995), rgba(3, 17, 29, .995));
+}
+.eos-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    gap: 13px;
+    padding: 0 16px 20px;
+}
+.eos-overview-action {
+    min-height: 105px;
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 22px;
+    align-items: center;
+    gap: 13px;
+    padding: 17px;
+    color: #eafaff;
+    text-align: left;
+    border: 1px solid rgba(133, 193, 218, .14);
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(10, 35, 50, .84), rgba(3, 16, 28, .92));
+    box-shadow: 0 13px 28px rgba(0, 0, 0, .20), inset 0 1px 0 rgba(255, 255, 255, .035);
+    cursor: pointer;
+    transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+.eos-overview-action:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 229, 138, .35);
+    background: linear-gradient(145deg, rgba(0, 229, 138, .085), rgba(69, 213, 255, .045));
+    box-shadow: 0 18px 36px rgba(0, 0, 0, .26), 0 0 24px rgba(0, 229, 138, .055);
+}
+.eos-overview-action-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    color: #03151c;
+    font-size: 24px;
+    font-weight: 950;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #00e58a, #45d5ff);
+    box-shadow: 0 10px 22px rgba(0, 229, 138, .13);
+}
+.eos-overview-action > span:nth-child(2) { display: grid; gap: 6px; min-width: 0; }
+.eos-overview-action strong { font-size: 16px; }
+.eos-overview-action small { color: #91afbc; font-size: 12px; line-height: 1.4; }
+.eos-overview-action i { color: #59e5bd; font-size: 29px; font-style: normal; }
+.eos-official-reserve-hidden { display: none !important; }
+
+/* Account management is available only inside Zugänge & Rechte. */
+.eos-account-management-entry {
+    position: relative;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 16px;
+    padding: 24px;
+    color: #eafaff;
+    border: 1px solid rgba(0, 229, 138, .26);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 8% 50%, rgba(0, 229, 138, .12), transparent 42%),
+        linear-gradient(145deg, rgba(7, 31, 45, .98), rgba(2, 14, 24, .98));
+    box-shadow: 0 20px 52px rgba(0, 0, 0, .30);
+}
+.eos-account-management-entry-copy { min-width: 0; }
+.eos-account-management-entry h1 { margin: 4px 0 7px; font-size: clamp(24px, 3vw, 34px); }
+.eos-account-management-entry p { max-width: 750px; margin: 0; color: #9dbac6; line-height: 1.5; }
+.eos-account-management-entry-security { margin-top: 12px; color: #71e3c0; font-size: 12px; line-height: 1.45; }
+.eos-account-management-entry-button {
+    min-width: 230px;
+    min-height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    padding: 12px 17px;
+    color: #03151c;
+    font-weight: 950;
+    border: 0;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #00e58a, #45d5ff);
+    box-shadow: 0 14px 28px rgba(0, 229, 138, .14);
+    cursor: pointer;
+}
+.eos-account-management-entry-button svg { width: 24px; height: 24px; fill: currentColor; }
+html.eos-account-page-installer #app-paper > :not(.eos-account-management-entry):not(.MuiSnackbar-root):not([role="presentation"]) {
+    display: none !important;
+}
+html.eos-account-page-installer .eos-account-management-entry { min-height: calc(100% - 32px); }
+
+/* Existing overview cards receive a restrained modern surface. */
+html.eos-route-intro #app-paper .MuiCard-root,
+html.eos-route-intro #app-paper [class*="introCard"],
+html.eos-route-intro #app-paper [class*="card"] {
+    border-radius: 18px !important;
+    border-color: rgba(133, 193, 218, .15) !important;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, .20) !important;
+}
+
+@media (max-width: 900px) {
+    .eos-assist-header-root .eos-assist-button { min-width: 47px; width: 47px; padding: 6px; }
+    .eos-assist-header-root .eos-assist-button strong,
+    .eos-assist-header-root .eos-assist-button small { display: none; }
+    .eos-account-management-entry { align-items: stretch; flex-direction: column; }
+    .eos-account-management-entry-button { width: 100%; min-width: 0; }
+}
+@media (max-width: 720px) {
+    .eos-login-role-buttons { grid-template-columns: 1fr; }
+    .eos-login-role-buttons button { min-height: 46px; }
+    .eos-overview-hero { align-items: flex-start; flex-direction: column; margin: 9px; border-radius: 18px; }
+    .eos-overview-grid { grid-template-columns: 1fr; padding: 0 9px 16px; }
+    .eos-overview-action { min-height: 90px; }
+    .eos-account-management-entry { margin: 9px; padding: 19px; border-radius: 18px; }
+    .eos-assist-header-root .eos-assist-panel { right: 8px !important; width: calc(100vw - 16px); }
 }

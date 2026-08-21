@@ -1,11 +1,11 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc4-account-management';
+    const VERSION = 'v89-account-management-under-access-rights';
     const script = document.currentScript || document.querySelector('script[src*="eos-account-management.js"]');
     const base = new URL('../', script?.src || window.location.href);
     const abort = new AbortController();
-    const state = { role: 'unknown', policy: null, button: null, overlay: null, unsubscribe: null, observer: null };
+    const state = { role: 'unknown', policy: null, overlay: null, entry: null, unsubscribe: null, observer: null };
 
     const normalize = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
     const language = () => {
@@ -20,7 +20,7 @@
             loading: 'Zugänge werden geladen …', empty: 'Keine passenden Konten gefunden.', close: 'Schließen', refresh: 'Aktualisieren',
             installer: 'Installateur', enduser: 'Endkunde / Gast', active: 'Passwort aktiv', first: 'Erstanmeldung offen', disabled: 'Deaktiviert',
             reset: 'Passwort zurücksetzen', resetting: 'Wird zurückgesetzt …', resetConfirm: name => `Soll der Zugang „${name}“ wirklich zurückgesetzt werden? Das bisherige Passwort wird ungültig und bei der nächsten Erstanmeldung muss ein neues Passwort vergeben werden.`,
-            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Die nächste Aktivierung erfolgt ohne altes Passwort über „Erstanmeldung ohne Passwort“.`,
+            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Bei der nächsten Anmeldung wird im normalen Anmeldefeld einmalig ohne Passwort gestartet und anschließend ein neues Passwort vergeben.`,
             resetFailed: 'Der Zugang konnte nicht zurückgesetzt werden.', lastSet: 'Letzte Passwortvergabe', lastReset: 'Letzter Reset', by: 'durch',
             security: 'Admin/Service darf Installateur und Endkunde zurücksetzen. Installateure dürfen ausschließlich Endkunden zurücksetzen.',
         },
@@ -31,7 +31,7 @@
             loading: 'Loading accounts …', empty: 'No matching accounts found.', close: 'Close', refresh: 'Refresh',
             installer: 'Installer', enduser: 'End user / Guest', active: 'Password active', first: 'First activation open', disabled: 'Disabled',
             reset: 'Reset password', resetting: 'Resetting …', resetConfirm: name => `Reset account “${name}”? The current password will become invalid and a new password must be created during the next first activation.`,
-            resetDone: name => `Account “${name}” was reset. The next activation uses “First sign-in without password”.`,
+            resetDone: name => `Account “${name}” was reset. At the next sign-in the normal login form is used once with an empty password, followed by creation of a new password.`,
             resetFailed: 'The account could not be reset.', lastSet: 'Last password setup', lastReset: 'Last reset', by: 'by',
             security: 'Admin/Service may reset installer and end-user accounts. Installers may reset end-user accounts only.',
         },
@@ -42,7 +42,7 @@
             loading: 'Toegangen worden geladen …', empty: 'Geen passende accounts gevonden.', close: 'Sluiten', refresh: 'Vernieuwen',
             installer: 'Installateur', enduser: 'Eindgebruiker / Guest', active: 'Wachtwoord actief', first: 'Eerste activering open', disabled: 'Uitgeschakeld',
             reset: 'Wachtwoord resetten', resetting: 'Wordt gereset …', resetConfirm: name => `Account „${name}“ resetten? Het huidige wachtwoord wordt ongeldig en bij de volgende eerste activering moet een nieuw wachtwoord worden ingesteld.`,
-            resetDone: name => `Account „${name}“ is gereset. De volgende activering gebruikt „Eerste aanmelding zonder wachtwoord“.`,
+            resetDone: name => `Account „${name}“ is gereset. Bij de volgende aanmelding wordt het normale formulier één keer met een leeg wachtwoord gebruikt, waarna een nieuw wachtwoord wordt ingesteld.`,
             resetFailed: 'Het account kon niet worden gereset.', lastSet: 'Laatste wachtwoordinstelling', lastReset: 'Laatste reset', by: 'door',
             security: 'Admin/service mag installateur- en eindgebruikersaccounts resetten. Installateurs alleen eindgebruikers.',
         },
@@ -61,21 +61,39 @@
         catch (_) { return String(value); }
     };
 
-    const removeButton = () => { state.button?.remove(); state.button = null; };
-    const ensureButton = () => {
-        if (isLogin() || !['admin', 'installer'].includes(state.role)) { removeButton(); return; }
-        if (state.button?.isConnected) return;
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'eos-account-management-launcher';
-        button.setAttribute('aria-label', t().launcher);
-        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0v1H5v-1Zm14.5-8.5h-2v-2h-2v2h-2v2h2v2h2v-2h2v-2Z"/></svg><span></span>';
-        button.querySelector('span').textContent = t().launcher;
-        button.addEventListener('click', () => open());
-        const toolbar = document.querySelector('.eos-top-toolbar,.MuiAppBar-root .MuiToolbar-root');
-        (toolbar || document.body).appendChild(button);
-        button.classList.toggle('eos-account-management-floating', !toolbar);
-        state.button = button;
+    const currentRoute = () => String(window.location.hash || '').match(/tab-[a-z0-9_-]+(?:-\d+)?/i)?.[0]?.toLowerCase() || 'tab-intro';
+    const removeEntry = () => {
+        state.entry?.remove();
+        state.entry = null;
+        document.documentElement.classList.remove('eos-account-page-active', 'eos-account-page-installer');
+    };
+    const ensureEntrySurface = () => {
+        if (isLogin() || !['admin', 'installer'].includes(state.role) || currentRoute() !== 'tab-users') {
+            removeEntry();
+            return;
+        }
+        const paper = document.getElementById('app-paper');
+        if (!paper) return;
+        document.documentElement.classList.add('eos-account-page-active');
+        document.documentElement.classList.toggle('eos-account-page-installer', state.role === 'installer');
+        if (state.entry?.isConnected && paper.contains(state.entry)) return;
+        const text = t();
+        const entry = document.createElement('section');
+        entry.className = 'eos-account-management-entry';
+        entry.innerHTML = `
+            <div class="eos-account-management-entry-copy">
+                <div class="eos-account-management-kicker">NexoWatt EOS</div>
+                <h1>${state.role === 'admin' ? text.titleAdmin : text.titleInstaller}</h1>
+                <p>${state.role === 'admin' ? text.introAdmin : text.introInstaller}</p>
+                <div class="eos-account-management-entry-security">${text.security}</div>
+            </div>
+            <button type="button" class="eos-account-management-entry-button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0v1H5v-1Zm14.5-8.5h-2v-2h-2v2h-2v2h2v2h2v-2h2v-2Z"/></svg>
+                <span>${state.role === 'admin' ? text.titleAdmin : text.titleInstaller}</span>
+            </button>`;
+        entry.querySelector('button').addEventListener('click', open);
+        paper.appendChild(entry);
+        state.entry = entry;
     };
 
     const close = () => { state.overlay?.remove(); state.overlay = null; };
@@ -197,7 +215,7 @@
     const applyPolicy = policy => {
         if (!policy || policy.authenticated === false) return;
         state.policy = policy; state.role = roleFromPolicy(policy);
-        ensureButton();
+        ensureEntrySurface();
     };
     const connect = () => {
         const client = window.NEXOWATT_EOS_POLICY_CLIENT;
@@ -208,15 +226,15 @@
     const observe = () => {
         const coordinator = window.NEXOWATT_EOS_DOM_COORDINATOR;
         if (coordinator?.subscribe) {
-            state.observer = coordinator.subscribe(() => ensureButton());
+            state.observer = coordinator.subscribe(() => ensureEntrySurface());
             return;
         }
         // The native shell owns the only broad DOM observer. Until it is ready, bounded retries keep
         // this optional launcher current without adding a second full-document MutationObserver.
-        [400, 1200, 2600, 5000].forEach(delay => window.setTimeout(ensureButton, delay));
+        [400, 1200, 2600, 5000].forEach(delay => window.setTimeout(ensureEntrySurface, delay));
     };
-    const start = () => { connect(); observe(); [250, 900, 1800].forEach(delay => setTimeout(ensureButton, delay)); };
+    const start = () => { connect(); observe(); window.addEventListener('hashchange', ensureEntrySurface, { signal: abort.signal }); [250, 900, 1800].forEach(delay => setTimeout(ensureEntrySurface, delay)); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true }); else start();
 
-    window.NEXOWATT_EOS_ACCOUNT_MANAGEMENT = Object.freeze({ version: VERSION, open, close, refresh: loadAccounts });
+    window.NEXOWATT_EOS_ACCOUNT_MANAGEMENT = Object.freeze({ version: VERSION, open, close, refresh: loadAccounts, refreshEntry: ensureEntrySurface });
 })();

@@ -96,6 +96,7 @@ declare global {
         loginTitle: string;
         /** If the SSO feature is active, it is set to string 'true' */
         ssoActive: string;
+        NEXOWATT_EOS_FIRST_LOGIN?: { start: (account: string) => Promise<boolean> | boolean };
     }
 }
 
@@ -200,6 +201,19 @@ export default class Login extends Component<object, LoginState> {
         return false;
     }
 
+    private isManagedFirstLogin(): boolean {
+        const account = this.state.username.trim().toLowerCase().replace(/^system\.user\./, '');
+        return !this.state.password && (account === 'installer' || account === 'guest');
+    }
+
+    private onLoginAction(): void {
+        if (this.isManagedFirstLogin() && window.NEXOWATT_EOS_FIRST_LOGIN?.start) {
+            void window.NEXOWATT_EOS_FIRST_LOGIN.start(this.state.username);
+            return;
+        }
+        this.onLogin();
+    }
+
     onLogin(): void {
         this.setState({ inProcess: true, error: '' }, async () => {
             const response = await fetch('../oauth/token', {
@@ -297,6 +311,35 @@ export default class Login extends Component<object, LoginState> {
                         {window.location.search.includes('error') || this.state.error ? (
                             <div style={styles.alert}>{this.state.error || I18n.t('wrongPassword')}</div>
                         ) : null}
+                        <Box className="eos-login-role-selector eos-login-role-selector-native">
+                            <div className="eos-login-role-heading">
+                                <strong>Zugangsebene</strong>
+                                <span>Beim allerersten Login Passwortfeld leer lassen</span>
+                            </div>
+                            <div className="eos-login-role-buttons">
+                                {[
+                                    { user: 'admin', icon: '◆', label: 'Admin / Service' },
+                                    { user: 'installer', icon: '⚙', label: 'Installateur' },
+                                    { user: 'guest', icon: '⌂', label: 'Gast / Endkunde' },
+                                ].map(item => (
+                                    <Button
+                                        key={item.user}
+                                        type="button"
+                                        data-eos-account={item.user}
+                                        className={this.state.username.trim().toLowerCase() === item.user ? 'active' : ''}
+                                        onClick={() => this.setState({ username: item.user, password: '', error: '' }, () => this.passwordRef.current?.focus())}
+                                    >
+                                        <span>{item.icon}</span><strong>{item.label}</strong>
+                                    </Button>
+                                ))}
+                            </div>
+                            <p className="eos-login-first-hint">
+                                {this.isManagedFirstLogin()
+                                    ? 'Erstanmeldung: ohne Passwort fortfahren und anschließend ein persönliches Passwort festlegen.'
+                                    : 'Admin/Service meldet sich immer mit dem fest eingerichteten Passwort an.'}
+                            </p>
+                            <div className="eos-login-first-status" aria-live="polite" />
+                        </Box>
                         <TextField
                             variant="outlined"
                             margin="normal"
@@ -328,8 +371,8 @@ export default class Login extends Component<object, LoginState> {
                             value={this.state.password}
                             onChange={e => this.setState({ password: e.target.value })}
                             onKeyUp={e => {
-                                if (e.key === 'Enter' && this.state.username && this.state.password) {
-                                    this.onLogin();
+                                if (e.key === 'Enter' && this.state.username && (this.state.password || this.isManagedFirstLogin())) {
+                                    this.onLoginAction();
                                 }
                             }}
                             slotProps={{
@@ -372,8 +415,8 @@ export default class Login extends Component<object, LoginState> {
                         />
                         <Button
                             type="submit"
-                            disabled={this.state.inProcess || !this.state.username || !this.state.password}
-                            onClick={() => this.onLogin()}
+                            disabled={this.state.inProcess || !this.state.username || (!this.state.password && !this.isManagedFirstLogin())}
+                            onClick={() => this.onLoginAction()}
                             fullWidth
                             variant="contained"
                             color="primary"

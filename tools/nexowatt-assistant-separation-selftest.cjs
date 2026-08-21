@@ -16,8 +16,10 @@ if (app.includes("import ChatPanel from './components/Chat/ChatPanel'")) fail('A
 if (app.includes('<ChatPanel')) fail('App.tsx still renders upstream ChatPanel');
 if (bundle.includes('this.state.disableMcp===!1?jsxRuntimeExports.jsx(ChatPanel')) fail('active runtime still mounts upstream ChatPanel');
 if (!assist.includes("root.id = 'eos-assist-root'")) fail('local EOS Assist runtime is not active');
-if (!assist.includes('EOS Assist') || !assist.includes('EOS Hilfe')) fail('local EOS Assist branding missing');
+if (!assist.includes('eos-assist-header-root') || !assist.includes('insertBefore(root, userAnchor)')) fail('EOS Assist is not positioned in the header');
+if (!assist.includes('EOS Assist') || !assist.includes('Hilfe')) fail('local EOS Assist branding missing');
 if (assist.includes('fetch(') || assist.includes('/api/chat') || assist.includes('system.ai')) fail('local EOS Assist contains an external AI connection');
+if (assist.includes('bottom:')) fail('EOS Assist must not be rendered as a bottom floating control');
 if (!index.includes(`eos-assistant.js?v=${shell}`)) fail('EOS Assist cache key mismatch');
 if (!fs.existsSync(path.join(root, 'adminWww/img/eos/nexowatt-eos-brand-wide.png'))) fail('new NexoWatt EOS brand logo asset missing');
 console.log('[NexoWatt EOS assistant separation] OK');

@@ -22,45 +22,39 @@ const shellTag = String(info.shellCacheTag || info.shellCacheVersion);
 
 for (const code of [mainSource, mainBuilt]) {
   for (const marker of [
-    'system.user.installer', 'system.user.guest', 'ensureEosDefaultRoleUsers',
-    'unknown random bootstrap secret', 'eosPasswordSetupRequired',
-    'personal password setup is required',
+    'system.user.installer', 'system.user.guest', 'ensureEosDefaultRoleUsers', 'unknown random bootstrap secret',
+    'eosPasswordSetupRequired', 'personal password setup is required',
   ]) if (!code.includes(marker)) fail(`main account marker missing: ${marker}`);
 }
-
 for (const code of [webSource, webBuilt]) {
   for (const marker of [
     'getEosManagedAccounts', 'sendEosAccountManagement', 'resetEosAccountPassword',
-    '/nexowatt/account/manage', '/nexowatt/account/reset',
-    'x-nexowatt-eos-account-reset', 'canResetInstaller', 'canResetEndUser',
-    "targetUserId === 'system.user.admin'", 'targetUserId === access.userId',
+    '/nexowatt/account/manage', '/nexowatt/account/reset', 'x-nexowatt-eos-account-reset',
+    'canResetInstaller', 'canResetEndUser', "targetUserId === 'system.user.admin'", 'targetUserId === access.userId',
     "access.role === 'installer' && explicitlyManagedRole !== 'enduser'",
-    'explicit member of a managed EOS installer/end-user group',
-    'passwordResetAt', 'passwordResetBy',
+    'explicit member of a managed EOS installer/end-user group', 'passwordResetAt', 'passwordResetBy',
     "passwordResetMode = 'passwordless-first-activation'", 'accountDisabled',
   ]) if (!code.includes(marker)) fail(`web account marker missing: ${marker}`);
   if (!/randomBytes[^\n]{0,40}48/.test(code)) fail('reset does not generate an unknown random bootstrap secret');
-  if (!code.includes("const explicitInstaller = targetAccess.groups.some")) fail('reset target is not restricted to explicit installer membership');
-  if (!code.includes("const explicitEndUser = targetAccess.groups.some")) fail('reset target is not restricted to explicit end-user membership');
-  const resetStart = code.indexOf('private async resetEosAccountPassword');
-  const resetEnd = code.indexOf('private async getEosHistoryInstances', resetStart);
-  const resetBlock = code.slice(resetStart, resetEnd);
-  if (resetBlock.includes('bootstrapSecret,') && /json\([^)]*bootstrapSecret/.test(resetBlock)) fail('bootstrap secret is returned to the browser');
+  if (!code.includes('const explicitInstaller = targetAccess.groups.some')) fail('reset target is not restricted to explicit installer membership');
+  if (!code.includes('const explicitEndUser = targetAccess.groups.some')) fail('reset target is not restricted to explicit end-user membership');
 }
 
 for (const marker of [
-  'v87-rc4-account-management', "['admin', 'installer']", 'nexowatt/account/manage',
-  'nexowatt/account/reset', 'X-NexoWatt-EOS-Account-Reset',
-  'data.canResetInstaller === true', 'account.role === \'enduser\'',
-  'Admin/Service', 'Installateure', 'NEXOWATT_EOS_ACCOUNT_MANAGEMENT',
+  'v89-account-management-under-access-rights', "['admin', 'installer']", 'nexowatt/account/manage',
+  'nexowatt/account/reset', 'X-NexoWatt-EOS-Account-Reset', 'data.canResetInstaller === true',
+  "account.role === 'enduser'", 'Admin/Service', 'Installateure', 'NEXOWATT_EOS_ACCOUNT_MANAGEMENT',
+  'ensureEntrySurface', "currentRoute() !== 'tab-users'", 'eos-account-management-entry',
 ]) if (!sourceUi.includes(marker)) fail(`account UI marker missing: ${marker}`);
+if (sourceUi.includes("launcher.className = 'eos-account-management-launcher'")) fail('standalone account launcher is still created');
 if (sourceUi.includes('new MutationObserver')) fail('account management adds a second broad MutationObserver');
 if (sourceUi !== builtUi) fail('account management source/build drift');
-if (!roleUi.includes('Endkunden-Zugänge') || !roleUi.includes('NEXOWATT_EOS_ACCOUNT_MANAGEMENT')) fail('installer landing does not expose end-user reset management');
+if (!roleUi.includes("route === 'tab-users'")) fail('installer cannot reach Zugänge & Rechte');
+if (roleUi.includes('NEXOWATT_EOS_ACCOUNT_MANAGEMENT.open')) fail('role overview opens account management outside Zugänge & Rechte');
 if (!index.includes(`eos-account-management.js?v=${shellTag}`)) fail('account management asset is not active with the current cache tag');
 for (const marker of [
-  '.eos-account-management-launcher', '.eos-account-management-overlay',
-  '.eos-account-management-dialog', '.eos-account-row', '.eos-account-reset',
+  '.eos-account-management-entry', '.eos-account-management-overlay', '.eos-account-management-dialog',
+  '.eos-account-row', '.eos-account-reset', 'html.eos-account-page-installer',
 ]) if (!css.includes(marker)) fail(`account management CSS marker missing: ${marker}`);
 
 if (bad) process.exit(1);

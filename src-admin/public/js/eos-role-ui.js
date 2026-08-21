@@ -1,14 +1,13 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc4-modern-product-role-access';
+    const VERSION = 'v89-role-safe-overview-and-reserve-visibility';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
         policy: window.NEXOWATT_EOS_BOOTSTRAP_POLICY || null,
         role: window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown',
         scheduled: false,
-        fallbackTimer: 0,
         redirects: 0,
         lastTarget: '',
         unsubscribePolicy: null,
@@ -40,18 +39,33 @@
         if (policy?.isInstaller || /installateur|installer|installation|inbetriebnahme|techniker|technician|integrator|partner/.test(raw)) return 'installer';
         return 'enduser';
     };
+    const isOfficialAdminTab = tab => /^tab-admin(?:-\d+)?$/.test(normalize(tab));
+    const isOfficialBackupTab = tab => /^tab-backitup(?:-\d+)?$/.test(normalize(tab));
+    const isOfficialReserveTab = tab => isOfficialAdminTab(tab) || isOfficialBackupTab(tab);
+    const isCustomerBackupTab = tab => /^tab-(?:nexowatt-backup|eos-backup|nexowatt-sicherung)(?:-\d+)?$/.test(normalize(tab));
     const endUserAllowedByText = value => /(eos cockpit|nexowatt ui|nexowatt cockpit|kunden cockpit|kundenbereich|endkundenbereich|visualisierung|visualisation|visu|dashboard|energie cockpit|energy cockpit|bedienung|smart home|smart-home|lovelace|jarvis|iqontrol|material)/.test(normalize(value));
-    const endUserDeniedByText = value => /(module|dienste|datenpunkte|objekte|systemlogs|logs|zugange|rechte|benutzer|users|gruppen|groups|system hosts|system-hosts|hosts|dateien|files|sicherung|backup|konsole|console|terminal|xterm|admin|adapter|instances?|instanzen|geraetesuche|discovery|systemschutz|security)/.test(normalize(value));
+    const endUserDeniedByText = value => /(module|dienste|datenpunkte|objekte|systemlogs|logs|zugange|rechte|benutzer|users|gruppen|groups|system hosts|system-hosts|hosts|dateien|files|konsole|console|terminal|xterm|adapter|instances?|instanzen|geraetesuche|discovery|systemschutz|security)/.test(normalize(value));
     const isEndUserTab = (tab, label = '') => {
         const clean = normalize(tab); const text = `${clean} ${normalize(label)}`;
-        if (!clean || clean === 'tab-intro') return false;
-        if (clean === 'tab-enums') return true;
+        if (clean === 'tab-intro' || clean === 'tab-enums' || isCustomerBackupTab(clean)) return true;
         if (/^tab-(nexowatt-ui|nexowatt-cockpit|eos-cockpit|eos-dashboard|kunden-cockpit|endkunden-cockpit|lovelace|jarvis|vis|iqontrol|material)(?:-|$)/.test(clean)) return true;
-        return !endUserDeniedByText(text) && endUserAllowedByText(text);
+        return !!clean && !endUserDeniedByText(text) && endUserAllowedByText(text);
     };
-    const isInstallerDenied = (tab, label = '') => /(?:tab-users|tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-admin|tab-system|zugange\s*&?\s*rechte|zugange|rechte|benutzer|users|gruppen|system-hosts|system hosts|hosts|dateien|files|konsole|console|terminal|xterm|sicherung|backup|systemschutz|security|legacy admin)/.test(`${normalize(tab)} ${normalize(label)}`);
-    const isRouteAllowed = (role, route, label = '') => role === 'admin' || (role === 'installer' ? route === 'easy' || !isInstallerDenied(route, label) : role === 'enduser' ? route === 'easy' || isEndUserTab(route, label) : false);
-    const defaultTab = role => role === 'installer' ? 'tab-instances' : role === 'enduser' ? 'easy' : 'tab-intro';
+    const isInstallerDenied = (tab, label = '') => {
+        const clean = normalize(tab); const text = `${clean} ${normalize(label)}`;
+        if (isOfficialReserveTab(clean)) return true;
+        if (isCustomerBackupTab(clean)) return false;
+        return /(?:tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-system|system-hosts|system hosts|hosts|dateien|files|konsole|console|terminal|xterm|systemschutz|security)/.test(text);
+    };
+    const isRouteAllowed = (role, route, label = '') => {
+        if (route === 'easy') return false;
+        if (role === 'admin') return true;
+        if (isOfficialReserveTab(route)) return false;
+        if (role === 'installer') return route === 'tab-intro' || route === 'tab-users' || !isInstallerDenied(route, label);
+        if (role === 'enduser') return isEndUserTab(route, label);
+        return false;
+    };
+    const defaultTab = () => 'tab-intro';
 
     const setRoleClasses = role => safe(() => {
         const root = document.documentElement;
@@ -79,14 +93,16 @@
         return false;
     });
 
-    const textOf = el => [el?.textContent || '', ...['href','title','aria-label','data-name','data-tab','data-id','id'].map(a => el?.getAttribute?.(a) || '')].join(' ');
-    const navEntries = () => Array.from(document.querySelectorAll('a[href*="#tab-"],a[href*="#/tab-"]')).map(anchor => {
-        const tab = tabFromHref(anchor.getAttribute('href') || anchor.href || '');
+    const textOf = el => [el?.textContent || '', ...['href','title','aria-label','data-name','data-tab','data-id','data-instance','id'].map(a => el?.getAttribute?.(a) || '')].join(' ');
+    const navEntries = () => Array.from(document.querySelectorAll('a[href*="#tab-"],a[href*="#/tab-"],a[href="#easy"],a[href="/#easy"],a[href$="/#easy"]')).map(anchor => {
+        const href = anchor.getAttribute('href') || anchor.href || '';
+        const tab = /#\/?easy(?:[/?&]|$)/i.test(href) ? 'easy' : tabFromHref(href);
         if (!tab) return null;
         const root = anchor.closest('.MuiListItem-root,.MuiButtonBase-root,li,[role="button"],[class*="DrawerItem"],[class*="dragWrapper"]') || anchor;
         return { anchor, root, tab, label: textOf(root) || textOf(anchor) };
     }).filter(Boolean);
-    const firstAllowedTab = role => navEntries().find(entry => isRouteAllowed(role, entry.tab, entry.label))?.tab || defaultTab(role);
+    const firstAllowedTab = role => navEntries().find(entry => entry.tab === 'tab-intro' && isRouteAllowed(role, entry.tab, entry.label))?.tab
+        || navEntries().find(entry => isRouteAllowed(role, entry.tab, entry.label))?.tab || defaultTab(role);
 
     const applyMenuPolicy = () => safe(() => {
         navEntries().forEach(entry => {
@@ -105,35 +121,31 @@
     };
     const isSystemSettingsButton = button => /buildicon|system settings|systemeinstellungen|systeeminstellingen/.test(toolbarButtonSignature(button));
     const isExpertModeButton = button => /expert|experten/.test(toolbarButtonSignature(button));
-
     const markAdminOnlyToolbarControls = () => safe(() => {
         const toolbar = document.querySelector('.eos-top-toolbar,.MuiAppBar-root .MuiToolbar-root');
         if (!toolbar) return;
         const buttons = Array.from(toolbar.querySelectorAll('button'));
         let buildIndex = -1;
         buttons.forEach((button, index) => {
+            if (button.closest('#eos-assist-root')) return;
             const label = toolbarButtonSignature(button);
             const system = isSystemSettingsButton(button);
             const expert = isExpertModeButton(button);
-            if (system) {
-                buildIndex = index;
-                button.dataset.eosSystemSettingsControl = '1';
-            }
-            button.dataset.eosKnownToolbar = /notifications|visibility|menu|logout|brightness|palette|darkmode|lightmode|colorlens|sync/.test(label) ? '1' : '0';
+            if (system) { buildIndex = index; button.dataset.eosSystemSettingsControl = '1'; }
+            button.dataset.eosKnownToolbar = /notifications|visibility|menu|logout|brightness|palette|darkmode|lightmode|colorlens|sync|assist/.test(label) ? '1' : '0';
             if (expert) button.dataset.eosAdminOnlyControl = '1';
         });
-        // IconExpert has no stable data-testid in older GUI packages. The first otherwise unknown
-        // control after Build/System settings is the expert toggle; theme buttons are excluded above.
         if (buildIndex >= 0) {
             for (let index = buildIndex + 1; index < buttons.length; index++) {
                 const button = buttons[index];
-                if (button.dataset.eosKnownToolbar === '1') continue;
+                if (button.closest('#eos-assist-root') || button.dataset.eosKnownToolbar === '1') continue;
                 if (button.closest('[class*="user"],.MuiAvatar-root')) break;
                 button.dataset.eosAdminOnlyControl = '1';
                 break;
             }
         }
         buttons.forEach(button => {
+            if (button.closest('#eos-assist-root')) return;
             if (button.dataset.eosSystemSettingsControl === '1') {
                 const hideSystem = state.role === 'enduser';
                 button.classList.toggle('eos-role-hidden', hideSystem);
@@ -152,47 +164,112 @@
 
     const setHashTab = tab => {
         if (!tab) return;
+        if (tab === 'easy') tab = 'tab-intro';
         if (state.lastTarget === tab && Date.now() - Number(sessionStorage.getItem('eosRoleLastRedirectAt') || 0) < 1000) return;
         state.lastTarget = tab; state.redirects += 1;
         sessionStorage.setItem('eosRoleLastRedirectAt', String(Date.now()));
-        const targetHash = tab === 'easy' ? '#easy' : `#${tab}`;
+        const targetHash = `#${tab}`;
         if (window.location.hash !== targetHash) window.location.hash = targetHash;
         window.dispatchEvent(new CustomEvent('eos-role-navigate', { detail: { tab } }));
     };
     const redirectIfNeeded = () => safe(() => {
-        if (isLoginView() || state.role === 'admin' || state.role === 'unknown') return;
+        if (isLoginView() || state.role === 'unknown') return;
         const route = currentRoute();
+        if (route === 'easy') { setHashTab('tab-intro'); return; }
         if (!isRouteAllowed(state.role, route)) setHashTab(firstAllowedTab(state.role));
     });
 
-    const appPaper = () => document.getElementById('app-paper') || document.querySelector('main,#root');
-    const appLooksBlank = () => {
-        const paper = appPaper(); if (!paper) return false;
-        const text = normalize(paper.textContent || '');
-        const interactive = paper.querySelectorAll('iframe,a,button,input,select,textarea,table,[role="grid"],.MuiDataGrid-root,.MuiTable-root').length;
-        return text.length < 12 && interactive === 0;
+    const appPaper = () => document.getElementById('app-paper');
+    const routeForPattern = pattern => navEntries().find(entry => pattern.test(entry.tab) && isRouteAllowed(state.role, entry.tab, entry.label))?.tab || '';
+    const actionDefinitions = role => {
+        const uiTab = routeForPattern(/^tab-(?:nexowatt-ui|nexowatt-eos|eos-cockpit)(?:-|$)/) || 'tab-nexowatt-ui';
+        const backupTab = routeForPattern(/^tab-(?:nexowatt-backup|eos-backup|nexowatt-sicherung)(?:-|$)/);
+        if (role === 'installer') {
+            return [
+                ['Dienste', 'Instanzen starten, stoppen und diagnostizieren', 'tab-instances', 'services'],
+                ['Module', 'Module installieren, aktualisieren und konfigurieren', 'tab-adapters', 'modules'],
+                ['Datenpunkte', 'Messwerte prüfen und freigegebene Werte schreiben', 'tab-objects', 'datapoints'],
+                ['Struktur', 'Räume und Funktionen für Smart Home zuordnen', 'tab-enums', 'structure'],
+                ['Geräte', 'Geräteintegration und Inbetriebnahme öffnen', 'tab-devicemanager', 'devices'],
+                ['Zugänge & Rechte', 'Endkundenpasswörter sicher zurücksetzen', 'tab-users', 'rights'],
+                ['Basis-Einstellungen', 'Standort, Sprache und Anlagenparameter', 'basic-settings', 'settings'],
+                ...(backupTab ? [['NexoWatt Sicherung', 'Sicherung und Wiederherstellung des EOS-Systems', backupTab, 'backup']] : []),
+                ['EOS Cockpit', 'Energie-, Lade- und Gebäudesteuerung öffnen', uiTab, 'eos'],
+            ];
+        }
+        return [
+            ['EOS Cockpit', 'Energie, Laden und Gebäude bedienen', uiTab, 'eos'],
+            ['Smart Home', 'Räume, Funktionen und freigegebene Geräte zuordnen', 'tab-enums', 'structure'],
+            ...(backupTab ? [['NexoWatt Sicherung', 'Eigene Sicherungen ausführen und wiederherstellen', backupTab, 'backup']] : []),
+        ];
     };
-    const landingActions = role => role === 'installer'
-        ? [ ['Dienste','tab-instances'], ['Module','tab-adapters'], ['Datenpunkte','tab-objects'], ['Struktur','tab-enums'], ['Geräte','tab-devicemanager'], ['Endkunden-Zugänge','account-management'], ['Basis-Einstellungen','basic-settings'], ['EOS Cockpit','tab-nexowatt-ui'] ]
-        : [ ['EOS Cockpit','tab-nexowatt-ui'], ['Smart Home','easy'], ['Smart Home Zuordnung','tab-enums'] ];
-    const showLandingFallback = () => safe(() => {
-        if (isLoginView() || state.role === 'admin' || state.role === 'unknown') return;
-        const paper = appPaper(); if (!paper) return;
-        if (!appLooksBlank()) { document.getElementById('eos-role-landing')?.remove(); return; }
-        let landing = document.getElementById('eos-role-landing');
-        if (!landing) {
-            landing = document.createElement('section'); landing.id = 'eos-role-landing'; landing.className = 'eos-role-landing';
+    const iconFor = icon => ({
+        services: '↻', modules: '◫', datapoints: '⌁', structure: '⌂', devices: '⌘', rights: '♙', settings: '⚙', backup: '⇩', eos: '⚡',
+    }[icon] || '•');
+    const removeSafeOverview = () => {
+        document.getElementById('eos-role-safe-overview')?.remove();
+        document.documentElement.classList.remove('eos-safe-overview-active');
+    };
+    const suppressPermissionErrors = () => {
+        if (state.role === 'admin') return;
+        document.querySelectorAll('.MuiSnackbar-root,[role="alert"],.MuiAlert-root').forEach(node => {
+            if (/permissionerror|cannot get data/i.test(node.textContent || '')) node.classList.add('eos-role-hidden');
+        });
+    };
+    const ensureSafeOverview = () => safe(() => {
+        if (isLoginView() || state.role === 'admin' || state.role === 'unknown' || currentRoute() !== 'tab-intro') {
+            removeSafeOverview();
+            return;
+        }
+        const paper = appPaper();
+        if (!paper) return;
+        document.documentElement.classList.add('eos-safe-overview-active');
+        suppressPermissionErrors();
+        let overview = document.getElementById('eos-role-safe-overview');
+        if (!overview) {
+            overview = document.createElement('section');
+            overview.id = 'eos-role-safe-overview';
+            overview.className = 'eos-role-safe-overview';
+            paper.appendChild(overview);
         }
         const installer = state.role === 'installer';
-        const actions = landingActions(state.role).filter(([,tab]) => tab === 'easy' || tab === 'basic-settings' || tab === 'account-management' || isRouteAllowed(state.role, tab));
-        landing.innerHTML = `<div class="eos-role-landing-card"><div class="eos-role-landing-eyebrow">NexoWatt EOS</div><h1>${installer ? 'Installateurbereich' : 'Endkundenbereich'}</h1><p>${installer ? 'Die technische Oberfläche enthält Inbetriebnahme und Fehlersuche. Sichere Basis-Einstellungen sind verfügbar; Repositories, Lizenzen, Zertifikate, Zugangsdaten, Sicherheitsverwaltung und Expertenmodus bleiben ausschließlich NexoWatt Admin/Service vorbehalten.' : 'Dieser Zugang zeigt nur die für den Endkunden freigegebenen Bedien- und Smart-Home-Oberflächen.'}</p><div class="eos-role-actions">${actions.map(([label,tab]) => `<button type="button" data-eos-role-tab="${tab}">${label}</button>`).join('')}</div></div>`;
-        if (!paper.contains(landing)) paper.appendChild(landing);
+        const actions = actionDefinitions(state.role).filter(([, , tab]) => tab === 'basic-settings' || isRouteAllowed(state.role, tab));
+        overview.innerHTML = `
+            <header class="eos-overview-hero eos-role-overview-hero">
+                <div><span class="eos-overview-eyebrow">NexoWatt EOS</span><h1>Übersicht</h1><p>${installer ? 'Inbetriebnahme, Fehlersuche und Anlagenkonfiguration – passend zu deinen Installateurrechten.' : 'Deine freigegebenen Energie-, Smart-Home- und Sicherungsfunktionen.'}</p></div>
+                <div class="eos-overview-role"><span class="eos-overview-status-dot"></span>${installer ? 'Installateur' : 'Gast / Endkunde'}</div>
+            </header>
+            <div class="eos-overview-grid">${actions.map(([label, description, tab, icon]) => `
+                <button type="button" class="eos-overview-action" data-eos-role-tab="${tab}">
+                    <span class="eos-overview-action-icon" aria-hidden="true">${iconFor(icon)}</span>
+                    <span><strong>${label}</strong><small>${description}</small></span><i aria-hidden="true">›</i>
+                </button>`).join('')}</div>`;
+    });
+
+    const hideOfficialReserveSurfaces = () => safe(() => {
+        if (state.role === 'admin') return;
+        const paper = appPaper();
+        if (!paper) return;
+        const selectors = [
+            '[data-id^="system.adapter.admin"]','[data-id^="system.adapter.backitup"]',
+            '[data-instance^="admin."]','[data-instance^="backitup."]',
+            '[data-name="admin"]','[data-name="backitup"]',
+            'a[href*="#tab-admin"]','a[href*="#tab-backitup"]',
+            'a[href*="system.adapter.admin"]','a[href*="system.adapter.backitup"]',
+        ];
+        paper.querySelectorAll(selectors.join(',')).forEach(node => {
+            const root = node.closest('tr,.MuiTableRow-root,.MuiCard-root,.MuiPaper-root,li,[role="row"],[data-testid="adapter-card"]') || node;
+            if (root.id === 'app-paper' || root.classList.contains('eos-role-safe-overview')) return;
+            root.classList.add('eos-role-hidden', 'eos-official-reserve-hidden');
+            root.setAttribute('aria-hidden', 'true');
+        });
     });
 
     const applySensitiveDialogPolicy = () => safe(() => {
         if (state.role === 'admin') return;
         const forbidden = /(repositories|repository|lizenzen|licenses|zertifikate|certificates|zugangsdaten|credentials|let'?s encrypt|standard acl|benutzer|users|gruppen|groups)/;
         for (const dialog of document.querySelectorAll('.MuiDialog-root,[role="dialog"]')) {
+            if (dialog.closest('#eos-assist-root,.eos-account-management-overlay')) continue;
             const title = normalize(dialog.querySelector('h1,h2,.MuiDialogTitle-root')?.textContent || '');
             if (!/(basiseinstellungen|base settings|systemeinstellungen|system settings)/.test(title)) continue;
             if (state.role === 'enduser') {
@@ -214,11 +291,18 @@
         if (!state.policy || state.role === 'unknown') return;
         setRoleClasses(state.role);
         if (lockExpertMode()) return;
-        applyMenuPolicy(); markAdminOnlyToolbarControls(); applySensitiveDialogPolicy(); redirectIfNeeded();
-        clearTimeout(state.fallbackTimer); state.fallbackTimer = window.setTimeout(showLandingFallback, 700);
+        applyMenuPolicy();
+        markAdminOnlyToolbarControls();
+        applySensitiveDialogPolicy();
+        redirectIfNeeded();
+        ensureSafeOverview();
+        hideOfficialReserveSurfaces();
+        suppressPermissionErrors();
+        window.NEXOWATT_EOS_ACCOUNT_MANAGEMENT?.refreshEntry?.();
     };
     const scheduleApply = () => {
-        if (state.scheduled) return; state.scheduled = true;
+        if (state.scheduled) return;
+        state.scheduled = true;
         const run = () => { state.scheduled = false; apply(); };
         if ('requestAnimationFrame' in window) requestAnimationFrame(run); else setTimeout(run, 16);
     };
@@ -250,9 +334,7 @@
         if (state.role === 'admin' || state.role === 'unknown') return;
         const clickedButton = event.target?.closest?.('button');
         if (clickedButton && isExpertModeButton(clickedButton)) {
-            event.preventDefault(); event.stopImmediatePropagation();
-            lockExpertMode();
-            return;
+            event.preventDefault(); event.stopImmediatePropagation(); lockExpertMode(); return;
         }
         if (clickedButton && isSystemSettingsButton(clickedButton)) {
             event.preventDefault(); event.stopImmediatePropagation();
@@ -263,29 +345,37 @@
         if (!target) return;
         if (target.matches('[data-eos-admin-only-control="1"]')) { event.preventDefault(); event.stopImmediatePropagation(); return; }
         if (target.matches('[data-eos-system-settings-control="1"]') && state.role === 'installer') {
-            event.preventDefault(); event.stopImmediatePropagation();
-            window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
-            return;
+            event.preventDefault(); event.stopImmediatePropagation(); window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.(); return;
         }
         const roleTab = target.getAttribute('data-eos-role-tab');
         if (roleTab) {
             event.preventDefault();
             if (roleTab === 'basic-settings') window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
-            else if (roleTab === 'account-management') window.NEXOWATT_EOS_ACCOUNT_MANAGEMENT?.open?.();
-            else roleTab === 'easy' ? (window.location.hash = '#easy') : setHashTab(roleTab);
+            else setHashTab(roleTab);
             return;
         }
         const tab = tabFromHref(target.getAttribute('href') || target.href || '');
-        if (tab && !isRouteAllowed(state.role, tab, textOf(target))) { event.preventDefault(); event.stopImmediatePropagation(); setHashTab(firstAllowedTab(state.role)); }
+        if (tab && !isRouteAllowed(state.role, tab, textOf(target))) {
+            event.preventDefault(); event.stopImmediatePropagation(); setHashTab(firstAllowedTab(state.role));
+        }
     }, { capture: true, signal: abort.signal });
 
-    window.NEXOWATT_EOS_ROLE_UI_API = Object.freeze({ version: VERSION, getRole: () => state.role, getPolicy: () => state.policy, isRouteAllowed, defaultTab, refresh: scheduleApply });
+    window.NEXOWATT_EOS_ROLE_UI_API = Object.freeze({
+        version: VERSION,
+        getRole: () => state.role,
+        getPolicy: () => state.policy,
+        isRouteAllowed,
+        defaultTab,
+        isOfficialReserveTab,
+        isCustomerBackupTab,
+        refresh: scheduleApply,
+    });
     const start = () => {
         applyPolicy(window.NEXOWATT_EOS_BOOTSTRAP_POLICY);
         connectPolicyClient(); startObserver();
         window.addEventListener('hashchange', () => { state.redirects = 0; redirectIfNeeded(); scheduleApply(); }, { signal: abort.signal });
         window.addEventListener('storage', scheduleApply, { signal: abort.signal });
-        [100,500,1200,2500].forEach(delay => setTimeout(scheduleApply, delay));
+        [100, 350, 750, 1300, 2500].forEach(delay => setTimeout(scheduleApply, delay));
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true }); else start();
 })();

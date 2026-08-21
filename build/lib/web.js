@@ -29,10 +29,14 @@ let uuid;
 const page404 = (0, node_fs_1.readFileSync)(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = (0, node_fs_1.readFileSync)(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
 const EOS_PASSWORD_SERVICE_USER = 'system.user.admin';
+const LEGACY_BACKUP_ADAPTER_NAME = 'backitup';
+const CUSTOMER_BACKUP_ADAPTER_NAMES = ['nexowatt-backup', 'eos-backup'];
 const CORE_PROTECTED_ADAPTER_NAMES = [
     'admin',
     'eos-admin',
     'backitup',
+    'nexowatt-backup',
+    'eos-backup',
     'nexowatt-devices',
     'nexowatt-device',
     'nexowatt-dev',
@@ -644,6 +648,9 @@ class Web {
             fullSystemSettings: role === 'admin',
             expertMode: role === 'admin',
             userManagement: role === 'admin',
+            accountPasswordReset: role === 'admin' || role === 'installer',
+            nexowattBackup: true,
+            internalBackupReserve: role === 'admin',
             securityAdministration: role === 'admin',
         };
     }
@@ -1288,9 +1295,12 @@ class Web {
             capabilities: this.getEosRoleCapabilities(role),
             hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
+            hideLegacyBackupFromNonAdmins: this.settings.eosHideLegacyBackupFromNonAdmins !== false,
             restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false,
             legacyAdminAdapter: 'admin',
             legacyAdminInstance: 'admin.0',
+            legacyBackupAdapter: LEGACY_BACKUP_ADAPTER_NAME,
+            customerBackupAdapters: [...CUSTOMER_BACKUP_ADAPTER_NAMES],
             protectedAdapters: this.getEosProtectedAdapterNames(),
         });
     }
@@ -1345,6 +1355,9 @@ class Web {
             adminOnlyGroups,
             isAdminGroup,
             hideLegacyAdmin,
+            hideLegacyBackup: this.adapter.config.eosHideLegacyBackupFromNonAdmins !== false && !isAdminGroup,
+            legacyBackupAdapter: LEGACY_BACKUP_ADAPTER_NAME,
+            customerBackupAdapters: [...CUSTOMER_BACKUP_ADAPTER_NAMES],
             protectedAdapters: this.getEosProtectedAdapterNames(),
         };
     }
