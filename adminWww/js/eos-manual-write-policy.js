@@ -1,4 +1,4 @@
-/* NexoWatt EOS manual datapoint write policy v7.9.87-rc.2 sales-release candidate */
+/* NexoWatt EOS manual datapoint write policy v7.9.87-rc.3 sales-release candidate */
 (function (root, factory) {
     'use strict';
     const api = factory();

@@ -1,11 +1,11 @@
 {
-  "version": "7.9.87-rc.2",
+  "version": "7.9.87-rc.3",
   "channel": "release-candidate",
   "baseFrontend": "validated v84 runtime with NexoWatt EOS role, first-login and product branding hardening",
   "runtimeEntry": "v84",
-  "releaseType": "product-role-first-login-rc2",
-  "release": "product-role-first-login-rc2",
-  "label": "v87-rc2",
+  "releaseType": "product-role-first-login-rc3",
+  "release": "product-role-first-login-rc3",
+  "label": "v87-rc3",
   "notes": [
     "Stable 7.9.86 remains unchanged; this release candidate becomes 7.9.87 stable only after system and field acceptance.",
     "Administrator/NexoWatt Service keeps unrestricted access and is never forced through first-login password setup.",
@@ -13,7 +13,9 @@
     "Installers receive commissioning and troubleshooting access without users, credentials, repositories, certificates, ACL or expert administration.",
     "End users can open EOS Admin for Smart Home, room/function assignment and explicitly released NexoWatt UI surfaces.",
     "Customer-visible platform branding is NexoWatt EOS; technical compatibility identifiers and third-party license notices remain internal.",
-    "After first-login password setup, every detected authentication-session representation is invalidated server-side and authentication cookies are cleared."
+    "After first-login password setup, every detected authentication-session representation is invalidated server-side and authentication cookies are cleared.",
+    "Release candidates are publishable on npm under the rc dist-tag; the project .npmrc and publish guard prevent accidental latest publication.",
+    "Fresh EOS Admin instances use port 8081; the internal legacy admin is moved to the protected local port 18081 by the EOS security policy/installer sequence."
   ],
   "changes": [
     "Creates and repairs NexoWatt Service, Installer and End User role groups with purpose-specific ACL profiles.",
@@ -23,11 +25,13 @@
     "Allows end-user Smart Home room/function assignments while keeping raw system, adapter and expert areas hidden.",
     "Adds a low-overhead visible-branding sanitizer for NexoWatt EOS product presentation.",
     "Uses the authenticated EOS self-service route with trusted backend context so installer/end-user roles can set their own first-login password without global user-management rights.",
-    "Fails closed to the end-user policy for missing socket identities and invalidates first-login sessions after the password is changed."
+    "Fails closed to the end-user policy for missing socket identities and invalidates first-login sessions after the password is changed.",
+    "Replaces the all-or-nothing prerelease publish blocker with an rc-channel guard and regression test.",
+    "Sets the EOS Admin product default port to 8081 and adds a regression test that rejects a return to 8091."
   ],
   "brandingCacheVersion": 87,
   "shellCacheVersion": 87,
   "nativeShellVersion": 87,
-  "shellCacheTag": "87rc2",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v87-rc2.json"
+  "shellCacheTag": "87rc3",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v87-rc3.json"
 }

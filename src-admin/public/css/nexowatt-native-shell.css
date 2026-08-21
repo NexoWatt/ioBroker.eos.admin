@@ -487,7 +487,7 @@ html.eos-security-nonadmin [data-eos-admin-only-control="1"] { display: none !im
 .eos-role-actions button { min-height: 48px; padding: 10px 14px; color: #03121b; font-weight: 900; border: 0; border-radius: 14px; background: linear-gradient(135deg,var(--nx-accent),var(--nx-accent-2)); cursor: pointer; }
 .eos-role-actions button:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-/* v87 RC2: role-safe installer basic settings and first-login security */
+/* v87 RC3: role-safe installer basic settings and first-login security */
 .eos-basic-settings-overlay { position: fixed; inset: 0; z-index: 25000; display: grid; place-items: center; padding: 24px; background: rgba(0,7,14,.78); backdrop-filter: blur(5px); }
 .eos-basic-settings-dialog { width: min(1120px, 96vw); max-height: min(880px, 92vh); overflow: auto; color: #e9f8ff; border: 1px solid rgba(0,255,136,.28); border-radius: 22px; background: linear-gradient(145deg,#061d28 0%,#03111d 100%); box-shadow: 0 30px 90px rgba(0,0,0,.58); }
 .eos-basic-settings-header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; border-bottom: 1px solid rgba(0,255,136,.18); background: rgba(3,17,29,.96); }
@@ -510,7 +510,7 @@ html.eos-security-nonadmin [data-eos-admin-only-control="1"] { display: none !im
 .eos-basic-settings-actions button:disabled { opacity: .55; cursor: wait; }
 @media (max-width: 760px) { .eos-basic-settings-overlay { padding: 8px; } .eos-basic-settings-dialog { width: 100%; max-height: 96vh; } .eos-basic-settings-form { grid-template-columns: 1fr; } .eos-basic-settings-actions { flex-direction: column-reverse; } .eos-basic-settings-actions button { width: 100%; } }
 
-/* v87-rc2: blocking first-login password setup for installer/end-user accounts */
+/* v87-rc3: blocking first-login password setup for installer/end-user accounts */
 html.eos-first-login-active,html.eos-first-login-active body { min-height: 100%; overflow: hidden !important; background: #020914 !important; }
 .eos-first-login-overlay { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; box-sizing: border-box; padding: 24px; color: #effbff; background: radial-gradient(circle at 20% 0%,rgba(0,229,138,.15),transparent 38%),linear-gradient(145deg,#020914,#061927); font-family: Inter,Roboto,Arial,sans-serif; }
 .eos-first-login-card { width: min(520px,100%); box-sizing: border-box; padding: 30px; border: 1px solid rgba(0,229,138,.34); border-radius: 22px; background: rgba(4,21,33,.96); box-shadow: 0 28px 90px rgba(0,0,0,.58),0 0 42px rgba(0,229,138,.08); }

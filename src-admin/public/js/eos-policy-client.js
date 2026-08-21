@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc2-role-access';
+    const VERSION = 'v87-rc3-role-access';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();

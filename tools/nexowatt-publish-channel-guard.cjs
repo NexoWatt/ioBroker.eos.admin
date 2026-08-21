@@ -3,32 +3,68 @@
 
 const fs = require('fs');
 const path = require('path');
-const root = path.resolve(__dirname, '..');
-const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const version = String(pkg.version || '');
-const isPrerelease = version.includes('-');
-const configuredTag = String(pkg.publishConfig?.tag || '');
-const explicitAllow = process.env.NEXOWATT_EOS_ALLOW_PRERELEASE_PUBLISH === '1';
 
-if (isPrerelease) {
-    if (configuredTag !== 'rc') {
-        console.error(`[NexoWatt EOS publish guard] Prerelease ${version} must use publishConfig.tag=rc, got ${configuredTag || '<unset>'}`);
-        process.exit(1);
+function validatePublishChannel(pkg, env = process.env) {
+    const version = String(pkg?.version || '').trim();
+    const configuredTag = String(pkg?.publishConfig?.tag || '').trim();
+    const isPrerelease = version.includes('-');
+    const requestedTag = String(env.npm_config_tag || env.NPM_CONFIG_TAG || configuredTag || 'latest').trim();
+
+    if (!version) {
+        return { ok: false, message: 'package.json version is missing' };
     }
-    if (!explicitAllow) {
-        console.error(`[NexoWatt EOS publish guard] ${version} is a test release. npm publishing is blocked so npm latest remains on the accepted stable version.`);
-        console.error('[NexoWatt EOS publish guard] Use the generated source ZIP/TGZ for laboratory and field acceptance.');
-        process.exit(1);
+
+    if (isPrerelease) {
+        if (configuredTag !== 'rc') {
+            return {
+                ok: false,
+                message: `Prerelease ${version} must use publishConfig.tag=rc, got ${configuredTag || '<unset>'}`,
+            };
+        }
+        if (requestedTag === 'latest') {
+            return {
+                ok: false,
+                message: `Prerelease ${version} must never be published with the latest tag. Use npm publish or npm publish --tag rc.`,
+            };
+        }
+        if (requestedTag !== 'rc') {
+            return {
+                ok: false,
+                message: `Prerelease ${version} may only be published with the rc tag, got ${requestedTag || '<unset>'}`,
+            };
+        }
+        return { ok: true, version, tag: 'rc', prerelease: true };
     }
-    if (String(process.env.npm_config_tag || configuredTag) === 'latest') {
-        console.error('[NexoWatt EOS publish guard] A prerelease must never be published with the latest tag.');
-        process.exit(1);
+
+    if (configuredTag && configuredTag !== 'latest') {
+        return {
+            ok: false,
+            message: `Stable version ${version} must not retain prerelease tag ${configuredTag}`,
+        };
     }
+    if (requestedTag !== 'latest') {
+        return {
+            ok: false,
+            message: `Stable version ${version} must be published with the latest tag, got ${requestedTag || '<unset>'}`,
+        };
+    }
+
+    return { ok: true, version, tag: 'latest', prerelease: false };
 }
 
-if (!isPrerelease && configuredTag && configuredTag !== 'latest') {
-    console.error(`[NexoWatt EOS publish guard] Stable version ${version} must not retain prerelease tag ${configuredTag}.`);
-    process.exit(1);
+if (require.main === module) {
+    const root = path.resolve(__dirname, '..');
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    const result = validatePublishChannel(pkg, process.env);
+
+    if (!result.ok) {
+        console.error(`[NexoWatt EOS publish guard] ${result.message}`);
+        process.exit(1);
+    }
+
+    console.log(
+        `[NexoWatt EOS publish guard] OK (${result.version}, npm dist-tag ${result.tag}${result.prerelease ? '; npm latest remains unchanged' : ''})`,
+    );
 }
 
-console.log(`[NexoWatt EOS publish guard] OK (${version}${isPrerelease ? ', prerelease publishing explicitly authorized' : ', stable channel'})`);
+module.exports = { validatePublishChannel };

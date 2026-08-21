@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.87-rc.2",
+    "version": "7.9.87-rc.3",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,10 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.87-rc.2": {
-        "en": "Release candidate for the sales-ready EOS Admin: role-specific installer/end-user access, first-login password setup, Smart Home assignment access, strict expert-mode lock and NexoWatt-only customer branding.",
-        "de": "Release Candidate für den verkaufsfertigen EOS Admin: rollenbezogener Installateur-/Endkundenzugriff, Passwortvergabe bei der ersten Anmeldung, Smart-Home-Zuordnung, strikte Expertenmodus-Sperre und ausschließliches NexoWatt-Branding in der Kundenoberfläche.",
-        "nl": "Release candidate voor de verkoopklare EOS Admin: rolgebonden installateur-/eindgebruikertoegang, wachtwoordkeuze bij de eerste aanmelding, Smart Home-toewijzing, strikte blokkering van de expertmodus en uitsluitend NexoWatt-branding in de klantinterface."
+      "7.9.87-rc.3": {
+        "en": "Release candidate for the sales-ready EOS Admin: role-specific installer/end-user access, first-login password setup, Smart Home assignment access, strict expert-mode lock, NexoWatt-only customer branding, safe npm publishing under the rc dist-tag, and EOS Admin default port 8081.",
+        "de": "Release Candidate für den verkaufsfertigen EOS Admin: rollenbezogener Installateur-/Endkundenzugriff, Passwortvergabe bei der ersten Anmeldung, Smart-Home-Zuordnung, strikte Expertenmodus-Sperre, ausschließliches NexoWatt-Branding in der Kundenoberfläche, sichere npm-Veröffentlichung über den Dist-Tag rc und EOS-Admin-Standardport 8081.",
+        "nl": "Release candidate voor de verkoopklare EOS Admin: rolgebonden installateur-/eindgebruikertoegang, wachtwoordkeuze bij de eerste aanmelding, Smart Home-toewijzing, strikte blokkering van de expertmodus, uitsluitend NexoWatt-branding, veilige npm-publicatie onder de rc-dist-tag en EOS Admin-standaardpoort 8081."
       },
       "7.9.87-rc.1": {
         "en": "Role access RC1: end users can open EOS Admin for Smart Home and released NexoWatt UI areas; installers receive commissioning, adapter, instance, datapoint and log diagnostics plus a safe basic-settings dialog. NexoWatt Admin/Service alone retains full system, security, user and expert-mode access.",
@@ -294,7 +294,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.2/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.3/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -305,7 +305,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.2/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.3/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -374,13 +374,13 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.2/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.3/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
   "native": {
     "autoUpdate": 24,
-    "port": 8091,
+    "port": 8081,
     "auth": true,
     "secure": false,
     "bind": "0.0.0.0",
@@ -1063,5 +1063,5 @@
       }
     }
   },
-  "version": "7.9.87-rc.2"
+  "version": "7.9.87-rc.3"
 }

@@ -26,8 +26,11 @@ if (pkg.private !== false) fail('package.json private must be false for npm publ
 const prerelease = pkg.version.includes('-');
 if (prerelease) {
   if (pkg.publishConfig?.tag !== 'rc') fail('prerelease package must use publishConfig.tag=rc so npm latest remains stable');
+  if (!exists('.npmrc') || !/^\s*tag\s*=\s*rc\s*$/m.test(read('.npmrc'))) fail('prerelease repository must contain .npmrc with tag=rc so plain npm publish cannot move latest');
   if (pkg.scripts['check:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-guard.cjs') fail('publish channel guard script is missing');
   if (!pkg.scripts.prepublishOnly?.startsWith('npm run check:eos-publish-channel')) fail('prepublishOnly must execute the publish channel guard first');
+  if (pkg.scripts['test:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-selftest.cjs') fail('publish channel selftest script is missing');
+  if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-publish-channel-selftest.cjs')) fail('stability check must execute the publish channel selftest');
 } else if (pkg.publishConfig?.tag && pkg.publishConfig.tag !== 'latest') {
   fail(`stable package must not use prerelease publish tag ${pkg.publishConfig.tag}`);
 }
@@ -47,7 +50,7 @@ for (const [label, value] of [
 if (io.common?.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common?.name}`);
 if (io.common?.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common?.packetName}`);
 if (io.common?.npmPackage !== 'iobroker.eos-admin') fail(`io-package common.npmPackage must be iobroker.eos-admin, got ${io.common?.npmPackage}`);
-if (io.native?.port !== 8091 && io.native?.port !== 8081) fail(`unexpected default port ${io.native?.port}`);
+if (io.native?.port !== 8081) fail(`EOS Admin default port must be 8081, got ${io.native?.port}`);
 if (io.common?.stopBeforeUpdate !== false) fail('io-package common.stopBeforeUpdate must be false');
 if (io.common?.dontDelete === true || io.common?.nondeletable === true) fail('adapter-level delete flags must not block updates');
 
@@ -89,8 +92,9 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.87_RC2.md',
-  'INSTALL_TEST_V7.9.87_RC2.md',
+  'README_STABILITY_V7.9.87_RC3.md',
+  'PUBLISH_RC_V7.9.87_RC3.md',
+  'INSTALL_TEST_V7.9.87_RC3.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -101,6 +105,10 @@ for (const file of [
   'tools/nexowatt-role-access-selftest.cjs',
   'tools/nexowatt-first-login-selftest.cjs',
   'tools/nexowatt-branding-selftest.cjs',
+  'tools/nexowatt-publish-channel-guard.cjs',
+  'tools/nexowatt-publish-channel-selftest.cjs',
+  'tools/nexowatt-default-port-selftest.cjs',
+  '.npmrc',
   repositoryEntryFile,
 ]) if (!exists(file)) fail(`missing required file: ${file}`);
 

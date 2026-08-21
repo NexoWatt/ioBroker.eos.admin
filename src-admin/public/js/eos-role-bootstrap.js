@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc2-role-first-login-bootstrap';
+    const VERSION = 'v87-rc3-role-first-login-bootstrap';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;

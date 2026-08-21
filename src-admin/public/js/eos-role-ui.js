@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc2-product-role-access';
+    const VERSION = 'v87-rc3-product-role-access';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {

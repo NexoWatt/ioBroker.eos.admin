@@ -8,7 +8,7 @@ Diese Ausgabe ist bewusst als eigenständiger ioBroker-Adapter aufgebaut:
 Technischer Adaptername: eos-admin
 npm-Paketname:          iobroker.eos-admin
 Sichtbarer Name:        NexoWatt EOS Admin
-Standard-Port:          8091
+Standard-Port:          8081
 ```
 
 Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die alte ioBroker-Admin-Oberfläche kann parallel vorhanden bleiben, während NexoWatt-Systeme über `eos-admin.0` die EOS-Oberfläche nutzen.
@@ -49,7 +49,7 @@ iobroker start eos-admin.0
 Danach ist die Oberfläche standardmäßig erreichbar unter:
 
 ```text
-http://DEINE-IP:8091
+http://DEINE-IP:8081
 ```
 
 ## Migration vom offiziellen Admin
@@ -65,7 +65,7 @@ iobroker upload eos-admin
 iobroker start eos-admin.0
 
 # 2. Im Browser testen
-# http://DEINE-IP:8091
+# http://DEINE-IP:8081
 
 # 3. Wenn alles sauber läuft, offiziellen Admin stoppen
 iobroker stop admin.0
