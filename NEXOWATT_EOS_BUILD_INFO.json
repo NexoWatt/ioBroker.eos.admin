@@ -1,31 +1,27 @@
 {
-  "version": "7.9.91",
+  "version": "7.9.92",
   "channel": "stable-latest",
   "baseFrontend": "validated Admin 7 runtime with NexoWatt EOS compact login, role, overview and service-reserve hardening",
   "runtimeEntry": "v84",
-  "releaseType": "stable-sales-product-compact-login-first-activation-overview-reserve-fix",
-  "release": "stable-sales-product-compact-login-first-activation-overview-reserve-fix",
-  "label": "v91",
+  "releaseType": "stable-sales-product-release-default-normalization",
+  "release": "stable-sales-product-release-default-normalization",
+  "label": "v92",
   "notes": [
-    "7.9.91 is the accepted stable sales-product release and is intended for npm dist-tag latest.",
-    "The normal login uses a compact two-layer card; the outer card no longer inherits full-viewport form sizing.",
-    "Installer, Guest and User empty-password first activation is enabled only after a server-side eligibility check.",
-    "After personal password setup, empty-password sign-in stays disabled until an authorized reset reopens activation.",
-    "Installer and end-user overview tiles use direct navigation handlers and remain fully clickable.",
-    "The internal admin and BackItUp emergency reserve are hidden for non-admin roles even when service rows render asynchronously.",
-    "NexoWatt Backup remains available to approved roles; EOS Assist stays in the header and the default port stays 8081."
+    "7.9.92 is the accepted stable sales-product release and is intended for npm dist-tag latest.",
+    "Mandatory sales defaults are normalized before package validation and npm publication.",
+    "Internal admin and BackItUp emergency reserves default to Admin/Service-only visibility.",
+    "Authentication remains enabled and the EOS Admin default port remains 8081.",
+    "The compact login, first activation, clickable overview and role-safe services from 7.9.91 are unchanged."
   ],
   "changes": [
-    "Scopes login form styling to the inner card and keeps the rear card compact instead of viewport-high.",
-    "Adds a login-layout regression guard for CSS source/build parity and compact sizing invariants.",
-    "Keeps the narrow passwordless-status endpoint for server-authoritative first-activation button state.",
-    "Keeps direct overview navigation and hard internal-reserve row filtering for Installer and End User.",
-    "Preserves Admin/Service-only expert mode, internal admin and BackItUp reserve access.",
-    "Publishes the stable package through npm latest with exact version and package validation."
+    "Adds a deterministic release-default normalizer that repairs missing canonical native defaults.",
+    "Runs normalization before package checks, stability checks and npm publication.",
+    "Adds an isolated self-test proving that missing or unsafe defaults are corrected.",
+    "Keeps frontend runtime and cache assets unchanged because this release only hardens packaging."
   ],
   "brandingCacheVersion": 91,
   "shellCacheVersion": 91,
   "nativeShellVersion": 91,
   "shellCacheTag": "91",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v91.json"
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v92.json"
 }

@@ -32,10 +32,15 @@ if (prerelease) {
 } else if (pkg.nexowattReleasePolicy?.acceptedPrerelease) {
   fail(`stable package must remove stale acceptedPrerelease ${pkg.nexowattReleasePolicy.acceptedPrerelease}`);
 }
+if (pkg.scripts['prepare:eos-release-defaults'] !== 'node tools/nexowatt-ensure-release-defaults.cjs') fail('release-default preparation script is missing');
+if (pkg.scripts['test:eos-release-defaults'] !== 'node tools/nexowatt-release-defaults-selftest.cjs') fail('release-default selftest script is missing');
 if (pkg.scripts['check:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-guard.cjs') fail('publish channel guard script is missing');
-if (!pkg.scripts.prepublishOnly?.startsWith('npm run check:eos-publish-channel')) fail('prepublishOnly must execute the publish channel guard first');
+if (!pkg.scripts.prepublishOnly?.startsWith('npm run prepare:eos-release-defaults && npm run check:eos-publish-channel')) fail('prepublishOnly must normalize release defaults before the publish channel guard');
+if (pkg.scripts['precheck:eos-package'] !== 'npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-package must normalize release defaults and clean stale runtime files');
+if (pkg.scripts['precheck:eos-stability'] !== 'npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-stability must normalize release defaults and clean stale runtime files');
 if (pkg.scripts['test:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-selftest.cjs') fail('publish channel selftest script is missing');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-publish-channel-selftest.cjs')) fail('stability check must execute the publish channel selftest');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-release-defaults-selftest.cjs')) fail('stability check must execute the release-default selftest');
 if (io.native?.auth !== true) fail('fresh sales installations must default to authenticated access');
 if (io.native?.eosHideLegacyBackupFromNonAdmins !== true) fail('internal BackItUp reserve must default to Admin/Service visibility');
 if (io.native?.nexowattHideLegacyBackupFromNonAdmins !== true) fail('NexoWatt backup visibility compatibility flag must default to true');
@@ -98,10 +103,10 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.91.md',
-  'PUBLISH_STABLE_V7.9.91.md',
-  'INSTALL_TEST_V7.9.91.md',
-  'RELEASE_ACCEPTANCE_V7.9.91.md',
+  'README_STABILITY_V7.9.92.md',
+  'PUBLISH_STABLE_V7.9.92.md',
+  'INSTALL_TEST_V7.9.92.md',
+  'RELEASE_ACCEPTANCE_V7.9.92.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -118,6 +123,8 @@ for (const file of [
   'tools/nexowatt-branding-selftest.cjs',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',
+  'tools/nexowatt-ensure-release-defaults.cjs',
+  'tools/nexowatt-release-defaults-selftest.cjs',
   'tools/nexowatt-default-port-selftest.cjs',
   '.npmrc',
   repositoryEntryFile,
@@ -220,8 +227,6 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-esm-syntax-selftest.
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-import-integrity-selftest.cjs')) fail('import integrity selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-entrypoint-smoke-selftest.cjs')) fail('entrypoint smoke selftest is not part of check:eos-stability');
 if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
-if (pkg.scripts['precheck:eos-package'] !== 'npm run clean:eos-runtime') fail('precheck:eos-package must clean stale runtime files');
-if (pkg.scripts['precheck:eos-stability'] !== 'npm run clean:eos-runtime') fail('precheck:eos-stability must clean stale runtime files');
 if (pkg.scripts.prepack !== 'node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must silently clean stale runtime files');
 if (!pkg.scripts.build?.includes('npm run clean:eos-runtime')) fail('build must finish with runtime cleanup');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest.cjs')) fail('role access selftest is not part of check:eos-stability');
