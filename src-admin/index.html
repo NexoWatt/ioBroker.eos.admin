@@ -1,6 +1,6 @@
 <!doctype html>
 <html
-    lang="en"
+    lang="de"
     translate="no"
     class="eos-native-shell"
 >
@@ -33,13 +33,13 @@
             rel="stylesheet"
             href="css/leaflet.css"
         />
-        <link rel="stylesheet" href="css/nexowatt-native-shell.css?v=86" />
+        <link rel="stylesheet" href="css/nexowatt-native-shell.css?v=87rc2" />
         <link
             rel="manifest"
             href="manifest.json"
             crossorigin="use-credentials"
         />
-        <script src="js/eos-manual-write-policy.js?v=86"></script>
+        <script src="js/eos-manual-write-policy.js?v=87rc2"></script>
         <script>
             const script = document.createElement('script');
 
@@ -182,16 +182,15 @@
         </script>
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>Für NexoWatt EOS muss JavaScript aktiviert sein.</noscript>
         <div id="root"></div>
-        <script
-            type="module"
-            src="src/index.tsx"
-        ></script>
-        <script defer src="js/eos-policy-client.js?v=86"></script>
-        <script defer src="js/nexowatt-native-shell.js?v=86"></script>
-        <script defer src="js/eos-native-security.js?v=86"></script>
-        <script defer src="js/eos-role-ui.js?v=86"></script>
-        <script defer src="js/eos-assistant.js?v=86"></script>
+        <script defer src="js/eos-role-bootstrap.js?v=87rc2" data-eos-entry="src/index.tsx"></script>
+        <script defer src="js/eos-policy-client.js?v=87rc2"></script>
+        <script defer src="js/eos-branding-sanitizer.js?v=87rc2"></script>
+        <script defer src="js/nexowatt-native-shell.js?v=87rc2"></script>
+        <script defer src="js/eos-native-security.js?v=87rc2"></script>
+        <script defer src="js/eos-basic-settings.js?v=87rc2"></script>
+        <script defer src="js/eos-role-ui.js?v=87rc2"></script>
+        <script defer src="js/eos-assistant.js?v=87rc2"></script>
 </body>
 </html>

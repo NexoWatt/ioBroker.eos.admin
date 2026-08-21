@@ -19,13 +19,7 @@ const fileUpload = require("express-fileupload");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-let iobroker_mcp_1;
-try {
-    iobroker_mcp_1 = require("iobroker.mcp");
-}
-catch (error) {
-    iobroker_mcp_1 = null;
-}
+const iobroker_mcp_1 = require("iobroker.mcp");
 let AdapterStore;
 /** Content of a socket-io file */
 let socketIoFile;
@@ -33,6 +27,7 @@ let socketIoFile;
 let uuid;
 const page404 = (0, node_fs_1.readFileSync)(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = (0, node_fs_1.readFileSync)(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
+const EOS_PASSWORD_SERVICE_USER = 'system.user.admin';
 const CORE_PROTECTED_ADAPTER_NAMES = [
     'admin',
     'eos-admin',
@@ -353,62 +348,81 @@ class Web {
             this.adapter.log.error(`Cannot extract file ${fileName}: ${e}`);
         }
     }
-    resetIndexHtml() {
-        this.indexHTML = '';
-    }
-
     normalizeEosGroupId(value) {
-        if (typeof value !== 'string') return null;
+        if (typeof value !== 'string') {
+            return null;
+        }
         let group = value.trim();
-        if (!group) return null;
-        if (!group.startsWith('system.group.')) group = `system.group.${group.replace(/^group\./, '')}`;
-        return /^system\.group\.[a-z0-9_-]+$/i.test(group) ? group : null;
+        if (!group) {
+            return null;
+        }
+        if (!group.startsWith('system.group.')) {
+            group = `system.group.${group.replace(/^group\./, '')}`;
+        }
+        return /^system\.group\.[a-z0-9_.-]+$/i.test(group) ? group : null;
     }
     normalizeEosUserId(value) {
-        if (!value) return null;
-        let user;
-        if (typeof value === 'string') user = value;
-        else if (typeof value === 'object') {
-            const raw = value;
-            user = String(raw.id || raw._id || raw.user || raw.name || '');
+        if (!value) {
+            return null;
         }
-        else user = String(value);
+        let user = typeof value === 'string' ? value : String(value.id || value._id || value.user || value.name || '');
         user = user.trim();
-        if (!user) return null;
-        if (!user.startsWith('system.user.')) user = `system.user.${user.replace(/^user\./, '')}`;
-        return /^system\.user\.[a-z0-9_-]+$/i.test(user) ? user : null;
+        if (!user) {
+            return null;
+        }
+        if (!user.startsWith('system.user.')) {
+            user = `system.user.${user.replace(/^user\./, '')}`;
+        }
+        return /^system\.user\.[a-z0-9_.-]+$/i.test(user) ? user : null;
     }
     normalizeEosAdapterName(value) {
-        if (typeof value !== 'string') return null;
+        if (typeof value !== 'string') {
+            return null;
+        }
         let adapter = value.trim().toLowerCase();
-        if (!adapter) return null;
-        adapter = adapter
-            .replace(/^system\.adapter\./, '')
-            .replace(/^iobroker\./, '')
-            .replace(/^@nexowatt\/iobroker\./, '')
-            .replace(/^@nexowatt\//, '')
-            .replace(/\.\d+$/, '');
+        if (!adapter) {
+            return null;
+        }
+        adapter = adapter.replace(/^system\.adapter\./, '').replace(/^iobroker\./, '').replace(/^@nexowatt\/iobroker\./, '').replace(/^@nexowatt\//, '');
+        adapter = adapter.replace(/\.\d+$/, '');
         return /^[a-z0-9_-]+$/.test(adapter) ? adapter : null;
     }
     getEosSecurityAdminGroups() {
-        const configured = this.settings.eosAdminOnlyGroups || this.settings.eosSecurityAdminGroups || this.settings.eosAdminOnlyGroup;
+        const configured = [
+            this.settings.eosAdminOnlyGroups,
+            this.settings.eosSecurityAdminGroups,
+            this.settings.eosAdminOnlyGroup,
+            this.settings.eosServiceGroups,
+            this.settings.eosNexoWattServiceGroups,
+        ];
         const groups = new Set();
-        const add = value => {
-            if (!value) return;
+        const add = (value) => {
+            if (!value) {
+                return;
+            }
             if (Array.isArray(value)) {
                 value.forEach(add);
                 return;
             }
             if (typeof value === 'object') {
-                if (value.enabled === false) return;
-                add(value.group || value.id || value.name);
+                const row = value;
+                if (row.enabled === false) {
+                    return;
+                }
+                add(row.group || row.id || row.name);
                 return;
             }
             const group = this.normalizeEosGroupId(String(value));
-            if (group) groups.add(group);
+            if (group) {
+                groups.add(group);
+            }
         };
         add(configured);
         groups.add('system.group.administrator');
+        // NexoWatt-specific service groups are full administrator/service roles.
+        // Generic installer/service wording is never enough to grant full access.
+        groups.add('system.group.nexowatt-service');
+        groups.add('system.group.eos-service');
         return [...groups].sort();
     }
     getEosProtectedAdapterNames() {
@@ -416,45 +430,111 @@ class Web {
         // settings so normal installed adapters/instances remain deletable.
         return [...new Set(CORE_PROTECTED_ADAPTER_NAMES)].sort();
     }
+    readAccessTokenFromRequest(req) {
+        const cookieHeader = req.headers.cookie || '';
+        const accessCookie = cookieHeader
+            .split(';')
+            .map(cookie => cookie.trim())
+            .find(cookie => cookie.startsWith('access_token='));
+        let token = accessCookie ? accessCookie.split('=').slice(1).join('=') : '';
+        if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+            token = req.headers.authorization.substring('Bearer '.length);
+        }
+        if (!token && req.query?.token) {
+            token = req.query.token;
+        }
+        if (!token) {
+            return null;
+        }
+        try {
+            token = decodeURIComponent(token);
+        }
+        catch {
+            // keep raw token
+        }
+        token = token.trim();
+        if (token.startsWith('Bearer ')) {
+            token = token.substring('Bearer '.length).trim();
+        }
+        if (token.startsWith('s:')) {
+            token = token.substring(2);
+        }
+        // Express signed cookies are encoded as s:<token>.<signature>. ioBroker tokens are not JWTs.
+        if (token.includes('.') && !token.startsWith('eyJ')) {
+            token = token.substring(0, token.indexOf('.'));
+        }
+        return token || null;
+    }
+    readSession(id) {
+        return new Promise(resolve => this.adapter.getSession(id, token => resolve(token)));
+    }
+    async readEosCurrentUser(req) {
+        const requestUser = req.user;
+        const fromRequest = this.normalizeEosUserId(requestUser);
+        if (fromRequest) {
+            return fromRequest;
+        }
+        if (!this.settings.auth) {
+            return this.normalizeEosUserId(this.settings.defaultUser) || 'system.user.admin';
+        }
+        const token = this.readAccessTokenFromRequest(req);
+        if (!token) {
+            return null;
+        }
+        const candidates = new Set();
+        candidates.add(token);
+        candidates.add(token.startsWith('a:') ? token : `a:${token}`);
+        if (token.length > 1) {
+            candidates.add(`a:${token[1]}`);
+        }
+        for (const id of candidates) {
+            const session = await this.readSession(id).catch(() => null);
+            const user = this.normalizeEosUserId(session?.user);
+            if (user) {
+                return user;
+            }
+        }
+        return null;
+    }
     getEosConfiguredRoleGroups(...keys) {
         const groups = new Set();
-        const add = value => {
-            if (!value) return;
+        const add = (value) => {
+            if (!value) {
+                return;
+            }
             if (Array.isArray(value)) {
                 value.forEach(add);
                 return;
             }
             if (typeof value === 'object') {
-                if (value.enabled === false) return;
-                add(value.group || value.id || value.name);
+                const row = value;
+                if (row.enabled === false) {
+                    return;
+                }
+                add(row.group || row.id || row.name);
                 return;
             }
             const group = this.normalizeEosGroupId(String(value));
-            if (group) groups.add(group);
+            if (group) {
+                groups.add(group);
+            }
         };
-        const settings = this.settings || {};
+        const settings = this.settings;
         keys.forEach(key => add(settings[key]));
         return [...groups].sort();
     }
     getEosInstallerGroups() {
-        const groups = new Set(this.getEosConfiguredRoleGroups(
-            'eosInstallerGroups',
-            'eosInstallateurGroups',
-            'eosServiceGroups',
-        ));
+        const groups = new Set(this.getEosConfiguredRoleGroups('eosInstallerGroups', 'eosInstallateurGroups', 'eosCommissioningGroups'));
         groups.add('system.group.installateur');
         groups.add('system.group.installateure');
         groups.add('system.group.installer');
-        groups.add('system.group.service');
         groups.add('system.group.techniker');
+        groups.add('system.group.inbetriebnahme');
+        groups.add('system.group.integrator');
         return [...groups].sort();
     }
     getEosEndUserGroups() {
-        const groups = new Set(this.getEosConfiguredRoleGroups(
-            'eosEndUserGroups',
-            'eosEndkundeGroups',
-            'eosCustomerGroups',
-        ));
+        const groups = new Set(this.getEosConfiguredRoleGroups('eosEndUserGroups', 'eosEndkundeGroups', 'eosCustomerGroups'));
         groups.add('system.group.endkunde');
         groups.add('system.group.endkunden');
         groups.add('system.group.kunde');
@@ -464,8 +544,12 @@ class Web {
         return [...groups].sort();
     }
     getTranslatedName(value) {
-        if (!value) return '';
-        if (typeof value === 'string') return value;
+        if (!value) {
+            return '';
+        }
+        if (typeof value === 'string') {
+            return value;
+        }
         return String(value.de || value.en || Object.values(value)[0] || '');
     }
     async getEosGroupDetailsForUser(userId) {
@@ -477,7 +561,7 @@ class Web {
                 include_docs: true,
             });
             for (const row of result.rows) {
-                const group = row.doc || row.value;
+                const group = (row.doc || row.value);
                 const members = Array.isArray(group?.common?.members) ? group.common.members : [];
                 if (members.includes(userId)) {
                     groups.push({
@@ -518,71 +602,334 @@ class Web {
             return 'enduser';
         }
         const roleText = [...groups, ...groupNames].map(value => this.normalizeEosRoleText(value)).join(' ');
-        if (/(^| )(installateur|installateure|installer|installation|service|servicetechniker|techniker|technician|integrator|partner|wartung|maintenance)( |$)/i.test(roleText)) {
+        if (/(^| )(nexowatt service|eos service|service admin|service administrator)( |$)/i.test(roleText)) {
+            return 'admin';
+        }
+        if (/(^| )(installateur|installateure|installer|installation|inbetriebnahme|techniker|technician|integrator|partner)( |$)/i.test(roleText)) {
             return 'installer';
         }
         if (/(^| )(endkunde|endkunden|kunde|kunden|customer|customers|bediener|operator|viewer|nutzer|benutzer)( |$)/i.test(roleText)) {
             return 'enduser';
         }
+        // Secure default: a normal authenticated, non-admin ioBroker user is an EOS end user.
         return 'enduser';
     }
-    readAccessTokenFromRequest(req) {
-        const cookieHeader = req.headers.cookie || '';
-        const accessCookie = cookieHeader
-            .split(';')
-            .map(cookie => cookie.trim())
-            .find(cookie => cookie.startsWith('access_token='));
-        let token = accessCookie ? accessCookie.split('=').slice(1).join('=') : '';
-        if (!token && req.headers.authorization?.startsWith('Bearer ')) token = req.headers.authorization.substring('Bearer '.length);
-        if (!token && req.query?.token) token = req.query.token;
-        if (!token) return null;
-        try {
-            token = decodeURIComponent(token);
-        }
-        catch {
-            // keep raw token
-        }
-        token = token.trim();
-        if (token.startsWith('Bearer ')) token = token.substring('Bearer '.length).trim();
-        if (token.startsWith('s:')) token = token.substring(2);
-        if (token.includes('.') && !token.startsWith('eyJ')) token = token.substring(0, token.indexOf('.'));
-        return token || null;
-    }
-
-    readSession(id) {
-        return new Promise(resolve => this.adapter.getSession(id, token => resolve(token)));
-    }
-    async readEosCurrentUser(req) {
-        const fromRequest = this.normalizeEosUserId(req.user);
-        if (fromRequest) return fromRequest;
-        if (!this.settings.auth) return this.normalizeEosUserId(this.settings.defaultUser) || 'system.user.admin';
-        const token = this.readAccessTokenFromRequest(req);
-        if (!token) return null;
-        const candidates = new Set();
-        candidates.add(token);
-        candidates.add(token.startsWith('a:') ? token : `a:${token}`);
-        if (token.length > 1) candidates.add(`a:${token[1]}`);
-        for (const id of candidates) {
-            const session = await this.readSession(id).catch(() => null);
-            const user = this.normalizeEosUserId(session?.user);
-            if (user) return user;
-        }
-        return null;
-    }
-    async sendEosSecuritySession(req, res) {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    async getEosRequestAccess(req) {
         const userId = await this.readEosCurrentUser(req);
         const groupDetails = userId ? await this.getEosGroupDetailsForUser(userId) : [];
         const groups = groupDetails.map(group => group.id);
         const groupNames = groupDetails.flatMap(group => [group.name, group.desc]).filter(Boolean);
         const adminGroups = this.getEosSecurityAdminGroups();
         const role = this.resolveEosRole(userId, groups, groupNames, adminGroups);
+        return { userId, groupDetails, groups, groupNames, adminGroups, role };
+    }
+    getEosRoleCapabilities(role) {
+        const technical = role === 'admin' || role === 'installer';
+        return {
+            smartHome: true,
+            commissioning: technical,
+            troubleshooting: technical,
+            adapterManagement: technical,
+            instanceManagement: technical,
+            objectDiagnostics: technical,
+            logDiagnostics: technical,
+            basicSystemSettings: technical,
+            fullSystemSettings: role === 'admin',
+            expertMode: role === 'admin',
+            userManagement: role === 'admin',
+            securityAdministration: role === 'admin',
+        };
+    }
+    getEosFirstLoginPasswordMinLength() {
+        const configured = Number(this.settings.eosFirstLoginPasswordMinLength);
+        if (!Number.isInteger(configured) || configured < 8 || configured > 64) {
+            return 10;
+        }
+        return configured;
+    }
+    async getEosFirstLoginPasswordState(userId, role) {
+        const minLength = this.getEosFirstLoginPasswordMinLength();
+        if (!this.settings.auth
+            || !userId
+            || role === 'admin'
+            || this.settings.eosRequireFirstLoginPassword === false) {
+            return { required: false, initialized: true, minLength, version: 1 };
+        }
+        try {
+            const userObject = (await this.adapter.getForeignObjectAsync(userId));
+            const native = (userObject?.native || {});
+            const account = (native.nexowattEosAccount || {});
+            const initialized = account.passwordInitialized === true
+                || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
+            const forced = account.forcePasswordChange === true;
+            return { required: forced || !initialized, initialized: initialized && !forced, minLength, version: 1 };
+        }
+        catch (e) {
+            this.adapter.log.warn(`Cannot read EOS first-login state for ${userId}: ${e instanceof Error ? e.message : e}`);
+            // Fail closed for non-admin accounts: do not grant the full UI while the account
+            // initialization state cannot be verified.
+            return { required: true, initialized: false, minLength, version: 1 };
+        }
+    }
+    validateEosFirstLoginPassword(password, passwordRepeat, userId) {
+        const value = typeof password === 'string' ? password : '';
+        const repeat = typeof passwordRepeat === 'string' ? passwordRepeat : '';
+        const minLength = this.getEosFirstLoginPasswordMinLength();
+        if (!value || !repeat) {
+            return { valid: false, error: 'passwordRequired' };
+        }
+        if (value !== repeat) {
+            return { valid: false, error: 'passwordMismatch' };
+        }
+        if (value.length < minLength || value.length > 128) {
+            return { valid: false, error: 'passwordLength' };
+        }
+        if (!/[a-z]/.test(value) || !/[A-Z]/.test(value) || !/\d/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
+            return { valid: false, error: 'passwordComplexity' };
+        }
+        const normalized = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const userName = userId.replace(/^system\.user\./, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (['password', 'passwort', 'nexowatt', 'installer', 'installateur', 'endkunde', 'administrator', '12345678', '1234567890'].includes(normalized)
+            || (userName.length >= 4 && normalized.includes(userName))) {
+            return { valid: false, error: 'passwordTooEasy' };
+        }
+        return { valid: true, password: value };
+    }
+    async setEosUserPassword(userId, password) {
+        // The authenticated route is strictly self-service: the target user comes from the current
+        // session and cannot be supplied by the browser. Use the trusted EOS service context for the
+        // actual password write so installer/end-user groups do not need global users.write rights.
+        const options = { user: EOS_PASSWORD_SERVICE_USER };
+        if (typeof this.adapter.setPasswordAsync === 'function') {
+            await this.adapter.setPasswordAsync(userId, password, options);
+            return;
+        }
+        if (typeof this.adapter.setPassword === 'function') {
+            await new Promise((resolve, reject) => {
+                this.adapter.setPassword?.(userId, password, options, error => (error ? reject(error) : resolve()));
+            });
+            return;
+        }
+        throw new Error('passwordApiUnavailable');
+    }
+    async destroyEosRequestSessions(req) {
+        const token = this.readAccessTokenFromRequest(req);
+        if (!token || typeof this.adapter.destroySession !== 'function') {
+            return;
+        }
+        // Depending on the authentication path, the same session can be addressed by the raw
+        // token or by the adapter-session prefix. Remove every supported representation so a
+        // password change cannot leave the old authenticated browser session active.
+        const sessionIds = new Set([token, token.startsWith('a:') ? token : `a:${token}`]);
+        if (token.length > 1) {
+            sessionIds.add(`a:${token[1]}`);
+        }
+        await Promise.all([...sessionIds].map(async (id) => {
+            try {
+                await this.adapter.destroySession(id);
+            }
+            catch (e) {
+                this.adapter.log.debug(`Cannot destroy EOS first-login session ${id}: ${e instanceof Error ? e.message : e}`);
+            }
+        }));
+    }
+    async saveEosFirstLoginPassword(req, res) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (!access.userId || access.role === 'admin') {
+            res.status(403).json({ error: 'passwordSetupNotAllowed' });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req) || req.headers['x-nexowatt-eos-first-login'] !== '1') {
+            res.status(403).json({ error: 'invalidRequestOrigin' });
+            return;
+        }
+        const passwordState = await this.getEosFirstLoginPasswordState(access.userId, access.role);
+        if (!passwordState.required) {
+            res.status(200).json({ success: true, alreadyInitialized: true });
+            return;
+        }
+        const body = (req.body || {});
+        const validation = this.validateEosFirstLoginPassword(body.password, body.passwordRepeat, access.userId);
+        if (!validation.valid) {
+            res.status(400).json({
+                error: validation.error,
+                minLength: passwordState.minLength,
+            });
+            return;
+        }
+        await this.setEosUserPassword(access.userId, validation.password);
+        const userObject = (await this.adapter.getForeignObjectAsync(access.userId));
+        if (!userObject) {
+            throw new Error('userObjectUnavailableAfterPasswordChange');
+        }
+        const native = (userObject.native ||= {});
+        const account = (native.nexowattEosAccount ||= {});
+        const now = new Date().toISOString();
+        account.passwordInitialized = true;
+        account.passwordInitializedAt = Date.now();
+        account.passwordInitializationVersion = 1;
+        account.passwordInitializedBy = 'self';
+        account.passwordSetupVersion = 1;
+        account.passwordSetAt = now;
+        account.firstLoginCompletedAt = now;
+        account.forcePasswordChange = false;
+        await this.adapter.setForeignObjectAsync(access.userId, userObject);
+        await this.destroyEosRequestSessions(req);
+        for (const cookie of ['access_token', 'refresh_token', 'connect.sid']) {
+            res.clearCookie(cookie);
+        }
+        this.adapter.log.info(`EOS first-login password initialized for ${access.userId}`);
+        res.status(200).json({ success: true, role: access.role, logoutRequired: true, sessionInvalidated: true });
+    }
+    async getEosHistoryInstances() {
+        try {
+            const instances = await this.adapter.getObjectViewAsync('system', 'instance', {
+                startkey: 'system.adapter.',
+                endkey: 'system.adapter.香',
+            });
+            return (instances.rows || [])
+                .map(row => row.value)
+                .filter(instance => !!instance?.common?.getHistory)
+                .map(instance => instance._id.replace(/^system\.adapter\./, ''))
+                .sort();
+        }
+        catch (e) {
+            this.adapter.log.debug(`Cannot read history instances for EOS basic settings: ${e instanceof Error ? e.message : e}`);
+            return [];
+        }
+    }
+    async sendEosBasicSettings(req, res) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'installer' && access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError', role: access.role });
+            return;
+        }
+        const systemConfig = (await this.adapter.getForeignObjectAsync('system.config'));
+        const common = systemConfig?.common || {};
+        const histories = await this.getEosHistoryInstances();
+        res.status(200).json({
+            role: access.role,
+            editable: access.role === 'installer' || access.role === 'admin',
+            settings: {
+                siteName: common.siteName || '',
+                language: common.language || 'de',
+                tempUnit: common.tempUnit || '°C',
+                currency: common.currency || '€',
+                dateFormat: common.dateFormat || 'DD.MM.YYYY',
+                isFloatComma: common.isFloatComma !== false,
+                defaultHistory: common.defaultHistory || '',
+                defaultLogLevel: common.defaultLogLevel || 'info',
+                firstDayOfWeek: common.firstDayOfWeek || 'monday',
+                country: common.country || '',
+                city: common.city || '',
+                latitude: Number(common.latitude || 0),
+                longitude: Number(common.longitude || 0),
+            },
+            options: {
+                languages: ['de', 'en', 'nl', 'fr', 'it', 'es', 'pl', 'pt', 'ru', 'uk', 'zh-cn'],
+                tempUnits: ['°C', '°F'],
+                dateFormats: ['DD.MM.YYYY', 'YYYY.MM.DD', 'MM/DD/YYYY'],
+                firstDaysOfWeek: ['monday', 'sunday'],
+                logLevels: ['debug', 'info', 'warn', 'error'],
+                histories: ['', ...histories],
+            },
+            hiddenAdminAreas: [
+                'repositories',
+                'licenses',
+                'certificates',
+                'credentials',
+                'letsEncrypt',
+                'defaultAcl',
+                'expertMode',
+            ],
+        });
+    }
+    isEosSameOriginWrite(req) {
+        const origin = String(req.headers.origin || '').trim();
+        if (!origin) {
+            return true;
+        }
+        const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+        const protocol = forwardedProto || (this.settings.secure ? 'https' : 'http');
+        const host = String(req.headers.host || '').trim();
+        return !!host && origin === `${protocol}://${host}`;
+    }
+    async saveEosBasicSettings(req, res) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'installer' && access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError', role: access.role });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req) || req.headers['x-nexowatt-eos-role-settings'] !== '1') {
+            res.status(403).json({ error: 'invalidRequestOrigin' });
+            return;
+        }
+        const input = (req.body?.settings || req.body || {});
+        const systemConfig = (await this.adapter.getForeignObjectAsync('system.config'));
+        if (!systemConfig?.common) {
+            res.status(503).json({ error: 'systemConfigUnavailable' });
+            return;
+        }
+        const next = { ...systemConfig, common: { ...systemConfig.common } };
+        const common = next.common;
+        const setString = (key, maxLength, allowed) => {
+            if (!(key in input)) {
+                return;
+            }
+            const value = String(input[key] ?? '').trim().slice(0, maxLength);
+            if (!allowed || allowed.includes(value)) {
+                common[key] = value;
+            }
+        };
+        const setCoordinate = (key, min, max) => {
+            if (!(key in input)) {
+                return;
+            }
+            const value = Number(input[key]);
+            if (Number.isFinite(value) && value >= min && value <= max) {
+                common[key] = value;
+            }
+        };
+        setString('siteName', 120);
+        setString('language', 8, ['de', 'en', 'nl', 'fr', 'it', 'es', 'pl', 'pt', 'ru', 'uk', 'zh-cn']);
+        setString('tempUnit', 3, ['°C', '°F']);
+        setString('currency', 8);
+        setString('dateFormat', 16, ['DD.MM.YYYY', 'YYYY.MM.DD', 'MM/DD/YYYY']);
+        if ('isFloatComma' in input) {
+            common.isFloatComma = input.isFloatComma === true || input.isFloatComma === 'true' || input.isFloatComma === 1;
+        }
+        const histories = await this.getEosHistoryInstances();
+        setString('defaultHistory', 100, ['', ...histories]);
+        setString('defaultLogLevel', 8, ['debug', 'info', 'warn', 'error']);
+        setString('firstDayOfWeek', 8, ['monday', 'sunday']);
+        setString('country', 3);
+        setString('city', 120);
+        setCoordinate('latitude', -90, 90);
+        setCoordinate('longitude', -180, 180);
+        // Explicitly ignore every privilege/security field even if a manipulated browser submits it.
+        delete common.expertMode;
+        common.expertMode = systemConfig.common.expertMode === true;
+        common.activeRepo = systemConfig.common.activeRepo;
+        common.defaultNewAcl = systemConfig.common.defaultNewAcl;
+        await this.adapter.setForeignObjectAsync('system.config', next);
+        this.adapter.log.info(`EOS installer basic settings updated by ${access.userId || 'unknown user'}`);
+        await this.sendEosBasicSettings(req, res);
+    }
+    async sendEosSecuritySession(req, res) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        const { userId, groups, groupNames, adminGroups, role } = await this.getEosRequestAccess(req);
+        const passwordSetup = await this.getEosFirstLoginPasswordState(userId, role);
         const isAdministrator = role === 'admin' && (userId === 'system.user.admin' || groups.includes('system.group.administrator'));
         const isEosAdminGroup = role === 'admin';
         const isInstaller = role === 'installer';
         const isEndUser = role === 'enduser';
+        const authenticated = !this.settings.auth || !!userId;
         res.status(200).json({
+            authenticated,
             user: userId,
             groups,
             groupNames,
@@ -595,6 +942,9 @@ class Web {
             isInstaller,
             isEndUser,
             isAdmin: isEosAdminGroup,
+            mustChangePassword: passwordSetup.required,
+            passwordSetup: { ...passwordSetup, userName: userId?.replace(/^system\.user\./, '') || '' },
+            capabilities: this.getEosRoleCapabilities(role),
             hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false,
@@ -603,8 +953,60 @@ class Web {
             protectedAdapters: this.getEosProtectedAdapterNames(),
         });
     }
-
-
+    resetIndexHtml() {
+        this.indexHTML = '';
+    }
+    extractAccessToken(req) {
+        const cookies = req.headers.cookie?.split(';').find(c => c.trim().startsWith('access_token='));
+        let tokenCookie = cookies?.split('=')[1] || null;
+        if (!tokenCookie && req.headers.authorization?.startsWith('Bearer ')) {
+            tokenCookie = req.headers.authorization.split(' ')[1];
+        }
+        else if (!tokenCookie && req.query?.token) {
+            tokenCookie = req.query.token;
+        }
+        return tokenCookie || null;
+    }
+    async getSessionUser(req) {
+        return this.readEosCurrentUser(req);
+    }
+    async getGroupsForUser(userId) {
+        if (!userId) {
+            return [];
+        }
+        try {
+            const groups = await this.adapter.getForeignObjectsAsync('system.group.*', 'group');
+            return Object.values(groups || {})
+                .filter(group => Array.isArray(group?.common?.members) && group.common.members.includes(userId))
+                .map(group => group._id)
+                .filter((id) => !!id);
+        }
+        catch (e) {
+            this.adapter.log.debug(`Cannot read groups for NexoWatt security context: ${e.message}`);
+            return [];
+        }
+    }
+    async getNexowattSecurityContext(req) {
+        const user = await this.getSessionUser(req);
+        const groups = await this.getGroupsForUser(user);
+        const adminOnlyGroups = Array.isArray(this.adapter.config.eosAdminOnlyGroups)
+            ? this.adapter.config.eosAdminOnlyGroups
+                .filter((entry) => entry && entry.enabled !== false)
+                .map((entry) => String(entry.group || entry.id || entry.name || '').trim())
+                .filter((group) => !!group)
+                .map((group) => group.startsWith('system.group.') ? group : `system.group.${group.replace(/^group\./, '')}`)
+            : ['system.group.administrator'];
+        const isAdminGroup = user === 'system.user.admin' || adminOnlyGroups.some((group) => groups.includes(group));
+        const hideLegacyAdmin = this.adapter.config.eosHideLegacyAdminForNonAdmins !== false && !isAdminGroup;
+        return {
+            user,
+            groups,
+            adminOnlyGroups,
+            isAdminGroup,
+            hideLegacyAdmin,
+            protectedAdapters: this.getEosProtectedAdapterNames(),
+        };
+    }
     getSafeLoginOrigin(req) {
         let origin = '';
         try {
@@ -625,7 +1027,8 @@ class Web {
             // keep raw value and validate below
         }
         origin = String(origin || '').trim();
-        // Reject encoded hashes/login/logout/404 and hard-timeout parameters.
+        // Reject encoded hashes/login/logout/404 and hard-timeout parameters. The old logic
+        // generated paths such as /%2F%23tab-adapters&hard=1/index.html?login.
         if (!origin || /(?:%2f|%23|#|login|logout|404|hard=|undefined|null)/i.test(origin)) {
             return null;
         }
@@ -654,7 +1057,6 @@ class Web {
         }
         return origin.replace(/\/+$/, '') || null;
     }
-
     /**
      * Initialize the server
      */
@@ -662,8 +1064,7 @@ class Web {
         if (this.settings.port) {
             this.server.app = express();
             this.server.app.use(compression());
-            const ttl = Math.round(Number(this.settings.ttl));
-            this.settings.ttl = Number.isFinite(ttl) && ttl >= 120 ? Math.min(ttl, 31_536_000) : 3_600;
+            this.settings.ttl = Math.round(Number(this.settings.ttl)) || 3_600;
             this.settings.accessAllowedConfigs ||= [];
             this.settings.accessAllowedTabs ||= [];
             this.server.app.disable('x-powered-by');
@@ -800,19 +1201,31 @@ class Web {
                 this.server.app.get(/.*\/nexowatt\/security\/(?:context|session)$/, (req, res) => {
                     void this.sendEosSecuritySession(req, res).catch(e => {
                         this.adapter.log.warn(`Cannot create NexoWatt security context: ${e instanceof Error ? e.message : e}`);
-                        res.status(200).json({
+                        res.status(503).json({
+                            error: 'EOS security context temporarily unavailable',
+                            transient: true,
+                            authenticated: false,
                             user: null,
                             groups: [],
                             groupNames: [],
                             adminGroups: ['system.group.administrator'],
                             installerGroups: this.getEosInstallerGroups(),
                             endUserGroups: this.getEosEndUserGroups(),
-                            role: 'enduser',
+                            role: 'unknown',
                             isAdministrator: false,
                             isEosAdminGroup: false,
                             isInstaller: false,
-                            isEndUser: true,
+                            isEndUser: false,
                             isAdmin: false,
+                            mustChangePassword: false,
+                            passwordSetup: {
+                                required: false,
+                                initialized: false,
+                                minLength: this.getEosFirstLoginPasswordMinLength(),
+                                version: 1,
+                                userName: '',
+                            },
+                            capabilities: {},
                             hideLegacyAdminForNonAdmins: true,
                             hideLegacyAdminFromNonAdmins: true,
                             restrictProtectedAdapterControls: true,
@@ -820,13 +1233,15 @@ class Web {
                         });
                     });
                 });
-
                 this.server.app.get('/logout', (req, res) => {
                     const isDev = req.url.includes('?dev');
                     const origin = this.getSafeLoginOrigin(req);
+                    // v36: normal logout; remove known auth cookies before redirecting.
                     for (const cookieName of ['access_token', 'refresh_token', 'connect.sid', 'io', 'ioBroker.sid', 'eos-admin.sid']) {
                         res.clearCookie(cookieName, { path: '/' });
                     }
+                    const sessionReq = req;
+                    sessionReq.session?.destroy?.(() => undefined);
                     if (isDev) {
                         res.redirect('http://127.0.0.1:3000/index.html?login');
                     }
@@ -898,14 +1313,34 @@ class Web {
                     res.status(503).json({
                         error: 'EOS security context temporarily unavailable',
                         transient: true,
+                        authenticated: false,
+                        user: null,
                         role: 'unknown',
+                        mustChangePassword: false,
                     });
                 });
             };
             this.server.app.get('/eos/security/status', sendSecuritySession);
             this.server.app.get('/nexowatt/security/session', sendSecuritySession);
             this.server.app.get('/nexowatt/security/context', sendSecuritySession);
-
+            this.server.app.get('/nexowatt/role-settings/basic', (req, res) => {
+                void this.sendEosBasicSettings(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot read EOS basic settings: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'basicSettingsReadFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/role-settings/basic', (req, res) => {
+                void this.saveEosBasicSettings(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot save EOS basic settings: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'basicSettingsSaveFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/account/first-password', (req, res) => {
+                void this.saveEosFirstLoginPassword(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot initialize EOS first-login password: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'passwordSetupFailed' });
+                });
+            });
             this.server.app.get('/iobroker_check.html', (_req, res) => {
                 res.status(200).send('ioBroker');
             });
@@ -1453,7 +1888,7 @@ class Web {
             });
             this.settings.port = parseInt(this.settings.port, 10) || 8081;
             serverPort = this.settings.port;
-            if (!this.settings.disableMcp && iobroker_mcp_1?.McpServer) {
+            if (!this.settings.disableMcp) {
                 // Start MCP server
                 this.mcpServer = new iobroker_mcp_1.McpServer(this.server.server, {
                     defaultUser: this.settings.defaultUser,
@@ -1470,9 +1905,6 @@ class Web {
                         language: systemConfig.common.language,
                     },
                 }, this.server.app);
-            }
-            else if (!this.settings.disableMcp) {
-                this.adapter.log.warn('EOS MCP server disabled because optional dependency "iobroker.mcp" is not installed.');
             }
             this.adapter.getPort(this.settings.port, !this.settings.bind || this.settings.bind === '0.0.0.0' ? undefined : this.settings.bind || undefined, port => {
                 serverPort = port;
@@ -1507,7 +1939,7 @@ class Web {
                     }
                 });
                 if (typeof this.onReady === 'function') {
-                    this.onReady(this.server.server, this.store, this.adapter);
+                    void Promise.resolve(this.onReady(this.server.server, this.store, this.adapter)).catch(e => this.adapter.log.error(`Cannot finish EOS webserver startup: ${e instanceof Error ? e.message : e}`));
                 }
             });
         }

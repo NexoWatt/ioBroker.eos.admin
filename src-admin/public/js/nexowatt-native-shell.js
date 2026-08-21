@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v86-nexowatt-native-shell-brand-dark-logo-dpwrite';
+    const VERSION = 'v87-nexowatt-native-shell-role-access';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();

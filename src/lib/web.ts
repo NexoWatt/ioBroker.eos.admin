@@ -32,6 +32,7 @@ let socketIoFile: false | string;
 let uuid: string;
 const page404 = readFileSync(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = readFileSync(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
+const EOS_PASSWORD_SERVICE_USER = 'system.user.admin' as ioBroker.ObjectIDs.User;
 const CORE_PROTECTED_ADAPTER_NAMES = [
     'admin',
     'eos-admin',
@@ -153,6 +154,13 @@ interface WebOptions {
 
 interface AdminAdapter extends ioBroker.Adapter {
     secret: string;
+    setPasswordAsync?: (user: string, password: string, options?: { user?: ioBroker.ObjectIDs.User }) => Promise<void>;
+    setPassword?: (
+        user: string,
+        password: string,
+        options: { user?: ioBroker.ObjectIDs.User },
+        callback: (error?: Error | null) => void,
+    ) => void;
     config: AdminAdapterConfig;
     getSession: (id: string, callback: (token?: InternalStorageToken | null) => void) => void;
     getObjectViewAsync: (design: string, search: string, params: ioBroker.GetObjectViewParams) => Promise<ioBroker.GetObjectViewResult>;
@@ -192,7 +200,7 @@ export default class Web {
         server: Server & { __server: { app: null | Express; server: null | Server } },
         store: Store,
         adapter: AdminAdapter,
-    ) => void;
+    ) => void | Promise<void>;
     private systemLanguage: ioBroker.Languages;
     private checkTimeout: ioBroker.Timeout;
     private oauth2Model: OAuth2Model;
@@ -213,7 +221,7 @@ export default class Web {
             server: Server & { __server: { app: null | Express; server: null | Server } },
             store: Store,
             adapter: AdminAdapter,
-        ) => void,
+        ) => void | Promise<void>,
         options: WebOptions,
     ) {
         this.settings = settings;
@@ -479,7 +487,13 @@ export default class Web {
     }
 
     private getEosSecurityAdminGroups(): string[] {
-        const configured = this.settings.eosAdminOnlyGroups || this.settings.eosSecurityAdminGroups;
+        const configured = [
+            this.settings.eosAdminOnlyGroups,
+            this.settings.eosSecurityAdminGroups,
+            this.settings.eosAdminOnlyGroup,
+            this.settings.eosServiceGroups,
+            this.settings.eosNexoWattServiceGroups,
+        ];
         const groups = new Set<string>();
         const add = (value: unknown): void => {
             if (!value) {
@@ -504,6 +518,10 @@ export default class Web {
         };
         add(configured);
         groups.add('system.group.administrator');
+        // NexoWatt-specific service groups are full administrator/service roles.
+        // Generic installer/service wording is never enough to grant full access.
+        groups.add('system.group.nexowatt-service');
+        groups.add('system.group.eos-service');
         return [...groups].sort();
     }
 
@@ -615,13 +633,14 @@ export default class Web {
         const groups = new Set<string>(this.getEosConfiguredRoleGroups(
             'eosInstallerGroups',
             'eosInstallateurGroups',
-            'eosServiceGroups',
+            'eosCommissioningGroups',
         ));
         groups.add('system.group.installateur');
         groups.add('system.group.installateure');
         groups.add('system.group.installer');
-        groups.add('system.group.service');
         groups.add('system.group.techniker');
+        groups.add('system.group.inbetriebnahme');
+        groups.add('system.group.integrator');
         return [...groups].sort();
     }
 
@@ -710,7 +729,10 @@ export default class Web {
         }
 
         const roleText = [...groups, ...groupNames].map(value => this.normalizeEosRoleText(value)).join(' ');
-        if (/(^| )(installateur|installateure|installer|installation|service|servicetechniker|techniker|technician|integrator|partner|wartung|maintenance)( |$)/i.test(roleText)) {
+        if (/(^| )(nexowatt service|eos service|service admin|service administrator)( |$)/i.test(roleText)) {
+            return 'admin';
+        }
+        if (/(^| )(installateur|installateure|installer|installation|inbetriebnahme|techniker|technician|integrator|partner)( |$)/i.test(roleText)) {
             return 'installer';
         }
         if (/(^| )(endkunde|endkunden|kunde|kunden|customer|customers|bediener|operator|viewer|nutzer|benutzer)( |$)/i.test(roleText)) {
@@ -721,22 +743,370 @@ export default class Web {
         return 'enduser';
     }
 
-    private async sendEosSecuritySession(req: Request, res: Response): Promise<void> {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-
+    private async getEosRequestAccess(req: Request): Promise<{
+        userId: string | null;
+        groupDetails: { id: string; name: string; desc: string }[];
+        groups: string[];
+        groupNames: string[];
+        adminGroups: string[];
+        role: 'admin' | 'installer' | 'enduser';
+    }> {
         const userId = await this.readEosCurrentUser(req);
         const groupDetails = userId ? await this.getEosGroupDetailsForUser(userId) : [];
         const groups = groupDetails.map(group => group.id);
         const groupNames = groupDetails.flatMap(group => [group.name, group.desc]).filter(Boolean);
         const adminGroups = this.getEosSecurityAdminGroups();
         const role = this.resolveEosRole(userId, groups, groupNames, adminGroups);
+        return { userId, groupDetails, groups, groupNames, adminGroups, role };
+    }
+
+    private getEosRoleCapabilities(role: 'admin' | 'installer' | 'enduser'): Record<string, boolean> {
+        const technical = role === 'admin' || role === 'installer';
+        return {
+            smartHome: true,
+            commissioning: technical,
+            troubleshooting: technical,
+            adapterManagement: technical,
+            instanceManagement: technical,
+            objectDiagnostics: technical,
+            logDiagnostics: technical,
+            basicSystemSettings: technical,
+            fullSystemSettings: role === 'admin',
+            expertMode: role === 'admin',
+            userManagement: role === 'admin',
+            securityAdministration: role === 'admin',
+        };
+    }
+
+
+    private getEosFirstLoginPasswordMinLength(): number {
+        const configured = Number((this.settings as Record<string, unknown>).eosFirstLoginPasswordMinLength);
+        if (!Number.isInteger(configured) || configured < 8 || configured > 64) {
+            return 10;
+        }
+        return configured;
+    }
+
+    private async getEosFirstLoginPasswordState(
+        userId: string | null,
+        role: 'admin' | 'installer' | 'enduser',
+    ): Promise<{ required: boolean; initialized: boolean; minLength: number; version: number }> {
+        const minLength = this.getEosFirstLoginPasswordMinLength();
+        if (
+            !this.settings.auth
+            || !userId
+            || role === 'admin'
+            || (this.settings as Record<string, unknown>).eosRequireFirstLoginPassword === false
+        ) {
+            return { required: false, initialized: true, minLength, version: 1 };
+        }
+
+        try {
+            const userObject = (await this.adapter.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+            const native = (userObject?.native || {}) as Record<string, unknown>;
+            const account = (native.nexowattEosAccount || {}) as Record<string, unknown>;
+            const initialized = account.passwordInitialized === true
+                || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
+            const forced = account.forcePasswordChange === true;
+            return { required: forced || !initialized, initialized: initialized && !forced, minLength, version: 1 };
+        } catch (e) {
+            this.adapter.log.warn(
+                `Cannot read EOS first-login state for ${userId}: ${e instanceof Error ? e.message : e}`,
+            );
+            // Fail closed for non-admin accounts: do not grant the full UI while the account
+            // initialization state cannot be verified.
+            return { required: true, initialized: false, minLength, version: 1 };
+        }
+    }
+
+    private validateEosFirstLoginPassword(
+        password: unknown,
+        passwordRepeat: unknown,
+        userId: string,
+    ): { valid: true; password: string } | { valid: false; error: string } {
+        const value = typeof password === 'string' ? password : '';
+        const repeat = typeof passwordRepeat === 'string' ? passwordRepeat : '';
+        const minLength = this.getEosFirstLoginPasswordMinLength();
+        if (!value || !repeat) {
+            return { valid: false, error: 'passwordRequired' };
+        }
+        if (value !== repeat) {
+            return { valid: false, error: 'passwordMismatch' };
+        }
+        if (value.length < minLength || value.length > 128) {
+            return { valid: false, error: 'passwordLength' };
+        }
+        if (!/[a-z]/.test(value) || !/[A-Z]/.test(value) || !/\d/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
+            return { valid: false, error: 'passwordComplexity' };
+        }
+        const normalized = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const userName = userId.replace(/^system\.user\./, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (
+            ['password', 'passwort', 'nexowatt', 'installer', 'installateur', 'endkunde', 'administrator', '12345678', '1234567890'].includes(normalized)
+            || (userName.length >= 4 && normalized.includes(userName))
+        ) {
+            return { valid: false, error: 'passwordTooEasy' };
+        }
+        return { valid: true, password: value };
+    }
+
+    private async setEosUserPassword(userId: string, password: string): Promise<void> {
+        // The authenticated route is strictly self-service: the target user comes from the current
+        // session and cannot be supplied by the browser. Use the trusted EOS service context for the
+        // actual password write so installer/end-user groups do not need global users.write rights.
+        const options = { user: EOS_PASSWORD_SERVICE_USER };
+        if (typeof this.adapter.setPasswordAsync === 'function') {
+            await this.adapter.setPasswordAsync(userId, password, options);
+            return;
+        }
+        if (typeof this.adapter.setPassword === 'function') {
+            await new Promise<void>((resolve, reject) => {
+                this.adapter.setPassword?.(userId, password, options, error => (error ? reject(error) : resolve()));
+            });
+            return;
+        }
+        throw new Error('passwordApiUnavailable');
+    }
+
+    private async destroyEosRequestSessions(req: Request): Promise<void> {
+        const token = this.readAccessTokenFromRequest(req);
+        if (!token || typeof this.adapter.destroySession !== 'function') {
+            return;
+        }
+
+        // Depending on the authentication path, the same session can be addressed by the raw
+        // token or by the adapter-session prefix. Remove every supported representation so a
+        // password change cannot leave the old authenticated browser session active.
+        const sessionIds = new Set<string>([token, token.startsWith('a:') ? token : `a:${token}`]);
+        if (token.length > 1) {
+            sessionIds.add(`a:${token[1]}`);
+        }
+        await Promise.all(
+            [...sessionIds].map(async id => {
+                try {
+                    await this.adapter.destroySession(id);
+                } catch (e) {
+                    this.adapter.log.debug(
+                        `Cannot destroy EOS first-login session ${id}: ${e instanceof Error ? e.message : e}`,
+                    );
+                }
+            }),
+        );
+    }
+
+    private async saveEosFirstLoginPassword(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (!access.userId || access.role === 'admin') {
+            res.status(403).json({ error: 'passwordSetupNotAllowed' });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req) || req.headers['x-nexowatt-eos-first-login'] !== '1') {
+            res.status(403).json({ error: 'invalidRequestOrigin' });
+            return;
+        }
+
+        const passwordState = await this.getEosFirstLoginPasswordState(access.userId, access.role);
+        if (!passwordState.required) {
+            res.status(200).json({ success: true, alreadyInitialized: true });
+            return;
+        }
+
+        const body = (req.body || {}) as { password?: unknown; passwordRepeat?: unknown };
+        const validation = this.validateEosFirstLoginPassword(body.password, body.passwordRepeat, access.userId);
+        if (!validation.valid) {
+            res.status(400).json({
+                error: validation.error,
+                minLength: passwordState.minLength,
+            });
+            return;
+        }
+
+        await this.setEosUserPassword(access.userId, validation.password);
+        const userObject = (await this.adapter.getForeignObjectAsync(access.userId)) as ioBroker.UserObject | null;
+        if (!userObject) {
+            throw new Error('userObjectUnavailableAfterPasswordChange');
+        }
+        const native = ((userObject.native ||= {}) as Record<string, unknown>);
+        const account = ((native.nexowattEosAccount ||= {}) as Record<string, unknown>);
+        const now = new Date().toISOString();
+        account.passwordInitialized = true;
+        account.passwordInitializedAt = Date.now();
+        account.passwordInitializationVersion = 1;
+        account.passwordInitializedBy = 'self';
+        account.passwordSetupVersion = 1;
+        account.passwordSetAt = now;
+        account.firstLoginCompletedAt = now;
+        account.forcePasswordChange = false;
+        await this.adapter.setForeignObjectAsync(access.userId, userObject);
+        await this.destroyEosRequestSessions(req);
+        for (const cookie of ['access_token', 'refresh_token', 'connect.sid']) {
+            res.clearCookie(cookie);
+        }
+
+        this.adapter.log.info(`EOS first-login password initialized for ${access.userId}`);
+        res.status(200).json({ success: true, role: access.role, logoutRequired: true, sessionInvalidated: true });
+    }
+
+    private async getEosHistoryInstances(): Promise<string[]> {
+        try {
+            const instances = await this.adapter.getObjectViewAsync('system', 'instance', {
+                startkey: 'system.adapter.',
+                endkey: 'system.adapter.香',
+            });
+            return (instances.rows || [])
+                .map(row => row.value as ioBroker.InstanceObject)
+                .filter(instance => !!instance?.common?.getHistory)
+                .map(instance => instance._id.replace(/^system\.adapter\./, ''))
+                .sort();
+        } catch (e) {
+            this.adapter.log.debug(`Cannot read history instances for EOS basic settings: ${e instanceof Error ? e.message : e}`);
+            return [];
+        }
+    }
+
+    private async sendEosBasicSettings(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'installer' && access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError', role: access.role });
+            return;
+        }
+
+        const systemConfig = (await this.adapter.getForeignObjectAsync('system.config')) as ioBroker.SystemConfigObject | null;
+        const common = systemConfig?.common || ({} as ioBroker.SystemConfigCommon);
+        const histories = await this.getEosHistoryInstances();
+        res.status(200).json({
+            role: access.role,
+            editable: access.role === 'installer' || access.role === 'admin',
+            settings: {
+                siteName: common.siteName || '',
+                language: common.language || 'de',
+                tempUnit: common.tempUnit || '°C',
+                currency: common.currency || '€',
+                dateFormat: common.dateFormat || 'DD.MM.YYYY',
+                isFloatComma: common.isFloatComma !== false,
+                defaultHistory: common.defaultHistory || '',
+                defaultLogLevel: common.defaultLogLevel || 'info',
+                firstDayOfWeek: common.firstDayOfWeek || 'monday',
+                country: common.country || '',
+                city: common.city || '',
+                latitude: Number(common.latitude || 0),
+                longitude: Number(common.longitude || 0),
+            },
+            options: {
+                languages: ['de', 'en', 'nl', 'fr', 'it', 'es', 'pl', 'pt', 'ru', 'uk', 'zh-cn'],
+                tempUnits: ['°C', '°F'],
+                dateFormats: ['DD.MM.YYYY', 'YYYY.MM.DD', 'MM/DD/YYYY'],
+                firstDaysOfWeek: ['monday', 'sunday'],
+                logLevels: ['debug', 'info', 'warn', 'error'],
+                histories: ['', ...histories],
+            },
+            hiddenAdminAreas: [
+                'repositories',
+                'licenses',
+                'certificates',
+                'credentials',
+                'letsEncrypt',
+                'defaultAcl',
+                'expertMode',
+            ],
+        });
+    }
+
+    private isEosSameOriginWrite(req: Request): boolean {
+        const origin = String(req.headers.origin || '').trim();
+        if (!origin) {
+            return true;
+        }
+        const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+        const protocol = forwardedProto || (this.settings.secure ? 'https' : 'http');
+        const host = String(req.headers.host || '').trim();
+        return !!host && origin === `${protocol}://${host}`;
+    }
+
+    private async saveEosBasicSettings(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'installer' && access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError', role: access.role });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req) || req.headers['x-nexowatt-eos-role-settings'] !== '1') {
+            res.status(403).json({ error: 'invalidRequestOrigin' });
+            return;
+        }
+
+        const input = ((req.body as { settings?: Record<string, unknown> } | undefined)?.settings || req.body || {}) as Record<string, unknown>;
+        const systemConfig = (await this.adapter.getForeignObjectAsync('system.config')) as ioBroker.SystemConfigObject | null;
+        if (!systemConfig?.common) {
+            res.status(503).json({ error: 'systemConfigUnavailable' });
+            return;
+        }
+
+        const next = { ...systemConfig, common: { ...systemConfig.common } } as ioBroker.SystemConfigObject;
+        const common = next.common as Record<string, unknown>;
+        const setString = (key: string, maxLength: number, allowed?: string[]): void => {
+            if (!(key in input)) {
+                return;
+            }
+            const value = String(input[key] ?? '').trim().slice(0, maxLength);
+            if (!allowed || allowed.includes(value)) {
+                common[key] = value;
+            }
+        };
+        const setCoordinate = (key: 'latitude' | 'longitude', min: number, max: number): void => {
+            if (!(key in input)) {
+                return;
+            }
+            const value = Number(input[key]);
+            if (Number.isFinite(value) && value >= min && value <= max) {
+                common[key] = value;
+            }
+        };
+
+        setString('siteName', 120);
+        setString('language', 8, ['de', 'en', 'nl', 'fr', 'it', 'es', 'pl', 'pt', 'ru', 'uk', 'zh-cn']);
+        setString('tempUnit', 3, ['°C', '°F']);
+        setString('currency', 8);
+        setString('dateFormat', 16, ['DD.MM.YYYY', 'YYYY.MM.DD', 'MM/DD/YYYY']);
+        if ('isFloatComma' in input) {
+            common.isFloatComma = input.isFloatComma === true || input.isFloatComma === 'true' || input.isFloatComma === 1;
+        }
+        const histories = await this.getEosHistoryInstances();
+        setString('defaultHistory', 100, ['', ...histories]);
+        setString('defaultLogLevel', 8, ['debug', 'info', 'warn', 'error']);
+        setString('firstDayOfWeek', 8, ['monday', 'sunday']);
+        setString('country', 3);
+        setString('city', 120);
+        setCoordinate('latitude', -90, 90);
+        setCoordinate('longitude', -180, 180);
+
+        // Explicitly ignore every privilege/security field even if a manipulated browser submits it.
+        delete common.expertMode;
+        common.expertMode = systemConfig.common.expertMode === true;
+        common.activeRepo = systemConfig.common.activeRepo;
+        common.defaultNewAcl = systemConfig.common.defaultNewAcl;
+
+        await this.adapter.setForeignObjectAsync('system.config', next);
+        this.adapter.log.info(`EOS installer basic settings updated by ${access.userId || 'unknown user'}`);
+        await this.sendEosBasicSettings(req, res);
+    }
+
+    private async sendEosSecuritySession(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+        const { userId, groups, groupNames, adminGroups, role } = await this.getEosRequestAccess(req);
+        const passwordSetup = await this.getEosFirstLoginPasswordState(userId, role);
         const isAdministrator = role === 'admin' && (userId === 'system.user.admin' || groups.includes('system.group.administrator'));
         const isEosAdminGroup = role === 'admin';
         const isInstaller = role === 'installer';
         const isEndUser = role === 'enduser';
 
+        const authenticated = !this.settings.auth || !!userId;
         res.status(200).json({
+            authenticated,
             user: userId,
             groups,
             groupNames,
@@ -749,6 +1119,9 @@ export default class Web {
             isInstaller,
             isEndUser,
             isAdmin: isEosAdminGroup,
+            mustChangePassword: passwordSetup.required,
+            passwordSetup: { ...passwordSetup, userName: userId?.replace(/^system\.user\./, '') || '' },
+            capabilities: this.getEosRoleCapabilities(role),
             hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             restrictProtectedAdapterControls: this.settings.eosRestrictProtectedAdapterControls !== false,
@@ -1018,19 +1391,31 @@ export default class Web {
                 this.server.app.get(/.*\/nexowatt\/security\/(?:context|session)$/, (req: Request, res: Response): void => {
                     void this.sendEosSecuritySession(req, res).catch(e => {
                         this.adapter.log.warn(`Cannot create NexoWatt security context: ${e instanceof Error ? e.message : e}`);
-                        res.status(200).json({
+                        res.status(503).json({
+                            error: 'EOS security context temporarily unavailable',
+                            transient: true,
+                            authenticated: false,
                             user: null,
                             groups: [],
                             groupNames: [],
                             adminGroups: ['system.group.administrator'],
                             installerGroups: this.getEosInstallerGroups(),
                             endUserGroups: this.getEosEndUserGroups(),
-                            role: 'enduser',
+                            role: 'unknown',
                             isAdministrator: false,
                             isEosAdminGroup: false,
                             isInstaller: false,
-                            isEndUser: true,
+                            isEndUser: false,
                             isAdmin: false,
+                            mustChangePassword: false,
+                            passwordSetup: {
+                                required: false,
+                                initialized: false,
+                                minLength: this.getEosFirstLoginPasswordMinLength(),
+                                version: 1,
+                                userName: '',
+                            },
+                            capabilities: {},
                             hideLegacyAdminForNonAdmins: true,
                             hideLegacyAdminFromNonAdmins: true,
                             restrictProtectedAdapterControls: true,
@@ -1124,13 +1509,34 @@ export default class Web {
                     res.status(503).json({
                         error: 'EOS security context temporarily unavailable',
                         transient: true,
+                        authenticated: false,
+                        user: null,
                         role: 'unknown',
+                        mustChangePassword: false,
                     });
                 });
             };
             this.server.app.get('/eos/security/status', sendSecuritySession);
             this.server.app.get('/nexowatt/security/session', sendSecuritySession);
             this.server.app.get('/nexowatt/security/context', sendSecuritySession);
+            this.server.app.get('/nexowatt/role-settings/basic', (req: Request, res: Response): void => {
+                void this.sendEosBasicSettings(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot read EOS basic settings: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'basicSettingsReadFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/role-settings/basic', (req: Request, res: Response): void => {
+                void this.saveEosBasicSettings(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot save EOS basic settings: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'basicSettingsSaveFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/account/first-password', (req: Request, res: Response): void => {
+                void this.saveEosFirstLoginPassword(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot initialize EOS first-login password: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'passwordSetupFailed' });
+                });
+            });
 
             this.server.app.get('/iobroker_check.html', (_req: Request, res: Response): void => {
                 res.status(200).send('ioBroker');
@@ -1814,7 +2220,9 @@ export default class Web {
                     );
 
                     if (typeof this.onReady === 'function') {
-                        this.onReady(this.server.server, this.store, this.adapter);
+                        void Promise.resolve(this.onReady(this.server.server, this.store, this.adapter)).catch(e =>
+                            this.adapter.log.error(`Cannot finish EOS webserver startup: ${e instanceof Error ? e.message : e}`),
+                        );
                     }
                 },
             );

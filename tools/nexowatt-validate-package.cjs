@@ -22,6 +22,16 @@ const buildInfo = readJson('NEXOWATT_EOS_BUILD_INFO.json');
 
 if (pkg.name !== 'iobroker.eos-admin') fail(`package.json name must be iobroker.eos-admin, got ${pkg.name}`);
 if (pkg.private !== false) fail('package.json private must be false for npm publishing');
+
+const prerelease = pkg.version.includes('-');
+if (prerelease) {
+  if (pkg.publishConfig?.tag !== 'rc') fail('prerelease package must use publishConfig.tag=rc so npm latest remains stable');
+  if (pkg.scripts['check:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-guard.cjs') fail('publish channel guard script is missing');
+  if (!pkg.scripts.prepublishOnly?.startsWith('npm run check:eos-publish-channel')) fail('prepublishOnly must execute the publish channel guard first');
+} else if (pkg.publishConfig?.tag && pkg.publishConfig.tag !== 'latest') {
+  fail(`stable package must not use prerelease publish tag ${pkg.publishConfig.tag}`);
+}
+if (io.native?.auth !== true) fail('fresh sales installations must default to authenticated access');
 for (const [label, value] of [
   ['io-package common.version', io.common?.version],
   ['io-package top-level version', io.version],
@@ -48,8 +58,8 @@ for (const [field, expected] of Object.entries({
   meta: `${expectedBase}/io-package.json`,
 })) if (io.common?.[field] !== expected) fail(`io-package common.${field} must be ${expected}, got ${io.common?.[field]}`);
 
-const releaseNo = String(pkg.version).split('.').pop();
-const repositoryEntryFile = `nexowatt-eos-admin-repository-entry-v${releaseNo}.json`;
+const releaseNo = String(pkg.version).match(/^7\.9\.(\d+)/)?.[1];
+const repositoryEntryFile = buildInfo.repositoryEntry || `nexowatt-eos-admin-repository-entry-v${releaseNo}.json`;
 const repositoryEntry = readJson(repositoryEntryFile)['eos-admin'];
 if (!repositoryEntry) fail(`${repositoryEntryFile} is missing eos-admin`);
 if (repositoryEntry.version !== pkg.version) fail(`repository entry version must be ${pkg.version}, got ${repositoryEntry.version}`);
@@ -63,9 +73,12 @@ for (const [field, expected] of Object.entries({
 for (const file of [
   'adminWww/index.html',
   'adminWww/js/eos-manual-write-policy.js',
+  'adminWww/js/eos-role-bootstrap.js',
+  'adminWww/js/eos-branding-sanitizer.js',
   'adminWww/js/eos-policy-client.js',
   'adminWww/js/nexowatt-native-shell.js',
   'adminWww/js/eos-native-security.js',
+  'adminWww/js/eos-basic-settings.js',
   'adminWww/js/eos-role-ui.js',
   'adminWww/css/nexowatt-native-shell.css',
   'adminWww/img/eos/nexowatt-192.png',
@@ -76,6 +89,8 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
+  'README_STABILITY_V7.9.87_RC2.md',
+  'INSTALL_TEST_V7.9.87_RC2.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -83,6 +98,9 @@ for (const file of [
   'tools/nexowatt-esm-syntax-selftest.cjs',
   'tools/nexowatt-import-integrity-selftest.cjs',
   'tools/nexowatt-entrypoint-smoke-selftest.cjs',
+  'tools/nexowatt-role-access-selftest.cjs',
+  'tools/nexowatt-first-login-selftest.cjs',
+  'tools/nexowatt-branding-selftest.cjs',
   repositoryEntryFile,
 ]) if (!exists(file)) fail(`missing required file: ${file}`);
 
@@ -94,17 +112,22 @@ if (missing.length) fail(`adminWww/index.html references missing files:\n${missi
 const runtime = buildInfo.runtimeEntry;
 const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
 const shellCache = Number(buildInfo.shellCacheVersion ?? buildInfo.nativeShellVersion ?? runtimeNumber);
+const shellTag = String(buildInfo.shellCacheTag || shellCache);
 if (!runtime || !Number.isFinite(runtimeNumber)) fail(`invalid runtimeEntry ${runtime}`);
 if (!Number.isFinite(shellCache)) fail(`invalid shellCacheVersion ${buildInfo.shellCacheVersion}`);
 for (const marker of [
   `hostInit-${runtime}.js?v=${runtimeNumber}`,
   `index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`,
-  `eos-manual-write-policy.js?v=${shellCache}`,
-  `nexowatt-native-shell.css?v=${shellCache}`,
-  `nexowatt-native-shell.js?v=${shellCache}`,
-  `eos-native-security.js?v=${shellCache}`,
+  `eos-manual-write-policy.js?v=${shellTag}`,
+  `nexowatt-native-shell.css?v=${shellTag}`,
+  `nexowatt-native-shell.js?v=${shellTag}`,
+  `eos-native-security.js?v=${shellTag}`,
 ]) if (!index.includes(marker)) fail(`adminWww/index.html missing ${marker}`);
-if (index.indexOf(`eos-manual-write-policy.js?v=${shellCache}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
+
+if (!index.includes(`eos-role-bootstrap.js?v=${shellTag}`)) fail('role bootstrap cache key mismatch');
+if (!index.includes(`eos-branding-sanitizer.js?v=${shellTag}`)) fail('branding sanitizer cache key mismatch');
+if (!index.includes(`eos-role-ui.js?v=${shellTag}`)) fail('role UI cache key mismatch');
+if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
   if (index.includes(legacy)) fail(`legacy browser overlay still loaded: ${legacy}`);
@@ -168,6 +191,9 @@ if (pkg.scripts['precheck:eos-package'] !== 'npm run clean:eos-runtime') fail('p
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run clean:eos-runtime') fail('precheck:eos-stability must clean stale runtime files');
 if (pkg.scripts.prepack !== 'node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must silently clean stale runtime files');
 if (!pkg.scripts.build?.includes('npm run clean:eos-runtime')) fail('build must finish with runtime cleanup');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest.cjs')) fail('role access selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-first-login-selftest.cjs')) fail('first-login selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-branding-selftest.cjs')) fail('branding selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftest.cjs')) fail('native shell selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-assistant-separation-selftest.cjs')) fail('assistant separation selftest is not part of check:eos-stability');
 if (!exists('adminWww/img/eos/nexowatt-eos-brand-wide.png')) fail('new NexoWatt EOS brand logo asset missing');

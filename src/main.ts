@@ -89,6 +89,20 @@ const DEFAULT_EOS_ADMIN_GROUPS = ['system.group.administrator'];
 const DEFAULT_ADMIN_ONLY_GROUP = DEFAULT_EOS_ADMIN_GROUPS[0];
 const ADMIN_OWNER_USER = 'system.user.admin';
 const ADMIN_ONLY_OBJECT_ACL = 0x660;
+const EOS_ROLE_READABLE_OBJECT_ACL = 0x664;
+const EOS_SERVICE_GROUP = 'system.group.nexowatt-service';
+const EOS_INSTALLER_GROUP = 'system.group.installateur';
+const EOS_ENDUSER_GROUP = 'system.group.endkunde';
+const EOS_ROLE_GROUP_IDS = [EOS_SERVICE_GROUP, EOS_INSTALLER_GROUP, EOS_ENDUSER_GROUP] as const;
+// The EOS shell must be able to read the system configuration and repository metadata for
+// installer/end-user sessions. Write access remains administrator-only through the object ACL.
+const EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS = ['system.config', 'system.repositories'] as const;
+// Secrets, certificates and platform license data remain visible only to NexoWatt Admin / Service.
+const EOS_ADMIN_ONLY_SYSTEM_OBJECT_IDS = ['system.certificates', 'system.licenses'] as const;
+const EOS_SECURITY_OBJECT_IDS = [
+    ...EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS,
+    ...EOS_ADMIN_ONLY_SYSTEM_OBJECT_IDS,
+] as const;
 
 function normalizeAdapterName(value: unknown): string | null {
     if (typeof value !== 'string') {
@@ -263,6 +277,9 @@ class Admin extends Adapter {
     /** Avoid concurrent policy writes while the guard corrects objects. */
     private eosSecurityRunning = false;
 
+    /** Synchronous role cache used by the server-side socket command guard. */
+    private readonly eosRoleCache = new Map<string, 'admin' | 'installer' | 'enduser'>();
+
     /** v47: stale delete-lock cleanup is a one-shot migration, not a repeating guard. */
     private eosDeleteLockRepairFinished = false;
 
@@ -326,6 +343,13 @@ class Admin extends Adapter {
             if (this.getProtectedAdapterNames().includes(adapter)) {
                 this.scheduleEosSecurityGuard(`protected object change: ${id}`);
             }
+        } else if (
+            id.startsWith('system.group.')
+            || id.startsWith('system.user.')
+            || id.startsWith('system.credentials.')
+            || (EOS_SECURITY_OBJECT_IDS as readonly string[]).includes(id)
+        ) {
+            this.scheduleEosSecurityGuard(`role/security object change: ${id}`);
         }
 
         // TODO Build in some threshold of messages
@@ -965,8 +989,12 @@ class Admin extends Adapter {
         const config = this.config as AdminAdapterConfig & {
             eosAdminOnlyGroups?: EosAdminGroupConfig[];
             eosSecurityAdminGroups?: EosAdminGroupConfig[];
+            eosServiceGroups?: EosAdminGroupConfig[];
         };
-        const configuredGroups = normalizeAdminOnlyGroups(config.eosAdminOnlyGroups || config.eosSecurityAdminGroups);
+        const configuredGroups = normalizeAdminOnlyGroups([
+            ...(config.eosAdminOnlyGroups || config.eosSecurityAdminGroups || []),
+            ...(config.eosServiceGroups || []),
+        ]);
         if (configuredGroups.length) {
             return configuredGroups[0];
         }
@@ -980,6 +1008,416 @@ class Admin extends Adapter {
             owner: ADMIN_OWNER_USER,
             ownerGroup: this.getAdminOnlyGroup(),
         };
+    }
+
+    private getEosConfiguredGroupIds(value: unknown, fallback: string[]): string[] {
+        const configured = normalizeAdminOnlyGroups(Array.isArray(value) ? value : []);
+        return configured.length ? configured : fallback;
+    }
+
+    private getEosRoleGroupIds(role: 'service' | 'installer' | 'enduser'): string[] {
+        if (role === 'service') {
+            return this.getEosConfiguredGroupIds(this.config.eosServiceGroups, [EOS_SERVICE_GROUP]);
+        }
+        if (role === 'installer') {
+            return this.getEosConfiguredGroupIds(this.config.eosInstallerGroups, [EOS_INSTALLER_GROUP]);
+        }
+        return this.getEosConfiguredGroupIds(this.config.eosEndUserGroups, [EOS_ENDUSER_GROUP]);
+    }
+
+    private getEosRoleGroupAcl(role: 'service' | 'installer' | 'enduser'): ioBroker.GroupObject['common']['acl'] {
+        const full = { list: true, read: true, write: true, create: true, delete: true };
+        const none = { list: false, read: false, write: false, create: false, delete: false };
+        if (role === 'service') {
+            return {
+                object: { ...full },
+                state: { ...full },
+                file: { ...full },
+                users: { ...full },
+                other: { execute: true, http: true, sendto: true },
+            };
+        }
+        if (role === 'installer') {
+            return {
+                object: { ...full },
+                state: { ...full },
+                file: { ...full },
+                users: { ...none },
+                other: { execute: false, http: true, sendto: true },
+            };
+        }
+        return {
+            object: { list: true, read: true, write: true, create: true, delete: true },
+            state: { list: true, read: true, write: true, create: false, delete: false },
+            file: { list: true, read: true, write: false, create: false, delete: false },
+            users: { ...none },
+            other: { execute: false, http: true, sendto: true },
+        };
+    }
+
+    private getEosRoleGroupName(role: 'service' | 'installer' | 'enduser'): ioBroker.Translated {
+        if (role === 'service') {
+            return { en: 'NexoWatt Admin / Service', de: 'NexoWatt Admin / Service', nl: 'NexoWatt Admin / Service' };
+        }
+        if (role === 'installer') {
+            return { en: 'Installer / Commissioning', de: 'Installateur / Inbetriebnahme', nl: 'Installateur / inbedrijfstelling' };
+        }
+        return { en: 'End user / Smart Home', de: 'Endkunde / Smart Home', nl: 'Eindgebruiker / Smart Home' };
+    }
+
+    private async ensureEosRoleGroup(id: string, role: 'service' | 'installer' | 'enduser'): Promise<boolean> {
+        const existing = (await this.getForeignObjectAsync(id)) as ioBroker.GroupObject | null | undefined;
+        const acl = this.getEosRoleGroupAcl(role);
+        let group = existing;
+        let changed = false;
+        if (!group) {
+            group = {
+                _id: id as ioBroker.ObjectIDs.Group,
+                type: 'group',
+                common: {
+                    name: this.getEosRoleGroupName(role),
+                    desc: this.getEosRoleGroupName(role),
+                    members: [],
+                    acl,
+                },
+                native: {},
+            } as ioBroker.GroupObject;
+            changed = true;
+        }
+        group.common ||= {} as ioBroker.GroupCommon;
+        group.common.members ||= [];
+        if (!group.common.name) {
+            group.common.name = this.getEosRoleGroupName(role);
+            changed = true;
+        }
+        if (!group.common.desc) {
+            group.common.desc = this.getEosRoleGroupName(role);
+            changed = true;
+        }
+        if (JSON.stringify(group.common.acl || {}) !== JSON.stringify(acl)) {
+            group.common.acl = acl;
+            changed = true;
+        }
+        const native = ((group.native ||= {}) as Record<string, unknown>);
+        if (native.nexowattEosRole !== role || native.nexowattManagedRole !== true) {
+            native.nexowattEosRole = role;
+            native.nexowattManagedRole = true;
+            changed = true;
+        }
+        if (changed) {
+            await this.setForeignObjectAsync(id, group);
+        }
+        return changed;
+    }
+
+    private async addUserToEosGroup(userId: string, groupId: string): Promise<boolean> {
+        const user = await this.getForeignObjectAsync(userId);
+        if (!user || user.type !== 'user') {
+            return false;
+        }
+        const group = (await this.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null | undefined;
+        if (!group?.common) {
+            return false;
+        }
+        group.common.members ||= [];
+        if (group.common.members.includes(userId as ioBroker.ObjectIDs.User)) {
+            return false;
+        }
+        group.common.members.push(userId as ioBroker.ObjectIDs.User);
+        group.common.members.sort();
+        await this.setForeignObjectAsync(groupId, group);
+        return true;
+    }
+
+    private async ensureEosInstallerSmartHomeMembership(): Promise<void> {
+        // Installer is a strict superset of the end-user Smart Home role. Keeping installer users
+        // in the end-user group lets ioBroker's single-ownerGroup ACL model grant room/function
+        // writes without opening those objects for every authenticated account.
+        const endUserGroup = this.getEosRoleGroupIds('enduser')[0] || EOS_ENDUSER_GROUP;
+        for (const installerGroupId of this.getEosRoleGroupIds('installer')) {
+            const installerGroup = (await this.getForeignObjectAsync(installerGroupId)) as ioBroker.GroupObject | null;
+            for (const member of installerGroup?.common?.members || []) {
+                await this.addUserToEosGroup(member, endUserGroup);
+            }
+        }
+    }
+
+    private async ensureEosServiceAdministratorMembership(): Promise<void> {
+        const administrator = (await this.getForeignObjectAsync('system.group.administrator')) as ioBroker.GroupObject | null;
+        if (!administrator?.common) {
+            return;
+        }
+        administrator.common.members ||= [];
+        const native = ((administrator.native ||= {}) as Record<string, unknown>);
+        const previousManaged = new Set(
+            Array.isArray(native.nexowattEosServiceMirroredMembers)
+                ? (native.nexowattEosServiceMirroredMembers as unknown[]).filter((entry): entry is string => typeof entry === 'string')
+                : [],
+        );
+        const currentManaged = new Set<string>();
+        for (const groupId of this.getEosRoleGroupIds('service')) {
+            const group = (await this.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null;
+            for (const member of group?.common?.members || []) {
+                if (member !== 'system.user.admin') {
+                    currentManaged.add(member);
+                }
+            }
+        }
+
+        let changed = false;
+        for (const oldMember of previousManaged) {
+            if (!currentManaged.has(oldMember)) {
+                const index = administrator.common.members.indexOf(oldMember as ioBroker.ObjectIDs.User);
+                if (index !== -1) {
+                    administrator.common.members.splice(index, 1);
+                    changed = true;
+                }
+            }
+        }
+        for (const member of currentManaged) {
+            if (!administrator.common.members.includes(member as ioBroker.ObjectIDs.User)) {
+                administrator.common.members.push(member as ioBroker.ObjectIDs.User);
+                changed = true;
+            }
+        }
+        const managedList = [...currentManaged].sort();
+        if (JSON.stringify(native.nexowattEosServiceMirroredMembers || []) !== JSON.stringify(managedList)) {
+            native.nexowattEosServiceMirroredMembers = managedList;
+            changed = true;
+        }
+        if (changed) {
+            administrator.common.members.sort();
+            await this.setForeignObjectAsync('system.group.administrator', administrator);
+        }
+    }
+
+    private async ensureEosDefaultRoleUsers(): Promise<void> {
+        if (this.config.eosAutoAssignDefaultRoleUsers === false) {
+            return;
+        }
+        const installerGroup = this.getEosRoleGroupIds('installer')[0] || EOS_INSTALLER_GROUP;
+        const endUserGroup = this.getEosRoleGroupIds('enduser')[0] || EOS_ENDUSER_GROUP;
+        for (const userId of ['system.user.installer', 'system.user.installateur']) {
+            await this.addUserToEosGroup(userId, installerGroup);
+        }
+        for (const userId of ['system.user.user', 'system.user.endkunde', 'system.user.kunde']) {
+            await this.addUserToEosGroup(userId, endUserGroup);
+        }
+    }
+
+    private async refreshEosRoleCache(): Promise<void> {
+        const next = new Map<string, 'admin' | 'installer' | 'enduser'>();
+        next.set('system.user.admin', 'admin');
+        const priorities = { enduser: 1, installer: 2, admin: 3 } as const;
+        const assign = (userId: string, role: 'admin' | 'installer' | 'enduser'): void => {
+            const current = next.get(userId);
+            if (!current || priorities[role] > priorities[current]) {
+                next.set(userId, role);
+            }
+        };
+        for (const [roleName, groupIds] of [
+            ['admin', this.getEosRoleGroupIds('service')],
+            ['installer', this.getEosRoleGroupIds('installer')],
+            ['enduser', this.getEosRoleGroupIds('enduser')],
+            ['admin', ['system.group.administrator']],
+        ] as const) {
+            for (const groupId of groupIds) {
+                const group = (await this.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null;
+                for (const member of group?.common?.members || []) {
+                    assign(member, roleName);
+                }
+            }
+        }
+        this.eosRoleCache.clear();
+        next.forEach((role, userId) => this.eosRoleCache.set(userId, role));
+    }
+
+    private getEosCachedRole(userId?: string): 'admin' | 'installer' | 'enduser' {
+        if (userId === 'system.user.admin') {
+            return 'admin';
+        }
+        // Missing or not-yet-resolved identities always fall back to the least privileged role.
+        // The underlying socket ACL check still applies afterwards, but this prevents a transient
+        // authentication gap from ever selecting the unrestricted EOS policy branch.
+        if (!userId) {
+            return 'enduser';
+        }
+        return this.eosRoleCache.get(userId) || 'enduser';
+    }
+
+    private installEosSocketCommandGuard(socketAdmin: SocketAdmin): void {
+        const commands = (socketAdmin as unknown as { commands?: { _checkPermissions?: (...args: any[]) => boolean } }).commands;
+        if (!commands?._checkPermissions || (commands as any)._nexowattEosGuardInstalled) {
+            return;
+        }
+        const original = commands._checkPermissions.bind(commands);
+        const deny = (socketClient: any, command: string, callback: unknown, reason: string): false => {
+            this.log.warn(`EOS role guard denied ${command} for ${socketClient?._acl?.user || 'unknown'} (${reason})`);
+            if (typeof callback === 'function') {
+                callback(ERROR_PERMISSION);
+            } else {
+                socketClient?.emit?.(ERROR_PERMISSION, { command, reason: 'eosRolePolicy' });
+            }
+            return false;
+        };
+        commands._checkPermissions = (socketClient: any, command: string, callback?: unknown, ...args: any[]): boolean => {
+            const userId = socketClient?._acl?.user as string | undefined;
+            const role = this.getEosCachedRole(userId);
+            if (role === 'admin') {
+                return original(socketClient, command, callback, ...args);
+            }
+            if (command === 'cmdExec') {
+                if (role !== 'installer') {
+                    return deny(socketClient, command, callback, 'raw command execution is Service-only');
+                }
+                const requested = String(args[0] || '').trim();
+                const match = requested.match(/^(add|url|upload|upgrade|rebuild|del)\s+([^\s]+)/i);
+                if (!match) {
+                    return deny(socketClient, command, callback, 'installer command is outside commissioning allowlist');
+                }
+                const action = match[1].toLowerCase();
+                const target = normalizeAdapterName(match[2].split('@')[0]);
+                if (target && ['upgrade', 'rebuild', 'del'].includes(action) && this.getProtectedAdapterNames().includes(target)) {
+                    return deny(socketClient, command, callback, 'protected EOS system module');
+                }
+                return true;
+            }
+            if (role === 'installer' && command === 'readLogs') {
+                return true;
+            }
+            if (role === 'enduser' && ['readLogs', 'sendToHost'].includes(command)) {
+                return deny(socketClient, command, callback, 'technical diagnostics are installer/service-only');
+            }
+            if (['addUser', 'delUser', 'addGroup', 'delGroup'].includes(command)) {
+                return deny(socketClient, command, callback, 'account administration is Service-only');
+            }
+            const objectId = typeof args[0] === 'string' ? args[0] : '';
+            if (['setObject', 'extendObject', 'delObject'].includes(command)) {
+                if (/^system\.(?:config|repositories|certificates|licenses|credentials\.|user\.|group\.|host\.)/.test(objectId)) {
+                    return deny(socketClient, command, callback, 'sensitive system objects are Service-only');
+                }
+                const adapterObject = objectId.match(/^system\.adapter\.([^.]+)/)?.[1];
+                if (command === 'delObject' && adapterObject && this.getProtectedAdapterNames().includes(adapterObject)) {
+                    return deny(socketClient, command, callback, 'protected EOS system module');
+                }
+                if (role === 'enduser' && !/^enum\.(?:rooms|functions)\./.test(objectId)) {
+                    return deny(socketClient, command, callback, 'end users may only maintain Smart Home assignments');
+                }
+            }
+            return original(socketClient, command, callback, ...args);
+        };
+        (commands as any)._nexowattEosGuardInstalled = true;
+    }
+
+    private async ensureEosRoleModel(): Promise<void> {
+        for (const role of ['service', 'installer', 'enduser'] as const) {
+            for (const groupId of this.getEosRoleGroupIds(role)) {
+                await this.ensureEosRoleGroup(groupId, role);
+            }
+        }
+        await this.ensureEosDefaultRoleUsers();
+        await this.ensureEosInstallerSmartHomeMembership();
+        // NexoWatt Service is intentionally equivalent to administrator/service. Synchronising its
+        // members into the platform administrator group keeps old adapters and legacy permission
+        // checks compatible while the EOS UI still uses its own role model.
+        await this.ensureEosServiceAdministratorMembership();
+        await this.refreshEosRoleCache();
+    }
+
+    private async ensureEosRoleReadableAcl(id: string): Promise<boolean> {
+        const obj = (await this.getForeignObjectAsync(id)) as ioBroker.AnyObject | null | undefined;
+        if (!obj) {
+            return false;
+        }
+        const native = ((obj as ioBroker.AnyObject & { native?: Record<string, unknown> }).native ||= {}) as Record<string, unknown>;
+        let changed = false;
+        if (native._nexowattEosRoleReadableAclManaged !== true) {
+            native._nexowattEosRoleReadableAclManaged = true;
+            changed = true;
+        }
+        const acl = (obj.acl ||= {}) as Record<string, unknown>;
+        if (acl.owner !== ADMIN_OWNER_USER) {
+            acl.owner = ADMIN_OWNER_USER;
+            changed = true;
+        }
+        if (acl.ownerGroup !== 'system.group.administrator') {
+            acl.ownerGroup = 'system.group.administrator';
+            changed = true;
+        }
+        if (acl.object !== EOS_ROLE_READABLE_OBJECT_ACL) {
+            acl.object = EOS_ROLE_READABLE_OBJECT_ACL;
+            changed = true;
+        }
+        if (changed) {
+            await this.setForeignObjectAsync(id, obj);
+        }
+        return changed;
+    }
+
+    private async ensureEosSystemObjectAccess(): Promise<void> {
+        // Read access is required by the EOS shell and by the adapter/instance views. Installer
+        // changes to the safe subset are performed by the guarded backend endpoint, never by
+        // granting direct write access to system.config.
+        for (const id of EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS) {
+            await this.ensureEosRoleReadableAcl(id);
+        }
+        for (const id of EOS_ADMIN_ONLY_SYSTEM_OBJECT_IDS) {
+            await this.ensureObjectAdminOnlyAcl(id);
+        }
+        try {
+            const credentials = await this.getObjectListAsync({
+                startkey: 'system.credentials.',
+                endkey: 'system.credentials.\u9999',
+            });
+            for (const row of credentials.rows || []) {
+                if (row.id?.startsWith('system.credentials.')) {
+                    await this.ensureObjectAdminOnlyAcl(row.id);
+                }
+            }
+        } catch (e) {
+            this.log.debug(`Cannot scan credential objects for EOS ACL guard: ${e instanceof Error ? e.message : e}`);
+        }
+    }
+
+    private async ensureEosSmartHomeEnumAccess(): Promise<void> {
+        try {
+            const enums = await this.getObjectListAsync({ startkey: 'enum.', endkey: 'enum.\u9999' });
+            for (const row of enums.rows || []) {
+                const smartHomeEnum = row.id === 'enum.rooms'
+                    || row.id === 'enum.functions'
+                    || row.id?.startsWith('enum.rooms.')
+                    || row.id?.startsWith('enum.functions.');
+                if (!smartHomeEnum) {
+                    continue;
+                }
+                const obj = (await this.getForeignObjectAsync(row.id)) as ioBroker.EnumObject | null;
+                if (!obj) {
+                    continue;
+                }
+                const acl = (obj.acl ||= {}) as Record<string, unknown>;
+                let changed = false;
+                if (acl.owner !== ADMIN_OWNER_USER) {
+                    acl.owner = ADMIN_OWNER_USER;
+                    changed = true;
+                }
+                if (acl.ownerGroup !== this.getEosRoleGroupIds('enduser')[0]) {
+                    acl.ownerGroup = this.getEosRoleGroupIds('enduser')[0] || EOS_ENDUSER_GROUP;
+                    changed = true;
+                }
+                // Rooms/functions are an explicitly shared Smart Home surface: administrators,
+                // installers and EOS end users may read/write them, while command-level group ACLs
+                // still prevent unrelated accounts from using write operations.
+                if (acl.object !== 0x666) {
+                    acl.object = 0x666;
+                    changed = true;
+                }
+                if (changed) {
+                    await this.setForeignObjectAsync(row.id, obj);
+                }
+            }
+        } catch (e) {
+            this.log.debug(`Cannot prepare Smart Home enum ACLs: ${e instanceof Error ? e.message : e}`);
+        }
     }
 
     private async ensureObjectAdminOnlyAcl(id: string): Promise<boolean> {
@@ -1289,19 +1727,35 @@ class Admin extends Adapter {
         }
 
         const isEosAdmin = adapter === EOS_ADMIN_ADAPTER_NAME;
-        const adminOnlyAcl = isEosAdmin || (this.shouldApplyAdminOnlyAclToProtectedAdapters() && adapter !== 'backitup');
+        // v87 role access: EOS Admin itself must stay readable for authenticated installer and
+        // end-user sessions. Deletion is still blocked by EOS policy, but an administrator-only
+        // object ACL prevents the socket from reading its own instance and causes permissionError.
+        const adminOnlyAcl = !isEosAdmin
+            && this.shouldApplyAdminOnlyAclToProtectedAdapters()
+            && adapter !== 'backitup';
 
         // v37 BackItUp/runtime-adapter compatibility:
         // default EOS protection is UI/role based. Do not rewrite common/ACL of runtime adapters
         // such as backitup unless the admin explicitly enables ACL protection for protected adapters.
+        // EOS Admin is reconciled even without strict ACL mode so stale v86 admin-only ACLs are restored.
         if (!isEosAdmin && !adminOnlyAcl) {
             return;
         }
 
-        let changed = await this.ensureObjectProtectionPolicy(`system.adapter.${adapter}`, {
-            keepDontDelete: false,
-            adminOnlyAcl,
-        });
+        const reconcileObject = async (id: string, protectWithAdminAcl: boolean): Promise<boolean> => {
+            let objectChanged = false;
+            if (isEosAdmin) {
+                objectChanged = await this.restoreObjectAclManagedByEos(id);
+                objectChanged = (await this.ensureEosRoleReadableAcl(id)) || objectChanged;
+            }
+            objectChanged = (await this.ensureObjectProtectionPolicy(id, {
+                keepDontDelete: false,
+                adminOnlyAcl: protectWithAdminAcl,
+            })) || objectChanged;
+            return objectChanged;
+        };
+
+        let changed = await reconcileObject(`system.adapter.${adapter}`, adminOnlyAcl);
 
         try {
             const instances = await this.getObjectViewAsync('system', 'instance', {
@@ -1311,10 +1765,7 @@ class Admin extends Adapter {
 
             for (const row of instances.rows) {
                 const protectThisInstance = this.isProtectedDeleteObjectId(row.id, new Set(this.getProtectedAdapterNames()));
-                changed = (await this.ensureObjectProtectionPolicy(row.id, {
-                    keepDontDelete: false,
-                    adminOnlyAcl: protectThisInstance && adminOnlyAcl,
-                })) || changed;
+                changed = (await reconcileObject(row.id, protectThisInstance && adminOnlyAcl)) || changed;
             }
         } catch (e) {
             this.log.warn(`Cannot protect instances of adapter "${adapter}": ${e instanceof Error ? e.message : e}`);
@@ -1376,6 +1827,9 @@ class Admin extends Adapter {
 
         this.eosSecurityRunning = true;
         try {
+            await this.ensureEosRoleModel();
+            await this.ensureEosSystemObjectAccess();
+            await this.ensureEosSmartHomeEnumAccess();
             await this.ensureLegacyAdminLocked();
             await this.ensureLegacyAdminVisibleOnlyToAdmins();
 
@@ -1401,6 +1855,15 @@ class Admin extends Adapter {
             this.subscribeForeignObjects(`system.adapter.${adapter}`);
             this.subscribeForeignObjects(`system.adapter.${adapter}.*`);
         }
+        this.subscribeForeignObjects('system.group.*');
+        this.subscribeForeignObjects('system.user.*');
+        this.subscribeForeignObjects('system.credentials.*');
+        this.subscribeForeignObjects('system.config');
+        this.subscribeForeignObjects('system.repositories');
+        this.subscribeForeignObjects('system.certificates');
+        this.subscribeForeignObjects('system.licenses');
+        this.subscribeForeignObjects('enum.rooms.*');
+        this.subscribeForeignObjects('enum.functions.*');
 
         void this.enforceEosSecurity('startup');
 
@@ -1735,7 +2198,7 @@ class Admin extends Adapter {
         await this.registerNotification('admin', 'adapterUpdates', textArr.join('\n'));
     }
 
-    initSocket(server: Server, store: Store): void {
+    async initSocket(server: Server, store: Store): Promise<void> {
         const settings: SocketSettings = {
             language: this.config.language,
             defaultUser: this.config.defaultUser,
@@ -1746,7 +2209,16 @@ class Admin extends Adapter {
             secret: this.secret,
         };
 
+        // Build the synchronous socket-role cache before accepting the first client. Without
+        // this barrier an installer could briefly be treated as an end user during a fresh start.
+        try {
+            await this.ensureEosRoleModel();
+        } catch (e) {
+            this.log.warn(`Cannot prepare EOS role cache before socket start: ${e instanceof Error ? e.message : e}`);
+        }
+
         socket = new SocketAdmin(settings, this, objects);
+        this.installEosSocketCommandGuard(socket);
         socket.start(server, SocketIO, { store, oauth2Only: true, noBasicAuth: this.config.noBasicAuth });
 
         // subscribe to all object changes

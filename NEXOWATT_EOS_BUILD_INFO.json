@@ -1,24 +1,33 @@
 {
-  "version": "7.9.86",
-  "channel": "stability",
-  "baseFrontend": "validated v84 runtime with datapoint write dialog fallback fix and darker NexoWatt brand badge",
+  "version": "7.9.87-rc.2",
+  "channel": "release-candidate",
+  "baseFrontend": "validated v84 runtime with NexoWatt EOS role, first-login and product branding hardening",
   "runtimeEntry": "v84",
-  "releaseType": "datapoint-write-fix-dark-logo",
-  "release": "datapoint-write-fix-dark-logo",
-  "label": "v86",
+  "releaseType": "product-role-first-login-rc2",
+  "release": "product-role-first-login-rc2",
+  "label": "v87-rc2",
   "notes": [
-    "Fixed manual datapoint write dialogs so empty or invalid states lists no longer block value entry.",
-    "Manual write now falls back to the correct editor type when no selectable states are available.",
-    "Darkened the top-left NexoWatt logo background for cleaner contrast on the dark header.",
-    "Kept the validated v84 runtime entry and patched the active UI assets for this release."
+    "Stable 7.9.86 remains unchanged; this release candidate becomes 7.9.87 stable only after system and field acceptance.",
+    "Administrator/NexoWatt Service keeps unrestricted access and is never forced through first-login password setup.",
+    "Installer and end-user accounts must choose their own password at the first authenticated login.",
+    "Installers receive commissioning and troubleshooting access without users, credentials, repositories, certificates, ACL or expert administration.",
+    "End users can open EOS Admin for Smart Home, room/function assignment and explicitly released NexoWatt UI surfaces.",
+    "Customer-visible platform branding is NexoWatt EOS; technical compatibility identifiers and third-party license notices remain internal.",
+    "After first-login password setup, every detected authentication-session representation is invalidated server-side and authentication cookies are cleared."
   ],
   "changes": [
-    "ObjectBrowserValue now checks whether common.states really contains options before forcing the States editor.",
-    "The expert-mode Value type selector only shows States when valid options exist.",
-    "Updated the native shell badge styling and drawer logo frame for a darker branded background.",
-    "Advanced shell/manual-write cache assets to v86 while keeping the active runtime entry on v84."
+    "Creates and repairs NexoWatt Service, Installer and End User role groups with purpose-specific ACL profiles.",
+    "Repairs EOS Admin, system configuration and repository metadata ACLs so authenticated installer/end-user sessions can read the shell without gaining direct system-write access.",
+    "Keeps certificates, platform licenses and credential objects restricted to NexoWatt Admin / Service.",
+    "Adds a blocking first-login password workflow for installer/end-user roles with server-side password validation and forced logout.",
+    "Allows end-user Smart Home room/function assignments while keeping raw system, adapter and expert areas hidden.",
+    "Adds a low-overhead visible-branding sanitizer for NexoWatt EOS product presentation.",
+    "Uses the authenticated EOS self-service route with trusted backend context so installer/end-user roles can set their own first-login password without global user-management rights.",
+    "Fails closed to the end-user policy for missing socket identities and invalidates first-login sessions after the password is changed."
   ],
-  "brandingCacheVersion": 86,
-  "shellCacheVersion": 86,
-  "nativeShellVersion": 86
+  "brandingCacheVersion": 87,
+  "shellCacheVersion": 87,
+  "nativeShellVersion": 87,
+  "shellCacheTag": "87rc2",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v87-rc2.json"
 }

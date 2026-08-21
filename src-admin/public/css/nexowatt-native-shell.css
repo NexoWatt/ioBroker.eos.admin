@@ -474,3 +474,63 @@ html.eos-objects-surface .MuiDialog-root:has(#edit-value-dialog-title) { z-index
     align-items: center !important;
     justify-content: center !important;
 }
+
+/* v87 role access */
+html.eos-security-nonadmin .eos-admin-only-control,
+html.eos-security-nonadmin [data-eos-admin-only-control="1"] { display: none !important; pointer-events: none !important; }
+.eos-role-landing { min-height: 100%; display: grid; place-items: center; padding: 30px; }
+.eos-role-landing-card { width: min(760px, 100%); padding: 28px; color: var(--nx-text); border: 1px solid rgba(0,255,136,.28); border-radius: 24px; background: linear-gradient(150deg, rgba(4,31,42,.96), rgba(2,12,23,.98)); box-shadow: 0 24px 60px rgba(0,0,0,.38); }
+.eos-role-landing-eyebrow { color: var(--nx-accent); font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.eos-role-landing-card h1 { margin: 8px 0 10px; font-size: clamp(25px,4vw,38px); }
+.eos-role-landing-card p { margin: 0; color: var(--nx-muted); line-height: 1.55; }
+.eos-role-actions { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 12px; margin-top: 22px; }
+.eos-role-actions button { min-height: 48px; padding: 10px 14px; color: #03121b; font-weight: 900; border: 0; border-radius: 14px; background: linear-gradient(135deg,var(--nx-accent),var(--nx-accent-2)); cursor: pointer; }
+.eos-role-actions button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+/* v87 RC2: role-safe installer basic settings and first-login security */
+.eos-basic-settings-overlay { position: fixed; inset: 0; z-index: 25000; display: grid; place-items: center; padding: 24px; background: rgba(0,7,14,.78); backdrop-filter: blur(5px); }
+.eos-basic-settings-dialog { width: min(1120px, 96vw); max-height: min(880px, 92vh); overflow: auto; color: #e9f8ff; border: 1px solid rgba(0,255,136,.28); border-radius: 22px; background: linear-gradient(145deg,#061d28 0%,#03111d 100%); box-shadow: 0 30px 90px rgba(0,0,0,.58); }
+.eos-basic-settings-header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; border-bottom: 1px solid rgba(0,255,136,.18); background: rgba(3,17,29,.96); }
+.eos-basic-settings-header h2 { margin: 0; font-size: 24px; }
+.eos-basic-settings-header p { margin: 4px 0 0; color: #91aebc; }
+.eos-basic-settings-close { width: 44px; height: 44px; color: #e9f8ff; font-size: 30px; line-height: 1; border: 1px solid rgba(160,205,225,.2); border-radius: 13px; background: rgba(0,0,0,.18); cursor: pointer; }
+.eos-basic-settings-note { margin: 20px 24px 0; padding: 14px 16px; color: #c9eaf7; line-height: 1.5; border: 1px solid rgba(255,197,70,.25); border-radius: 14px; background: rgba(255,197,70,.07); }
+.eos-basic-settings-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 20px; padding: 22px 24px; }
+.eos-basic-settings-field { display: grid; gap: 7px; min-width: 0; }
+.eos-basic-settings-label { color: #a9c8d5; font-size: 13px; font-weight: 700; }
+.eos-basic-settings-field input,.eos-basic-settings-field select { width: 100%; min-height: 44px; box-sizing: border-box; padding: 9px 12px; color: #effbff; border: 1px solid rgba(126,178,201,.28); border-radius: 10px; outline: none; background: #071824; }
+.eos-basic-settings-field input:focus,.eos-basic-settings-field select:focus { border-color: #00e58a; box-shadow: 0 0 0 3px rgba(0,229,138,.12); }
+.eos-basic-settings-status { min-height: 22px; padding: 0 24px 12px; color: #a9c8d5; }
+.eos-basic-settings-status[data-kind="success"] { color: #45f2a2; }
+.eos-basic-settings-status[data-kind="error"] { color: #ff8893; }
+.eos-basic-settings-actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px 20px; border-top: 1px solid rgba(0,255,136,.16); background: rgba(3,17,29,.96); }
+.eos-basic-settings-actions button { min-width: 130px; min-height: 44px; padding: 10px 18px; font-weight: 800; border-radius: 12px; cursor: pointer; }
+.eos-basic-settings-primary { color: #03151c; border: 0; background: linear-gradient(135deg,#00e58a,#45d5ff); }
+.eos-basic-settings-secondary { color: #e9f8ff; border: 1px solid rgba(160,205,225,.26); background: rgba(255,255,255,.04); }
+.eos-basic-settings-actions button:disabled { opacity: .55; cursor: wait; }
+@media (max-width: 760px) { .eos-basic-settings-overlay { padding: 8px; } .eos-basic-settings-dialog { width: 100%; max-height: 96vh; } .eos-basic-settings-form { grid-template-columns: 1fr; } .eos-basic-settings-actions { flex-direction: column-reverse; } .eos-basic-settings-actions button { width: 100%; } }
+
+/* v87-rc2: blocking first-login password setup for installer/end-user accounts */
+html.eos-first-login-active,html.eos-first-login-active body { min-height: 100%; overflow: hidden !important; background: #020914 !important; }
+.eos-first-login-overlay { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; box-sizing: border-box; padding: 24px; color: #effbff; background: radial-gradient(circle at 20% 0%,rgba(0,229,138,.15),transparent 38%),linear-gradient(145deg,#020914,#061927); font-family: Inter,Roboto,Arial,sans-serif; }
+.eos-first-login-card { width: min(520px,100%); box-sizing: border-box; padding: 30px; border: 1px solid rgba(0,229,138,.34); border-radius: 22px; background: rgba(4,21,33,.96); box-shadow: 0 28px 90px rgba(0,0,0,.58),0 0 42px rgba(0,229,138,.08); }
+.eos-first-login-logo { display: block; width: min(290px,78%); height: 84px; margin: 0 auto 4px; object-fit: contain; }
+.eos-first-login-kicker { margin-bottom: 20px; color: #00e58a; font-size: 11px; font-weight: 900; letter-spacing: .2em; text-align: center; text-transform: uppercase; }
+.eos-first-login-card h1 { margin: 0 0 12px; font-size: clamp(24px,5vw,34px); text-align: center; }
+.eos-first-login-intro { margin: 0 0 18px; color: #bad2dd; line-height: 1.55; text-align: center; }
+.eos-first-login-account { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; padding: 10px 12px; border: 1px solid rgba(133,193,218,.18); border-radius: 11px; background: rgba(255,255,255,.035); }
+.eos-first-login-card form { display: grid; gap: 14px; }
+.eos-first-login-card form>label:not(.eos-first-login-show) { display: grid; gap: 7px; color: #b9d4df; font-size: 13px; font-weight: 800; }
+.eos-first-login-card input[type="password"],.eos-first-login-card input[type="text"] { min-height: 48px; box-sizing: border-box; padding: 10px 13px; color: #fff; border: 1px solid rgba(126,178,201,.32); border-radius: 11px; outline: none; background: #061722; font-size: 16px; }
+.eos-first-login-card input:focus { border-color: #00e58a; box-shadow: 0 0 0 3px rgba(0,229,138,.13); }
+.eos-first-login-show { display: flex; align-items: center; gap: 9px; color: #c6dbe4; cursor: pointer; }
+.eos-first-login-rules { margin: 0; color: #9db9c5; font-size: 12px; line-height: 1.45; }
+.eos-first-login-status { min-height: 22px; color: #b9d4df; font-size: 13px; }
+.eos-first-login-status[data-kind="error"] { color: #ff8791; }
+.eos-first-login-status[data-kind="success"] { color: #45f2a2; }
+.eos-first-login-submit { min-height: 48px; border: 0; border-radius: 12px; color: #03151c; background: linear-gradient(135deg,#00e58a,#45d5ff); font-weight: 900; cursor: pointer; }
+.eos-first-login-submit:disabled { opacity: .58; cursor: wait; }
+.eos-first-login-logout { display: block; color: #a9c9d6; text-align: center; text-decoration: none; }
+.eos-first-login-logout:hover { color: #fff; }
+.eos-role-hidden { display: none !important; }
+@media (max-width: 580px) { .eos-first-login-overlay { padding: 10px; } .eos-first-login-card { padding: 22px 17px; border-radius: 16px; } }

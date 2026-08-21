@@ -50,6 +50,18 @@ export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
     eosAdminOnlyGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
     /** Alternative UI key for the same admin-only group list. */
     eosSecurityAdminGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    /** NexoWatt/EOS service groups with the same unrestricted rights as administrators. */
+    eosServiceGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    /** Installer groups for commissioning and troubleshooting without security/expert administration. */
+    eosInstallerGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    /** End-user groups for Smart Home and explicitly released EOS/NexoWatt UI areas. */
+    eosEndUserGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    /** Require installer/end-user accounts to choose a personal password after their first authenticated login. */
+    eosRequireFirstLoginPassword?: boolean;
+    /** Minimum length for first-login passwords. */
+    eosFirstLoginPasswordMinLength?: number;
+    /** Automatically assign the standard installer/user account names to the matching EOS role groups. */
+    eosAutoAssignDefaultRoleUsers?: boolean;
     /** Alternative UI key for hiding the legacy admin. */
     eosHideLegacyAdminForNonAdmins?: boolean;
     /** Apply administrator-only ACLs to selected protected adapters. */

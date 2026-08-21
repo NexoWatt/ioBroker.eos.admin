@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v84-nexowatt-native-shell-cleanup';
+    const VERSION = 'v87-rc2-role-access';
     const existing = window.NEXOWATT_EOS_POLICY_CLIENT;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();
@@ -10,8 +10,8 @@
     const base = new URL('../', script).href;
     const urls = [new URL('nexowatt/security/context', base).href];
 
-    let policy = null;
-    let status = 'idle';
+    let policy = window.NEXOWATT_EOS_BOOTSTRAP_POLICY || null;
+    let status = policy ? 'ready' : 'idle';
     let attempt = 0;
     let timer = 0;
     let inFlight = null;
@@ -206,5 +206,6 @@
         if (!document.hidden && status !== 'ready') void refresh();
     }, { signal: abort.signal });
 
+    if (policy) queueMicrotask(() => emit('bootstrap'));
     void refresh();
 })();

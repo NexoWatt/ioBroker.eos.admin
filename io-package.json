@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.86",
+    "version": "7.9.87-rc.2",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,16 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.87-rc.2": {
+        "en": "Release candidate for the sales-ready EOS Admin: role-specific installer/end-user access, first-login password setup, Smart Home assignment access, strict expert-mode lock and NexoWatt-only customer branding.",
+        "de": "Release Candidate für den verkaufsfertigen EOS Admin: rollenbezogener Installateur-/Endkundenzugriff, Passwortvergabe bei der ersten Anmeldung, Smart-Home-Zuordnung, strikte Expertenmodus-Sperre und ausschließliches NexoWatt-Branding in der Kundenoberfläche.",
+        "nl": "Release candidate voor de verkoopklare EOS Admin: rolgebonden installateur-/eindgebruikertoegang, wachtwoordkeuze bij de eerste aanmelding, Smart Home-toewijzing, strikte blokkering van de expertmodus en uitsluitend NexoWatt-branding in de klantinterface."
+      },
+      "7.9.87-rc.1": {
+        "en": "Role access RC1: end users can open EOS Admin for Smart Home and released NexoWatt UI areas; installers receive commissioning, adapter, instance, datapoint and log diagnostics plus a safe basic-settings dialog. NexoWatt Admin/Service alone retains full system, security, user and expert-mode access.",
+        "de": "Rollen-Zugriff RC1: Endkunden können EOS Admin für Smart Home und freigegebene NexoWatt-UI-Bereiche öffnen; Installateure erhalten Inbetriebnahme, Adapter-, Instanz-, Datenpunkt- und Logdiagnose sowie einen sicheren Basis-Einstellungsdialog. Nur NexoWatt Admin/Service behält vollständigen System-, Sicherheits-, Benutzer- und Expertenmodus-Zugriff.",
+        "nl": "Roltoegang RC1: eindgebruikers kunnen EOS Admin openen voor Smart Home en vrijgegeven NexoWatt-UI-onderdelen; installateurs krijgen inbedrijfstelling, adapter-, instantie-, datapunt- en logdiagnose plus een veilig basisinstellingendialoog. Alleen NexoWatt Admin/Service behoudt volledige systeem-, beveiligings-, gebruikers- en expertmodustoegang."
+      },
       "7.9.79": {
         "en": "Fixes direct manual OCPP and generic datapoint controls: button states with def=false now send the active trigger value, switches read a fresh state before toggling, boolean/string/number encodings are normalized, and all active frontend runtime files use v79.",
         "de": "Korrigiert direkte manuelle OCPP- und allgemeine Datenpunktbedienung: Buttons mit def=false senden jetzt den aktiven Triggerwert, Schalter lesen vor dem Umschalten den aktuellen State, Boolean-/String-/Number-Darstellungen werden typgerecht normalisiert und alle aktiven Frontend-Dateien verwenden v79.",
@@ -34,8 +44,8 @@
         "nl": "Filterpop-ups onder Modules hersteld: gesloten MUI-menu’s kunnen niet meer zichtbaar worden, ankers blijven stabiel, DOM-aanpassingen gelden alleen voor geopende overlays en de runtime-cachepaden zijn vernieuwd."
       },
       "7.9.54": {
-        "en": "Restores stable native ioBroker ObjectBrowser datapoint handling: read-only states stay read-only, writable states can be edited, and the broken DPWrite module-federation bundle/performance guard is removed.",
-        "de": "Stellt die stabile native ioBroker-ObjectBrowser-Datenpunktbedienung wieder her: nur lesbare States bleiben nur lesbar, beschreibbare States sind editierbar, und das fehlerhafte DPWrite-Module-Federation-Bundle/Performance-Guard ist entfernt."
+        "en": "Restores stable native NexoWatt EOS Datenpunktansicht datapoint handling: read-only states stay read-only, writable states can be edited, and the broken DPWrite module-federation bundle/performance guard is removed.",
+        "de": "Stellt die stabile native NexoWatt EOS-ObjectBrowser-Datenpunktbedienung wieder her: nur lesbare States bleiben nur lesbar, beschreibbare States sind editierbar, und das fehlerhafte DPWrite-Module-Federation-Bundle/Performance-Guard ist entfernt."
       },
       "7.9.49": {
         "en": "Reliable manual writes for writable states, corrected boolean switch handling and faster objects page updates.",
@@ -222,8 +232,8 @@
         "de": "EOS-Löschschutz korrigiert: Nur Admin/EOS Admin, Backup, NexoWatt Devices und NexoWatt UI bleiben geschützt; beschreibbare Datenpunkte schreiben Befehlswerte zuverlässiger."
       },
       "7.9.40": {
-        "en": "Fixed repository update package mapping by adding packetName and preserved technical npm/ioBroker package output in command dialogs.",
-        "de": "Repository-Update-Mapping korrigiert: packetName ergänzt und technische npm/ioBroker-Paketausgaben in Befehlsdialogen unverändert gelassen."
+        "en": "Fixed repository update package mapping by adding packetName and preserved technical npm/NexoWatt EOS package output in command dialogs.",
+        "de": "Repository-Update-Mapping korrigiert: packetName ergänzt und technische npm/NexoWatt EOS-Paketausgaben in Befehlsdialogen unverändert gelassen."
       },
       "7.9.45": {
         "en": "Hard fix for service/module deletion: DOM security scripts no longer capture trash clicks, stale delete locks are repaired, and only EOS core adapters remain protected.",
@@ -284,7 +294,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.86/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.2/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -295,7 +305,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.86/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.2/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -364,14 +374,14 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.86/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.2/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
   "native": {
     "autoUpdate": 24,
     "port": 8091,
-    "auth": false,
+    "auth": true,
     "secure": false,
     "bind": "0.0.0.0",
     "cache": false,
@@ -410,7 +420,7 @@
     "eosProtectedAdapters": [
       {
         "adapter": "admin",
-        "note": "ioBroker Admin / Legacy Admin",
+        "note": "Interner Legacy-Admin",
         "enabled": true
       },
       {
@@ -452,6 +462,13 @@
         "enabled": true
       }
     ],
+    "eosServiceGroups": [
+      {
+        "group": "system.group.nexowatt-service",
+        "note": "NexoWatt Admin / Service",
+        "enabled": true
+      }
+    ],
     "eosAdminOnlyGroup": "system.group.administrator",
     "eosApplyAdminOnlyAclToProtectedAdapters": false,
     "eosAssistantEnabled": true,
@@ -460,7 +477,7 @@
     "eosInstallerGroups": [
       {
         "group": "system.group.installateur",
-        "note": "Installateure / Service",
+        "note": "Installateure / Inbetriebnahme",
         "enabled": true
       }
     ],
@@ -475,7 +492,10 @@
         "note": "Endkunden / Bediener",
         "enabled": true
       }
-    ]
+    ],
+    "eosRequireFirstLoginPassword": true,
+    "eosFirstLoginPasswordMinLength": 10,
+    "eosAutoAssignDefaultRoleUsers": true
   },
   "notifications": [
     {
@@ -494,16 +514,16 @@
         "zh-cn": "行政部门"
       },
       "description": {
-        "en": "These notifications represent news regarding installed adapters or general ioBroker information.",
-        "de": "Diese Benachrichtigungen enthalten Neuigkeiten zu installierten Adaptern oder allgemeine ioBroker-Informationen.",
-        "ru": "Эти уведомления представляют новости о установленных адаптерах или общей информации ioBroker.",
-        "pt": "Estas notificações representam notícias sobre adaptadores instalados ou informações gerais do ioBroker.",
-        "nl": "Deze berichten zijn nieuws over geïnstalleerde adapters of algemene ioBroker informatie.",
-        "fr": "Ces notifications représentent des nouvelles concernant les adaptateurs installés ou les informations générales ioBroker.",
-        "it": "Queste notifiche rappresentano notizie riguardanti adattatori installati o informazioni generali su ioBroker.",
-        "es": "Estas notificaciones representan noticias sobre adaptadores instalados o información general ioBroker.",
-        "pl": "Noty te reprezentują informacje dotyczące zainstalowanych adapterów lub ogólnie dostępnych informacji ioBrokera.",
-        "uk": "Ці повідомлення представляють новини про встановлені адаптери або загальні відомості про ioBroker.",
+        "en": "These notifications represent news regarding installed adapters or general NexoWatt EOS information.",
+        "de": "Diese Benachrichtigungen enthalten Neuigkeiten zu installierten Adaptern oder allgemeine NexoWatt EOS-Informationen.",
+        "ru": "Эти уведомления представляют новости о установленных адаптерах или общей информации NexoWatt EOS.",
+        "pt": "Estas notificações representam notícias sobre adaptadores instalados ou informações gerais do NexoWatt EOS.",
+        "nl": "Deze berichten zijn nieuws over geïnstalleerde adapters of algemene NexoWatt EOS informatie.",
+        "fr": "Ces notifications représentent des nouvelles concernant les adaptateurs installés ou les informations générales NexoWatt EOS.",
+        "it": "Queste notifiche rappresentano notizie riguardanti adattatori installati o informazioni generali su NexoWatt EOS.",
+        "es": "Estas notificaciones representan noticias sobre adaptadores instalados o información general NexoWatt EOS.",
+        "pl": "Noty te reprezentują informacje dotyczące zainstalowanych adapterów lub ogólnie dostępnych informacji NexoWatt EOSa.",
+        "uk": "Ці повідомлення представляють новини про встановлені адаптери або загальні відомості про NexoWatt EOS.",
         "zh-cn": "这些通知是有关安装的适应器或一般的气箱信息的新闻。."
       },
       "categories": [
@@ -524,17 +544,17 @@
           },
           "severity": "notify",
           "description": {
-            "en": "New adapter updates are available for your ioBroker.",
-            "de": "Es sind neue Adapter Updates für deinen ioBroker verfügbar.",
-            "ru": "Для вашего ioBroker доступны новые обновления адаптера.",
-            "pt": "Estão disponíveis novas actualizações de adaptadores para o seu ioBroker.",
-            "nl": "Nieuwe adapterupdates zijn beschikbaar voor uw ioBroker.",
-            "fr": "De nouvelles mises à jour de l'adaptateur sont disponibles pour ton ioBroker.",
-            "it": "Sono disponibili nuovi aggiornamenti dell'adattatore per il vostro ioBroker.",
-            "es": "Hay nuevas actualizaciones de adaptadores disponibles para su ioBroker.",
-            "pl": "Dostępne są nowe aktualizacje adaptera dla ioBroker.",
-            "uk": "Для вашого ioBroker доступні нові оновлення адаптерів.",
-            "zh-cn": "您的 ioBroker 可以使用新的适配器更新。"
+            "en": "New adapter updates are available for NexoWatt EOS.",
+            "de": "Für NexoWatt EOS sind neue Adapter-Updates verfügbar.",
+            "ru": "Для NexoWatt EOS доступны новые обновления адаптеров.",
+            "pt": "Estão disponíveis novas atualizações de adaptadores para o NexoWatt EOS.",
+            "nl": "Er zijn nieuwe adapterupdates beschikbaar voor NexoWatt EOS.",
+            "fr": "De nouvelles mises à jour d’adaptateurs sont disponibles pour NexoWatt EOS.",
+            "it": "Sono disponibili nuovi aggiornamenti degli adattatori per NexoWatt EOS.",
+            "es": "Hay nuevas actualizaciones de adaptadores disponibles para NexoWatt EOS.",
+            "pl": "Dostępne są nowe aktualizacje adapterów dla NexoWatt EOS.",
+            "uk": "Для NexoWatt EOS доступні нові оновлення адаптерів.",
+            "zh-cn": "NexoWatt EOS 有新的适配器更新可用。"
           },
           "regex": [],
           "limit": 1
@@ -1043,5 +1063,5 @@
       }
     }
   },
-  "version": "7.9.86"
+  "version": "7.9.87-rc.2"
 }

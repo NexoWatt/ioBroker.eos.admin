@@ -25,16 +25,26 @@ const html = fs.existsSync(indexPath) ? read(indexPath) : '';
 const scriptRefs = [...html.matchAll(/<script\b([^>]*)\bsrc=["']\.\/([^"'?#]+)(?:\?[^"']*)?["'][^>]*>/gi)]
   .map(match => ({ attrs: match[1], file: match[2], module: /\btype=["']module["']/i.test(match[1]) }));
 const styleRefs = [...html.matchAll(/<link\b[^>]*\bhref=["']\.\/([^"'?#]+)(?:\?[^"']*)?["'][^>]*>/gi)].map(match => match[1]);
+const roleBootstrapMatch = html.match(/<script\b[^>]*\bsrc=["']\.\/js\/eos-role-bootstrap\.js(?:\?[^"']*)?["'][^>]*\bdata-eos-entry=["']\.\/([^"']+)["'][^>]*>/i);
+const dynamicEntryRef = roleBootstrapMatch ? roleBootstrapMatch[1].split('?')[0] : '';
 
 for (const { file } of scriptRefs) if (!exists(file)) fail(`index references missing script ${file}`);
 for (const file of styleRefs) if (!exists(file)) fail(`index references missing stylesheet/resource ${file}`);
+if (!roleBootstrapMatch) fail('role bootstrap does not declare data-eos-entry');
+if (dynamicEntryRef && !exists(dynamicEntryRef)) fail(`role bootstrap references missing application entry ${dynamicEntryRef}`);
+if (dynamicEntryRef !== `assets/index-CQZugZ1z-${runtime}.js`) {
+  fail(`role bootstrap application entry must be assets/index-CQZugZ1z-${runtime}.js, got ${dynamicEntryRef || 'none'}`);
+}
 
 const requiredOrder = [
   `js/eos-manual-write-policy.js`,
   `assets/hostInit-${runtime}.js`,
-  `assets/index-CQZugZ1z-${runtime}.js`,
+  `js/eos-role-bootstrap.js`,
+  `js/eos-policy-client.js`,
   `js/nexowatt-native-shell.js`,
   `js/eos-native-security.js`,
+  `js/eos-basic-settings.js`,
+  `js/eos-role-ui.js`,
 ];
 let last = -1;
 for (const file of requiredOrder) {
@@ -74,7 +84,9 @@ else {
 // separate from the all-assets syntax check so the startup chain is explicit.
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'nexowatt-entrypoint-smoke-'));
 try {
-  for (const { file, module } of scriptRefs) {
+  const entriesToParse = [...scriptRefs];
+  if (dynamicEntryRef) entriesToParse.push({ file: dynamicEntryRef, module: true });
+  for (const { file, module } of entriesToParse) {
     const source = path.join(adminRoot, file);
     if (!fs.existsSync(source) || !file.endsWith('.js')) continue;
     const target = path.join(temp, `${path.basename(file)}.${module ? 'mjs' : 'cjs'}`);
@@ -90,4 +102,4 @@ if (failures.length) {
   console.error(`[NexoWatt EOS entrypoint smoke] ${failures.length} failure(s):\n${failures.join('\n')}`);
   process.exit(1);
 }
-console.log(`[NexoWatt EOS entrypoint smoke] OK (${scriptRefs.length} scripts, runtime ${runtime})`);
+console.log(`[NexoWatt EOS entrypoint smoke] OK (${scriptRefs.length} scripts + role-bootstrapped app entry, runtime ${runtime})`);

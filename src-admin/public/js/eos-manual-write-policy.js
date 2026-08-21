@@ -1,11 +1,11 @@
-/* NexoWatt EOS manual datapoint write policy v7.9.79 */
+/* NexoWatt EOS manual datapoint write policy v7.9.87-rc.2 sales-release candidate */
 (function (root, factory) {
     'use strict';
     const api = factory();
     if (typeof module === 'object' && module.exports) module.exports = api;
     if (!root) return;
 
-    root.NEXOWATT_EOS_MANUAL_WRITE_POLICY_VERSION = 'v86-dpwrite-states-fallback';
+    root.NEXOWATT_EOS_MANUAL_WRITE_POLICY_VERSION = 'v87-dpwrite-states-fallback';
     root.NEXOWATT_EOS_MANUAL_WRITE_POLICY = api;
     root.NEXOWATT_EOS_GET_WRITE_BEHAVIOR = api.getWriteBehavior;
     root.NEXOWATT_EOS_GET_DIRECT_WRITE_VALUE = api.getDirectWriteValue;
@@ -291,7 +291,14 @@
         if (!obj || obj.type !== 'state') return 'readonly';
         const common = obj.common || {};
         if (common.write === false) return 'readonly';
-        if (isExpertOnlyState(id, obj) && !expertMode) return 'expert-only';
+        // Expert access is a NexoWatt Admin / Service capability, not merely a browser flag.
+        // Installer and end-user sessions therefore cannot re-enable dangerous controls through
+        // localStorage or stale GUI state.
+        const accessRole = typeof window === 'undefined'
+            ? 'admin' // deterministic Node.js self-test / server-side use
+            : String(window.NEXOWATT_EOS_ACCESS_ROLE || 'enduser').toLowerCase();
+        const effectiveExpertMode = expertMode === true && accessRole === 'admin';
+        if (isExpertOnlyState(id, obj) && !effectiveExpertMode) return 'expert-only';
         if (normalizeCommonType(obj) === 'file') return 'file';
         const explicitTrigger = getExplicitManualValue(obj, 'manualTriggerValue');
         if (isButtonState(obj, item) && (explicitTrigger.found || common.def !== undefined || !['array', 'object'].includes(normalizeCommonType(obj)))) return 'button';
@@ -433,7 +440,7 @@
 
     const writeManualState = (socket, id, value) => {
         if (!socket || typeof socket.setState !== 'function') {
-            return Promise.reject(new Error('ioBroker socket is not ready'));
+            return Promise.reject(new Error('NexoWatt EOS connection is not ready'));
         }
         const key = String(id || '');
         if (!key) return Promise.reject(new Error('Missing datapoint ID'));

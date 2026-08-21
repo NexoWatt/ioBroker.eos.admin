@@ -420,7 +420,7 @@ export default class Login extends Component<object, LoginState> {
                                     rel="noopener noreferrer"
                                     target="_blank"
                                 >
-                                    ioBroker
+                                    NexoWatt EOS
                                 </Link>
                             ) : null}
                         </Typography>
