@@ -289,7 +289,12 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
         const { item, instance } = this.props;
 
         return (
-            <Card sx={Utils.getStyle(this.props.context.theme, styles.root, this.props.hidden && styles.hidden)}>
+            <Card
+                data-instance={item.id}
+                data-instance-id={item.id}
+                data-instance-row="1"
+                sx={Utils.getStyle(this.props.context.theme, styles.root, this.props.hidden && styles.hidden)}
+            >
                 {this.state.openDialog && this.renderDialogs()}
                 {this.renderSecondCardInfo()}
                 <Box

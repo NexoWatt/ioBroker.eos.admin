@@ -1,33 +1,31 @@
 {
-  "version": "7.9.89",
+  "version": "7.9.91",
   "channel": "stable-latest",
-  "baseFrontend": "validated Admin 7 runtime with NexoWatt EOS role, login, overview and service-reserve hardening",
+  "baseFrontend": "validated Admin 7 runtime with NexoWatt EOS compact login, role, overview and service-reserve hardening",
   "runtimeEntry": "v84",
-  "releaseType": "stable-sales-product-role-login-overview-reserve-visibility",
-  "release": "stable-sales-product-role-login-overview-reserve-visibility",
-  "label": "v89",
+  "releaseType": "stable-sales-product-compact-login-first-activation-overview-reserve-fix",
+  "release": "stable-sales-product-compact-login-first-activation-overview-reserve-fix",
+  "label": "v91",
   "notes": [
-    "7.9.89 is the accepted stable sales-product release and is intended for npm dist-tag latest.",
-    "Installer and Guest/End User perform their one-time passwordless activation inside the normal login card, then must create a personal password.",
-    "Admin/Service retains the configured password and is excluded from passwordless activation and role reset.",
-    "EOS Assist is integrated into the header and account management exists only under Zugänge & Rechte.",
-    "The current tab-intro overview is modernized; the Easy overview is not used.",
-    "The internal admin and BackItUp emergency reserve are restricted to Admin/Service; NexoWatt Backup remains available to approved roles.",
-    "EOS Admin defaults to port 8081; the internal legacy admin remains protected on 127.0.0.1:18081."
+    "7.9.91 is the accepted stable sales-product release and is intended for npm dist-tag latest.",
+    "The normal login uses a compact two-layer card; the outer card no longer inherits full-viewport form sizing.",
+    "Installer, Guest and User empty-password first activation is enabled only after a server-side eligibility check.",
+    "After personal password setup, empty-password sign-in stays disabled until an authorized reset reopens activation.",
+    "Installer and end-user overview tiles use direct navigation handlers and remain fully clickable.",
+    "The internal admin and BackItUp emergency reserve are hidden for non-admin roles even when service rows render asynchronously.",
+    "NexoWatt Backup remains available to approved roles; EOS Assist stays in the header and the default port stays 8081."
   ],
   "changes": [
-    "Integrates role selection into the normal login card and removes the separate passwordless-first-login panel.",
-    "Moves EOS Assist into the top header and removes overlapping floating launchers.",
-    "Keeps account and password reset functions exclusively under Zugänge & Rechte.",
-    "Modernizes the current overview for Admin, Installer and Guest/End User without using Easy mode.",
-    "Restricts exact official admin and backitup adapter/instance visibility and control to Admin/Service at UI, socket and object ACL layers.",
-    "Keeps NexoWatt Backup visible and usable for approved installer and end-user roles.",
-    "Retains Admin/Service-only expert mode, service settings and security administration.",
-    "Publishes the final stable package through npm latest with exact version and package validation."
+    "Scopes login form styling to the inner card and keeps the rear card compact instead of viewport-high.",
+    "Adds a login-layout regression guard for CSS source/build parity and compact sizing invariants.",
+    "Keeps the narrow passwordless-status endpoint for server-authoritative first-activation button state.",
+    "Keeps direct overview navigation and hard internal-reserve row filtering for Installer and End User.",
+    "Preserves Admin/Service-only expert mode, internal admin and BackItUp reserve access.",
+    "Publishes the stable package through npm latest with exact version and package validation."
   ],
-  "brandingCacheVersion": 89,
-  "shellCacheVersion": 89,
-  "nativeShellVersion": 89,
-  "shellCacheTag": "89",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v89.json"
+  "brandingCacheVersion": 91,
+  "shellCacheVersion": 91,
+  "nativeShellVersion": 91,
+  "shellCacheTag": "91",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v91.json"
 }

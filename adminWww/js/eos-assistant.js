@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v89-header-eos-assist';
+    const VERSION = 'v91-header-eos-assist';
     const previous = window.NEXOWATT_EOS_ASSIST;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();

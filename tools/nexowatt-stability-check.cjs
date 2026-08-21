@@ -74,7 +74,8 @@ if (oldAssets.length || oldRemote.length) fail(`legacy runtime files remain: ${o
 
 const scripts = ['eos-policy-client.js','eos-branding-sanitizer.js','nexowatt-native-shell.js','eos-native-security.js','eos-basic-settings.js','eos-role-ui.js','eos-account-management.js','eos-assistant.js'];
 const observerCount = scripts.reduce((n, f) => n + (read(`adminWww/js/${f}`).match(/new MutationObserver/g) || []).length, 0);
-if (observerCount !== 1) fail(`expected one shared MutationObserver, got ${observerCount}`);
+if (observerCount !== 2) fail(`expected one shared MutationObserver plus one scoped reserve-row observer, got ${observerCount}`);
+if (!read('adminWww/js/eos-role-ui.js').includes('state.reserveObserver.observe(paper')) fail('scoped reserve-row observer missing');
 const shell = read('adminWww/js/nexowatt-native-shell.js');
 if (!shell.includes('ensureNavigationContainer') || !shell.includes('rendered natively by Drawer.tsx')) fail('native shell container implementation missing');
 if (shell.includes('textNode.textContent = cfg.label') || shell.includes('innerHTML = cfg.svg')) fail('native shell still rewrites navigation content');

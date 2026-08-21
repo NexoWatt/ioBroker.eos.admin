@@ -96,7 +96,10 @@ declare global {
         loginTitle: string;
         /** If the SSO feature is active, it is set to string 'true' */
         ssoActive: string;
-        NEXOWATT_EOS_FIRST_LOGIN?: { start: (account: string) => Promise<boolean> | boolean };
+        NEXOWATT_EOS_FIRST_LOGIN?: {
+            start: (account: string) => Promise<boolean> | boolean;
+            check?: (account: string) => Promise<boolean> | boolean;
+        };
     }
 }
 
@@ -108,10 +111,15 @@ interface LoginState {
     showPassword: boolean;
     error: string;
     loggingIn: boolean;
+    firstLoginEligible: boolean;
+    firstLoginChecking: boolean;
+    firstLoginCheckedAccount: string;
 }
 
 export default class Login extends Component<object, LoginState> {
     private readonly passwordRef: React.RefObject<HTMLInputElement>;
+
+    private firstLoginCheckTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(props: object) {
         super(props);
@@ -126,6 +134,9 @@ export default class Login extends Component<object, LoginState> {
             password: '',
             error: '',
             loggingIn,
+            firstLoginEligible: false,
+            firstLoginChecking: false,
+            firstLoginCheckedAccount: '',
         };
 
         // apply image
@@ -201,9 +212,76 @@ export default class Login extends Component<object, LoginState> {
         return false;
     }
 
+    private getManagedFirstLoginAccount(): string {
+        return this.state.username.trim().toLowerCase().replace(/^system\.user\./, '');
+    }
+
+    private isManagedFirstLoginAccount(): boolean {
+        return ['installer', 'guest', 'user'].includes(this.getManagedFirstLoginAccount());
+    }
+
     private isManagedFirstLogin(): boolean {
-        const account = this.state.username.trim().toLowerCase().replace(/^system\.user\./, '');
-        return !this.state.password && (account === 'installer' || account === 'guest');
+        const account = this.getManagedFirstLoginAccount();
+        return (
+            !this.state.password &&
+            this.isManagedFirstLoginAccount() &&
+            this.state.firstLoginEligible &&
+            this.state.firstLoginCheckedAccount === account
+        );
+    }
+
+    private scheduleFirstLoginEligibilityCheck(): void {
+        if (this.firstLoginCheckTimer) {
+            clearTimeout(this.firstLoginCheckTimer);
+        }
+        const account = this.getManagedFirstLoginAccount();
+        if (this.state.password || !this.isManagedFirstLoginAccount()) {
+            this.setState({
+                firstLoginEligible: false,
+                firstLoginChecking: false,
+                firstLoginCheckedAccount: account,
+            });
+            return;
+        }
+        this.setState({
+            firstLoginEligible: false,
+            firstLoginChecking: true,
+            firstLoginCheckedAccount: account,
+        });
+        this.firstLoginCheckTimer = setTimeout(async () => {
+            const currentAccount = this.getManagedFirstLoginAccount();
+            if (currentAccount !== account || this.state.password) {
+                return;
+            }
+            try {
+                const checker = window.NEXOWATT_EOS_FIRST_LOGIN?.check;
+                const eligible = checker ? !!(await checker(account)) : false;
+                if (this.getManagedFirstLoginAccount() === account && !this.state.password) {
+                    this.setState({
+                        firstLoginEligible: eligible,
+                        firstLoginChecking: false,
+                        firstLoginCheckedAccount: account,
+                    });
+                }
+            } catch {
+                this.setState({
+                    firstLoginEligible: false,
+                    firstLoginChecking: false,
+                    firstLoginCheckedAccount: account,
+                });
+            }
+        }, 120);
+    }
+
+    componentDidMount(): void {
+        // Browser password managers/autofill may populate the account after the first render.
+        [80, 300, 900].forEach(delay => setTimeout(() => this.scheduleFirstLoginEligibilityCheck(), delay));
+    }
+
+    componentWillUnmount(): void {
+        if (this.firstLoginCheckTimer) {
+            clearTimeout(this.firstLoginCheckTimer);
+        }
     }
 
     private onLoginAction(): void {
@@ -268,7 +346,14 @@ export default class Login extends Component<object, LoginState> {
             );
         } else {
             content = (
-                <Paper sx={styles.paper}>
+                <Paper
+                    className={`eos-login-card-modern${this.isManagedFirstLogin() ? ' eos-login-first-ready' : ''}${
+                        this.state.firstLoginChecking && this.isManagedFirstLoginAccount()
+                            ? ' eos-login-first-checking'
+                            : ''
+                    }`}
+                    sx={styles.paper}
+                >
                     <Grid2
                         container
                         direction="column"
@@ -311,42 +396,24 @@ export default class Login extends Component<object, LoginState> {
                         {window.location.search.includes('error') || this.state.error ? (
                             <div style={styles.alert}>{this.state.error || I18n.t('wrongPassword')}</div>
                         ) : null}
-                        <Box className="eos-login-role-selector eos-login-role-selector-native">
-                            <div className="eos-login-role-heading">
-                                <strong>Zugangsebene</strong>
-                                <span>Beim allerersten Login Passwortfeld leer lassen</span>
-                            </div>
-                            <div className="eos-login-role-buttons">
-                                {[
-                                    { user: 'admin', icon: '◆', label: 'Admin / Service' },
-                                    { user: 'installer', icon: '⚙', label: 'Installateur' },
-                                    { user: 'guest', icon: '⌂', label: 'Gast / Endkunde' },
-                                ].map(item => (
-                                    <Button
-                                        key={item.user}
-                                        type="button"
-                                        data-eos-account={item.user}
-                                        className={this.state.username.trim().toLowerCase() === item.user ? 'active' : ''}
-                                        onClick={() => this.setState({ username: item.user, password: '', error: '' }, () => this.passwordRef.current?.focus())}
-                                    >
-                                        <span>{item.icon}</span><strong>{item.label}</strong>
-                                    </Button>
-                                ))}
-                            </div>
-                            <p className="eos-login-first-hint">
-                                {this.isManagedFirstLogin()
-                                    ? 'Erstanmeldung: ohne Passwort fortfahren und anschließend ein persönliches Passwort festlegen.'
-                                    : 'Admin/Service meldet sich immer mit dem fest eingerichteten Passwort an.'}
-                            </p>
-                            <div className="eos-login-first-status" aria-live="polite" />
-                        </Box>
+                        {/* Keep the familiar compact login page. Installer/guest/user enter their account
+                            in the normal login field and leave the password empty only for an authorised first login. */}
                         <TextField
                             variant="outlined"
                             margin="normal"
                             disabled={this.state.inProcess}
                             required
                             value={this.state.username}
-                            onChange={e => this.setState({ username: e.target.value })}
+                            onChange={e =>
+                                this.setState(
+                                    {
+                                        username: e.target.value,
+                                        firstLoginEligible: false,
+                                        firstLoginChecking: false,
+                                    },
+                                    () => this.scheduleFirstLoginEligibilityCheck(),
+                                )
+                            }
                             onKeyUp={e => {
                                 if (e.key === 'Enter' && this.state.username) {
                                     e.preventDefault();
@@ -365,11 +432,20 @@ export default class Login extends Component<object, LoginState> {
                             variant="outlined"
                             margin="normal"
                             disabled={this.state.inProcess}
-                            required
+                            required={!this.isManagedFirstLogin()}
                             fullWidth
                             ref={this.passwordRef}
                             value={this.state.password}
-                            onChange={e => this.setState({ password: e.target.value })}
+                            onChange={e =>
+                                this.setState(
+                                    {
+                                        password: e.target.value,
+                                        firstLoginEligible: false,
+                                        firstLoginChecking: false,
+                                    },
+                                    () => this.scheduleFirstLoginEligibilityCheck(),
+                                )
+                            }
                             onKeyUp={e => {
                                 if (e.key === 'Enter' && this.state.username && (this.state.password || this.isManagedFirstLogin())) {
                                     this.onLoginAction();
@@ -399,6 +475,7 @@ export default class Login extends Component<object, LoginState> {
                             id="password"
                             autoComplete="current-password"
                         />
+                        <div className="eos-login-first-status eos-login-first-status-native" aria-live="polite" />
                         <FormControlLabel
                             control={
                                 <Checkbox

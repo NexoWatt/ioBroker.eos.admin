@@ -36,6 +36,7 @@ for (const code of [webSource, webBuilt]) {
 for (const marker of [
   'isOfficialAdminTab', 'isOfficialBackupTab', 'isOfficialReserveTab', 'isCustomerBackupTab',
   'system.adapter.backitup', 'tab-backitup', 'nexowatt-backup', 'eos-backup',
+  'exact visible instance ID', 'data-eos-official-reserve-hidden', 'Reused virtual rows must be unhidden',
 ]) if (!role.includes(marker)) fail(`role UI reserve marker missing: ${marker}`);
 for (const marker of ['isOfficialReserveTab', 'isCustomerBackupTab', 'backitup', 'nexowatt-backup']) {
   if (!boot.includes(marker)) fail(`bootstrap reserve marker missing: ${marker}`);

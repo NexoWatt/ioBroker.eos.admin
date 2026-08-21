@@ -1,4 +1,4 @@
-/* NexoWatt EOS native shell v89
+/* NexoWatt EOS native shell v91
    Clean presentation layer for the NexoWatt fork of ioBroker Admin.
    This stylesheet deliberately avoids broad pointer-event, visibility and DOM-structure overrides. */
 
@@ -55,23 +55,53 @@ html.eos-login #root {
     place-items: center;
 }
 html.eos-login main.MuiPaper-root {
+    position: relative;
+    isolation: isolate;
     width: 100%;
     min-height: 100vh;
     display: grid;
     place-items: center;
+    padding: 0 !important;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
 }
-html.eos-login .MuiPaper-root:has(#username),
-html.eos-login .MuiPaper-root:has(#password) {
-    width: min(430px, calc(100vw - 36px)) !important;
-    padding: 30px !important;
-    border-radius: 26px !important;
+/* The outer frame is decorative only. Keeping it as a pseudo element prevents
+   the viewport-sized main Paper from being mistaken for a second form card. */
+html.eos-login main.MuiPaper-root::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 50%;
+    box-sizing: border-box;
+    width: min(390px, calc(100vw - 24px));
+    height: min(480px, calc(100vh - 24px));
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(0, 229, 138, .34);
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(10, 34, 52, .82), rgba(3, 15, 27, .88));
+    box-shadow: 0 26px 70px rgba(0, 0, 0, .52), 0 0 42px rgba(0, 255, 136, .08);
+    pointer-events: none;
+}
+html.eos-login main.MuiPaper-root > .eos-login-card-modern,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box !important;
+    width: min(334px, calc(100vw - 56px)) !important;
+    height: min(424px, calc(100vh - 56px)) !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    padding: 28px !important;
+    overflow: auto !important;
+    border-radius: 24px !important;
     color: var(--nx-text) !important;
-    background: linear-gradient(180deg, rgba(14,36,56,.97), rgba(4,15,27,.96)) !important;
+    background: linear-gradient(180deg, rgba(14, 36, 56, .97), rgba(4, 15, 27, .96)) !important;
     border: 1px solid var(--nx-border-accent) !important;
-    box-shadow: 0 26px 70px rgba(0,0,0,.52), 0 0 42px rgba(0,255,136,.12) !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
 }
 html.eos-login img[src*="admin"],
 html.eos-login .MuiAvatar-img { object-fit: contain !important; filter: drop-shadow(0 0 18px rgba(0,255,136,.35)); }
@@ -511,7 +541,7 @@ html.eos-security-nonadmin [data-eos-admin-only-control="1"] { display: none !im
 .eos-basic-settings-actions button:disabled { opacity: .55; cursor: wait; }
 @media (max-width: 760px) { .eos-basic-settings-overlay { padding: 8px; } .eos-basic-settings-dialog { width: 100%; max-height: 96vh; } .eos-basic-settings-form { grid-template-columns: 1fr; } .eos-basic-settings-actions { flex-direction: column-reverse; } .eos-basic-settings-actions button { width: 100%; } }
 
-/* v89: blocking first-login password setup for installer/end-user accounts */
+/* v91: server-checked first-login password setup for installer/end-user accounts */
 html.eos-first-login-active,html.eos-first-login-active body { min-height: 100%; overflow: hidden !important; background: #020914 !important; }
 .eos-first-login-overlay { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; box-sizing: border-box; padding: 24px; color: #effbff; background: radial-gradient(circle at 20% 0%,rgba(0,229,138,.15),transparent 38%),linear-gradient(145deg,#020914,#061927); font-family: Inter,Roboto,Arial,sans-serif; }
 .eos-first-login-card { width: min(520px,100%); box-sizing: border-box; padding: 30px; border: 1px solid rgba(0,229,138,.34); border-radius: 22px; background: rgba(4,21,33,.96); box-shadow: 0 28px 90px rgba(0,0,0,.58),0 0 42px rgba(0,229,138,.08); }
@@ -826,7 +856,7 @@ html.eos-modern-login body::before {
 
 
 /* ========================================================================== 
-   NexoWatt EOS 7.9.89 – stable product layout
+   NexoWatt EOS 7.9.91 – stable product layout
    Integrated first login, header assistant, role-safe overview and account
    management exclusively below "Zugänge & Rechte".
    ========================================================================== */
@@ -853,10 +883,19 @@ html.eos-app .eos-top-toolbar {
     display: none !important;
 }
 html.eos-login .eos-login-card-modern {
-    max-height: min(760px, calc(100vh - 30px)) !important;
+    /* Compact product login: the form remains the proven inner card while the
+       decorative rear frame keeps a fixed, restrained footprint. */
+    box-sizing: border-box !important;
+    width: min(334px, calc(100vw - 56px)) !important;
+    height: min(424px, calc(100vh - 56px)) !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
     overflow: auto !important;
 }
 .eos-login-role-selector {
+    display: none !important;
+
     width: 100%;
     margin: 14px 0 5px;
     padding: 13px;
@@ -934,8 +973,57 @@ html.eos-login .eos-login-card-modern {
 }
 .eos-login-first-status[data-kind="error"] { color: #ff8d98; }
 .eos-login-first-status[data-kind="success"] { color: #54f1aa; }
+.eos-login-first-status:empty { display: none; min-height: 0; margin: 0; }
+
+.eos-first-login-native-submit-hidden {
+    display: none !important;
+}
+.eos-first-login-submit-proxy {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 36px;
+    margin-top: 8px;
+    padding: 8px 18px;
+    color: #03161d;
+    font: inherit;
+    font-weight: 900;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    border: 1px solid rgba(82, 255, 190, .7);
+    border-radius: 5px;
+    background: linear-gradient(135deg, #00e58a, #45d5ff);
+    box-shadow: 0 10px 24px rgba(0, 229, 138, .18), inset 0 1px 0 rgba(255,255,255,.35);
+    cursor: pointer;
+    transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+}
+.eos-first-login-submit-proxy:hover,
+.eos-first-login-submit-proxy:focus-visible {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(0, 229, 138, .24), 0 0 0 3px rgba(69, 213, 255, .16);
+}
+.eos-first-login-submit-proxy:disabled {
+    cursor: progress;
+    opacity: .62;
+    transform: none;
+}
 .eos-login-first-ready button[type="submit"] {
+    color: #03151c !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    background: linear-gradient(135deg, #00e58a, #45d5ff) !important;
     box-shadow: 0 0 0 1px rgba(0, 229, 138, .28), 0 12px 28px rgba(0, 229, 138, .14) !important;
+    cursor: pointer !important;
+}
+.eos-login-first-ready button[type="submit"].Mui-disabled { pointer-events: auto !important; }
+.eos-first-login-password-optional .MuiInputLabel-asterisk { display: none !important; }
+.eos-login-first-checking button[type="submit"],
+.eos-login-first-blocked button[type="submit"] {
+    color: rgba(218, 235, 242, .55) !important;
+    opacity: .72 !important;
+    background: #314050 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
 }
 
 /* EOS Assist lives in the fixed header and opens below it. */
@@ -1029,7 +1117,9 @@ html.eos-login .eos-login-card-modern {
 .eos-role-safe-overview {
     position: absolute;
     inset: 0;
-    z-index: 25;
+    z-index: 1000;
+    isolation: isolate;
+    pointer-events: auto !important;
     overflow: auto;
     padding: 0 0 24px;
     background:
@@ -1038,12 +1128,19 @@ html.eos-login .eos-login-card-modern {
 }
 .eos-overview-grid {
     display: grid;
+    position: relative;
+    z-index: 2;
+    pointer-events: auto !important;
     grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
     gap: 13px;
     padding: 0 16px 20px;
 }
 .eos-overview-action {
     min-height: 105px;
+    position: relative;
+    z-index: 3;
+    pointer-events: auto !important;
+    touch-action: manipulation;
     display: grid;
     grid-template-columns: 52px minmax(0, 1fr) 22px;
     align-items: center;
@@ -1051,6 +1148,7 @@ html.eos-login .eos-login-card-modern {
     padding: 17px;
     color: #eafaff;
     text-align: left;
+    text-decoration: none;
     border: 1px solid rgba(133, 193, 218, .14);
     border-radius: 18px;
     background: linear-gradient(145deg, rgba(10, 35, 50, .84), rgba(3, 16, 28, .92));
@@ -1058,6 +1156,7 @@ html.eos-login .eos-login-card-modern {
     cursor: pointer;
     transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
 }
+.eos-overview-action > * { pointer-events: none !important; }
 .eos-overview-action:hover {
     transform: translateY(-2px);
     border-color: rgba(0, 229, 138, .35);
@@ -1081,6 +1180,33 @@ html.eos-login .eos-login-card-modern {
 .eos-overview-action small { color: #91afbc; font-size: 12px; line-height: 1.4; }
 .eos-overview-action i { color: #59e5bd; font-size: 29px; font-style: normal; }
 .eos-official-reserve-hidden { display: none !important; }
+
+/* Internal fallback services are never exposed outside Admin / Service. */
+html.eos-role-installer [data-instance^="admin."],
+html.eos-role-installer [data-instance^="backitup."],
+html.eos-role-enduser [data-instance^="admin."],
+html.eos-role-enduser [data-instance^="backitup."],
+html.eos-role-installer [data-instance-id^="admin."],
+html.eos-role-installer [data-instance-id^="backitup."],
+html.eos-role-enduser [data-instance-id^="admin."],
+html.eos-role-enduser [data-instance-id^="backitup."] { display: none !important; }
+
+
+
+/* Final 7.9.91 interaction guards. */
+html.eos-safe-overview-active #app-paper { position: relative !important; }
+html.eos-safe-overview-active #app-paper > :not(#eos-role-safe-overview):not(.MuiSnackbar-root):not([role="presentation"]) {
+    pointer-events: none !important;
+}
+.eos-role-safe-overview .eos-overview-action {
+    appearance: none;
+    -webkit-appearance: none;
+    opacity: 1 !important;
+}
+.eos-role-safe-overview .eos-overview-action:focus-visible {
+    outline: 3px solid rgba(69, 213, 255, .85);
+    outline-offset: 3px;
+}
 
 /* Account management is available only inside Zugänge & Rechte. */
 .eos-account-management-entry {
@@ -1144,6 +1270,19 @@ html.eos-route-intro #app-paper [class*="card"] {
     .eos-account-management-entry-button { width: 100%; min-width: 0; }
 }
 @media (max-width: 720px) {
+    html.eos-login main.MuiPaper-root::before {
+        width: calc(100vw - 16px);
+        height: min(480px, calc(100vh - 16px));
+        border-radius: 20px;
+    }
+    html.eos-login main.MuiPaper-root > .eos-login-card-modern,
+    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
+    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
+        width: calc(100vw - 44px) !important;
+        height: min(424px, calc(100vh - 44px)) !important;
+        padding: 22px !important;
+        border-radius: 18px !important;
+    }
     .eos-login-role-buttons { grid-template-columns: 1fr; }
     .eos-login-role-buttons button { min-height: 46px; }
     .eos-overview-hero { align-items: flex-start; flex-direction: column; margin: 9px; border-radius: 18px; }

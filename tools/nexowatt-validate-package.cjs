@@ -98,10 +98,10 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.89.md',
-  'PUBLISH_STABLE_V7.9.89.md',
-  'INSTALL_TEST_V7.9.89.md',
-  'RELEASE_ACCEPTANCE_V7.9.89.md',
+  'README_STABILITY_V7.9.91.md',
+  'PUBLISH_STABLE_V7.9.91.md',
+  'INSTALL_TEST_V7.9.91.md',
+  'RELEASE_ACCEPTANCE_V7.9.91.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -113,6 +113,7 @@ for (const file of [
   'tools/nexowatt-first-login-selftest.cjs',
   'tools/nexowatt-account-management-selftest.cjs',
   'tools/nexowatt-modern-ui-selftest.cjs',
+  'tools/nexowatt-login-layout-selftest.cjs',
   'tools/nexowatt-internal-reserve-selftest.cjs',
   'tools/nexowatt-branding-selftest.cjs',
   'tools/nexowatt-publish-channel-guard.cjs',
@@ -195,7 +196,9 @@ if (accountManagement.includes("launcher.className = 'eos-account-management-lau
 if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account-management source/build drift');
 const roleBootstrap = read('adminWww/js/eos-role-bootstrap.js');
-if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('eos-login-role-selector')) fail('integrated first-login is incomplete');
+if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v91 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
+if (/data-eos-account=|selector\.innerHTML/.test(roleBootstrap)) fail('login role buttons must not enlarge the normal login card');
+if (!roleBootstrap.includes('nexowatt/account/passwordless-status') || !roleBootstrap.includes('eligibility.allowed')) fail('server-checked first-login eligibility is incomplete');
 if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher remains active');
 const assistant = read('adminWww/js/eos-assistant.js');
 if (!assistant.includes('eos-assist-header-root') || !assistant.includes('insertBefore(root, userAnchor)')) fail('EOS Assist is not header-integrated');
@@ -225,6 +228,8 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-first-login-selftest.cjs')) fail('first-login selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-management-selftest.cjs')) fail('account-management selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-modern-ui-selftest.cjs')) fail('modern-UI selftest is not part of check:eos-stability');
+if (pkg.scripts['test:eos-login-layout'] !== 'node tools/nexowatt-login-layout-selftest.cjs') fail('login-layout selftest script is missing or incorrect');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-login-layout-selftest.cjs')) fail('login-layout selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-internal-reserve-selftest.cjs')) fail('internal reserve selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-branding-selftest.cjs')) fail('branding selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftest.cjs')) fail('native shell selftest is not part of check:eos-stability');

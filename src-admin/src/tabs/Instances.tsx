@@ -909,6 +909,17 @@ class Instances extends Component<InstancesProps, InstancesState> {
             return item;
         });
 
+        // NexoWatt EOS keeps the original Admin and BackItUp instances as an internal
+        // Service-only emergency reserve. They must never be exposed in Installer or
+        // End-Customer service lists, independent of delayed/virtualized table rendering.
+        const eosAccessRole = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
+        if (eosAccessRole !== 'admin') {
+            this._cacheList = this._cacheList.filter(({ nameId, id }) => {
+                const instanceId = String(nameId || id || '').replace(/^system\.adapter\./, '');
+                return !/^(?:admin|backitup)\.\d+$/i.test(instanceId);
+            });
+        }
+
         if (this.state.playArrow) {
             this._cacheList = this._cacheList.filter(({ running }) =>
                 this.state.playArrow === 1 ? running : !running,

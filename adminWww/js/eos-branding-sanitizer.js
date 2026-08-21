@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v89-visible-branding';
+    const VERSION = 'v91-visible-branding';
     const existing = window.NEXOWATT_EOS_BRANDING_SANITIZER;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();

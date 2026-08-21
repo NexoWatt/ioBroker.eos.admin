@@ -1094,6 +1094,42 @@ export default class Web {
         return { eligible, role: access.role, user, minLength: setup.minLength };
     }
 
+    private async getEosPasswordlessFirstLoginStatus(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        if (
+            !this.settings.auth
+            || !this.isEosPasswordlessFirstLoginEnabled()
+            || !this.isEosSameOriginWrite(req)
+            || req.headers['x-nexowatt-eos-passwordless-status'] !== '1'
+        ) {
+            res.status(403).json({ error: 'statusUnavailable' });
+            return;
+        }
+        if (!this.isEosPasswordlessRequestNetworkAllowed(req)) {
+            res.status(403).json({ error: 'privateNetworkRequired' });
+            return;
+        }
+        const requested = String((req.body as { user?: unknown } | undefined)?.user || '')
+            .trim()
+            .toLowerCase()
+            .replace(/^system\.user\./, '');
+        const managed = requested === 'installer' || requested === 'guest' || requested === 'user';
+        const userId = managed ? this.normalizeEosUserId(requested) : '';
+        if (!userId) {
+            res.status(200).json({ success: true, eligible: false, userName: requested });
+            return;
+        }
+        const eligibility = await this.getEosPasswordlessClaimEligibility(userId);
+        const eligible = eligibility.eligible && (eligibility.role === 'installer' || eligibility.role === 'enduser');
+        res.status(200).json({
+            success: true,
+            eligible,
+            role: eligibility.role,
+            userName: requested,
+            minLength: eligibility.minLength,
+        });
+    }
+
     private invalidateEosPasswordClaimsForUser(userId: string): void {
         for (const [key, claim] of this.eosPasswordClaims.entries()) {
             if (claim.userId === userId) {
@@ -1848,6 +1884,12 @@ export default class Web {
                 // Passwordless first activation is not a normal authenticated session. The two
                 // narrow routes below only issue/consume a short-lived HttpOnly claim and are registered
                 // before the general login middleware. They never expose the EOS application itself.
+                this.server.app.post('/nexowatt/account/passwordless-status', (req: Request, res: Response): void => {
+                    void this.getEosPasswordlessFirstLoginStatus(req, res).catch(e => {
+                        this.adapter.log.debug(`Cannot read EOS passwordless activation status: ${e instanceof Error ? e.message : e}`);
+                        res.status(200).json({ success: true, eligible: false });
+                    });
+                });
                 this.server.app.post('/nexowatt/account/passwordless-claim', (req: Request, res: Response): void => {
                     void this.startEosPasswordlessFirstLogin(req, res).catch(e => {
                         this.adapter.log.warn(`Cannot start EOS passwordless activation: ${e instanceof Error ? e.message : e}`);

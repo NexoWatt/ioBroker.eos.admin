@@ -49,10 +49,12 @@ for (const code of [webSource, webBuilt]) {
 }
 
 for (const marker of [
-  'v89-role-safe-overview-and-reserve-visibility', 'App.expertMode', "setItem('App.expertMode', 'false')",
+  'v91-final-clickable-overview-live-reserve-filter', 'App.expertMode', "setItem('App.expertMode', 'false')",
   'data-eos-admin-only-control', 'data-eos-system-settings-control', 'NEXOWATT_EOS_BASIC_SETTINGS',
   'isRouteAllowed', "clean === 'tab-enums'", "clean === 'tab-intro'", "route === 'tab-users'",
   'isOfficialBackupTab', 'isCustomerBackupTab', 'eos-role-safe-overview', 'Übersicht',
+  "overview.querySelectorAll('a[data-eos-role-tab]')", 'hideOfficialReserveSurfaces',
+  'navigateToTab', '.MuiAccordion-root', 'exact visible instance ID', 'Reused virtual rows must be unhidden',
   'repositories|repository|lizenzen|licenses|zertifikate|certificates|zugangsdaten|credentials',
 ]) if (!role.includes(marker)) fail(`role UI marker missing: ${marker}`);
 if (!role.includes("if (route === 'easy') return false")) fail('Easy overview is not explicitly disabled');
@@ -61,7 +63,7 @@ if (role.includes("NEXOWATT_EOS_ACCOUNT_MANAGEMENT.open")) fail('account managem
 for (const marker of [
   'NEXOWATT_EOS_BOOTSTRAP_POLICY', 'nexowatt/security/context', 'dataset?.eosEntry', 'defaultTab',
   'lockExpertMode', 'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin',
-  'eos-login-role-selector', "defaultTab = () => 'tab-intro'", 'isOfficialReserveTab', 'isCustomerBackupTab',
+  'v91 compact normal-login first activation', "defaultTab = () => 'tab-intro'", 'isOfficialReserveTab', 'isCustomerBackupTab',
 ]) if (!boot.includes(marker)) fail(`role bootstrap marker missing: ${marker}`);
 
 for (const marker of [

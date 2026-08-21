@@ -399,6 +399,9 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
 
         return (
             <Accordion
+                data-instance={this.props.id}
+                data-instance-id={this.props.id}
+                data-instance-row="1"
                 square
                 sx={{
                     '&.MuiAccordion-root': {

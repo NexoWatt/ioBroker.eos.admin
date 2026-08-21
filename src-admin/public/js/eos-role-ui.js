@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v89-role-safe-overview-and-reserve-visibility';
+    const VERSION = 'v91-final-clickable-overview-live-reserve-filter';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -12,6 +12,9 @@
         lastTarget: '',
         unsubscribePolicy: null,
         unsubscribeDom: null,
+        reserveObserver: null,
+        reservePaper: null,
+        reserveScheduled: false,
     };
     const abort = new AbortController();
 
@@ -94,13 +97,23 @@
     });
 
     const textOf = el => [el?.textContent || '', ...['href','title','aria-label','data-name','data-tab','data-id','data-instance','id'].map(a => el?.getAttribute?.(a) || '')].join(' ');
-    const navEntries = () => Array.from(document.querySelectorAll('a[href*="#tab-"],a[href*="#/tab-"],a[href="#easy"],a[href="/#easy"],a[href$="/#easy"]')).map(anchor => {
-        const href = anchor.getAttribute('href') || anchor.href || '';
-        const tab = /#\/?easy(?:[/?&]|$)/i.test(href) ? 'easy' : tabFromHref(href);
-        if (!tab) return null;
-        const root = anchor.closest('.MuiListItem-root,.MuiButtonBase-root,li,[role="button"],[class*="DrawerItem"],[class*="dragWrapper"]') || anchor;
-        return { anchor, root, tab, label: textOf(root) || textOf(anchor) };
-    }).filter(Boolean);
+    const navEntries = () => {
+        const candidates = Array.from(document.querySelectorAll(
+            '[data-eos-tab],a[href*="#tab-"],a[href*="#/tab-"],a[href="#easy"],a[href="/#easy"],a[href$="/#easy"]',
+        ));
+        const seen = new Set();
+        return candidates.map(control => {
+            const href = control.getAttribute?.('href') || control.href || '';
+            const declared = normalize(control.getAttribute?.('data-eos-tab') || '');
+            const tab = declared || (/^#\/?easy(?:[/?&]|$)/i.test(href) ? 'easy' : tabFromHref(href));
+            if (!tab) return null;
+            const root = control.closest?.('.MuiListItem-root,.MuiButtonBase-root,li,[role="button"],[class*="DrawerItem"],[class*="dragWrapper"]') || control;
+            const key = `${tab}|${textOf(root)}`;
+            if (seen.has(key)) return null;
+            seen.add(key);
+            return { anchor: control, root, tab, label: textOf(root) || textOf(control) };
+        }).filter(Boolean);
+    };
     const firstAllowedTab = role => navEntries().find(entry => entry.tab === 'tab-intro' && isRouteAllowed(role, entry.tab, entry.label))?.tab
         || navEntries().find(entry => isRouteAllowed(role, entry.tab, entry.label))?.tab || defaultTab(role);
 
@@ -172,6 +185,28 @@
         if (window.location.hash !== targetHash) window.location.hash = targetHash;
         window.dispatchEvent(new CustomEvent('eos-role-navigate', { detail: { tab } }));
     };
+    const navigateToTab = (tab, label = '') => {
+        if (!tab) return false;
+        if (tab === 'basic-settings') {
+            window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
+            return true;
+        }
+        if (!isRouteAllowed(state.role, tab, label)) return false;
+        const entry = navEntries().find(candidate =>
+            candidate.tab === tab
+            && isRouteAllowed(state.role, candidate.tab, candidate.label)
+            && !candidate.anchor.closest?.('#eos-role-safe-overview'),
+        );
+        if (entry?.anchor) {
+            entry.anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            window.setTimeout(() => {
+                if (currentRoute() !== tab) setHashTab(tab);
+            }, 80);
+            return true;
+        }
+        setHashTab(tab);
+        return true;
+    };
     const redirectIfNeeded = () => safe(() => {
         if (isLoginView() || state.role === 'unknown') return;
         const route = currentRoute();
@@ -240,29 +275,117 @@
                 <div class="eos-overview-role"><span class="eos-overview-status-dot"></span>${installer ? 'Installateur' : 'Gast / Endkunde'}</div>
             </header>
             <div class="eos-overview-grid">${actions.map(([label, description, tab, icon]) => `
-                <button type="button" class="eos-overview-action" data-eos-role-tab="${tab}">
+                <a class="eos-overview-action" data-eos-role-tab="${tab}" href="${tab === 'basic-settings' ? '#tab-intro' : `#${tab}`}">
                     <span class="eos-overview-action-icon" aria-hidden="true">${iconFor(icon)}</span>
                     <span><strong>${label}</strong><small>${description}</small></span><i aria-hidden="true">›</i>
-                </button>`).join('')}</div>`;
+                </a>`).join('')}</div>`;
+        overview.querySelectorAll('a[data-eos-role-tab]').forEach(link => {
+            link.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const targetTab = link.getAttribute('data-eos-role-tab') || '';
+                if (targetTab) navigateToTab(targetTab, link.textContent || '');
+            });
+            link.addEventListener('keydown', event => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                navigateToTab(link.getAttribute('data-eos-role-tab') || '', link.textContent || '');
+            });
+        });
     });
 
     const hideOfficialReserveSurfaces = () => safe(() => {
-        if (state.role === 'admin') return;
         const paper = appPaper();
         if (!paper) return;
-        const selectors = [
+        const rowSelector = [
+            'tr', '.MuiTableRow-root', '.MuiAccordion-root', '.MuiCard-root', '.MuiListItem-root',
+            '[role="row"]', '[data-instance-row]', '[data-testid="adapter-card"]', '[data-testid="instance-card"]',
+        ].join(',');
+        const reserveId = /^(?:system\.adapter\.)?(?:admin|backitup)\.\d+$/i;
+        const normalizeInstance = value => String(value || '').trim().replace(/^system\.adapter\./i, '');
+        const identityValues = node => {
+            if (!node) return [];
+            const attrs = ['data-id', 'data-instance', 'data-name', 'data-adapter', 'data-instance-id', 'id'];
+            const values = attrs.map(name => node.getAttribute?.(name) || '');
+            node.querySelectorAll?.('[data-id],[data-instance],[data-name],[data-adapter],[data-instance-id]').forEach(child => {
+                attrs.forEach(name => values.push(child.getAttribute?.(name) || ''));
+            });
+            return values.map(normalizeInstance).filter(Boolean);
+        };
+        const rowTextContainsReserve = row => {
+            const text = String(row?.textContent || '')
+                .replace(/eos-admin\.\d+/gi, '')
+                .replace(/nexowatt-backup\.\d+/gi, '')
+                .replace(/eos-backup\.\d+/gi, '')
+                .replace(/system\.adapter\.(?:eos-admin|nexowatt-backup|eos-backup)\.\d+/gi, '');
+            return /(?:^|[\s|,;])(?:system\.adapter\.)?(?:admin|backitup)\.\d+(?=$|[\s|,;])/i.test(text.trim());
+        };
+        const rowIsReserve = row => identityValues(row).some(value => reserveId.test(value)) || rowTextContainsReserve(row);
+        const setHidden = (row, hidden) => {
+            if (!row || row === paper || row.id === 'app-paper' || row.classList?.contains('eos-role-safe-overview')) return;
+            row.classList.toggle('eos-role-hidden', hidden);
+            row.classList.toggle('eos-official-reserve-hidden', hidden);
+            if (hidden) {
+                row.setAttribute('aria-hidden', 'true');
+                row.setAttribute('data-eos-official-reserve-hidden', '1');
+            } else {
+                row.removeAttribute('aria-hidden');
+                row.removeAttribute('data-eos-official-reserve-hidden');
+            }
+        };
+        const rowFor = node => node?.matches?.(rowSelector) ? node : node?.closest?.(rowSelector);
+
+        // Reused virtual rows must be unhidden when their identity changes.
+        paper.querySelectorAll('[data-eos-official-reserve-hidden="1"]').forEach(node => {
+            const row = rowFor(node) || node;
+            if (state.role === 'admin' || !rowIsReserve(row)) setHidden(row, false);
+        });
+        if (state.role === 'admin') return;
+
+        paper.querySelectorAll(rowSelector).forEach(row => setHidden(row, rowIsReserve(row)));
+        paper.querySelectorAll([
             '[data-id^="system.adapter.admin"]','[data-id^="system.adapter.backitup"]',
             '[data-instance^="admin."]','[data-instance^="backitup."]',
+            '[data-instance-id^="admin."]','[data-instance-id^="backitup."]',
             '[data-name="admin"]','[data-name="backitup"]',
             'a[href*="#tab-admin"]','a[href*="#tab-backitup"]',
             'a[href*="system.adapter.admin"]','a[href*="system.adapter.backitup"]',
-        ];
-        paper.querySelectorAll(selectors.join(',')).forEach(node => {
-            const root = node.closest('tr,.MuiTableRow-root,.MuiCard-root,.MuiPaper-root,li,[role="row"],[data-testid="adapter-card"]') || node;
-            if (root.id === 'app-paper' || root.classList.contains('eos-role-safe-overview')) return;
-            root.classList.add('eos-role-hidden', 'eos-official-reserve-hidden');
-            root.setAttribute('aria-hidden', 'true');
+        ].join(',')).forEach(node => setHidden(rowFor(node) || node, true));
+
+        // Admin 7 table cells may have no metadata. Match only an exact visible instance ID and
+        // hide the complete Accordion/Card/Table row, never the NexoWatt replacements.
+        const walker = document.createTreeWalker(paper, NodeFilter.SHOW_TEXT);
+        let textNode;
+        while ((textNode = walker.nextNode())) {
+            const value = String(textNode.textContent || '').trim();
+            if (reserveId.test(value)) setHidden(rowFor(textNode.parentElement), true);
+        }
+    });
+
+    const ensureReserveObserver = () => safe(() => {
+        const paper = appPaper();
+        if (!paper || state.role === 'admin') {
+            state.reserveObserver?.disconnect?.();
+            state.reserveObserver = null;
+            state.reservePaper = null;
+            return;
+        }
+        if (state.reserveObserver && state.reservePaper === paper) return;
+        state.reserveObserver?.disconnect?.();
+        state.reservePaper = paper;
+        state.reserveObserver = new MutationObserver(mutations => {
+            if (!mutations.some(mutation => mutation.addedNodes?.length)) return;
+            if (state.reserveScheduled) return;
+            state.reserveScheduled = true;
+            const run = () => {
+                state.reserveScheduled = false;
+                hideOfficialReserveSurfaces();
+            };
+            if ('requestAnimationFrame' in window) requestAnimationFrame(run); else setTimeout(run, 16);
         });
+        // This observer is deliberately scoped to #app-paper. It catches rows created or recycled
+        // after the shared coordinator has already processed the high-load services view.
+        state.reserveObserver.observe(paper, { childList: true, subtree: true });
     });
 
     const applySensitiveDialogPolicy = () => safe(() => {
@@ -297,6 +420,7 @@
         redirectIfNeeded();
         ensureSafeOverview();
         hideOfficialReserveSurfaces();
+        ensureReserveObserver();
         suppressPermissionErrors();
         window.NEXOWATT_EOS_ACCOUNT_MANAGEMENT?.refreshEntry?.();
     };
@@ -325,9 +449,15 @@
         if (!coordinator?.subscribe) { setTimeout(startObserver, 200); return; }
         if (state.unsubscribeDom) return;
         state.unsubscribeDom = coordinator.subscribe(mutations => {
-            if (isHighLoadSurface() && mutations.length && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) return;
+            if (isHighLoadSurface() && mutations.length && mutations.every(m => isInsideAppPaper(m.target) || isInsideAppPaper(m.addedNodes?.[0]))) {
+                // Keep virtualized service/adapter tables light, but still enforce the exact internal
+                // reserve visibility rule whenever rows arrive after the initial render.
+                hideOfficialReserveSurfaces();
+                suppressPermissionErrors();
+                return;
+            }
             scheduleApply();
-        });
+        }, { includeTableMutations: true });
     };
 
     document.addEventListener('click', event => {
@@ -341,7 +471,7 @@
             if (state.role === 'installer') window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
             return;
         }
-        const target = event.target?.closest?.('[data-eos-admin-only-control="1"],[data-eos-system-settings-control="1"],button[data-eos-role-tab],a[href*="#tab-"],a[href*="#/tab-"]');
+        const target = event.target?.closest?.('[data-eos-admin-only-control="1"],[data-eos-system-settings-control="1"],[data-eos-role-tab],a[href*="#tab-"],a[href*="#/tab-"]');
         if (!target) return;
         if (target.matches('[data-eos-admin-only-control="1"]')) { event.preventDefault(); event.stopImmediatePropagation(); return; }
         if (target.matches('[data-eos-system-settings-control="1"]') && state.role === 'installer') {
@@ -350,8 +480,8 @@
         const roleTab = target.getAttribute('data-eos-role-tab');
         if (roleTab) {
             event.preventDefault();
-            if (roleTab === 'basic-settings') window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
-            else setHashTab(roleTab);
+            event.stopImmediatePropagation();
+            navigateToTab(roleTab, target.textContent || '');
             return;
         }
         const tab = tabFromHref(target.getAttribute('href') || target.href || '');
@@ -368,6 +498,9 @@
         defaultTab,
         isOfficialReserveTab,
         isCustomerBackupTab,
+        navigateToTab,
+        ensureSafeOverview,
+        hideOfficialReserveSurfaces,
         refresh: scheduleApply,
     });
     const start = () => {

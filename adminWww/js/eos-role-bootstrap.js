@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v89-integrated-first-login-bootstrap';
+    const VERSION = 'v91-final-first-login-submit-guard';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -85,7 +85,7 @@
             claimLauncher: 'Erstanmeldung', claimTitle: 'Konto erstmals aktivieren',
             claimIntro: 'Wähle Installateur oder Gast/Endkunde und melde dich bei der allerersten Anmeldung einmalig mit leerem Passwort an. Danach muss sofort ein persönliches Passwort vergeben werden.',
             claimAccount: 'Kontoname', claimContinue: 'Erstanmeldung starten', claimChecking: 'Konto wird geprüft …',
-            claimHint: 'Bei der ersten Anmeldung das Passwortfeld leer lassen.', claimUnavailable: 'Die Erstanmeldung ist für dieses Konto nicht verfügbar oder wurde bereits abgeschlossen.',
+            claimHint: 'Bei der ersten Anmeldung das Passwortfeld leer lassen.', claimAlreadyActive: 'Für dieses Konto ist bereits ein persönliches Passwort gesetzt. Bitte Passwort eingeben.', claimStatusError: 'Der Status der Erstanmeldung konnte nicht geprüft werden.', claimUnavailable: 'Die Erstanmeldung ist für dieses Konto nicht verfügbar oder wurde bereits abgeschlossen.',
             claimPrivate: 'Die Erstanmeldung ist nur im lokalen Netzwerk möglich.', claimExpired: 'Die Aktivierung ist abgelaufen. Bitte erneut starten.',
             claimReady: 'Konto bestätigt. Lege jetzt dein persönliches Passwort fest.', claimSuccess: 'Passwort gespeichert. Du kannst dich jetzt normal anmelden.',
             claimLogin: 'Zur normalen Anmeldung', claimBack: 'Zurück',
@@ -104,7 +104,7 @@
             claimLauncher: 'First sign-in', claimTitle: 'Activate account for the first time',
             claimIntro: 'Choose Installer or Guest/End User and leave the password field empty for the very first sign-in. A personal password must be created immediately afterwards.',
             claimAccount: 'Account name', claimContinue: 'Start first sign-in', claimChecking: 'Checking account …',
-            claimHint: 'Leave the password field empty only for the first sign-in.', claimUnavailable: 'First activation is unavailable for this account or has already been completed.',
+            claimHint: 'Leave the password field empty only for the first sign-in.', claimAlreadyActive: 'This account already has a personal password. Enter the password to sign in.', claimStatusError: 'The first-activation status could not be checked.', claimUnavailable: 'First activation is unavailable for this account or has already been completed.',
             claimPrivate: 'First activation is only available on the local network.', claimExpired: 'The activation has expired. Please start again.',
             claimReady: 'Account confirmed. Create your personal password now.', claimSuccess: 'Password saved. You can now sign in normally.',
             claimLogin: 'Return to normal sign-in', claimBack: 'Back',
@@ -123,7 +123,7 @@
             claimLauncher: 'Eerste aanmelding', claimTitle: 'Account voor het eerst activeren',
             claimIntro: 'Kies Installateur of Gast/Eindgebruiker en laat bij de allereerste aanmelding het wachtwoordveld leeg. Daarna moet direct een persoonlijk wachtwoord worden ingesteld.',
             claimAccount: 'Accountnaam', claimContinue: 'Eerste aanmelding starten', claimChecking: 'Account wordt gecontroleerd …',
-            claimHint: 'Laat het wachtwoordveld alleen bij de eerste aanmelding leeg.', claimUnavailable: 'Eerste activering is voor dit account niet beschikbaar of al voltooid.',
+            claimHint: 'Laat het wachtwoordveld alleen bij de eerste aanmelding leeg.', claimAlreadyActive: 'Dit account heeft al een persoonlijk wachtwoord. Voer het wachtwoord in.', claimStatusError: 'De status van de eerste activering kon niet worden gecontroleerd.', claimUnavailable: 'Eerste activering is voor dit account niet beschikbaar of al voltooid.',
             claimPrivate: 'Eerste activering is alleen mogelijk in het lokale netwerk.', claimExpired: 'De activering is verlopen. Start opnieuw.',
             claimReady: 'Account bevestigd. Stel nu je persoonlijke wachtwoord in.', claimSuccess: 'Wachtwoord opgeslagen. Je kunt nu normaal aanmelden.',
             claimLogin: 'Naar normale aanmelding', claimBack: 'Terug',
@@ -150,6 +150,7 @@
                 <p class="eos-first-login-intro"></p>
                 <div class="eos-first-login-account"><span></span><strong></strong></div>
                 <form novalidate>
+                    <input name="username" type="text" autocomplete="username" hidden />
                     <label><span class="password-label"></span><input name="password" type="password" autocomplete="new-password" maxlength="128" required /></label>
                     <label><span class="repeat-label"></span><input name="passwordRepeat" type="password" autocomplete="new-password" maxlength="128" required /></label>
                     <label class="eos-first-login-show"><input name="show" type="checkbox" /><span></span></label>
@@ -171,6 +172,7 @@
         overlay.querySelector('.eos-first-login-submit').textContent = t.submit;
         overlay.querySelector('.eos-first-login-logout').textContent = t.logout;
         const form = overlay.querySelector('form');
+        form.elements.username.value = claim.userName || 'guest';
         const password = form.elements.password;
         const repeat = form.elements.passwordRepeat;
         const show = form.elements.show;
@@ -289,9 +291,15 @@
 
     const installIntegratedFirstLogin = base => {
         const t = translations[language()];
-        const managedAccounts = new Set(['installer', 'guest']);
+        const managedAccounts = new Set(['installer', 'guest', 'user']);
         let busy = false;
         let unsubscribeDom = null;
+        let statusTimer = 0;
+        let statusSequence = 0;
+        let submitObserver = null;
+        let observedSubmit = null;
+        let loginStateMonitor = 0;
+        const eligibility = { account: '', allowed: false, checking: false, loaded: false };
 
         document.documentElement.classList.add('eos-modern-login', 'eos-integrated-first-login');
         document.querySelectorAll('.eos-passwordless-launcher').forEach(element => element.remove());
@@ -312,35 +320,156 @@
             return { username, password, card, submit };
         };
         const statusNode = card => card?.querySelector?.('.eos-login-first-status');
+        const directChildWithin = (ancestor, node) => {
+            let current = node;
+            while (current && current.parentElement && current.parentElement !== ancestor) current = current.parentElement;
+            return current?.parentElement === ancestor ? current : null;
+        };
         const setStatus = (card, message, kind = '') => {
             const status = statusNode(card);
             if (!status) return;
             status.textContent = message || '';
             status.dataset.kind = kind;
         };
+        const setSubmitDisabled = (submit, disabled) => {
+            if (!submit) return;
+            const nextDisabled = !!disabled;
+            // Idempotent writes are essential here: the submit MutationObserver invokes
+            // updateLoginState again. Rewriting unchanged attributes would create a feedback loop.
+            if (submit.disabled !== nextDisabled) submit.disabled = nextDisabled;
+            if (submit.classList.contains('Mui-disabled') !== nextDisabled) submit.classList.toggle('Mui-disabled', nextDisabled);
+            const aria = nextDisabled ? 'true' : 'false';
+            if (submit.getAttribute('aria-disabled') !== aria) submit.setAttribute('aria-disabled', aria);
+            const tabIndex = nextDisabled ? -1 : 0;
+            if (submit.tabIndex !== tabIndex) submit.tabIndex = tabIndex;
+            if (nextDisabled) {
+                if (!submit.hasAttribute('disabled')) submit.setAttribute('disabled', '');
+                if (submit.hasAttribute('data-eos-passwordless-submit')) submit.removeAttribute('data-eos-passwordless-submit');
+            } else {
+                if (submit.hasAttribute('disabled')) submit.removeAttribute('disabled');
+                if (submit.getAttribute('data-eos-passwordless-submit') !== '1') submit.dataset.eosPasswordlessSubmit = '1';
+            }
+        };
+        const syncPasswordRequirement = (password, optional) => {
+            if (!password) return;
+            password.required = !optional;
+            password.setAttribute('aria-required', optional ? 'false' : 'true');
+            password.toggleAttribute('data-eos-first-login-optional', !!optional);
+            password.closest?.('.MuiFormControl-root')?.classList?.toggle('eos-first-login-password-optional', !!optional);
+        };
+        const eligibilityMatches = account => eligibility.loaded && eligibility.account === account;
+        const isEligibleBlankAccount = (account, password) => managedAccounts.has(account)
+            && !password?.value
+            && eligibilityMatches(account)
+            && eligibility.allowed === true;
         const updateLoginState = () => {
             const { username, password, card, submit } = loginElements();
-            if (!username || !password || !card) return;
+            if (!username || !password || !card || !submit) return;
             const account = accountName(username);
             const blankManaged = managedAccounts.has(account) && !password.value;
-            card.querySelectorAll('[data-eos-account]').forEach(button => button.classList.toggle('active', button.dataset.eosAccount === account));
-            card.classList.toggle('eos-login-first-ready', blankManaged);
-            if (submit && blankManaged && !busy) {
-                submit.disabled = false;
-                submit.removeAttribute('disabled');
-                submit.dataset.eosPasswordlessSubmit = '1';
-            } else if (submit) {
-                delete submit.dataset.eosPasswordlessSubmit;
+            const ready = isEligibleBlankAccount(account, password) && !busy;
+            const checking = blankManaged && eligibility.account === account && eligibility.checking;
+            card.classList.toggle('eos-login-first-ready', ready);
+            card.classList.toggle('eos-login-first-checking', checking);
+            card.classList.toggle('eos-login-first-blocked', blankManaged && eligibilityMatches(account) && !eligibility.allowed);
+            syncPasswordRequirement(password, ready);
+            if (blankManaged) {
+                setSubmitDisabled(submit, !ready);
+            } else {
+                setSubmitDisabled(submit, busy || !account || !password.value);
+                if (!password.value) submit.removeAttribute('data-eos-passwordless-submit');
             }
             const hint = card.querySelector('.eos-login-first-hint');
-            if (hint) hint.textContent = blankManaged ? t.claimIntro : t.claimHint;
+            if (hint) {
+                if (checking) hint.textContent = t.claimChecking;
+                else if (ready) hint.textContent = t.claimIntro;
+                else if (blankManaged && eligibilityMatches(account)) hint.textContent = t.claimAlreadyActive;
+                else hint.textContent = t.claimHint;
+            }
+        };
+        const ensureSubmitObserver = submit => {
+            if (!submit || observedSubmit === submit) return;
+            submitObserver?.disconnect();
+            observedSubmit = submit;
+            submitObserver = new MutationObserver(() => queueMicrotask(updateLoginState));
+            submitObserver.observe(submit, {
+                attributes: true,
+                attributeFilter: ['disabled', 'class', 'aria-disabled', 'tabindex'],
+            });
+        };
+        const requestEligibility = async account => {
+            const normalized = String(account || '').trim().toLowerCase().replace(/^system\.user\./, '');
+            const sequence = ++statusSequence;
+            eligibility.account = normalized;
+            eligibility.allowed = false;
+            eligibility.loaded = false;
+            eligibility.checking = managedAccounts.has(normalized);
+            updateLoginState();
+            if (!managedAccounts.has(normalized)) {
+                eligibility.checking = false;
+                eligibility.loaded = true;
+                updateLoginState();
+                return false;
+            }
+            try {
+                const response = await fetch(new URL('nexowatt/account/passwordless-status', base).href, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-NexoWatt-EOS-Passwordless-Status': '1',
+                    },
+                    body: JSON.stringify({ user: normalized }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (sequence !== statusSequence) return false;
+                eligibility.allowed = response.ok && data?.eligible === true;
+                eligibility.loaded = true;
+                eligibility.checking = false;
+                const { card } = loginElements();
+                setStatus(card, response.ok ? '' : t.claimStatusError, response.ok ? '' : 'error');
+                updateLoginState();
+                return eligibility.allowed;
+            } catch (_) {
+                if (sequence !== statusSequence) return false;
+                eligibility.allowed = false;
+                eligibility.loaded = true;
+                eligibility.checking = false;
+                const { card } = loginElements();
+                setStatus(card, t.claimStatusError, 'error');
+                updateLoginState();
+                return false;
+            }
+        };
+        const scheduleEligibilityCheck = () => {
+            window.clearTimeout(statusTimer);
+            statusTimer = window.setTimeout(() => {
+                const { username, password } = loginElements();
+                const account = accountName(username);
+                if (password?.value || !managedAccounts.has(account)) {
+                    statusSequence += 1;
+                    eligibility.account = account;
+                    eligibility.allowed = false;
+                    eligibility.checking = false;
+                    eligibility.loaded = true;
+                    updateLoginState();
+                    return;
+                }
+                void requestEligibility(account);
+            }, 120);
         };
         const startClaim = async requestedAccount => {
             const { username, password, card, submit } = loginElements();
-            const account = String(requestedAccount || accountName(username)).trim().toLowerCase();
+            const account = String(requestedAccount || accountName(username)).trim().toLowerCase().replace(/^system\.user\./, '');
             if (!managedAccounts.has(account) || password?.value || busy) return false;
+            if (!eligibilityMatches(account) || !eligibility.allowed) {
+                const allowed = await requestEligibility(account);
+                if (!allowed) return false;
+            }
             busy = true;
-            if (submit) submit.disabled = true;
+            if (submit) setSubmitDisabled(submit, true);
             setStatus(card, t.claimChecking, '');
             try {
                 const response = await fetch(new URL('nexowatt/account/passwordless-claim', base).href, {
@@ -357,6 +486,8 @@
                 showPasswordlessClaimPassword(data, base);
                 return true;
             } catch (error) {
+                eligibility.allowed = false;
+                eligibility.loaded = true;
                 setStatus(card, error?.message || t.claimUnavailable, 'error');
                 return false;
             } finally {
@@ -366,38 +497,36 @@
         };
         const ensureIntegratedLogin = () => {
             document.querySelectorAll('.eos-passwordless-launcher').forEach(element => element.remove());
-            const { username, password, card } = loginElements();
+            const { username, password, card, submit } = loginElements();
             if (!username || !password || !card) return;
             card.classList.add('eos-login-card-modern');
-            let selector = card.querySelector('.eos-login-role-selector');
-            if (!selector) {
-                selector = document.createElement('section');
-                selector.className = 'eos-login-role-selector';
-                selector.setAttribute('aria-label', t.claimAccount);
-                selector.innerHTML = `
-                    <div class="eos-login-role-heading"><strong>${t.claimAccount}</strong><span>${t.claimHint}</span></div>
-                    <div class="eos-login-role-buttons">
-                        <button type="button" data-eos-account="admin"><span>◆</span><strong>Admin / Service</strong></button>
-                        <button type="button" data-eos-account="installer"><span>⚙</span><strong>Installateur</strong></button>
-                        <button type="button" data-eos-account="guest"><span>⌂</span><strong>Gast / Endkunde</strong></button>
-                    </div>
-                    <p class="eos-login-first-hint"></p>
-                    <div class="eos-login-first-status" aria-live="polite"></div>`;
-                const usernameControl = username.closest('.MuiFormControl-root') || username.parentElement;
-                card.insertBefore(selector, usernameControl || card.firstChild);
-                selector.querySelectorAll('[data-eos-account]').forEach(button => button.addEventListener('click', () => {
-                    setInputValue(username, button.dataset.eosAccount || '');
-                    setInputValue(password, '');
-                    window.setTimeout(() => password.focus(), 0);
-                    updateLoginState();
-                }));
-            }
+            // v91 compact normal-login first activation: do not add role buttons or a second panel.
+            // The account is entered in the existing Loginname field; a blank password is accepted only
+            // after the backend confirms that this exact managed account is eligible.
+            card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove());
+            card.dataset.eosCompactFirstLogin = '1';
             if (!username.dataset.eosFirstLoginBound) {
                 username.dataset.eosFirstLoginBound = '1';
-                username.addEventListener('input', updateLoginState);
-                password.addEventListener('input', updateLoginState);
+                username.addEventListener('input', scheduleEligibilityCheck);
+                username.addEventListener('change', scheduleEligibilityCheck);
+                password.addEventListener('input', scheduleEligibilityCheck);
+                password.addEventListener('change', scheduleEligibilityCheck);
             }
+            ensureSubmitObserver(submit);
             updateLoginState();
+            scheduleEligibilityCheck();
+        };
+        const startLoginStateMonitor = () => {
+            if (loginStateMonitor) return;
+            loginStateMonitor = window.setInterval(() => {
+                const { username, password, submit } = loginElements();
+                if (!username || !password || !submit) {
+                    ensureIntegratedLogin();
+                    return;
+                }
+                ensureSubmitObserver(submit);
+                updateLoginState();
+            }, 350);
         };
 
         document.addEventListener('click', event => {
@@ -407,7 +536,8 @@
             if (!managedAccounts.has(account) || password?.value) return;
             event.preventDefault();
             event.stopImmediatePropagation();
-            void startClaim(account);
+            if (isEligibleBlankAccount(account, password)) void startClaim(account);
+            else void requestEligibility(account);
         }, { capture: true });
         document.addEventListener('keydown', event => {
             if (event.key !== 'Enter') return;
@@ -417,7 +547,7 @@
             if (!managedAccounts.has(account) || password?.value) return;
             event.preventDefault();
             event.stopImmediatePropagation();
-            void startClaim(account);
+            if (isEligibleBlankAccount(account, password)) void startClaim(account);
         }, { capture: true });
 
         const connectCoordinator = () => {
@@ -429,12 +559,16 @@
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureIntegratedLogin, { once: true });
         else ensureIntegratedLogin();
         connectCoordinator();
-        [150, 350, 750, 1400, 2600].forEach(delay => window.setTimeout(ensureIntegratedLogin, delay));
+        startLoginStateMonitor();
+        window.addEventListener('focus', updateLoginState);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) updateLoginState(); });
+        [100, 250, 500, 900, 1500, 2600, 5000].forEach(delay => window.setTimeout(ensureIntegratedLogin, delay));
 
         window.NEXOWATT_EOS_FIRST_LOGIN = Object.freeze({
             version: VERSION,
             start: account => startClaim(account),
             refresh: ensureIntegratedLogin,
+            check: account => requestEligibility(account),
         });
     };
 
