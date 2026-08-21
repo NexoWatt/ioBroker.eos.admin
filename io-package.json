@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.87-rc.3",
+    "version": "7.9.87-rc.4",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.9.87-rc.4": {
+        "en": "RC4 adds passwordless one-time first activation for Installer and Guest/End User accounts, role-controlled password reset, a modern NexoWatt account-management dialog, and a refined product interface. Admin/Service can reset installer and end-user access; installers can reset end-user access only.",
+        "de": "RC4 ergänzt die einmalige Erstanmeldung ohne Passwort für Installateur und Gast/Endkunde, rollenabhängiges Zurücksetzen von Zugängen, eine moderne NexoWatt-Zugangsverwaltung und eine weiter modernisierte Produktoberfläche. Admin/Service kann Installateur- und Endkundenzugänge zurücksetzen; Installateure ausschließlich Endkundenzugänge.",
+        "nl": "RC4 voegt eenmalige eerste activering zonder wachtwoord toe voor installateur en guest/eindgebruiker, rolgebonden reset van toegangen, een moderne NexoWatt-toegangsbeheerder en een verder gemoderniseerde productinterface. Admin/service kan installateur- en eindgebruikerstoegang resetten; installateurs alleen eindgebruikers."
+      },
       "7.9.87-rc.3": {
         "en": "Release candidate for the sales-ready EOS Admin: role-specific installer/end-user access, first-login password setup, Smart Home assignment access, strict expert-mode lock, NexoWatt-only customer branding, safe npm publishing under the rc dist-tag, and EOS Admin default port 8081.",
         "de": "Release Candidate für den verkaufsfertigen EOS Admin: rollenbezogener Installateur-/Endkundenzugriff, Passwortvergabe bei der ersten Anmeldung, Smart-Home-Zuordnung, strikte Expertenmodus-Sperre, ausschließliches NexoWatt-Branding in der Kundenoberfläche, sichere npm-Veröffentlichung über den Dist-Tag rc und EOS-Admin-Standardport 8081.",
@@ -294,7 +299,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.3/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.4/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -305,7 +310,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.3/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.4/README.md",
     "authors": [
       "bluefox <bluefox@ccu.io>",
       "hobbyquaker <hq@ccu.io>"
@@ -374,7 +379,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.3/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.87-rc.4/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin"
   },
@@ -495,7 +500,10 @@
     ],
     "eosRequireFirstLoginPassword": true,
     "eosFirstLoginPasswordMinLength": 10,
-    "eosAutoAssignDefaultRoleUsers": true
+    "eosAutoAssignDefaultRoleUsers": true,
+    "eosPasswordlessFirstLogin": true,
+    "eosPasswordlessFirstLoginPrivateNetworkOnly": true,
+    "eosPasswordClaimTtlMinutes": 10
   },
   "notifications": [
     {
@@ -1063,5 +1071,5 @@
       }
     }
   },
-  "version": "7.9.87-rc.3"
+  "version": "7.9.87-rc.4"
 }

@@ -45,6 +45,7 @@ const requiredOrder = [
   `js/eos-native-security.js`,
   `js/eos-basic-settings.js`,
   `js/eos-role-ui.js`,
+  `js/eos-account-management.js`,
 ];
 let last = -1;
 for (const file of requiredOrder) {

@@ -8,6 +8,7 @@ const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const info = JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json'));
 const runtime = info.runtimeEntry;
 const shellCache = Number(info.shellCacheVersion ?? info.nativeShellVersion);
+const shellTag = String(info.shellCacheTag || shellCache);
 const index = read('adminWww/index.html');
 const shell = read('adminWww/js/nexowatt-native-shell.js');
 const css = read('adminWww/css/nexowatt-native-shell.css');
@@ -18,9 +19,9 @@ const bootstrap = read(`adminWww/assets/bootstrap-COulQZax-${runtime}.js`);
 
 for (const marker of [
   'class="eos-native-shell"',
-  `nexowatt-native-shell.css?v=${shellCache}`,
-  `nexowatt-native-shell.js?v=${shellCache}`,
-  `eos-native-security.js?v=${shellCache}`,
+  `nexowatt-native-shell.css?v=${shellTag}`,
+  `nexowatt-native-shell.js?v=${shellTag}`,
+  `eos-native-security.js?v=${shellTag}`,
 ]) if (!index.includes(marker)) fail(`index missing ${marker}`);
 
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {

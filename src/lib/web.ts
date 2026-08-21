@@ -11,6 +11,7 @@ import { Transform } from 'node:stream';
 import * as compression from 'compression';
 import { getType } from 'mime';
 import { gunzipSync } from 'node:zlib';
+import { createHash, randomBytes } from 'node:crypto';
 import * as archiver from 'archiver';
 import axios from 'axios';
 import { Ajv } from 'ajv';
@@ -33,6 +34,17 @@ let uuid: string;
 const page404 = readFileSync(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = readFileSync(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
 const EOS_PASSWORD_SERVICE_USER = 'system.user.admin' as ioBroker.ObjectIDs.User;
+type EosAccessRole = 'admin' | 'installer' | 'enduser';
+interface EosPasswordClaim {
+    userId: string;
+    role: 'installer' | 'enduser';
+    expiresAt: number;
+    remoteAddress: string;
+}
+interface EosPasswordClaimRate {
+    count: number;
+    windowStartedAt: number;
+}
 const CORE_PROTECTED_ADAPTER_NAMES = [
     'admin',
     'eos-admin',
@@ -205,6 +217,12 @@ export default class Web {
     private checkTimeout: ioBroker.Timeout;
     private oauth2Model: OAuth2Model;
     private mcpServer: McpServer | null = null;
+
+    /** Short-lived passwordless first-activation claims. Keys are SHA-256 hashes of HttpOnly cookie tokens. */
+    private readonly eosPasswordClaims = new Map<string, EosPasswordClaim>();
+
+    /** Small in-memory rate limiter for unauthenticated first-activation requests. */
+    private readonly eosPasswordClaimRates = new Map<string, EosPasswordClaimRate>();
 
     /**
      * Create a new instance of Web
@@ -743,21 +761,31 @@ export default class Web {
         return 'enduser';
     }
 
-    private async getEosRequestAccess(req: Request): Promise<{
+    private async getEosAccessForUserId(userId: string | null): Promise<{
         userId: string | null;
         groupDetails: { id: string; name: string; desc: string }[];
         groups: string[];
         groupNames: string[];
         adminGroups: string[];
-        role: 'admin' | 'installer' | 'enduser';
+        role: EosAccessRole;
     }> {
-        const userId = await this.readEosCurrentUser(req);
         const groupDetails = userId ? await this.getEosGroupDetailsForUser(userId) : [];
         const groups = groupDetails.map(group => group.id);
         const groupNames = groupDetails.flatMap(group => [group.name, group.desc]).filter(Boolean);
         const adminGroups = this.getEosSecurityAdminGroups();
         const role = this.resolveEosRole(userId, groups, groupNames, adminGroups);
         return { userId, groupDetails, groups, groupNames, adminGroups, role };
+    }
+
+    private async getEosRequestAccess(req: Request): Promise<{
+        userId: string | null;
+        groupDetails: { id: string; name: string; desc: string }[];
+        groups: string[];
+        groupNames: string[];
+        adminGroups: string[];
+        role: EosAccessRole;
+    }> {
+        return this.getEosAccessForUserId(await this.readEosCurrentUser(req));
     }
 
     private getEosRoleCapabilities(role: 'admin' | 'installer' | 'enduser'): Record<string, boolean> {
@@ -938,6 +966,7 @@ export default class Web {
         account.passwordSetAt = now;
         account.firstLoginCompletedAt = now;
         account.forcePasswordChange = false;
+        account.passwordlessFirstLoginAllowed = false;
         await this.adapter.setForeignObjectAsync(access.userId, userObject);
         await this.destroyEosRequestSessions(req);
         for (const cookie of ['access_token', 'refresh_token', 'connect.sid']) {
@@ -946,6 +975,367 @@ export default class Web {
 
         this.adapter.log.info(`EOS first-login password initialized for ${access.userId}`);
         res.status(200).json({ success: true, role: access.role, logoutRequired: true, sessionInvalidated: true });
+    }
+
+    private isEosPasswordlessFirstLoginEnabled(): boolean {
+        return (this.settings as Record<string, unknown>).eosPasswordlessFirstLogin !== false;
+    }
+
+    private getEosPasswordClaimTtlMs(): number {
+        const configured = Number((this.settings as Record<string, unknown>).eosPasswordClaimTtlMinutes);
+        const minutes = Number.isFinite(configured) ? Math.min(30, Math.max(3, Math.round(configured))) : 10;
+        return minutes * 60_000;
+    }
+
+    private getEosRemoteAddress(req: Request): string {
+        // Do not read X-Forwarded-For directly: an untrusted client could forge that header. Express
+        // already resolves req.ip according to the configured trust-proxy policy, so it is the only
+        // proxy-aware value accepted here. Fall back to the actual socket peer.
+        const raw = req.ip || req.socket.remoteAddress || '';
+        return String(raw).replace(/^::ffff:/i, '').split('%')[0].trim().toLowerCase();
+    }
+
+    private isEosPrivateAddress(address: string): boolean {
+        if (!address) {
+            return false;
+        }
+        if (address === '::1' || address === 'localhost') {
+            return true;
+        }
+        if (/^(?:127\.|10\.|192\.168\.|169\.254\.)/.test(address)) {
+            return true;
+        }
+        const v4 = address.match(/^172\.(\d{1,3})\./);
+        if (v4 && Number(v4[1]) >= 16 && Number(v4[1]) <= 31) {
+            return true;
+        }
+        return /^(?:fc|fd)[0-9a-f]{2}:|^fe80:/i.test(address);
+    }
+
+    private isEosPasswordlessRequestNetworkAllowed(req: Request): boolean {
+        const privateOnly = (this.settings as Record<string, unknown>).eosPasswordlessFirstLoginPrivateNetworkOnly !== false;
+        return !privateOnly || this.isEosPrivateAddress(this.getEosRemoteAddress(req));
+    }
+
+    private hashEosPasswordClaim(token: string): string {
+        return createHash('sha256').update(token).digest('hex');
+    }
+
+    private readEosCookie(req: Request, name: string): string {
+        const row = String(req.headers.cookie || '')
+            .split(';')
+            .map(value => value.trim())
+            .find(value => value.startsWith(`${name}=`));
+        if (!row) {
+            return '';
+        }
+        try {
+            return decodeURIComponent(row.substring(name.length + 1));
+        } catch {
+            return row.substring(name.length + 1);
+        }
+    }
+
+    private cleanEosPasswordClaims(): void {
+        const now = Date.now();
+        for (const [key, claim] of this.eosPasswordClaims.entries()) {
+            if (claim.expiresAt <= now) {
+                this.eosPasswordClaims.delete(key);
+            }
+        }
+        for (const [key, rate] of this.eosPasswordClaimRates.entries()) {
+            if (now - rate.windowStartedAt > 10 * 60_000) {
+                this.eosPasswordClaimRates.delete(key);
+            }
+        }
+    }
+
+    private acceptEosPasswordClaimAttempt(req: Request, userId: string): boolean {
+        this.cleanEosPasswordClaims();
+        const address = this.getEosRemoteAddress(req) || 'unknown';
+        const now = Date.now();
+        const increment = (key: string, limit: number): boolean => {
+            const existing = this.eosPasswordClaimRates.get(key);
+            if (!existing || now - existing.windowStartedAt > 10 * 60_000) {
+                this.eosPasswordClaimRates.set(key, { count: 1, windowStartedAt: now });
+                return true;
+            }
+            existing.count += 1;
+            return existing.count <= limit;
+        };
+        // Limit both individual-account guessing and username rotation from one client.
+        const globalAllowed = increment(`${address}|*`, 20);
+        const accountAllowed = increment(`${address}|${userId}`, 8);
+        return globalAllowed && accountAllowed;
+    }
+
+    private async getEosPasswordlessClaimEligibility(userId: string): Promise<{
+        eligible: boolean;
+        role: EosAccessRole;
+        user: ioBroker.UserObject | null;
+        minLength: number;
+    }> {
+        const access = await this.getEosAccessForUserId(userId);
+        const user = (await this.adapter.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+        const setup = await this.getEosFirstLoginPasswordState(userId, access.role);
+        const account = ((user?.native || {}) as Record<string, unknown>).nexowattEosAccount as Record<string, unknown> | undefined;
+        const eligible = !!user
+            && user.common?.enabled !== false
+            && access.role !== 'admin'
+            && setup.required
+            && account?.passwordlessFirstLoginAllowed === true;
+        return { eligible, role: access.role, user, minLength: setup.minLength };
+    }
+
+    private invalidateEosPasswordClaimsForUser(userId: string): void {
+        for (const [key, claim] of this.eosPasswordClaims.entries()) {
+            if (claim.userId === userId) {
+                this.eosPasswordClaims.delete(key);
+            }
+        }
+    }
+
+    private async startEosPasswordlessFirstLogin(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        if (
+            !this.settings.auth
+            || !this.isEosPasswordlessFirstLoginEnabled()
+            || !this.isEosSameOriginWrite(req)
+            || req.headers['x-nexowatt-eos-passwordless-claim'] !== '1'
+        ) {
+            res.status(403).json({ error: 'claimUnavailable' });
+            return;
+        }
+        if (!this.isEosPasswordlessRequestNetworkAllowed(req)) {
+            res.status(403).json({ error: 'privateNetworkRequired' });
+            return;
+        }
+        const userId = this.normalizeEosUserId((req.body as { user?: unknown } | undefined)?.user);
+        if (!userId) {
+            res.status(403).json({ error: 'claimUnavailable' });
+            return;
+        }
+        if (!this.acceptEosPasswordClaimAttempt(req, userId)) {
+            res.status(429).json({ error: 'claimUnavailable' });
+            return;
+        }
+        const eligibility = await this.getEosPasswordlessClaimEligibility(userId);
+        if (!eligibility.eligible || (eligibility.role !== 'installer' && eligibility.role !== 'enduser')) {
+            // Deliberately do not reveal whether an account exists or which state it is in.
+            res.status(403).json({ error: 'claimUnavailable' });
+            return;
+        }
+        this.invalidateEosPasswordClaimsForUser(userId);
+        const token = randomBytes(32).toString('base64url');
+        const ttl = this.getEosPasswordClaimTtlMs();
+        this.eosPasswordClaims.set(this.hashEosPasswordClaim(token), {
+            userId,
+            role: eligibility.role,
+            expiresAt: Date.now() + ttl,
+            remoteAddress: this.getEosRemoteAddress(req),
+        });
+        res.cookie('nexowatt_eos_first_login', token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: !!this.settings.secure,
+            path: '/nexowatt/account',
+            maxAge: ttl,
+        });
+        res.status(200).json({
+            success: true,
+            role: eligibility.role,
+            userName: userId.replace(/^system\.user\./, ''),
+            minLength: eligibility.minLength,
+            expiresInSeconds: Math.round(ttl / 1000),
+        });
+    }
+
+    private async saveEosPasswordlessFirstLogin(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        if (
+            !this.isEosSameOriginWrite(req)
+            || req.headers['x-nexowatt-eos-passwordless-password'] !== '1'
+            || !this.isEosPasswordlessRequestNetworkAllowed(req)
+        ) {
+            res.status(403).json({ error: 'claimUnavailable' });
+            return;
+        }
+        this.cleanEosPasswordClaims();
+        const token = this.readEosCookie(req, 'nexowatt_eos_first_login');
+        const claim = token ? this.eosPasswordClaims.get(this.hashEosPasswordClaim(token)) : undefined;
+        if (!claim || claim.expiresAt <= Date.now() || claim.remoteAddress !== this.getEosRemoteAddress(req)) {
+            res.status(403).json({ error: 'claimExpired' });
+            return;
+        }
+        const eligibility = await this.getEosPasswordlessClaimEligibility(claim.userId);
+        if (!eligibility.eligible || eligibility.role !== claim.role) {
+            this.invalidateEosPasswordClaimsForUser(claim.userId);
+            res.status(403).json({ error: 'claimUnavailable' });
+            return;
+        }
+        const body = (req.body || {}) as { password?: unknown; passwordRepeat?: unknown };
+        const validation = this.validateEosFirstLoginPassword(body.password, body.passwordRepeat, claim.userId);
+        if (!validation.valid) {
+            res.status(400).json({ error: validation.error, minLength: eligibility.minLength });
+            return;
+        }
+        await this.setEosUserPassword(claim.userId, validation.password);
+        const user = (await this.adapter.getForeignObjectAsync(claim.userId)) as ioBroker.UserObject | null;
+        if (!user) {
+            throw new Error('userObjectUnavailableAfterPasswordChange');
+        }
+        const native = ((user.native ||= {}) as Record<string, unknown>);
+        const account = ((native.nexowattEosAccount ||= {}) as Record<string, unknown>);
+        const now = new Date().toISOString();
+        account.passwordInitialized = true;
+        account.passwordInitializedAt = Date.now();
+        account.passwordInitializationVersion = 1;
+        account.passwordInitializedBy = 'passwordless-first-activation';
+        account.passwordSetupVersion = 1;
+        account.passwordSetAt = now;
+        account.firstLoginCompletedAt = now;
+        account.forcePasswordChange = false;
+        account.passwordlessFirstLoginAllowed = false;
+        account.passwordlessClaimCompletedAt = now;
+        await this.adapter.setForeignObjectAsync(claim.userId, user);
+        this.invalidateEosPasswordClaimsForUser(claim.userId);
+        res.clearCookie('nexowatt_eos_first_login', { path: '/nexowatt/account' });
+        this.adapter.log.info(`EOS passwordless first activation completed for ${claim.userId}`);
+        res.status(200).json({ success: true, role: claim.role, userName: claim.userId.replace(/^system\.user\./, '') });
+    }
+
+    private async getEosManagedAccounts(requesterRole: EosAccessRole): Promise<Array<Record<string, unknown>>> {
+        const users = new Map<string, 'installer' | 'enduser'>();
+        const collect = async (role: 'installer' | 'enduser', groupIds: string[]): Promise<void> => {
+            for (const groupId of groupIds) {
+                const group = (await this.adapter.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null;
+                for (const userId of group?.common?.members || []) {
+                    const current = users.get(userId);
+                    if (!current || role === 'installer') {
+                        users.set(userId, role);
+                    }
+                }
+            }
+        };
+        await collect('enduser', this.getEosEndUserGroups());
+        await collect('installer', this.getEosInstallerGroups());
+        const result: Array<Record<string, unknown>> = [];
+        for (const [userId, role] of [...users.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+            if (requesterRole === 'installer' && role !== 'enduser') {
+                continue;
+            }
+            const user = (await this.adapter.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+            if (!user || userId === 'system.user.admin') {
+                continue;
+            }
+            const native = (user.native || {}) as Record<string, unknown>;
+            const account = (native.nexowattEosAccount || {}) as Record<string, unknown>;
+            const setup = await this.getEosFirstLoginPasswordState(userId, role);
+            result.push({
+                id: userId,
+                userName: userId.replace(/^system\.user\./, ''),
+                displayName: this.getTranslatedName(user.common?.name),
+                role,
+                enabled: user.common?.enabled !== false,
+                firstLoginRequired: setup.required,
+                passwordInitialized: setup.initialized,
+                passwordlessFirstLoginAllowed: account.passwordlessFirstLoginAllowed === true,
+                passwordSetAt: account.passwordSetAt || account.firstLoginCompletedAt || null,
+                passwordResetAt: account.passwordResetAt || null,
+                passwordResetBy: account.passwordResetBy || null,
+            });
+        }
+        return result;
+    }
+
+    private async sendEosAccountManagement(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (!access.userId || (access.role !== 'admin' && access.role !== 'installer')) {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        res.status(200).json({
+            role: access.role,
+            canResetInstaller: access.role === 'admin',
+            canResetEndUser: true,
+            accounts: await this.getEosManagedAccounts(access.role),
+        });
+    }
+
+    private async resetEosAccountPassword(req: Request, res: Response): Promise<void> {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        const access = await this.getEosRequestAccess(req);
+        if (
+            !access.userId
+            || (access.role !== 'admin' && access.role !== 'installer')
+            || !this.isEosSameOriginWrite(req)
+            || req.headers['x-nexowatt-eos-account-reset'] !== '1'
+        ) {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        const targetUserId = this.normalizeEosUserId((req.body as { user?: unknown } | undefined)?.user);
+        if (!targetUserId || targetUserId === 'system.user.admin' || targetUserId === access.userId) {
+            res.status(400).json({ error: 'invalidTarget' });
+            return;
+        }
+        const targetAccess = await this.getEosAccessForUserId(targetUserId);
+        const explicitInstaller = targetAccess.groups.some(group => this.getEosInstallerGroups().includes(group));
+        const explicitEndUser = targetAccess.groups.some(group => this.getEosEndUserGroups().includes(group));
+        const explicitlyManagedRole: 'installer' | 'enduser' | null = explicitInstaller
+            ? 'installer'
+            : explicitEndUser
+              ? 'enduser'
+              : null;
+        if (
+            targetAccess.role === 'admin'
+            || !explicitlyManagedRole
+            || (access.role === 'installer' && explicitlyManagedRole !== 'enduser')
+        ) {
+            // Never rely on the secure-default "enduser" classification for a password reset. The
+            // target must be an explicit member of a managed EOS installer/end-user group.
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        const currentUser = (await this.adapter.getForeignObjectAsync(targetUserId)) as ioBroker.UserObject | null;
+        if (!currentUser) {
+            res.status(404).json({ error: 'accountNotFound' });
+            return;
+        }
+        if (currentUser.common?.enabled === false) {
+            res.status(409).json({ error: 'accountDisabled' });
+            return;
+        }
+        const bootstrapSecret = `${randomBytes(48).toString('base64url')}!aA1`;
+        await this.setEosUserPassword(targetUserId, bootstrapSecret);
+        const user = (await this.adapter.getForeignObjectAsync(targetUserId)) as ioBroker.UserObject | null;
+        if (!user) {
+            throw new Error('userObjectUnavailableAfterPasswordReset');
+        }
+        const native = ((user.native ||= {}) as Record<string, unknown>);
+        const account = ((native.nexowattEosAccount ||= {}) as Record<string, unknown>);
+        const now = new Date().toISOString();
+        account.passwordInitialized = false;
+        account.passwordSetupVersion = 0;
+        account.passwordInitializationVersion = 0;
+        account.forcePasswordChange = true;
+        account.passwordlessFirstLoginAllowed = true;
+        account.passwordResetAt = now;
+        account.passwordResetBy = access.userId;
+        account.passwordResetMode = 'passwordless-first-activation';
+        delete account.passwordSetAt;
+        delete account.firstLoginCompletedAt;
+        await this.adapter.setForeignObjectAsync(targetUserId, user);
+        this.invalidateEosPasswordClaimsForUser(targetUserId);
+        this.adapter.log.warn(`EOS account ${targetUserId} was reset for passwordless first activation by ${access.userId}`);
+        res.status(200).json({
+            success: true,
+            user: targetUserId,
+            role: explicitlyManagedRole,
+            firstLoginRequired: true,
+            passwordlessFirstLoginAllowed: true,
+        });
     }
 
     private async getEosHistoryInstances(): Promise<string[]> {
@@ -1442,6 +1832,22 @@ export default class Web {
                     }
                 });
 
+                // Passwordless first activation is not a normal authenticated session. The two
+                // narrow routes below only issue/consume a short-lived HttpOnly claim and are registered
+                // before the general login middleware. They never expose the EOS application itself.
+                this.server.app.post('/nexowatt/account/passwordless-claim', (req: Request, res: Response): void => {
+                    void this.startEosPasswordlessFirstLogin(req, res).catch(e => {
+                        this.adapter.log.warn(`Cannot start EOS passwordless activation: ${e instanceof Error ? e.message : e}`);
+                        res.status(500).json({ error: 'claimUnavailable' });
+                    });
+                });
+                this.server.app.post('/nexowatt/account/passwordless-password', (req: Request, res: Response): void => {
+                    void this.saveEosPasswordlessFirstLogin(req, res).catch(e => {
+                        this.adapter.log.warn(`Cannot complete EOS passwordless activation: ${e instanceof Error ? e.message : e}`);
+                        res.status(500).json({ error: 'passwordSetupFailed' });
+                    });
+                });
+
                 // route middleware to make sure a user is logged in
                 this.server.app.use((req: Request, res: Response, next: NextFunction): void => {
                     // return favicon always
@@ -1535,6 +1941,18 @@ export default class Web {
                 void this.saveEosFirstLoginPassword(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot initialize EOS first-login password: ${e instanceof Error ? e.message : e}`);
                     res.status(500).json({ error: 'passwordSetupFailed' });
+                });
+            });
+            this.server.app.get('/nexowatt/account/manage', (req: Request, res: Response): void => {
+                void this.sendEosAccountManagement(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot read EOS account management: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'accountManagementFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/account/reset', (req: Request, res: Response): void => {
+                void this.resetEosAccountPassword(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot reset EOS account: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'accountResetFailed' });
                 });
             });
 

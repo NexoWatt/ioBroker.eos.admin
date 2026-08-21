@@ -95,6 +95,14 @@ if (activeBootstrap.includes('this.state.connected&&this.socket&&this.state.disa
 if (!activeBootstrap.includes('NEXOWATT_EXTERNAL_IOBROKER_ASSISTANT_DISABLED=!0')) {
     fail('assistant separation marker missing from active bootstrap');
 }
+const accountManagementPath = path.join(adminWww, 'js', 'eos-account-management.js');
+if (!fs.existsSync(accountManagementPath)) fail('account-management runtime is missing');
+const accountManagement = read(accountManagementPath);
+for (const marker of ['NEXOWATT_EOS_ACCOUNT_MANAGEMENT', 'X-NexoWatt-EOS-Account-Reset']) {
+    if (!accountManagement.includes(marker)) fail(`account-management runtime missing marker ${marker}`);
+}
+if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
+
 const eosAssistPath = path.join(adminWww, 'js', 'eos-assistant.js');
 const eosAssist = read(eosAssistPath);
 for (const marker of ['eos-assist-root', 'EOS Assist', 'EOS Hilfe']) {

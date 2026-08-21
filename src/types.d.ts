@@ -62,6 +62,12 @@ export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
     eosFirstLoginPasswordMinLength?: number;
     /** Automatically assign the standard installer/user account names to the matching EOS role groups. */
     eosAutoAssignDefaultRoleUsers?: boolean;
+    /** Allow an explicitly prepared installer/end-user account to claim its first activation without a password. */
+    eosPasswordlessFirstLogin?: boolean;
+    /** Restrict passwordless first activation to local/private client addresses. */
+    eosPasswordlessFirstLoginPrivateNetworkOnly?: boolean;
+    /** Lifetime of the short-lived first-activation claim in minutes. */
+    eosPasswordClaimTtlMinutes?: number;
     /** Alternative UI key for hiding the legacy admin. */
     eosHideLegacyAdminForNonAdmins?: boolean;
     /** Apply administrator-only ACLs to selected protected adapters. */

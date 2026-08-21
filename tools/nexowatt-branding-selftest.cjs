@@ -29,5 +29,9 @@ if (/ioBroker socket is not ready/i.test(manual)) fail('customer-visible connect
 const updates = (io.notifications || []).flatMap(scope => scope.categories || []).find(cat => cat.category === 'adapterUpdates');
 if (updates && Object.values(updates.description || {}).some(text => /ioBroker/i.test(String(text)))) fail('update notification still displays the upstream brand');
 // Technical package IDs, compatibility routes and third-party legal notices intentionally remain unchanged.
+
+const accountManagement = read('adminWww/js/eos-account-management.js');
+if (!accountManagement.includes('NexoWatt EOS') || accountManagement.includes('ioBroker')) fail('account management visible branding is not NexoWatt-only');
+if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account management source/build drift');
 if (bad) process.exit(1);
 console.log('[NexoWatt EOS branding] OK');

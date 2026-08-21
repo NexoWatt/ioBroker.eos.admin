@@ -280,6 +280,9 @@ class Admin extends Adapter {
     /** Synchronous role cache used by the server-side socket command guard. */
     private readonly eosRoleCache = new Map<string, 'admin' | 'installer' | 'enduser'>();
 
+    /** Non-admin accounts that must complete password setup before any socket command is accepted. */
+    private readonly eosPasswordSetupRequired = new Set<string>();
+
     /** v47: stale delete-lock cleanup is a one-shot migration, not a repeating guard. */
     private eosDeleteLockRepairFinished = false;
 
@@ -1191,17 +1194,108 @@ class Admin extends Adapter {
         }
     }
 
+    private async ensureEosDefaultUser(userId: string, displayName: string): Promise<ioBroker.UserObject | null> {
+        let user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+        if (user) {
+            return user;
+        }
+        user = {
+            _id: userId as ioBroker.ObjectIDs.User,
+            type: 'user',
+            common: {
+                name: displayName,
+                enabled: true,
+                password: '',
+            },
+            native: {
+                nexowattEosAccount: {
+                    passwordInitialized: false,
+                    passwordSetupVersion: 0,
+                    forcePasswordChange: true,
+                    passwordlessFirstLoginAllowed: true,
+                    provisionedBy: 'NexoWatt EOS',
+                    provisionedAt: new Date().toISOString(),
+                },
+            },
+        } as ioBroker.UserObject;
+        await this.setForeignObjectAsync(userId, user);
+        return user;
+    }
+
+    private async prepareEosPasswordlessFirstLogin(userId: string): Promise<void> {
+        if (this.config.eosRequireFirstLoginPassword === false || this.config.eosPasswordlessFirstLogin === false) {
+            return;
+        }
+        let user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+        if (!user?.common || userId === 'system.user.admin') {
+            return;
+        }
+        const native = ((user.native ||= {}) as Record<string, unknown>);
+        const account = ((native.nexowattEosAccount ||= {}) as Record<string, unknown>);
+        const initialized = account.passwordInitialized === true
+            || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
+        if (initialized && account.forcePasswordChange !== true) {
+            return;
+        }
+        // Only a truly uninitialized account is auto-opened for passwordless first activation.
+        // Existing accounts with a password require an explicit reset by Service/Installer.
+        if (String(user.common.password || '') !== '' && account.passwordlessFirstLoginAllowed !== true) {
+            return;
+        }
+        if (String(user.common.password || '') === '') {
+            const bootstrapSecret = `${randomBytes(48).toString('base64url')}!aA1`;
+            await this.setPasswordAsync(userId, bootstrapSecret, { user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User });
+            user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+            if (!user) {
+                return;
+            }
+        }
+        const updatedNative = ((user.native ||= {}) as Record<string, unknown>);
+        const updatedAccount = ((updatedNative.nexowattEosAccount ||= {}) as Record<string, unknown>);
+        let changed = false;
+        for (const [key, value] of Object.entries({
+            passwordInitialized: false,
+            passwordSetupVersion: 0,
+            passwordInitializationVersion: 0,
+            forcePasswordChange: true,
+            passwordlessFirstLoginAllowed: true,
+        })) {
+            if (updatedAccount[key] !== value) {
+                updatedAccount[key] = value;
+                changed = true;
+            }
+        }
+        // Set the audit timestamp only once. Rewriting it on every security-guard pass would trigger
+        // another objectChange and create an endless role/security reconciliation loop.
+        if (!updatedAccount.passwordlessPreparedAt) {
+            updatedAccount.passwordlessPreparedAt = new Date().toISOString();
+            changed = true;
+        }
+        if (changed) {
+            await this.setForeignObjectAsync(userId, user);
+        }
+    }
+
     private async ensureEosDefaultRoleUsers(): Promise<void> {
         if (this.config.eosAutoAssignDefaultRoleUsers === false) {
             return;
         }
+        // Sales systems always expose one commissioning and one customer account. They receive an
+        // unknown random bootstrap secret and can only be claimed through the one-time EOS setup page.
+        await this.ensureEosDefaultUser('system.user.installer', 'Installer');
+        await this.ensureEosDefaultUser('system.user.guest', 'Gast / Endkunde');
+
         const installerGroup = this.getEosRoleGroupIds('installer')[0] || EOS_INSTALLER_GROUP;
         const endUserGroup = this.getEosRoleGroupIds('enduser')[0] || EOS_ENDUSER_GROUP;
-        for (const userId of ['system.user.installer', 'system.user.installateur']) {
+        const installerUsers = ['system.user.installer', 'system.user.installateur'];
+        const endUsers = ['system.user.guest', 'system.user.user', 'system.user.endkunde', 'system.user.kunde'];
+        for (const userId of installerUsers) {
             await this.addUserToEosGroup(userId, installerGroup);
+            await this.prepareEosPasswordlessFirstLogin(userId);
         }
-        for (const userId of ['system.user.user', 'system.user.endkunde', 'system.user.kunde']) {
+        for (const userId of endUsers) {
             await this.addUserToEosGroup(userId, endUserGroup);
+            await this.prepareEosPasswordlessFirstLogin(userId);
         }
     }
 
@@ -1229,7 +1323,21 @@ class Admin extends Adapter {
             }
         }
         this.eosRoleCache.clear();
-        next.forEach((role, userId) => this.eosRoleCache.set(userId, role));
+        this.eosPasswordSetupRequired.clear();
+        for (const [userId, role] of next.entries()) {
+            this.eosRoleCache.set(userId, role);
+            if (role === 'admin') {
+                continue;
+            }
+            const user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+            const native = (user?.native || {}) as Record<string, unknown>;
+            const account = (native.nexowattEosAccount || {}) as Record<string, unknown>;
+            const initialized = account.passwordInitialized === true
+                || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
+            if (account.forcePasswordChange === true || !initialized) {
+                this.eosPasswordSetupRequired.add(userId);
+            }
+        }
     }
 
     private getEosCachedRole(userId?: string): 'admin' | 'installer' | 'enduser' {
@@ -1265,6 +1373,9 @@ class Admin extends Adapter {
             const role = this.getEosCachedRole(userId);
             if (role === 'admin') {
                 return original(socketClient, command, callback, ...args);
+            }
+            if (userId && this.eosPasswordSetupRequired.has(userId)) {
+                return deny(socketClient, command, callback, 'personal password setup is required');
             }
             if (command === 'cmdExec') {
                 if (role !== 'installer') {

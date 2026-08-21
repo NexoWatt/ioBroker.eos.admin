@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-nexowatt-native-shell-role-access';
+    const VERSION = 'v88-nexowatt-native-shell-passwordless-account-modern';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();

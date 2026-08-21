@@ -26,6 +26,7 @@ for (const code of [source, built]) {
     'system.group.nexowatt-service',
     'system.group.installateur',
     'system.group.endkunde',
+    'system.user.guest',
     'ensureEosRoleModel',
     'ensureEosInstallerSmartHomeMembership',
     'ensureEosSystemObjectAccess',
@@ -38,6 +39,8 @@ for (const code of [source, built]) {
     "row.id === 'enum.functions'",
     'const adminOnlyAcl = !isEosAdmin',
     'restoreObjectAclManagedByEos(id)',
+    'eosPasswordSetupRequired',
+    'personal password setup is required',
   ]) if (!code.includes(marker)) fail(`role backend marker missing: ${marker}`);
   if (code.includes('EOS_SENSITIVE_OBJECT_IDS')) fail('legacy all-admin-only system object list remains');
   if (/for \(const id of EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS\)[\s\S]{0,120}ensureObjectAdminOnlyAcl/.test(code)) {
@@ -76,6 +79,8 @@ for (const marker of [
   'Installateurbereich',
   'Endkundenbereich',
   'isRouteAllowed',
+  'Endkunden-Zugänge',
+  'NEXOWATT_EOS_ACCOUNT_MANAGEMENT',
   "route === 'easy'",
   "clean === 'tab-enums'",
   'repositories|repository|lizenzen|licenses|zertifikate|certificates|zugangsdaten|credentials',
@@ -105,12 +110,13 @@ for (const marker of ['effectiveExpertMode', "accessRole === 'admin'"]) {
 
 for (const rel of [
   'js/eos-role-bootstrap.js', 'js/eos-role-ui.js', 'js/eos-basic-settings.js',
-  'js/eos-native-security.js', 'js/eos-manual-write-policy.js',
+  'js/eos-native-security.js', 'js/eos-manual-write-policy.js', 'js/eos-account-management.js',
 ]) if (read(`src-admin/public/${rel}`) !== read(`adminWww/${rel}`)) fail(`source/build drift: ${rel}`);
 
 if (!index.includes(`eos-basic-settings.js?v=${shellTag}`)) fail('installer basic settings asset is not active');
 if (!index.includes(`eos-role-bootstrap.js?v=${shellTag}`)) fail('role bootstrap cache key is not active');
 if (!index.includes(`eos-role-ui.js?v=${shellTag}`)) fail('role UI cache key is not active');
+if (!index.includes(`eos-account-management.js?v=${shellTag}`)) fail('account management cache key is not active');
 if (index.includes('<script type="module" crossorigin src="./assets/index-CQZugZ1z-v84.js?v=84"></script>')) fail('main module bypasses role bootstrap');
 
 if (io.native?.auth !== true) fail('authentication must be enabled by default for new sales systems');

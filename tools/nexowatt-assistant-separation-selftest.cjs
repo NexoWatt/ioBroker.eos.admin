@@ -7,7 +7,7 @@ const fail = msg => { console.error(`[NexoWatt EOS assistant separation] ${msg}`
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const info = JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json'));
 const runtime = info.runtimeEntry;
-const shell = Number(info.shellCacheVersion);
+const shell = String(info.shellCacheTag || info.shellCacheVersion);
 const app = read('src-admin/src/App.tsx');
 const bundle = read(`adminWww/assets/bootstrap-COulQZax-${runtime}.js`);
 const assist = read('adminWww/js/eos-assistant.js');

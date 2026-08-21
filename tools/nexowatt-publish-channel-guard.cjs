@@ -7,49 +7,37 @@ const path = require('path');
 function validatePublishChannel(pkg, env = process.env) {
     const version = String(pkg?.version || '').trim();
     const configuredTag = String(pkg?.publishConfig?.tag || '').trim();
-    const isPrerelease = version.includes('-');
     const requestedTag = String(env.npm_config_tag || env.NPM_CONFIG_TAG || configuredTag || 'latest').trim();
+    const isPrerelease = version.includes('-');
+    const policy = pkg?.nexowattReleasePolicy || {};
 
     if (!version) {
         return { ok: false, message: 'package.json version is missing' };
     }
+    if (configuredTag !== 'latest' || requestedTag !== 'latest') {
+        return {
+            ok: false,
+            message: `${version} is approved only for npm dist-tag latest, got configured=${configuredTag || '<unset>'}, requested=${requestedTag || '<unset>'}`,
+        };
+    }
 
     if (isPrerelease) {
-        if (configuredTag !== 'rc') {
+        if (policy.distTag !== 'latest' || policy.acceptedPrerelease !== version) {
             return {
                 ok: false,
-                message: `Prerelease ${version} must use publishConfig.tag=rc, got ${configuredTag || '<unset>'}`,
+                message: `Prerelease ${version} may move latest only when nexowattReleasePolicy explicitly accepts this exact version`,
             };
         }
-        if (requestedTag === 'latest') {
-            return {
-                ok: false,
-                message: `Prerelease ${version} must never be published with the latest tag. Use npm publish or npm publish --tag rc.`,
-            };
-        }
-        if (requestedTag !== 'rc') {
-            return {
-                ok: false,
-                message: `Prerelease ${version} may only be published with the rc tag, got ${requestedTag || '<unset>'}`,
-            };
-        }
-        return { ok: true, version, tag: 'rc', prerelease: true };
+        return { ok: true, version, tag: 'latest', prerelease: true, explicitlyAccepted: true };
     }
 
-    if (configuredTag && configuredTag !== 'latest') {
+    if (policy.acceptedPrerelease) {
         return {
             ok: false,
-            message: `Stable version ${version} must not retain prerelease tag ${configuredTag}`,
+            message: `Stable version ${version} must remove stale acceptedPrerelease policy ${policy.acceptedPrerelease}`,
         };
     }
-    if (requestedTag !== 'latest') {
-        return {
-            ok: false,
-            message: `Stable version ${version} must be published with the latest tag, got ${requestedTag || '<unset>'}`,
-        };
-    }
-
-    return { ok: true, version, tag: 'latest', prerelease: false };
+    return { ok: true, version, tag: 'latest', prerelease: false, explicitlyAccepted: false };
 }
 
 if (require.main === module) {
@@ -63,7 +51,7 @@ if (require.main === module) {
     }
 
     console.log(
-        `[NexoWatt EOS publish guard] OK (${result.version}, npm dist-tag ${result.tag}${result.prerelease ? '; npm latest remains unchanged' : ''})`,
+        `[NexoWatt EOS publish guard] OK (${result.version}, npm dist-tag latest${result.explicitlyAccepted ? '; exact prerelease acceptance recorded' : ''})`,
     );
 }
 

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v87-rc3-product-role-access';
+    const VERSION = 'v87-rc4-modern-product-role-access';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -173,7 +173,7 @@
         return text.length < 12 && interactive === 0;
     };
     const landingActions = role => role === 'installer'
-        ? [ ['Dienste','tab-instances'], ['Module','tab-adapters'], ['Datenpunkte','tab-objects'], ['Struktur','tab-enums'], ['Geräte','tab-devicemanager'], ['Basis-Einstellungen','basic-settings'], ['EOS Cockpit','tab-nexowatt-ui'] ]
+        ? [ ['Dienste','tab-instances'], ['Module','tab-adapters'], ['Datenpunkte','tab-objects'], ['Struktur','tab-enums'], ['Geräte','tab-devicemanager'], ['Endkunden-Zugänge','account-management'], ['Basis-Einstellungen','basic-settings'], ['EOS Cockpit','tab-nexowatt-ui'] ]
         : [ ['EOS Cockpit','tab-nexowatt-ui'], ['Smart Home','easy'], ['Smart Home Zuordnung','tab-enums'] ];
     const showLandingFallback = () => safe(() => {
         if (isLoginView() || state.role === 'admin' || state.role === 'unknown') return;
@@ -184,7 +184,7 @@
             landing = document.createElement('section'); landing.id = 'eos-role-landing'; landing.className = 'eos-role-landing';
         }
         const installer = state.role === 'installer';
-        const actions = landingActions(state.role).filter(([,tab]) => tab === 'easy' || tab === 'basic-settings' || isRouteAllowed(state.role, tab));
+        const actions = landingActions(state.role).filter(([,tab]) => tab === 'easy' || tab === 'basic-settings' || tab === 'account-management' || isRouteAllowed(state.role, tab));
         landing.innerHTML = `<div class="eos-role-landing-card"><div class="eos-role-landing-eyebrow">NexoWatt EOS</div><h1>${installer ? 'Installateurbereich' : 'Endkundenbereich'}</h1><p>${installer ? 'Die technische Oberfläche enthält Inbetriebnahme und Fehlersuche. Sichere Basis-Einstellungen sind verfügbar; Repositories, Lizenzen, Zertifikate, Zugangsdaten, Sicherheitsverwaltung und Expertenmodus bleiben ausschließlich NexoWatt Admin/Service vorbehalten.' : 'Dieser Zugang zeigt nur die für den Endkunden freigegebenen Bedien- und Smart-Home-Oberflächen.'}</p><div class="eos-role-actions">${actions.map(([label,tab]) => `<button type="button" data-eos-role-tab="${tab}">${label}</button>`).join('')}</div></div>`;
         if (!paper.contains(landing)) paper.appendChild(landing);
     });
@@ -271,6 +271,7 @@
         if (roleTab) {
             event.preventDefault();
             if (roleTab === 'basic-settings') window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
+            else if (roleTab === 'account-management') window.NEXOWATT_EOS_ACCOUNT_MANAGEMENT?.open?.();
             else roleTab === 'easy' ? (window.location.hash = '#easy') : setHashTab(roleTab);
             return;
         }

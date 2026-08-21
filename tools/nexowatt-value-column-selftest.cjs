@@ -15,8 +15,8 @@ for (const marker of [
 ]) if (!src.includes(marker)) fail(`value-cell marker missing: ${marker}`);
 if (src.includes('.eos-object-value-cell {\n    width: 100% !important')) fail('native value-column width is overridden');
 const buildInfo = JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json'));
-const shellVersion = Number(buildInfo.shellCacheVersion ?? buildInfo.brandingCacheVersion);
+const shellVersion = String(buildInfo.shellCacheTag || buildInfo.shellCacheVersion || buildInfo.brandingCacheVersion);
 const index = read('adminWww/index.html');
-if (!index.includes(`css/nexowatt-native-shell.css?v=${shellVersion}`)) fail(`native shell CSS cache key is not v${shellVersion}`);
-if (!index.includes(`js/nexowatt-native-shell.js?v=${shellVersion}`)) fail(`native shell JS cache key is not v${shellVersion}`);
+if (!index.includes(`css/nexowatt-native-shell.css?v=${shellVersion}`)) fail(`native shell CSS cache key is not ${shellVersion}`);
+if (!index.includes(`js/nexowatt-native-shell.js?v=${shellVersion}`)) fail(`native shell JS cache key is not ${shellVersion}`);
 console.log('[NexoWatt EOS value column] OK');
