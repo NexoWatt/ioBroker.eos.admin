@@ -47,6 +47,9 @@ if (shell.includes('textNode.textContent = cfg.label') || shell.includes('innerH
 if (!shell.includes('rendered natively by Drawer.tsx')) fail('shell native ownership comment missing');
 if (!shell.includes('ensureNavigationContainer')) fail('shell navigation container setup missing');
 if (!shell.includes('ensureModernOverview') || !shell.includes("label: 'Installateur'") || !shell.includes("label: 'Endkunde'")) fail('role-aware native overview setup missing');
+const overviewBridge = shell.slice(shell.indexOf('const ensureModernOverview'), shell.indexOf('const apply'));
+for (const marker of ['eosNativeReactOverview', 'eosRuntimeOverviewHero', 'bundled Admin-7 runtime predates the React hero']) if (!overviewBridge.includes(marker)) fail(`overview ownership marker missing: ${marker}`);
+if (overviewBridge.indexOf('eosNativeReactOverview') > overviewBridge.indexOf('hero.innerHTML')) fail('React-owned overview is rewritten before ownership is checked');
 if (!css.includes('.nexowatt-native-nav-item') || !css.includes('.eos-native-nav-icon') || !css.includes('.nexowatt-native-nav-icon')) fail('shell CSS lacks native navigation styles');
 
 console.log('[NexoWatt EOS native shell] OK');

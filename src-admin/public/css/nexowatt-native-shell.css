@@ -75,8 +75,8 @@ html.eos-login main.MuiPaper-root::before {
     left: 50%;
     top: 50%;
     box-sizing: border-box;
-    width: min(520px, calc(100vw - 24px)) !important;
-    height: min(640px, calc(100dvh - 24px)) !important;
+    width: min(440px, calc(100vw - 20px)) !important;
+    height: min(580px, calc(100dvh - 20px)) !important;
     transform: translate(-50%, -50%);
     border: 1px solid rgba(0, 229, 138, .34);
     border-radius: 26px;
@@ -90,12 +90,12 @@ html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
     position: relative;
     z-index: 1;
     box-sizing: border-box !important;
-    width: min(460px, calc(100vw - 56px)) !important;
+    width: min(380px, calc(100vw - 52px)) !important;
     height: auto !important;
-    min-height: 540px !important;
-    max-width: 460px !important;
+    min-height: 510px !important;
+    max-width: 380px !important;
     max-height: none !important;
-    padding: 34px 36px 32px !important;
+    padding: 28px 30px 26px !important;
     overflow: visible !important;
     border-radius: 24px !important;
     color: var(--nx-text) !important;
@@ -886,10 +886,10 @@ html.eos-login .eos-login-card-modern {
     /* Compact product login: the form remains the proven inner card while the
        decorative rear frame keeps a fixed, restrained footprint. */
     box-sizing: border-box !important;
-    width: min(460px, calc(100vw - 56px)) !important;
+    width: min(380px, calc(100vw - 52px)) !important;
     height: auto !important;
-    min-height: 540px !important;
-    max-width: 460px !important;
+    min-height: 510px !important;
+    max-width: 380px !important;
     max-height: none !important;
     overflow: visible !important;
 }
@@ -1292,8 +1292,7 @@ html.eos-route-intro #app-paper [class*="card"] {
     .eos-assist-header-root .eos-assist-panel { right: 8px !important; width: calc(100vw - 16px); }
 }
 
-
-/* NexoWatt EOS 7.9.96 – spacious login card without inner scrollbars. */
+/* NexoWatt EOS 7.9.97 – orderly login, moderately enlarged. */
 html.eos-login,
 html.eos-login body {
     min-height: 100%;
@@ -1304,31 +1303,51 @@ html.eos-login body {
 html.eos-login #root {
     min-height: 100dvh;
     box-sizing: border-box;
-    padding: 24px 12px;
+    display: grid;
+    place-items: center;
+    padding: 12px 8px;
 }
 html.eos-login main.MuiPaper-root {
     box-sizing: border-box !important;
-    min-height: calc(100dvh - 48px) !important;
-    padding: 28px 0 !important;
+    min-height: calc(100dvh - 24px) !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 !important;
     overflow: visible !important;
 }
 html.eos-login main.MuiPaper-root::before {
-    width: min(520px, calc(100vw - 24px)) !important;
-    height: min(640px, calc(100dvh - 24px)) !important;
-    min-height: 590px !important;
+    width: min(440px, calc(100vw - 20px)) !important;
+    height: min(580px, calc(100dvh - 20px)) !important;
+    min-height: 0 !important;
+    border-radius: 25px !important;
 }
 html.eos-login main.MuiPaper-root > .eos-login-card-modern,
 html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
-html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password),
-html.eos-login [data-nw-login-card="true"] {
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
     box-sizing: border-box !important;
-    width: min(460px, calc(100vw - 56px)) !important;
+    width: min(380px, calc(100vw - 52px)) !important;
     min-width: 0 !important;
-    min-height: 540px !important;
+    min-height: 510px !important;
     height: auto !important;
-    max-width: 460px !important;
+    max-width: 380px !important;
     max-height: none !important;
-    padding: 34px 36px 32px !important;
+    padding: 28px 30px 26px !important;
+    overflow: visible !important;
+    border-radius: 23px !important;
+}
+/* A cached older runtime may still leave data attributes on a Grid/form
+   ancestor. They must never become a second full-size login card. */
+html.eos-login [data-nw-login-card="true"]:not(.MuiPaper-root):not(.eos-login-card-modern),
+html.eos-login [data-nw-login-shell="true"]:not(main):not(.MuiPaper-root) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
     overflow: visible !important;
 }
 html.eos-login main.MuiPaper-root > .eos-login-card-modern *,
@@ -1342,6 +1361,7 @@ html.eos-login [role="alert"],
 html.eos-login .eos-login-first-status,
 html.eos-login .eos-login-first-hint {
     position: static !important;
+    box-sizing: border-box !important;
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
@@ -1353,38 +1373,35 @@ html.eos-login .eos-login-first-hint {
 }
 html.eos-login input,
 html.eos-login button,
-html.eos-login form {
-    max-width: 100% !important;
-}
-@media (max-width: 560px) {
-    html.eos-login #root { padding: 10px 8px; }
-    html.eos-login main.MuiPaper-root { min-height: calc(100dvh - 20px) !important; padding: 14px 0 !important; }
+html.eos-login form { max-width: 100% !important; }
+@media (max-width: 500px) {
+    html.eos-login #root { padding: 8px; }
+    html.eos-login main.MuiPaper-root { min-height: calc(100dvh - 16px) !important; }
     html.eos-login main.MuiPaper-root::before {
-        width: calc(100vw - 16px) !important;
-        min-height: 0 !important;
+        width: calc(100vw - 12px) !important;
         height: calc(100% - 4px) !important;
         border-radius: 20px !important;
     }
     html.eos-login main.MuiPaper-root > .eos-login-card-modern,
     html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
-    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password),
-    html.eos-login [data-nw-login-card="true"] {
+    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
         width: calc(100vw - 38px) !important;
         max-width: none !important;
         min-height: 0 !important;
-        padding: 26px 22px !important;
+        padding: 24px 22px !important;
+        border-radius: 18px !important;
     }
 }
-@media (max-height: 690px) {
-    html.eos-login main.MuiPaper-root::before { min-height: 0 !important; height: calc(100% - 12px) !important; }
+@media (max-height: 620px) {
+    html.eos-login #root { place-items: start center; }
+    html.eos-login main.MuiPaper-root { min-height: 0 !important; padding: 10px 0 !important; }
+    html.eos-login main.MuiPaper-root::before { height: calc(100% - 6px) !important; }
     html.eos-login main.MuiPaper-root > .eos-login-card-modern,
     html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
-    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password),
-    html.eos-login [data-nw-login-card="true"] { min-height: 0 !important; }
+    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) { min-height: 0 !important; }
 }
 
-
-/* 7.9.96: native Intro owns the overview for every EOS role. */
+/* Native Intro owns the overview for every EOS role. */
 #eos-role-safe-overview,
 .eos-role-safe-overview { display: none !important; }
 html.eos-safe-overview-active #app-paper > :not(.MuiSnackbar-root):not([role="presentation"]) { pointer-events: auto !important; }

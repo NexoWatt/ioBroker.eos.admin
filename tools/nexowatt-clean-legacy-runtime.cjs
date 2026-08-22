@@ -36,6 +36,24 @@ function runtimeNumber(root) {
   return value;
 }
 
+function shellNumber(root) {
+  const info = readJson(path.join(root, 'NEXOWATT_EOS_BUILD_INFO.json'));
+  const candidates = [info.shellCacheVersion, info.shellCacheTag, info.label];
+  for (const candidate of candidates) {
+    const value = Number(String(candidate ?? '').replace(/^v/i, ''));
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+  try {
+    const pkg = readJson(path.join(root, 'package.json'));
+    const patch = Number(String(pkg.version || '').split('.')[2]);
+    if (Number.isFinite(patch) && patch > 0) return patch;
+  } catch (_) {
+    // The build info remains the canonical source. The package fallback is
+    // only used for isolated cleanup fixtures.
+  }
+  throw new Error('Invalid shellCacheVersion in NEXOWATT_EOS_BUILD_INFO.json');
+}
+
 function walkFiles(dir) {
   if (!fs.existsSync(dir)) return [];
   const result = [];
@@ -51,12 +69,14 @@ function walkFiles(dir) {
   return result;
 }
 
-function isLegacyVersionedRuntime(file, activeRuntime) {
+function isLegacyVersionedRuntime(file, activeRuntime, activeShell) {
   const name = path.basename(file);
-  // Stable product overlays use the release number in their filename, not the
-  // compiled React runtime number. They are release assets and must not be
-  // deleted merely because runtimeEntry remains on the validated v84 bundle.
-  if (/^nexowatt-stable-v\d+\.js$/i.test(name)) return false;
+  // Stable product overlays use the product release number in their filename,
+  // while the compiled React runtime can intentionally remain on v84. Keep
+  // only the active stable overlay and remove stale release assets left behind
+  // by a flat ZIP update (for example v96 when installing v97).
+  const stableMatch = name.match(/^nexowatt-stable-v(\d+)\.js$/i);
+  if (stableMatch) return Number(stableMatch[1]) !== activeShell;
   const versionMatch = name.match(/-v(\d+)\.(?:js|js\.map|css|css\.map)$/i);
   if (versionMatch) return Number(versionMatch[1]) !== activeRuntime;
   const remoteMatch = name.match(/^remoteEntry-v(\d+)\.(?:js|js\.map)$/i);
@@ -69,23 +89,25 @@ function isLegacyVersionedRuntime(file, activeRuntime) {
 
 function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
   const activeRuntime = runtimeNumber(root);
+  const activeShell = shellNumber(root);
   const scanRoots = [
     path.join(root, 'adminWww', 'assets'),
     path.join(root, 'adminWww'),
     path.join(root, 'src-admin', 'build', 'assets'),
     path.join(root, 'src-admin', 'build'),
+    path.join(root, 'src-admin', 'public'),
   ];
   const files = new Set();
   for (const scanRoot of scanRoots) {
     for (const file of walkFiles(scanRoot)) {
-      if (isLegacyVersionedRuntime(file, activeRuntime)) files.add(file);
+      if (isLegacyVersionedRuntime(file, activeRuntime, activeShell)) files.add(file);
     }
   }
   for (const rel of LEGACY_OVERLAYS) {
     const file = path.join(root, rel);
     if (fs.existsSync(file)) files.add(file);
   }
-  return { activeRuntime, files: [...files].sort() };
+  return { activeRuntime, activeShell, files: [...files].sort() };
 }
 
 function cleanLegacyRuntime(options = {}) {
@@ -93,7 +115,7 @@ function cleanLegacyRuntime(options = {}) {
   const dryRun = options.dryRun === true;
   const quiet = options.quiet === true;
   const silent = options.silent === true;
-  const { activeRuntime, files } = collectLegacyRuntimeFiles(root);
+  const { activeRuntime, activeShell, files } = collectLegacyRuntimeFiles(root);
   const removed = [];
   const failed = [];
 
@@ -125,13 +147,13 @@ function cleanLegacyRuntime(options = {}) {
 
   if (!silent) {
     if (!quiet) {
-      console.log(`[NexoWatt EOS runtime cleanup] OK (runtime v${activeRuntime}, removed ${removed.length} legacy file${removed.length === 1 ? '' : 's'})`);
+      console.log(`[NexoWatt EOS runtime cleanup] OK (runtime v${activeRuntime}, shell v${activeShell}, removed ${removed.length} legacy file${removed.length === 1 ? '' : 's'})`);
     } else if (removed.length) {
       console.log(`[NexoWatt EOS runtime cleanup] removed ${removed.length} legacy runtime files before validation`);
     }
   }
 
-  return { activeRuntime, removed };
+  return { activeRuntime, activeShell, removed };
 }
 
 if (require.main === module) {
@@ -148,4 +170,5 @@ module.exports = {
   collectLegacyRuntimeFiles,
   cleanLegacyRuntime,
   isLegacyVersionedRuntime,
+  shellNumber,
 };

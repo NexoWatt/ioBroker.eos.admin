@@ -41,7 +41,7 @@ if (pkg.scripts['test:eos-version-sync'] !== 'node tools/nexowatt-version-sync-s
 if (pkg.scripts['verify:eos-merge'] !== 'node tools/nexowatt-merge-update-selftest.cjs') fail('merge update selftest script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-version-sync-selftest.cjs')) fail('version sync selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-merge-update-selftest.cjs')) fail('merge update selftest is not part of check:eos-stability');
-if (pkg.scripts['check:eos-stable-v96'] !== 'node tools/nexowatt-stable-v96-selftest.cjs') fail('stable v96 selftest script is missing or incorrect');
+if (pkg.scripts['check:eos-stable-v97'] !== 'node tools/nexowatt-stable-v97-selftest.cjs') fail('stable v97 selftest script is missing or incorrect');
 if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run check:eos-publish-channel')) fail('prepublishOnly must synchronize versions and normalize release defaults before the publish channel guard');
 if (pkg.scripts['precheck:eos-package'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-package must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-stability must synchronize versions, normalize release defaults and clean stale runtime files');
@@ -110,14 +110,14 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.96.md',
-  'RELEASE_NOTES_V7.9.96.md',
-  'PUBLISH_STABLE_V7.9.96.md',
-  'INSTALL_TEST_V7.9.96.md',
-  'RELEASE_ACCEPTANCE_V7.9.96.md',
+  'README_STABILITY_V7.9.97.md',
+  'RELEASE_NOTES_V7.9.97.md',
+  'PUBLISH_STABLE_V7.9.97.md',
+  'INSTALL_TEST_V7.9.97.md',
+  'RELEASE_ACCEPTANCE_V7.9.97.md',
   'MERGE_UPDATE.ps1',
   'MERGE_UPDATE.cmd',
-  'MERGE_UPDATE_README_V7.9.96.md',
+  'MERGE_UPDATE_README_V7.9.97.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -135,12 +135,12 @@ for (const file of [
   'tools/nexowatt-sync-release-version.cjs',
   'tools/nexowatt-version-sync-selftest.cjs',
   'tools/nexowatt-merge-update-selftest.cjs',
-  'tools/nexowatt-stable-v96-selftest.cjs',
+  'tools/nexowatt-stable-v97-selftest.cjs',
   'tools/nexowatt-ems-overview-selftest.cjs',
   'tools/nexowatt-ui-overview-runtime-selftest.cjs',
   'adminWww/js/eos-ems-overview.js',
   'adminWww/css/eos-ems-overview.css',
-  'adminWww/static/js/nexowatt-stable-v96.js',
+  'adminWww/static/js/nexowatt-stable-v97.js',
   'src-admin/src/components/Intro/NexoWattEmsOverview.tsx',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',
@@ -183,7 +183,7 @@ if (!index.includes(`eos-account-management.js?v=${shellTag}`)) fail('account ma
 if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache key mismatch');
 if (!index.includes(`eos-ems-overview.js?v=${shellTag}`)) fail('EMS overview cache key mismatch');
 if (!index.includes(`eos-ems-overview.css?v=${shellTag}`)) fail('EMS overview CSS cache key mismatch');
-if (!index.includes(`nexowatt-stable-v96.js?v=${shellTag}`)) fail('stable v96 cache key mismatch');
+if (!index.includes(`nexowatt-stable-v97.js?v=${shellTag}`)) fail('stable v97 cache key mismatch');
 if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
@@ -232,7 +232,7 @@ if (accountManagement.includes("launcher.className = 'eos-account-management-lau
 if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account-management source/build drift');
 const roleBootstrap = read('adminWww/js/eos-role-bootstrap.js');
-if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v96 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
+if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v97 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
 if (/data-eos-account=|selector\.innerHTML/.test(roleBootstrap)) fail('login role buttons must not enlarge the normal login card');
 if (!roleBootstrap.includes('nexowatt/account/passwordless-status') || !roleBootstrap.includes('eligibility.allowed')) fail('server-checked first-login eligibility is incomplete');
 if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher remains active');

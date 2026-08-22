@@ -1,26 +1,28 @@
 {
-  "version": "7.9.96",
+  "version": "7.9.97",
   "channel": "stable-latest",
-  "baseFrontend": "validated Admin 7 runtime with native role overview, UI-adapter EMS live diagnosis and first-password repair",
+  "baseFrontend": "validated Admin 7 runtime with compact product login, native role overview and authenticated EMS diagnosis bridge",
   "runtimeEntry": "v84",
-  "releaseType": "stable-ui-ems-login-hardening",
-  "release": "stable-ui-ems-login-hardening",
-  "label": "v96",
+  "releaseType": "stable-login-and-ems-connection-fix",
+  "release": "stable-login-and-ems-connection-fix",
+  "label": "v97",
   "notes": [
-    "7.9.96 uses the native Admin overview for Admin, Installer and End User without the obsolete action-tile overlay.",
-    "The NexoWatt UI info.adminOverview contract is rendered as a read-only live EMS diagnosis tile for every allowed role.",
-    "The login card is larger and no longer creates internal horizontal or vertical scrollbars.",
-    "First sign-in with the initial password nexowatt opens the mandatory personal password dialog instead of the security-recovery page."
+    "The login keeps the proven NexoWatt card proportions and is enlarged only moderately.",
+    "Wrong-password and first-password messages expand without any inner horizontal or vertical scrollbar.",
+    "The EMS live diagnosis receives the actual authenticated EOS Admin connection and refreshes immediately.",
+    "NexoWatt UI 0.8.198 and newer publish the read-only info.adminOverview contract used by the tile.",
+    "Native overview cards remain available for Admin, Installer and End User while all existing write restrictions stay active."
   ],
   "changes": [
-    "Integrates the complete EMS LIVE DIAGNOSE merge source and runtime contract.",
-    "Exposes the existing AdminConnection read-only to the overview runtime and polls every five seconds only while visible.",
-    "Removes the second role-safe overview layer while preserving route, service-reserve and write restrictions.",
-    "Adds source/build regression tests for login geometry, first-password routing, native role cards and EMS read-only behavior."
+    "Removed the oversized v96 login geometry and all runtime DOM sizing heuristics.",
+    "The real AdminConnection is exposed by the main app and reaffirmed by the native Intro tab.",
+    "The accidental generic adapter-configuration socket exposure is removed.",
+    "The EMS tile now distinguishes connection startup, missing UI adapter, old UI version, missing contract and permission errors.",
+    "First-password routing, protected adapters, internal reserve visibility and manual-write policy remain unchanged."
   ],
-  "brandingCacheVersion": 96,
-  "shellCacheVersion": 96,
-  "nativeShellVersion": 96,
-  "shellCacheTag": "96",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v96.json"
+  "brandingCacheVersion": 97,
+  "shellCacheVersion": 97,
+  "nativeShellVersion": 97,
+  "shellCacheTag": "97",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v97.json"
 }

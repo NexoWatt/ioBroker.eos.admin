@@ -322,6 +322,16 @@ class Intro extends React.Component<IntroProps, IntroState> {
      * React lifecycle hook called when component did mount
      */
     async componentDidMount(): Promise<void> {
+        // Reaffirm the already authenticated main AdminConnection for the separate
+        // read-only EMS overview runtime. No additional socket is created.
+        const eosWindow = window as typeof window & {
+            NEXOWATT_EOS_ADMIN_SOCKET?: typeof this.props.socket;
+            NEXOWATT_EOS_SOCKET?: typeof this.props.socket;
+        };
+        eosWindow.NEXOWATT_EOS_ADMIN_SOCKET = this.props.socket;
+        eosWindow.NEXOWATT_EOS_SOCKET = this.props.socket;
+        window.dispatchEvent(new CustomEvent('nexowatt-eos-admin-socket-ready'));
+
         // Non-admin users may not read the Admin instance object. The overview
         // must still render its native adapter cards and the read-only EMS tile.
         let reverseProxy: ReverseProxyItem[] = [];
@@ -480,7 +490,12 @@ class Intro extends React.Component<IntroProps, IntroState> {
 
     getInstancesCards(): (JSX.Element | null)[] {
         return this.state.instances?.map(instance => {
-            const enabled = !this.state.deactivated?.includes(`${instance.id}_${instance.linkName}`);
+            const cardKey = `${instance.id}_${instance.linkName}`;
+            const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'admin').toLowerCase();
+            // The NexoWatt UI card carries the operational EOS entry point. A card hidden earlier by
+            // an Admin intro preference must therefore remain visible for Installer and End User.
+            const forceVisibleRoleCard = role !== 'admin' && role !== 'service' && /^nexowatt-ui(?:\.|$)/i.test(instance.id);
+            const enabled = forceVisibleRoleCard || !this.state.deactivated?.includes(cardKey);
             if (enabled || this.state.edit) {
                 let linkText = instance.link ? instance.link.replace(/^https?:\/\//, '') : '';
                 linkText = linkText.split('/')[0];
@@ -1626,7 +1641,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 overflow="visible"
             >
                 {this.renderCopiedToast()}
-                <section id="eos-native-overview-hero" className="eos-overview-hero eos-native-overview-hero">
+                <section id="eos-native-overview-hero" className="eos-overview-hero eos-native-overview-hero" data-eos-native-react-overview="true">
                     <div>
                         <span className="eos-overview-eyebrow">NexoWatt EOS</span>
                         <h1>Übersicht</h1>

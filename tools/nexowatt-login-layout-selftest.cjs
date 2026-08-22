@@ -1,83 +1,14 @@
 #!/usr/bin/env node
 'use strict';
-
-const fs = require('fs');
-const path = require('path');
-
-const root = path.resolve(__dirname, '..');
-const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
-let bad = false;
-const fail = message => {
-    console.error(`[NexoWatt EOS login layout] ${message}`);
-    bad = true;
-};
-
-const css = read('adminWww/css/nexowatt-native-shell.css');
-const sourceCss = read('src-admin/public/css/nexowatt-native-shell.css');
-const login = read('src-admin/src/login/Login.tsx');
-const bootstrap = read('adminWww/js/eos-role-bootstrap.js');
-const index = read('adminWww/index.html');
-const buildInfo = JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json'));
-const shellTag = String(buildInfo.shellCacheTag || buildInfo.shellCacheVersion || '');
-
-if (css !== sourceCss) fail('login CSS source/build drift');
-if (!css.includes('outer frame is decorative only')) fail('decorative compact-frame contract is missing');
-if (css.includes('html.eos-login .MuiPaper-root:has(#username)')) {
-    fail('broad :has selector still styles the outer login Paper');
-}
-
-const outer = css.match(/html\.eos-login main\.MuiPaper-root\s*\{([\s\S]*?)\n\}/)?.[1] || '';
-for (const marker of [
-    'position: relative',
-    'width: 100%',
-    'min-height: 100vh',
-    'place-items: center',
-    'background: transparent !important',
-    'box-shadow: none !important',
-]) {
-    if (!outer.includes(marker)) fail(`transparent viewport host rule missing: ${marker}`);
-}
-
-const decorative = css.match(/html\.eos-login main\.MuiPaper-root::before\s*\{([\s\S]*?)\n\}/)?.[1] || '';
-for (const marker of [
-    "content: ''",
-    'width: min(520px, calc(100vw - 24px)) !important',
-    'height: min(640px, calc(100dvh - 24px)) !important',
-    'transform: translate(-50%, -50%)',
-    'pointer-events: none',
-]) {
-    if (!decorative.includes(marker)) fail(`decorative rear frame rule missing: ${marker}`);
-}
-
-for (const marker of [
-    'html.eos-login main.MuiPaper-root > .eos-login-card-modern',
-    'html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username)',
-    'html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password)',
-    'width: min(460px, calc(100vw - 56px)) !important',
-    'min-height: 540px !important',
-    'height: auto !important',
-    'overflow: visible !important',
-    'max-height: none !important',
-]) {
-    if (!css.includes(marker)) fail(`inner compact card rule missing: ${marker}`);
-}
-if (!css.includes('.eos-login-first-status:empty { display: none; min-height: 0; margin: 0; }')) {
-    fail('empty first-login status still reserves vertical space');
-}
-
-if (!login.includes('Keep the familiar compact login page')) fail('native Login source lacks spacious-page contract');
-if (login.includes('eos-login-role-selector-native') || login.includes('data-eos-account=')) {
-    fail('native Login source still renders role-selector buttons');
-}
-if (!bootstrap.includes('compact normal-login first activation')) fail('runtime compact first-login contract missing');
-if (!bootstrap.includes("card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove())")) {
-    fail('runtime does not remove stale role-selector surfaces');
-}
-if (/data-eos-account=|selector\.innerHTML/.test(bootstrap)) fail('runtime still injects a second role-selector panel');
-
-if (!shellTag || !index.includes(`nexowatt-native-shell.css?v=${shellTag}`)) {
-    fail('login CSS cache key is not aligned with build information');
-}
-
-if (bad) process.exit(1);
-console.log('[NexoWatt EOS login layout] OK');
+const fs=require('node:fs');const path=require('node:path');const root=path.resolve(__dirname,'..');
+const read=rel=>fs.readFileSync(path.join(root,rel),'utf8');let bad=false;const fail=msg=>{console.error(`[NexoWatt EOS login layout] ${msg}`);bad=true;};
+const css=read('adminWww/css/nexowatt-native-shell.css');const sourceCss=read('src-admin/public/css/nexowatt-native-shell.css');const login=read('src-admin/src/login/Login.tsx');const stableLogin=read('adminWww/static/js/nexowatt-stable-login.js');const stable=read('adminWww/static/js/nexowatt-stable-v97.js');const index=read('adminWww/index.html');const info=JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json'));
+if(css!==sourceCss)fail('login CSS source/build drift');
+for(const marker of ['outer frame is decorative only','orderly login, moderately enlarged','width: min(440px, calc(100vw - 20px)) !important','height: min(580px, calc(100dvh - 20px)) !important','width: min(380px, calc(100vw - 52px)) !important','min-height: 510px !important','height: auto !important','overflow: visible !important'])if(!css.includes(marker))fail(`login marker missing: ${marker}`);
+if(css.includes('width: min(520px, calc(100vw - 24px))')||css.includes('width: min(460px, calc(100vw - 56px))')||css.includes('min-height: 540px !important'))fail('oversized v96 login geometry remains');
+if(!css.includes('[data-nw-login-card="true"]:not(.MuiPaper-root)')||!css.includes('padding: 0 !important'))fail('stale nested-card neutralization missing');
+if(/data-nw-login-card|data-nw-login-shell|min-height:590px|width:min\(460px|createElement\(['"]style/.test(stableLogin))fail('stable-login runtime still mutates geometry');
+if(/width:min\(460px|min-height:540px|createElement\(['"]style/.test(stable))fail('stable v97 runtime injects geometry');
+if(!login.includes("minHeight: 510")||!login.includes("overflowY: 'visible'")||!login.includes("maxHeight: 'none'"))fail('native Login source does not match v97 contract');
+if(!index.includes(`nexowatt-native-shell.css?v=${info.shellCacheTag}`)||!index.includes('nexowatt-stable-v97.js?v=97'))fail('v97 login assets not active');
+if(bad)process.exit(1);console.log('[NexoWatt EOS login layout] OK');

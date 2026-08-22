@@ -60,3 +60,24 @@
     .eos-ems-overview-columns { grid-template-columns:1fr; }
     .eos-ems-overview-footer { display:grid; }
 }
+
+/* v97: startup and compatibility messages stay compact. */
+.eos-ems-overview-card.is-loading,
+.eos-ems-overview-card.is-unavailable {
+    min-height: 0;
+    padding-block: 20px;
+}
+.eos-ems-overview-card.is-loading .eos-ems-overview-header,
+.eos-ems-overview-card.is-unavailable .eos-ems-overview-header { align-items: center; }
+.eos-ems-overview-help {
+    display: block;
+    margin-top: 8px;
+    color: #6fcba1;
+    font-size: .73rem;
+    line-height: 1.45;
+}
+.eos-ems-overview-state-dot--pulse { animation: eos-ems-overview-pulse 1.15s ease-in-out infinite; }
+@keyframes eos-ems-overview-pulse {
+    0%, 100% { opacity: .45; transform: scale(.85); }
+    50% { opacity: 1; transform: scale(1.12); }
+}

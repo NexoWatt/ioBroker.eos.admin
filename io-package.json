@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.96",
+    "version": "7.9.97",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -287,6 +287,11 @@
         "de": "Native Übersicht für Admin, Installateur und Endkunde, read-only EMS-Live-Diagnose aus dem NexoWatt UI Adapter, größere scrollfreie Anmeldung sowie reparierte verpflichtende persönliche Kennwortvergabe nach der ersten Anmeldung mit nexowatt.",
         "en": "Native overview for Admin, Installer and End User, read-only EMS live diagnosis from the NexoWatt UI adapter, a larger scroll-free login card, and repaired mandatory personal password setup after first sign-in with nexowatt.",
         "nl": "Native overzicht voor Admin, Installateur en Eindgebruiker, read-only EMS-live diagnose uit de NexoWatt UI-adapter, een groter aanmeldvenster zonder interne schuifbalken en herstelde verplichte persoonlijke wachtwoordinstelling na de eerste aanmelding met nexowatt."
+      },
+      "7.9.97": {
+        "de": "Stabile Verkaufsfassung mit wieder ordentlich proportionierter, nur moderat vergrößerter Anmeldung ohne innere Scrollleisten und zuverlässig verbundener read-only EMS-Live-Diagnose.",
+        "en": "Stable sales release with an orderly, moderately enlarged login without inner scrollbars and a reliably connected read-only EMS live diagnosis.",
+        "nl": "Stabiele verkoopversie met een nette, slechts matig vergrote aanmelding zonder interne schuifbalken en een betrouwbaar verbonden read-only EMS-live diagnose."
       }
     },
     "desc": {
@@ -324,7 +329,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.96/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.97/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -335,7 +340,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.96/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.97/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -403,7 +408,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.96/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.97/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -1112,5 +1117,5 @@
       }
     }
   },
-  "version": "7.9.96"
+  "version": "7.9.97"
 }

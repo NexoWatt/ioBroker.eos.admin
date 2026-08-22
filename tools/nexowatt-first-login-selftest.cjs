@@ -49,9 +49,9 @@ for (const code of [mainSource, mainBuilt]) {
 }
 
 for (const marker of [
-  'v96-first-login-password-native-overview', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
+  'v97-first-login-password-native-overview', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
   'passwordSetup?.required', 'X-NexoWatt-EOS-First-Login', 'autocomplete="new-password"', 'location.replace(logoutUrl)',
-  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v96 compact normal-login first activation',
+  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v97 compact normal-login first activation',
   "card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove())",
   "new Set(['installer', 'guest', 'user'])", 'requestEligibility', 'eligibility.allowed',
   'X-NexoWatt-EOS-Passwordless-Status', 'startClaim', '!password.value', 'X-NexoWatt-EOS-Passwordless-Claim',
@@ -69,8 +69,8 @@ for (const marker of ['NEXOWATT_EOS_FIRST_LOGIN', 'Keep the familiar compact log
 for (const marker of [
   '.eos-first-login-overlay', '.eos-first-login-card', '.eos-first-login-submit', '.eos-passwordless-card',
   '.eos-activation-steps', '.eos-login-role-selector', 'display: none !important', 'main.MuiPaper-root::before',
-  'width: min(520px, calc(100vw - 24px)) !important', 'height: min(640px, calc(100dvh - 24px)) !important',
-  'width: min(460px, calc(100vw - 56px)) !important', 'min-height: 540px !important', 'height: auto !important',
+  'width: min(440px, calc(100vw - 20px)) !important', 'height: min(580px, calc(100dvh - 20px)) !important',
+  'width: min(380px, calc(100vw - 52px)) !important', 'min-height: 510px !important', 'height: auto !important',
   '.eos-login-first-status:empty',
   '.eos-passwordless-launcher', '.eos-login-first-blocked', '.eos-login-first-checking',
 ]) if (!css.includes(marker)) fail(`first-login CSS marker missing: ${marker}`);
