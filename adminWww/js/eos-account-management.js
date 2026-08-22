@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v93-account-management-under-access-rights';
+    const VERSION = 'v91-account-management-under-access-rights';
     const script = document.currentScript || document.querySelector('script[src*="eos-account-management.js"]');
     const base = new URL('../', script?.src || window.location.href);
     const abort = new AbortController();
@@ -20,7 +20,7 @@
             loading: 'Zugänge werden geladen …', empty: 'Keine passenden Konten gefunden.', close: 'Schließen', refresh: 'Aktualisieren',
             installer: 'Installateur', enduser: 'Endkunde / Gast', active: 'Passwort aktiv', first: 'Erstanmeldung offen', disabled: 'Deaktiviert',
             reset: 'Passwort zurücksetzen', resetting: 'Wird zurückgesetzt …', resetConfirm: name => `Soll der Zugang „${name}“ wirklich zurückgesetzt werden? Das bisherige Passwort wird ungültig und bei der nächsten Erstanmeldung muss ein neues Passwort vergeben werden.`,
-            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Bei der nächsten Anmeldung wird im normalen Anmeldefeld einmalig ohne Passwort gestartet und anschließend ein neues Passwort vergeben.`,
+            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Bei der nächsten Anmeldung wird im normalen Anmeldefeld mit dem Startkennwort „nexowatt“ gestartet und anschließend ein neues Passwort vergeben.`,
             resetFailed: 'Der Zugang konnte nicht zurückgesetzt werden.', lastSet: 'Letzte Passwortvergabe', lastReset: 'Letzter Reset', by: 'durch',
             security: 'Admin/Service darf Installateur und Endkunde zurücksetzen. Installateure dürfen ausschließlich Endkunden zurücksetzen.',
         },

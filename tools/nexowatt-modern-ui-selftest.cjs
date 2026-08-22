@@ -29,7 +29,7 @@ for (const marker of ['eos-account-management.js','nexowatt-native-shell.css','e
 for (const marker of ['NexoWatt EOS', 'Zugänge & Rollen', 'Endkunden-Zugänge', 'ensureEntrySurface']) {
   if (!accountUi.includes(marker)) fail(`modern account surface missing label: ${marker}`);
 }
-for (const marker of ['installIntegratedFirstLogin','v93 compact normal-login first activation','eos-passwordless-card','Idempotent writes are essential here']) {
+for (const marker of ['installIntegratedFirstLogin','v91 compact normal-login first activation','eos-passwordless-card','Idempotent writes are essential here']) {
   if (!bootstrap.includes(marker)) fail(`integrated first-activation surface missing: ${marker}`);
 }
 if (/data-eos-account=|selector\.innerHTML/.test(bootstrap)) fail('compact login still injects role buttons or a second panel');

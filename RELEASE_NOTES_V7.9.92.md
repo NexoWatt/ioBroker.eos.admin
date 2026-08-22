@@ -1,4 +1,4 @@
-# Release Notes – NexoWatt EOS Admin 7.9.92
+# Release Notes – NexoWatt EOS Admin 7.9.94
 
 ## Behoben
 

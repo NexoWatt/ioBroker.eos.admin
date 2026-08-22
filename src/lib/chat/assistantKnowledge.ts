@@ -1,5 +1,5 @@
 /**
- * Curated "wiki" of NexoWatt EOS knowledge that is injected into the assistant's system prompt.
+ * Curated "wiki" of ioBroker how-to knowledge that is injected into the assistant's system prompt.
  *
  * This is meant to grow over time: add a new {@link KnowledgeSection} to {@link KNOWLEDGE_SECTIONS}
  * for each task the assistant should know how to guide the user through. Keep entries short and
@@ -14,21 +14,6 @@ export interface KnowledgeSection {
 }
 
 export const KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
-    {
-        title: 'NexoWatt EOS product areas and role-aware support',
-        body: [
-            'EOS Assist can answer questions about the live NexoWatt EOS system: Overview/Cockpit, Modules,',
-            'Services, Datapoints, Structure (rooms/functions), System logs, Access & Rights, NexoWatt EOS',
-            'applications, System hosts, Files and NexoWatt Backup. It can also inspect installed modules,',
-            'running services, object/state metadata, current values, device assignments, logs and history',
-            'through the available read tools. Always query real system data before making a system-specific claim.',
-            'Respect the authenticated role: Admin/Service may receive full system and service detail;',
-            'Installers may receive commissioning and troubleshooting detail available to their account;',
-            'End users receive only their permitted Smart Home, display and operating information.',
-            'Internal package names and compatibility identifiers are technical details; use NexoWatt EOS product',
-            'terminology in normal answers and show technical IDs only when they are required for a precise action.',
-        ].join(' '),
-    },
     {
         title: 'Open an adapter instance configuration',
         body: [
@@ -216,7 +201,7 @@ export const KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
     {
         title: 'Run a script in the javascript adapter (run_javascript)',
         body: [
-            'To run logic WITH the full NexoWatt EOS scripting API, use run_javascript (act mode). It sends the',
+            'To run logic WITH the full ioBroker scripting API, use run_javascript (act mode). It sends the',
             'code to the `javascript` adapter and runs it ONCE (not saved), returning { ok, error, output,',
             'logs }. Choose `language` "js" (default) or "ts". Inside the script the usual API is available:',
             '`getState("id").val`, `setState("id", value)`, `on({id, change:"ne"}, …)`, `schedule(...)`,',
@@ -229,10 +214,10 @@ export const KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
         ].join('\n'),
     },
     {
-        title: 'Automation options in NexoWatt EOS — pick the right tool',
+        title: 'Automation options in ioBroker — pick the right tool',
         body: [
-            'NexoWatt EOS can automate from simple to fully programmable. IMPORTANT: every option below needs a',
-            'SEPARATE adapter that is NOT part of a default NexoWatt EOS installation — `scenes`, `scheduler`,',
+            'ioBroker can automate from simple to fully programmable. IMPORTANT: every option below needs a',
+            'SEPARATE adapter that is NOT part of a default ioBroker installation — `scenes`, `scheduler`,',
             '`fullcalendar` and `javascript` (which provides Blockly, JavaScript and TypeScript). Before you',
             'recommend or use one, CHECK whether it is installed (list_adapters, and list_instances for a',
             'running instance). If it is missing, tell the user it must be installed first and offer',
@@ -290,7 +275,7 @@ export const KNOWLEDGE_SECTIONS: KnowledgeSection[] = [
         ].join('\n'),
     },
     {
-        title: 'NexoWatt EOS JavaScript API (cheat-sheet for scripts and run_javascript)',
+        title: 'ioBroker JavaScript adapter API (cheat-sheet for scripts and run_javascript)',
         body: [
             'When you WRITE a script (for the Scripts tab or for run_javascript), use the ioBroker javascript',
             'API — it is NOT plain Node.js. Key functions:',

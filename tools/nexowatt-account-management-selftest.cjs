@@ -41,7 +41,7 @@ for (const code of [webSource, webBuilt]) {
 }
 
 for (const marker of [
-  'v93-account-management-under-access-rights', "['admin', 'installer']", 'nexowatt/account/manage',
+  'v91-account-management-under-access-rights', "['admin', 'installer']", 'nexowatt/account/manage',
   'nexowatt/account/reset', 'X-NexoWatt-EOS-Account-Reset', 'data.canResetInstaller === true',
   "account.role === 'enduser'", 'Admin/Service', 'Installateure', 'NEXOWATT_EOS_ACCOUNT_MANAGEMENT',
   'ensureEntrySurface', "currentRoute() !== 'tab-users'", 'eos-account-management-entry',

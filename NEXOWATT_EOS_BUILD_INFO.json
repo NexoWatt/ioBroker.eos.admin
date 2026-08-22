@@ -1,26 +1,27 @@
 {
-  "version": "7.9.93",
-  "channel": "test-candidate-before-stable-latest",
+  "version": "7.9.92",
+  "channel": "stable-latest",
   "baseFrontend": "validated Admin 7 runtime with NexoWatt EOS compact login, role, overview and service-reserve hardening",
   "runtimeEntry": "v84",
-  "releaseType": "test-candidate-login-publisher-eos-assist",
-  "release": "test-candidate-login-publisher-eos-assist",
-  "label": "v93",
+  "releaseType": "stable-sales-product-release-default-normalization",
+  "release": "stable-sales-product-release-default-normalization",
+  "label": "v92",
   "notes": [
-    "7.9.93 is a test candidate and may move to npm latest only after real-system acceptance.",
-    "The compact login card no longer renders an internal scrollbar.",
-    "The visible npm/GitHub install search labels the EOS package publisher as NexoWatt while the technical npm package id remains compatible.",
-    "EOS Assist uses the configured AI provider and authenticated, role-aware read tools to answer questions about the live EOS system."
+    "7.9.92 is the accepted stable sales-product release and is intended for npm dist-tag latest.",
+    "Mandatory sales defaults are normalized before package validation and npm publication.",
+    "Internal admin and BackItUp emergency reserves default to Admin/Service-only visibility.",
+    "Authentication remains enabled and the EOS Admin default port remains 8081.",
+    "The compact login, first activation, clickable overview and role-safe services from 7.9.91 are unchanged."
   ],
   "changes": [
-    "Removes overflow scrolling from the compact login card.",
-    "Displays NexoWatt as the publisher label for eos-admin in the module installation search.",
-    "Replaces static canned EOS Assist answers with a socket-backed AI/MCP assistant using actual system data.",
-    "Adds Admin/Service-only EOS Assist provider configuration and role-aware read-only access."
+    "Adds a deterministic release-default normalizer that repairs missing canonical native defaults.",
+    "Runs normalization before package checks, stability checks and npm publication.",
+    "Adds an isolated self-test proving that missing or unsafe defaults are corrected.",
+    "Keeps frontend runtime and cache assets unchanged because this release only hardens packaging."
   ],
-  "brandingCacheVersion": 93,
-  "shellCacheVersion": 93,
-  "nativeShellVersion": 93,
-  "shellCacheTag": "93",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v93.json"
+  "brandingCacheVersion": 91,
+  "shellCacheVersion": 91,
+  "nativeShellVersion": 91,
+  "shellCacheTag": "91",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v92.json"
 }

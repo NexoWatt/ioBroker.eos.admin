@@ -5,17 +5,17 @@ const assert = require('node:assert/strict');
 const { validatePublishChannel } = require('./nexowatt-publish-channel-guard.cjs');
 
 const stable = {
-    version: '7.9.93',
+    version: '7.9.94',
     publishConfig: { tag: 'latest' },
     nexowattReleasePolicy: { distTag: 'latest', purpose: 'accepted stable sales-product release' },
 };
 const prerelease = {
-    version: '7.9.93-rc.1',
+    version: '7.9.94-rc.1',
     publishConfig: { tag: 'latest' },
     nexowattReleasePolicy: { distTag: 'latest' },
 };
 
-assert.equal(validatePublishChannel(stable, {}).ok, true, 'stable 7.9.93 must publish to latest');
+assert.equal(validatePublishChannel(stable, {}).ok, true, 'stable 7.9.94 must publish to latest');
 assert.equal(validatePublishChannel(stable, { npm_config_tag: 'latest' }).ok, true, '--tag latest must be accepted');
 assert.equal(validatePublishChannel(stable, { npm_config_tag: 'rc' }).ok, false, 'stable release must not use rc');
 assert.equal(validatePublishChannel({ ...stable, publishConfig: { tag: 'rc' } }, {}).ok, false, 'package metadata must keep latest');

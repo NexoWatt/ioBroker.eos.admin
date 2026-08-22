@@ -57,7 +57,7 @@ export class McpClientManager {
                 language: this.options.language,
                 allowSetState: this.options.allowSetState ?? false,
                 allowObjectChange: this.options.allowObjectChange ?? false,
-                clientName: 'NexoWatt EOS Assist',
+                clientName: 'ioBroker.admin chat helper',
                 clientVersion: '1.0.0',
             })
                 .then(mcp => {

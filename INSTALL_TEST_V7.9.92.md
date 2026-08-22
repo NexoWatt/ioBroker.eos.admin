@@ -1,4 +1,4 @@
-# Installation und Test 7.9.92
+# Installation und Test 7.9.94
 
 ```bash
 cd /opt/iobroker
@@ -15,4 +15,4 @@ Version prüfen:
 node -p "require('/opt/iobroker/node_modules/iobroker.eos-admin/package.json').version"
 ```
 
-Erwartet: `7.9.92`.
+Erwartet: `7.9.94`.

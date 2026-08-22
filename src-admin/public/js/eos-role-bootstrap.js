@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v93-final-first-login-submit-guard';
+    const VERSION = 'v91-final-first-login-submit-guard';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -500,7 +500,7 @@
             const { username, password, card, submit } = loginElements();
             if (!username || !password || !card) return;
             card.classList.add('eos-login-card-modern');
-            // v93 compact normal-login first activation: do not add role buttons or a second panel.
+            // v91 compact normal-login first activation: do not add role buttons or a second panel.
             // The account is entered in the existing Loginname field; a blank password is accepted only
             // after the backend confirms that this exact managed account is eligible.
             card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove());

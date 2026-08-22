@@ -8,7 +8,7 @@
         <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
-          <script src="./js/eos-manual-write-policy.js?v=93"></script>
+          <script src="./js/eos-manual-write-policy.js?v=91"></script>
           <script type="module" src="./assets/hostInit-v84.js?v=84"></script>
         
         <meta charset="utf-8" />
@@ -36,7 +36,7 @@
             rel="stylesheet"
             href="css/leaflet.css"
         />
-        <link rel="stylesheet" href="./css/nexowatt-native-shell.css?v=93" />
+        <link rel="stylesheet" href="./css/nexowatt-native-shell.css?v=91" />
         <link
             rel="manifest"
             href="manifest.json"
@@ -158,16 +158,80 @@
         </script>
       <link rel="modulepreload" crossorigin href="./assets/preload-helper-BDBacUwf.js">
       <link rel="modulepreload" crossorigin href="./assets/iobroker_admin__mf_v__runtimeInit__mf_v__-g2X2zhAf.js">
-            <script defer src="./js/eos-role-bootstrap.js?v=93" data-eos-entry="./assets/index-CQZugZ1z-v84.js?v=84"></script>
-            <script defer src="./js/eos-policy-client.js?v=93"></script>
-            <script defer src="./js/eos-branding-sanitizer.js?v=93"></script>
-            <script defer src="./js/nexowatt-native-shell.js?v=93"></script>
-            <script defer src="./js/eos-native-security.js?v=93"></script>
-            <script defer src="./js/eos-basic-settings.js?v=93"></script>
-            <script defer src="./js/eos-role-ui.js?v=93"></script>
-            <script defer src="./js/eos-account-management.js?v=93"></script>
-            <script defer src="./js/eos-assistant.js?v=93"></script>
-    </head>
+            <script defer src="./js/eos-role-bootstrap.js?v=91" data-eos-entry="./assets/index-CQZugZ1z-v84.js?v=84"></script>
+            <script defer src="./js/eos-policy-client.js?v=91"></script>
+            <script defer src="./js/eos-branding-sanitizer.js?v=91"></script>
+            <script defer src="./js/nexowatt-native-shell.js?v=91"></script>
+            <script defer src="./js/eos-native-security.js?v=91"></script>
+            <script defer src="./js/eos-basic-settings.js?v=91"></script>
+            <script defer src="./js/eos-role-ui.js?v=91"></script>
+            <script defer src="./js/eos-account-management.js?v=91"></script>
+            <script defer src="./js/eos-assistant.js?v=91"></script>
+    <!-- NEXOWATT_STABLE_LOGIN_V94 -->
+<style>
+/* NexoWatt EOS 7.9.94 stable login and dormant-assistant guard */
+html.nw-eos-login, html.nw-eos-login body, body.nw-eos-login { min-height: 100%; overflow-y: auto !important; }
+.nw-eos-login-shell { width: min(430px, calc(100vw - 28px)) !important; min-height: 545px !important; height: auto !important; max-height: none !important; overflow: visible !important; box-sizing: border-box !important; padding: 22px !important; }
+.nw-eos-login-card { width: 100% !important; min-height: 485px !important; height: auto !important; max-height: none !important; overflow: visible !important; box-sizing: border-box !important; padding: 28px 28px 24px !important; }
+.nw-eos-login-form { height: auto !important; max-height: none !important; overflow: visible !important; }
+.nw-eos-login-card [role="alert"] { margin-bottom: 12px !important; max-height: none !important; overflow: visible !important; }
+.nw-eos-login-card button[type="submit"] { min-height: 42px !important; }
+[data-nexowatt-eos-assist], .nexowatt-eos-assist, .eos-assist-button, .eos-assist-panel { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+@media (max-height: 620px) { .nw-eos-login-shell { min-height: 510px !important; margin: 20px auto !important; } .nw-eos-login-card { min-height: 455px !important; } }
+
+</style>
+<script>
+(() => {
+  'use strict';
+  const LOGIN_RE = /(?:\?|#|\/)login(?:[=&/]|$)/i;
+  const isLogin = () => LOGIN_RE.test(location.href) || !!document.querySelector('input[type="password"]');
+  const hideAssist = () => {
+    document.querySelectorAll('button,a,[role="button"],div,span').forEach(el => {
+      const txt=(el.textContent||'').trim();
+      if (txt === 'EOS Assist' || txt.startsWith('EOS Assist\n') || txt.includes('EOS Assist muss einmalig konfiguriert')) {
+        const target=el.closest('button,a,[role="button"],aside,dialog') || el;
+        target.setAttribute('data-nexowatt-eos-assist','disabled');
+        target.style.setProperty('display','none','important');
+      }
+    });
+  };
+  const applyLogin = () => {
+    if (!isLogin()) return;
+    document.documentElement.classList.add('nw-eos-login');
+    document.body?.classList.add('nw-eos-login');
+    const pwd=document.querySelector('input[type="password"]');
+    if (!pwd) return;
+    const form=pwd.closest('form') || pwd.parentElement?.parentElement;
+    if (!form) return;
+    form.classList.add('nw-eos-login-form');
+    let card=form.parentElement;
+    if (card) card.classList.add('nw-eos-login-card');
+    let shell=card?.parentElement;
+    if (shell) shell.classList.add('nw-eos-login-shell');
+    // Clear historical inner scroll settings without disabling page scroll on very small screens.
+    [form,card,shell].filter(Boolean).forEach(el => {
+      el.style.setProperty('overflow-y','visible','important');
+      el.style.setProperty('max-height','none','important');
+      el.style.setProperty('height','auto','important');
+    });
+    // Remove the discontinued passwordless activation controls and wording.
+    document.querySelectorAll('button,a,[role="button"],div').forEach(el => {
+      const txt=(el.textContent||'').trim();
+      if (/Erstanmeldung ohne Passwort|passwordless first/i.test(txt)) {
+        const target=el.closest('button,a,[role="button"]') || el;
+        target.style.setProperty('display','none','important');
+      }
+    });
+  };
+  const run=()=>{hideAssist();applyLogin();};
+  new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true,attributes:false});
+  addEventListener('DOMContentLoaded',run,{once:true});
+  addEventListener('load',run,{once:true});
+  setInterval(run,1500);
+})();
+
+</script>
+</head>
     <body>
         <noscript>Für NexoWatt EOS muss JavaScript aktiviert sein.</noscript>
         <div id="root"></div>

@@ -49,9 +49,9 @@ for (const code of [mainSource, mainBuilt]) {
 }
 
 for (const marker of [
-  'v93-final-first-login-submit-guard', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
+  'v91-final-first-login-submit-guard', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
   'passwordSetup?.required', 'X-NexoWatt-EOS-First-Login', 'autocomplete="new-password"', 'location.replace(logoutUrl)',
-  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v93 compact normal-login first activation',
+  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v91 compact normal-login first activation',
   "card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove())",
   "new Set(['installer', 'guest', 'user'])", 'requestEligibility', 'eligibility.allowed',
   'X-NexoWatt-EOS-Passwordless-Status', 'startClaim', '!password.value', 'X-NexoWatt-EOS-Passwordless-Claim',

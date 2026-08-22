@@ -1,4 +1,4 @@
-# Release-Abnahme 7.9.92
+# Release-Abnahme 7.9.94
 
 - [ ] `npm run check:eos-publish-channel` erfolgreich
 - [ ] `npm run check:eos-package` erfolgreich

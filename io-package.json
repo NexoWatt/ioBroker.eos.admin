@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.93",
+    "version": "7.9.94",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,10 +18,10 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.93": {
-        "de": "Testkandidat 7.9.93 entfernt den unnötigen Scrollbalken aus der kompakten Anmeldung, zeigt in der Modulinstallation NexoWatt als sichtbaren Herausgeber und ersetzt die statischen EOS-Assist-Texte durch einen authentifizierten, rollenabhängigen und schreibgeschützten Systemassistenten. EOS Assist kann – nach einmaliger Konfiguration durch Admin/Service – reale Module, Dienste, Einstellungen, Geräte, Datenpunkte, Struktur, Logs, Historie und Sicherungsstatus über die freigegebenen Systemwerkzeuge prüfen. Technische Paketkennungen bleiben intern kompatibel.",
-        "en": "Test candidate 7.9.93 removes the unnecessary scrollbar from the compact login, shows NexoWatt as the visible publisher in module installation, and replaces static EOS Assist texts with an authenticated, role-aware, read-only system assistant. Once configured by Admin/Service, EOS Assist can inspect real modules, services, settings, devices, datapoints, structure, logs, history and backup status through the permitted system tools. Technical package identifiers remain internally compatible.",
-        "nl": "Testkandidaat 7.9.93 verwijdert de overbodige schuifbalk uit de compacte aanmelding, toont NexoWatt als zichtbare uitgever bij module-installatie en vervangt statische EOS Assist-teksten door een geauthenticeerde, rolafhankelijke en alleen-lezen systeemassistent. Na eenmalige configuratie door Admin/Service kan EOS Assist echte modules, diensten, instellingen, apparaten, datapunten, structuur, logs, historie en back-upstatus controleren via de toegestane systeemtools. Technische pakket-ID’s blijven intern compatibel."
+      "7.9.94": {
+        "de": "Stabiler Anmeldeablauf für Service, Installateur und Endkunde: Standard-Erstkennwort nexowatt für verwaltete Konten, verpflichtende persönliche Kennwortvergabe nach der ersten Anmeldung, größere scrollfreie Anmeldekarte, bereinigte deutsche Texte und vorübergehend deaktivierter EOS Assist bis zur vollständigen Neuimplementierung.",
+        "en": "Stable sign-in flow for service, installer and customer accounts: managed accounts use the initial password nexowatt, a personal password is mandatory after first sign-in, the sign-in card is larger and has no inner scrollbar, German texts are corrected, and EOS Assist is temporarily disabled until its full redesign.",
+        "nl": "Stabiele aanmelding voor service, installateur en eindklant: beheerde accounts gebruiken het initiële wachtwoord nexowatt, na de eerste aanmelding is een persoonlijk wachtwoord verplicht, het aanmeldvenster is groter zonder interne schuifbalk, Duitse teksten zijn hersteld en EOS Assist is tijdelijk uitgeschakeld tot de volledige herbouw."
       },
       "7.9.92": {
         "de": "Stable 7.9.92 korrigiert die Release-Vorbereitung: Vor Paketprüfung und npm-Veröffentlichung werden die verbindlichen Verkaufsstandardwerte für Authentifizierung, Port 8081 sowie die ausschließlich für Admin/Service sichtbaren internen Admin- und BackItUp-Notfallreserven automatisch normalisiert. Dadurch kann ein gemischter lokaler Arbeitsordner die Sicherheitsprüfung nicht mehr durch einen fehlenden Standardwert abbrechen. Rollen-, Login-, Übersichts- und Dienstefilter aus 7.9.91 bleiben unverändert.",
@@ -319,7 +319,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.93/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.92/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -330,7 +330,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.93/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.92/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -398,10 +398,9 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.93/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.92/io-package.json",
     "npmPackage": "iobroker.eos-admin",
-    "packetName": "iobroker.eos-admin",
-    "publisher": "NexoWatt"
+    "packetName": "iobroker.eos-admin"
   },
   "native": {
     "autoUpdate": 24,
@@ -517,25 +516,24 @@
       }
     ],
     "eosEndUserGroups": [
-      {
-        "group": "system.group.endkunde",
-        "note": "Endkunden / Bediener",
-        "enabled": true
-      },
-      {
-        "group": "system.group.endkunden",
-        "note": "Endkunden / Bediener",
-        "enabled": true
-      }
+      "system.group.endkunden"
     ],
     "eosRequireFirstLoginPassword": true,
     "eosFirstLoginPasswordMinLength": 10,
     "eosAutoAssignDefaultRoleUsers": true,
-    "eosPasswordlessFirstLogin": true,
-    "eosPasswordlessFirstLoginPrivateNetworkOnly": true,
+    "eosPasswordlessFirstLogin": false,
+    "eosPasswordlessFirstLoginPrivateNetworkOnly": false,
     "eosPasswordClaimTtlMinutes": 10,
     "eosHideLegacyBackupFromNonAdmins": true,
-    "nexowattHideLegacyBackupFromNonAdmins": true
+    "nexowattHideLegacyBackupFromNonAdmins": true,
+    "eosAssistEnabled": false,
+    "eosAllowPasswordlessFirstLogin": false,
+    "eosAllowFirstLoginWithoutPassword": false,
+    "eosFirstLoginWithoutPassword": false,
+    "eosForceFirstPasswordChange": true,
+    "eosRequirePersonalPassword": true,
+    "eosAutoAssignDefaultAccounts": true,
+    "eosHideInternalBackupFromNonAdmins": true
   },
   "notifications": [
     {
@@ -1103,5 +1101,5 @@
       }
     }
   },
-  "version": "7.9.93"
+  "version": "7.9.92"
 }
