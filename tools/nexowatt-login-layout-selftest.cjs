@@ -41,8 +41,8 @@ for (const marker of [
 const decorative = css.match(/html\.eos-login main\.MuiPaper-root::before\s*\{([\s\S]*?)\n\}/)?.[1] || '';
 for (const marker of [
     "content: ''",
-    'width: min(390px, calc(100vw - 24px))',
-    'height: min(480px, calc(100vh - 24px))',
+    'width: min(520px, calc(100vw - 24px)) !important',
+    'height: min(640px, calc(100dvh - 24px)) !important',
     'transform: translate(-50%, -50%)',
     'pointer-events: none',
 ]) {
@@ -53,8 +53,10 @@ for (const marker of [
     'html.eos-login main.MuiPaper-root > .eos-login-card-modern',
     'html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username)',
     'html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password)',
-    'width: min(334px, calc(100vw - 56px)) !important',
-    'height: min(424px, calc(100vh - 56px)) !important',
+    'width: min(460px, calc(100vw - 56px)) !important',
+    'min-height: 540px !important',
+    'height: auto !important',
+    'overflow: visible !important',
     'max-height: none !important',
 ]) {
     if (!css.includes(marker)) fail(`inner compact card rule missing: ${marker}`);
@@ -63,7 +65,7 @@ if (!css.includes('.eos-login-first-status:empty { display: none; min-height: 0;
     fail('empty first-login status still reserves vertical space');
 }
 
-if (!login.includes('Keep the familiar compact login page')) fail('native Login source lacks compact-page contract');
+if (!login.includes('Keep the familiar compact login page')) fail('native Login source lacks spacious-page contract');
 if (login.includes('eos-login-role-selector-native') || login.includes('data-eos-account=')) {
     fail('native Login source still renders role-selector buttons');
 }

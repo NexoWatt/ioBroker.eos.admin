@@ -22,6 +22,9 @@ if (-not (Test-Path -LiteralPath '.\package.json')) {
 if (-not (Test-Path -LiteralPath '.\tools\nexowatt-sync-release-version.cjs')) {
     throw 'Der NexoWatt-Versionsabgleich fehlt. Bitte die Merge-ZIP erneut vollständig entpacken und alle Dateien ersetzen.'
 }
+if (-not (Test-Path -LiteralPath '.\tools\nexowatt-apply-ems-overview.cjs')) {
+    throw 'Die EMS-Live-Diagnose aus der bereitgestellten Merge-ZIP fehlt. Bitte die ZIP erneut vollständig entpacken.'
+}
 
 $version = node -p "require('./package.json').version"
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($version)) {
@@ -31,6 +34,7 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($version)) {
 Write-Host "NexoWatt EOS Admin Merge-Prüfung für Version $version" -ForegroundColor Green
 Write-Host 'Vorhandene .git- und node_modules-Verzeichnisse bleiben erhalten.'
 
+Invoke-Checked 'EMS-Live-Diagnose vollständig integrieren' { node tools/nexowatt-apply-ems-overview.cjs }
 Invoke-Checked 'Release-Versionen angleichen' { node tools/nexowatt-sync-release-version.cjs }
 Invoke-Checked 'Verbindliche Verkaufsstandardwerte setzen' { npm run prepare:eos-release-defaults }
 Invoke-Checked 'Alte Runtime-Dateien bereinigen' { npm run clean:eos-runtime }

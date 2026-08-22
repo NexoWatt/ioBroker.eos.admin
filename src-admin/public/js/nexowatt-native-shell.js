@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-nexowatt-native-shell-modern-overview';
+    const VERSION = 'v96-nexowatt-native-shell-native-overview';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();
@@ -148,21 +148,26 @@
 
     const ensureModernOverview = () => {
         const paper = document.getElementById('app-paper');
-        const role = window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown';
-        if (!paper || isLogin() || currentTab() !== 'tab-intro' || role !== 'admin') {
+        const role = String(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
+        if (!paper || isLogin() || currentTab() !== 'tab-intro' || role === 'unknown') {
             document.getElementById('eos-native-overview-hero')?.remove();
             return;
         }
+        const config = role === 'admin'
+            ? { label: 'Admin / Service', text: 'Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.' }
+            : role === 'installer' || role === 'installateur'
+                ? { label: 'Installateur', text: 'Inbetriebnahme, Fehlersuche, Geräte- und EMS-Diagnose – mit deinen freigegebenen Installateurrechten.' }
+                : { label: 'Endkunde', text: 'Energie, Laden, Gebäude und die aktuellen EMS-Entscheidungen auf einen Blick.' };
         let hero = document.getElementById('eos-native-overview-hero');
         if (!hero) {
             hero = document.createElement('section');
             hero.id = 'eos-native-overview-hero';
             hero.className = 'eos-overview-hero eos-native-overview-hero';
-            hero.innerHTML = `
-                <div><span class="eos-overview-eyebrow">NexoWatt EOS</span><h1>Übersicht</h1><p>Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.</p></div>
-                <div class="eos-overview-role"><span class="eos-overview-status-dot"></span>Admin / Service</div>`;
             paper.insertBefore(hero, paper.firstChild || null);
         }
+        hero.innerHTML = `
+            <div><span class="eos-overview-eyebrow">NexoWatt EOS</span><h1>Übersicht</h1><p>${config.text}</p></div>
+            <div class="eos-overview-role" data-nexowatt-overview-role="${role}"><span class="eos-overview-status-dot"></span>${config.label}</div>`;
     };
 
     const apply = () => {

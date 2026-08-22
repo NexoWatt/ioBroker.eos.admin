@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin stable product release with compact login, role-safe services and self-healing sales defaults",
-  "version": "7.9.95",
+  "version": "7.9.96",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -86,7 +86,7 @@
   "main": "build/main.js",
   "files": [
     "admin/",
-    "build/",
+    "build",
     "docs/",
     "adminWww/",
     "public/",
@@ -94,17 +94,43 @@
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
     "NEXOWATT_PROPRIETARY_LICENSE.md",
+    "admin/LICENSE-NEXOWATT.md",
+    "adminWww/LICENSE-NEXOWATT.md",
     "NEXOWATT_PUBLIC_NPM_DISTRIBUTION.md",
+    "tools/nexowatt-publish-channel-guard.cjs",
+    "tools/nexowatt-validate-package.cjs",
     "README.md",
+    "tools/nexowatt-generate-repo-entry.cjs",
+    "tools/nexowatt-patch-repo.cjs",
     "NEXOWATT_EOS_BUILD_INFO.json",
     "NEXOWATT_EOS_STANDALONE.md",
-    "NEXOWATT_EOS_STABLE_7.9.94.md",
-    "README_STABILITY_V7.9.95.md",
-    "RELEASE_NOTES_V7.9.95.md",
-    "PUBLISH_STABLE_V7.9.95.md",
-    "INSTALL_TEST_V7.9.95.md",
-    "RELEASE_ACCEPTANCE_V7.9.95.md",
-    "tools/nexowatt-repair-eos-admin-update.cjs"
+    "tools/nexowatt-generate-eos-admin-repo-entry.cjs",
+    "tools/nexowatt-repair-eos-admin-update.cjs",
+    "tools/nexowatt-clean-legacy-runtime.cjs",
+    "tools/nexowatt-runtime-cleanup-selftest.cjs",
+    "tools/nexowatt-account-management-selftest.cjs",
+    "tools/nexowatt-modern-ui-selftest.cjs",
+    "tools/nexowatt-login-layout-selftest.cjs",
+    "tools/nexowatt-internal-reserve-selftest.cjs",
+    "tools/nexowatt-ensure-release-defaults.cjs",
+    "tools/nexowatt-release-defaults-selftest.cjs",
+    "tools/nexowatt-sync-release-version.cjs",
+    "tools/nexowatt-version-sync-selftest.cjs",
+    "tools/nexowatt-merge-update-selftest.cjs",
+    "tools/nexowatt-ems-overview-selftest.cjs",
+    "README_STABILITY_V7.9.96.md",
+    "RELEASE_NOTES_V7.9.96.md",
+    "PUBLISH_STABLE_V7.9.96.md",
+    "INSTALL_TEST_V7.9.96.md",
+    "RELEASE_ACCEPTANCE_V7.9.96.md",
+    "MERGE_UPDATE_README_V7.9.96.md",
+    "README_EMS_OVERVIEW_MERGE.md",
+    "RC73_EOS_ADMIN_MERGE_VALIDATION.md",
+    "VALIDATION_EMS_OVERVIEW_MERGE.md",
+    "NexoWatt_EOS_Admin_EMS_OVERVIEW_MERGE_VALIDATION.md",
+    "tools/nexowatt-apply-ems-overview.cjs",
+    "tools/nexowatt-ui-overview-runtime-selftest.cjs",
+    "tools/nexowatt-stable-v96-selftest.cjs"
   ],
   "scripts": {
     "npm": "npm i -f && cd src-admin && npm i -f",
@@ -139,7 +165,7 @@
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
     "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
     "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs",
-    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-esm-syntax-selftest.cjs && node tools/nexowatt-import-integrity-selftest.cjs && node tools/nexowatt-entrypoint-smoke-selftest.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-publish-channel-selftest.cjs && node tools/nexowatt-release-defaults-selftest.cjs && node tools/nexowatt-role-access-selftest.cjs && node tools/nexowatt-internal-reserve-selftest.cjs && node tools/nexowatt-first-login-selftest.cjs && node tools/nexowatt-account-management-selftest.cjs && node tools/nexowatt-modern-ui-selftest.cjs && node tools/nexowatt-login-layout-selftest.cjs && node tools/nexowatt-branding-selftest.cjs && node tools/nexowatt-default-port-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-assistant-separation-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs && node tools/nexowatt-version-sync-selftest.cjs && node tools/nexowatt-merge-update-selftest.cjs && npm run check:eos-stable-v95",
+    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-esm-syntax-selftest.cjs && node tools/nexowatt-import-integrity-selftest.cjs && node tools/nexowatt-entrypoint-smoke-selftest.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-publish-channel-selftest.cjs && node tools/nexowatt-release-defaults-selftest.cjs && node tools/nexowatt-role-access-selftest.cjs && node tools/nexowatt-internal-reserve-selftest.cjs && node tools/nexowatt-first-login-selftest.cjs && node tools/nexowatt-account-management-selftest.cjs && node tools/nexowatt-modern-ui-selftest.cjs && node tools/nexowatt-login-layout-selftest.cjs && node tools/nexowatt-branding-selftest.cjs && node tools/nexowatt-default-port-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-assistant-separation-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs && node tools/nexowatt-version-sync-selftest.cjs && node tools/nexowatt-merge-update-selftest.cjs && npm run check:eos-stable-v96 && node tools/nexowatt-ems-overview-selftest.cjs && node tools/nexowatt-ui-overview-runtime-selftest.cjs",
     "nexowatt:patch-built-frontend": "node tools/nexowatt-patch-built-frontend.cjs",
     "clean:eos-runtime": "node tools/nexowatt-clean-legacy-runtime.cjs",
     "precheck:eos-package": "npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime",
@@ -163,7 +189,7 @@
     "sync:eos-version": "node tools/nexowatt-sync-release-version.cjs",
     "test:eos-version-sync": "node tools/nexowatt-version-sync-selftest.cjs",
     "verify:eos-merge": "node tools/nexowatt-merge-update-selftest.cjs",
-    "check:eos-stable-v95": "node tools/nexowatt-stable-v95-selftest.cjs"
+    "check:eos-stable-v96": "node tools/nexowatt-stable-v96-selftest.cjs"
   },
   "author": "NexoWatt",
   "private": false,
@@ -174,7 +200,7 @@
   },
   "nexowattReleasePolicy": {
     "distTag": "latest",
-    "purpose": "accepted stable NexoWatt EOS sales-product release 7.9.95"
+    "purpose": "accepted stable NexoWatt EOS sales-product release 7.9.96"
   },
   "publisher": "NexoWatt"
 }

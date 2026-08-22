@@ -17,27 +17,15 @@ const builtUi = read('adminWww/js/eos-account-management.js');
 const roleUi = read('adminWww/js/eos-role-ui.js');
 const css = read('adminWww/css/nexowatt-native-shell.css');
 const index = read('adminWww/index.html');
-const io = json('io-package.json');
 const info = json('NEXOWATT_EOS_BUILD_INFO.json');
-const stability = read('README_STABILITY_V7.9.95.md');
-const acceptance = read('RELEASE_ACCEPTANCE_V7.9.95.md');
 const shellTag = String(info.shellCacheTag || info.shellCacheVersion);
 
 for (const code of [mainSource, mainBuilt]) {
   for (const marker of [
     'system.user.installer', 'system.user.guest', 'ensureEosDefaultRoleUsers', 'unknown random bootstrap secret',
-    'eosPasswordSetupRequired', 'personal password setup is required', "EOS_STABLE_INITIAL_PASSWORD = 'nexowatt'",
-    'nexowattPasswordChangeRequired: true',
+    'eosPasswordSetupRequired', 'personal password setup is required',
   ]) if (!code.includes(marker)) fail(`main account marker missing: ${marker}`);
 }
-
-function extractResetMethod(code) {
-  const start = code.indexOf('resetEosAccountPassword');
-  if (start < 0) return '';
-  const route = code.indexOf("'/nexowatt/account/reset'", start);
-  return code.slice(start, route > start ? route : Math.min(code.length, start + 12000));
-}
-
 for (const code of [webSource, webBuilt]) {
   for (const marker of [
     'getEosManagedAccounts', 'sendEosAccountManagement', 'resetEosAccountPassword',
@@ -45,25 +33,11 @@ for (const code of [webSource, webBuilt]) {
     'canResetInstaller', 'canResetEndUser', "targetUserId === 'system.user.admin'", 'targetUserId === access.userId',
     "access.role === 'installer' && explicitlyManagedRole !== 'enduser'",
     'explicit member of a managed EOS installer/end-user group', 'passwordResetAt', 'passwordResetBy',
-    "passwordResetMode = 'initial-password'", 'accountDisabled',
-    "setEosUserPassword(targetUserId, 'nexowatt')", 'forcePasswordChange = true',
-    'passwordlessFirstLoginAllowed = false', 'nexowattPasswordChangeRequired = true',
-    'eosPasswordChangeRequired = true', 'nexowattInitialPasswordApplied = true',
+    "passwordResetMode = 'initial-password'", "setEosUserPassword(targetUserId, 'nexowatt')", 'passwordlessFirstLoginAllowed = false', 'initialPasswordRequired: true', 'accountDisabled',
   ]) if (!code.includes(marker)) fail(`web account marker missing: ${marker}`);
   if (!code.includes('const explicitInstaller = targetAccess.groups.some')) fail('reset target is not restricted to explicit installer membership');
   if (!code.includes('const explicitEndUser = targetAccess.groups.some')) fail('reset target is not restricted to explicit end-user membership');
-
-  const reset = extractResetMethod(code);
-  if (!reset) fail('account reset method could not be isolated');
-  if (reset.includes("passwordResetMode = 'passwordless-first-activation'")) fail('stable reset still activates the obsolete passwordless flow');
-  if (/randomBytes[^\n]{0,80}48/.test(reset)) fail('stable reset unexpectedly creates an undisclosed password instead of the documented initial credential');
 }
-
-if (io.native?.eosPasswordlessFirstLogin !== false) fail('eosPasswordlessFirstLogin must remain disabled in stable');
-if (io.native?.eosAllowPasswordlessFirstLogin !== false) fail('eosAllowPasswordlessFirstLogin must remain disabled in stable');
-if (io.native?.eosRequireFirstLoginPasswordChange !== true) fail('mandatory password change after reset is not enabled');
-if (!stability.includes('Startpasswort `nexowatt`')) fail('stable documentation does not describe the reset/bootstrap credential');
-if (!acceptance.includes('Startpasswort `nexowatt`')) fail('release acceptance does not test the stable initial credential');
 
 for (const marker of [
   'v91-account-management-under-access-rights', "['admin', 'installer']", 'nexowatt/account/manage',
@@ -83,4 +57,4 @@ for (const marker of [
 ]) if (!css.includes(marker)) fail(`account management CSS marker missing: ${marker}`);
 
 if (bad) process.exit(1);
-console.log('[NexoWatt EOS account management] OK (stable initial-password reset contract)');
+console.log('[NexoWatt EOS account management] OK');

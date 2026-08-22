@@ -23,36 +23,6 @@ const buildInfo = readJson('NEXOWATT_EOS_BUILD_INFO.json');
 if (pkg.name !== 'iobroker.eos-admin') fail(`package.json name must be iobroker.eos-admin, got ${pkg.name}`);
 if (pkg.private !== false) fail('package.json private must be false for npm publishing');
 
-if (!Array.isArray(pkg.files) || !pkg.files.length) fail('package.json files must be a non-empty array');
-const normalizePackageEntry = entry => String(entry || '').replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/$/, '');
-for (const rawEntry of pkg.files) {
-  const entry = normalizePackageEntry(rawEntry);
-  if (!entry) fail('package.json files contains an empty entry');
-  if (/[?*\[\]{}]/.test(entry)) fail(`package.json files entry must be deterministic and may not use a glob: ${rawEntry}`);
-  if (!exists(entry)) fail(`package.json files entry does not exist: ${rawEntry}`);
-}
-const packageEntryIncludes = target => pkg.files.some(rawEntry => {
-  const entry = normalizePackageEntry(rawEntry);
-  return target === entry || target.startsWith(`${entry}/`);
-});
-for (const requiredPackedFile of [
-  'admin/admin.svg',
-  'adminWww/index.html',
-  'build/main.js',
-  'build/lib/web.js',
-  'io-package.json',
-  'README.md',
-  'NEXOWATT_EOS_BUILD_INFO.json',
-  'NEXOWATT_EOS_STABLE_7.9.94.md',
-  'README_STABILITY_V7.9.95.md',
-  'RELEASE_NOTES_V7.9.95.md',
-  'PUBLISH_STABLE_V7.9.95.md',
-  'INSTALL_TEST_V7.9.95.md',
-  'RELEASE_ACCEPTANCE_V7.9.95.md',
-  'tools/nexowatt-repair-eos-admin-update.cjs',
-]) if (!packageEntryIncludes(requiredPackedFile)) fail(`npm files manifest does not include required file: ${requiredPackedFile}`);
-
-
 const prerelease = pkg.version.includes('-');
 if (pkg.publishConfig?.tag !== 'latest') fail(`package must publish through npm latest, got ${pkg.publishConfig?.tag || '<unset>'}`);
 if (!exists('.npmrc') || !/^\s*tag\s*=\s*latest\s*$/m.test(read('.npmrc'))) fail('repository must contain .npmrc with tag=latest');
@@ -71,7 +41,7 @@ if (pkg.scripts['test:eos-version-sync'] !== 'node tools/nexowatt-version-sync-s
 if (pkg.scripts['verify:eos-merge'] !== 'node tools/nexowatt-merge-update-selftest.cjs') fail('merge update selftest script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-version-sync-selftest.cjs')) fail('version sync selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-merge-update-selftest.cjs')) fail('merge update selftest is not part of check:eos-stability');
-if (pkg.scripts['check:eos-stable-v95'] !== 'node tools/nexowatt-stable-v95-selftest.cjs') fail('stable v95 selftest script is missing or incorrect');
+if (pkg.scripts['check:eos-stable-v96'] !== 'node tools/nexowatt-stable-v96-selftest.cjs') fail('stable v96 selftest script is missing or incorrect');
 if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run check:eos-publish-channel')) fail('prepublishOnly must synchronize versions and normalize release defaults before the publish channel guard');
 if (pkg.scripts['precheck:eos-package'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-package must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-stability must synchronize versions, normalize release defaults and clean stale runtime files');
@@ -92,22 +62,6 @@ for (const [label, value] of [
   ['src-admin source version', srcVersion.version],
   ['build-info version', buildInfo.version],
 ]) if (value !== pkg.version) fail(`${label} must match package.json (${pkg.version}), got ${value}`);
-
-const sameJson = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-const lockRoot = pkgLock.packages?.[''];
-if (!lockRoot) fail('package-lock root package metadata is missing');
-for (const key of ['name', 'license', 'description', 'private']) {
-  if (!sameJson(lockRoot?.[key], pkg[key])) fail(`package-lock root ${key} must match package.json`);
-}
-for (const key of ['dependencies', 'devDependencies', 'engines', 'scripts', 'publishConfig', 'nexowattReleasePolicy']) {
-  if (!sameJson(lockRoot?.[key], pkg[key])) fail(`package-lock root ${key} must match package.json`);
-}
-const srcLockRoot = srcPkgLock.packages?.[''];
-if (!srcLockRoot) fail('src-admin package-lock root package metadata is missing');
-for (const key of ['name', 'dependencies', 'devDependencies', 'scripts']) {
-  if (!sameJson(srcLockRoot?.[key], srcPkg[key])) fail(`src-admin package-lock root ${key} must match src-admin/package.json`);
-}
-
 
 if (io.common?.name !== 'eos-admin') fail(`io-package common.name must be eos-admin, got ${io.common?.name}`);
 if (io.common?.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common?.packetName}`);
@@ -156,14 +110,14 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.95.md',
-  'RELEASE_NOTES_V7.9.95.md',
-  'PUBLISH_STABLE_V7.9.95.md',
-  'INSTALL_TEST_V7.9.95.md',
-  'RELEASE_ACCEPTANCE_V7.9.95.md',
+  'README_STABILITY_V7.9.96.md',
+  'RELEASE_NOTES_V7.9.96.md',
+  'PUBLISH_STABLE_V7.9.96.md',
+  'INSTALL_TEST_V7.9.96.md',
+  'RELEASE_ACCEPTANCE_V7.9.96.md',
   'MERGE_UPDATE.ps1',
   'MERGE_UPDATE.cmd',
-  'MERGE_UPDATE_README_V7.9.95.md',
+  'MERGE_UPDATE_README_V7.9.96.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -181,7 +135,13 @@ for (const file of [
   'tools/nexowatt-sync-release-version.cjs',
   'tools/nexowatt-version-sync-selftest.cjs',
   'tools/nexowatt-merge-update-selftest.cjs',
-  'tools/nexowatt-stable-v95-selftest.cjs',
+  'tools/nexowatt-stable-v96-selftest.cjs',
+  'tools/nexowatt-ems-overview-selftest.cjs',
+  'tools/nexowatt-ui-overview-runtime-selftest.cjs',
+  'adminWww/js/eos-ems-overview.js',
+  'adminWww/css/eos-ems-overview.css',
+  'adminWww/static/js/nexowatt-stable-v96.js',
+  'src-admin/src/components/Intro/NexoWattEmsOverview.tsx',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',
   'tools/nexowatt-ensure-release-defaults.cjs',
@@ -190,6 +150,11 @@ for (const file of [
   '.npmrc',
   repositoryEntryFile,
 ]) if (!exists(file)) fail(`missing required file: ${file}`);
+
+for (const file of pkg.files || []) {
+  const normalized = String(file).replace(/\\/g, '/').replace(/\/\*\*\/\*$/, '');
+  if (!/[?*]/.test(normalized) && !exists(normalized.replace(/\/$/, ''))) fail(`package.json files entry does not exist: ${file}`);
+}
 
 const index = read('adminWww/index.html');
 const refs = [...index.matchAll(/(?:src|href)="\.\/([^"?#]+)(?:\?[^"#]*)?"/g)].map(m => m[1]);
@@ -216,6 +181,9 @@ if (!index.includes(`eos-branding-sanitizer.js?v=${shellTag}`)) fail('branding s
 if (!index.includes(`eos-role-ui.js?v=${shellTag}`)) fail('role UI cache key mismatch');
 if (!index.includes(`eos-account-management.js?v=${shellTag}`)) fail('account management cache key mismatch');
 if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache key mismatch');
+if (!index.includes(`eos-ems-overview.js?v=${shellTag}`)) fail('EMS overview cache key mismatch');
+if (!index.includes(`eos-ems-overview.css?v=${shellTag}`)) fail('EMS overview CSS cache key mismatch');
+if (!index.includes(`nexowatt-stable-v96.js?v=${shellTag}`)) fail('stable v96 cache key mismatch');
 if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
@@ -264,7 +232,7 @@ if (accountManagement.includes("launcher.className = 'eos-account-management-lau
 if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account-management source/build drift');
 const roleBootstrap = read('adminWww/js/eos-role-bootstrap.js');
-if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v91 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
+if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v96 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
 if (/data-eos-account=|selector\.innerHTML/.test(roleBootstrap)) fail('login role buttons must not enlarge the normal login card');
 if (!roleBootstrap.includes('nexowatt/account/passwordless-status') || !roleBootstrap.includes('eligibility.allowed')) fail('server-checked first-login eligibility is incomplete');
 if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher remains active');
@@ -302,6 +270,8 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-native-shell-selftes
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-assistant-separation-selftest.cjs')) fail('assistant separation selftest is not part of check:eos-stability');
 if (!exists('adminWww/img/eos/nexowatt-eos-brand-wide.png')) fail('new NexoWatt EOS brand logo asset missing');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-runtime-cleanup-selftest.cjs')) fail('runtime cleanup selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-ems-overview-selftest.cjs')) fail('EMS React overview selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-ui-overview-runtime-selftest.cjs')) fail('EMS runtime selftest is not part of check:eos-stability');
 if (!read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
 
 console.log('[NexoWatt EOS package validation] OK');

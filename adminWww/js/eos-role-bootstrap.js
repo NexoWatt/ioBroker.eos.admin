@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-final-first-login-submit-guard';
+    const VERSION = 'v96-first-login-password-native-overview';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -172,7 +172,7 @@
         overlay.querySelector('.eos-first-login-submit').textContent = t.submit;
         overlay.querySelector('.eos-first-login-logout').textContent = t.logout;
         const form = overlay.querySelector('form');
-        form.elements.username.value = claim.userName || 'guest';
+        form.elements.username.value = userName;
         const password = form.elements.password;
         const repeat = form.elements.passwordRepeat;
         const show = form.elements.show;
@@ -500,7 +500,7 @@
             const { username, password, card, submit } = loginElements();
             if (!username || !password || !card) return;
             card.classList.add('eos-login-card-modern');
-            // v91 compact normal-login first activation: do not add role buttons or a second panel.
+            // v96 compact normal-login first activation: do not add role buttons or a second panel.
             // The account is entered in the existing Loginname field; a blank password is accepted only
             // after the backend confirms that this exact managed account is eligible.
             card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove());
@@ -631,7 +631,7 @@
 
     const contextUrl = new URL('nexowatt/security/context', base).href;
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 3500);
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
 
     window.NEXOWATT_EOS_BOOTSTRAP_READY = fetch(contextUrl, {
         credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal,

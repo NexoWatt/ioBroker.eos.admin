@@ -1,4 +1,4 @@
-/* NexoWatt EOS stable runtime v94 */
+/* NexoWatt EOS stable runtime v96 */
 (() => {
   'use strict';
   const MANAGED_USERS = new Set(['installer', 'guest', 'user']);
@@ -21,8 +21,8 @@
   };
   const markLogin = () => {
     if (!isLogin()) return;
-    document.documentElement.classList.add('nw-eos-login-v94');
-    document.body?.classList.add('nw-eos-login-v94');
+    document.documentElement.classList.add('nw-eos-login-v96');
+    document.body?.classList.add('nw-eos-login-v96');
     const u=findInput('user'), p=findInput('password'), submit=findSubmit();
     if (u && p) {
       let card=commonAncestor(u,p);
@@ -44,7 +44,7 @@
           submit.setAttribute('aria-disabled','true');
         }
       };
-      if(!u.dataset.nwV94){u.dataset.nwV94='1';u.addEventListener('input',sync);p.addEventListener('input',sync);sync();}
+      if(!u.dataset.nwV96){u.dataset.nwV96='1';u.addEventListener('input',sync);p.addEventListener('input',sync);sync();}
     }
   };
   const hideLegacyUi = () => {
@@ -60,16 +60,16 @@
   };
   const apply=()=>{markLogin();hideLegacyUi();};
   const style=document.createElement('style');
-  style.id='nw-eos-stable-v94-css';
+  style.id='nw-eos-stable-v96-css';
   style.textContent=`
-    html.nw-eos-login-v94,body.nw-eos-login-v94{min-height:100%;overflow-x:hidden!important;overflow-y:auto!important}
-    .nw-eos-login-v94 [data-nw-login-shell="true"]{width:min(410px,calc(100vw - 28px))!important;min-height:540px!important;height:auto!important;max-height:none!important;overflow:visible!important;box-sizing:border-box!important;padding:22px!important}
-    .nw-eos-login-v94 [data-nw-login-card="true"]{width:min(354px,calc(100vw - 56px))!important;min-height:474px!important;height:auto!important;max-height:none!important;overflow:visible!important;box-sizing:border-box!important;padding-bottom:26px!important}
-    .nw-eos-login-v94 [data-nw-login-card="true"] *{scrollbar-width:none}
-    .nw-eos-login-v94 [data-nw-login-card="true"] *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
-    .nw-eos-login-v94 [data-nw-login-card="true"] [role="alert"]{position:static!important;max-height:none!important;overflow:visible!important;white-space:normal!important}
+    html.nw-eos-login-v96,body.nw-eos-login-v96{min-height:100%;margin:0!important;overflow-x:hidden!important;overflow-y:auto!important}
+    .nw-eos-login-v96 [data-nw-login-shell="true"]{width:min(520px,calc(100vw - 28px))!important;min-height:590px!important;height:auto!important;max-height:none!important;overflow:visible!important;box-sizing:border-box!important;padding:22px!important}
+    .nw-eos-login-v96 [data-nw-login-card="true"]{width:min(460px,calc(100vw - 56px))!important;min-height:540px!important;height:auto!important;max-height:none!important;overflow:visible!important;box-sizing:border-box!important;padding-bottom:26px!important}
+    .nw-eos-login-v96 [data-nw-login-card="true"] *{scrollbar-width:none}
+    .nw-eos-login-v96 [data-nw-login-card="true"] *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+    .nw-eos-login-v96 [data-nw-login-card="true"] [role="alert"]{position:static!important;max-height:none!important;overflow:visible!important;white-space:normal!important}
     [data-eos-assist],.eos-assist,.nexowatt-eos-assist{display:none!important}
-    @media(max-height:620px){.nw-eos-login-v94 [data-nw-login-shell="true"]{min-height:0!important;margin:16px auto!important}.nw-eos-login-v94 [data-nw-login-card="true"]{min-height:0!important}}
+    @media(max-height:620px){.nw-eos-login-v96 [data-nw-login-shell="true"]{min-height:0!important;margin:16px auto!important}.nw-eos-login-v96 [data-nw-login-card="true"]{min-height:0!important}}
   `;
   (document.head||document.documentElement).appendChild(style);
   const observer=new MutationObserver(()=>requestAnimationFrame(apply));

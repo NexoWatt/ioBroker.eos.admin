@@ -53,6 +53,10 @@ function walkFiles(dir) {
 
 function isLegacyVersionedRuntime(file, activeRuntime) {
   const name = path.basename(file);
+  // Stable product overlays use the release number in their filename, not the
+  // compiled React runtime number. They are release assets and must not be
+  // deleted merely because runtimeEntry remains on the validated v84 bundle.
+  if (/^nexowatt-stable-v\d+\.js$/i.test(name)) return false;
   const versionMatch = name.match(/-v(\d+)\.(?:js|js\.map|css|css\.map)$/i);
   if (versionMatch) return Number(versionMatch[1]) !== activeRuntime;
   const remoteMatch = name.match(/^remoteEntry-v(\d+)\.(?:js|js\.map)$/i);

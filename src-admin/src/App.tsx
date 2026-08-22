@@ -1002,7 +1002,7 @@ class App extends Router<AppProps, AppState> {
                 this.setTitle(this.state.currentTab.tab.replace('tab-', ''));
             }
 
-            this.socket = new Connection({
+            this.socket = (window as any).NEXOWATT_EOS_ADMIN_SOCKET = new Connection({
                 protocol: window.location.protocol as 'http:' | 'https:',
                 host: window.location.hostname,
 

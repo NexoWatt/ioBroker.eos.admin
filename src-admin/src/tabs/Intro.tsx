@@ -31,6 +31,7 @@ import EditIntroLinkDialog from '@/components/Intro/EditIntroLinkDialog';
 
 import NodeUpdateDialog from '@/dialogs/NodeUpdateDialog';
 import IntroCardCamera from '@/components/Intro/IntroCardCamera';
+import NexoWattEmsOverview from '@/components/Intro/NexoWattEmsOverview';
 
 type OldLinkStructure = {
     link: string;
@@ -321,13 +322,21 @@ class Intro extends React.Component<IntroProps, IntroState> {
      * React lifecycle hook called when component did mount
      */
     async componentDidMount(): Promise<void> {
-        // Fetch reverse proxy config & feature support first
-        const [obj, nodeUpdateSupported] = await Promise.all([
-            this.props.socket.getObject(`system.adapter.${this.props.adminInstance}`),
-            this.props.socket.checkFeatureSupported('CONTROLLER_OS_PACKAGE_UPGRADE'),
-        ]);
-        const reverseProxy = obj?.native?.reverseProxy || [];
-        // Ensure state updated before generating links so addLinks sees reverseProxy
+        // Non-admin users may not read the Admin instance object. The overview
+        // must still render its native adapter cards and the read-only EMS tile.
+        let reverseProxy: ReverseProxyItem[] = [];
+        let nodeUpdateSupported = false;
+        try {
+            const [obj, supported] = await Promise.all([
+                this.props.socket.getObject(`system.adapter.${this.props.adminInstance}`),
+                this.props.socket.checkFeatureSupported('CONTROLLER_OS_PACKAGE_UPGRADE'),
+            ]);
+            reverseProxy = obj?.native?.reverseProxy || [];
+            nodeUpdateSupported = supported;
+        } catch (error) {
+            const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
+            if (role === 'admin') throw error;
+        }
         await new Promise<void>(resolve => this.setState({ reverseProxy, nodeUpdateSupported }, () => resolve()));
 
         await this.getData();
@@ -1552,18 +1561,25 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 this.setState(newState as IntroState, () => resolve());
             });
         } catch (error: any) {
-            const eosRole = (window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown';
+            const eosRole = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
             if (eosRole !== 'admin') {
-                // Installer and end-user dashboards are rendered by the role-safe EOS overview.
-                // Do not show an upstream permission alert or leave the surface in a loading loop.
-                this.setState({
-                    instances: [],
-                    hosts: [],
-                    deactivated: [],
-                    introLinks: [],
-                    hostsData: {},
-                    alive: {},
-                } as unknown as IntroState);
+                // Build the native adapter cards from the permissions that are
+                // actually available to Installer/End User. Missing host/system
+                // metadata must not replace the overview with a second surface.
+                try {
+                    const fallbackConfig = { common: { intro: [] }, native: { introLinks: [] } } as unknown as ioBroker.SystemConfigObject;
+                    const data = await this.getInstances(update, [], fallbackConfig);
+                    this.setState({
+                        instances: data.instances,
+                        hosts: [],
+                        deactivated: data.deactivated,
+                        introLinks: [],
+                        hostsData: {},
+                        alive: {},
+                    } as unknown as IntroState);
+                } catch {
+                    this.setState({ instances: [], hosts: [], deactivated: [], introLinks: [], hostsData: {}, alive: {} } as unknown as IntroState);
+                }
                 return;
             }
             window.alert(`Cannot get data: ${error}`);
@@ -1588,6 +1604,17 @@ class Intro extends React.Component<IntroProps, IntroState> {
         );
     }
 
+    private getOverviewRoleConfig(): { role: string; label: string; text: string; admin: boolean } {
+        const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'admin').toLowerCase();
+        if (role === 'installer' || role === 'installateur') {
+            return { role: 'installer', label: 'Installateur', text: 'Inbetriebnahme, Fehlersuche, Geräte- und EMS-Diagnose – mit deinen freigegebenen Installateurrechten.', admin: false };
+        }
+        if (role !== 'admin' && role !== 'service') {
+            return { role: 'enduser', label: 'Endkunde', text: 'Energie, Laden, Gebäude und die aktuellen EMS-Entscheidungen auf einen Blick.', admin: false };
+        }
+        return { role: 'admin', label: 'Admin / Service', text: 'Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.', admin: true };
+    }
+
     render(): JSX.Element {
         if (!this.state.instances) {
             return <LinearProgress />;
@@ -1603,9 +1630,11 @@ class Intro extends React.Component<IntroProps, IntroState> {
                     <div>
                         <span className="eos-overview-eyebrow">NexoWatt EOS</span>
                         <h1>Übersicht</h1>
-                        <p>Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.</p>
+                        <p>{this.getOverviewRoleConfig().text}</p>
                     </div>
-                    <div className="eos-overview-role"><span className="eos-overview-status-dot" />Admin / Service</div>
+                    <div className="eos-overview-role" data-nexowatt-overview-role={this.getOverviewRoleConfig().role}>
+                        <span className="eos-overview-status-dot" />{this.getOverviewRoleConfig().label}
+                    </div>
                 </section>
                 {this.state.nodeUpdateDialog ? (
                     <NodeUpdateDialog
@@ -1617,9 +1646,15 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 <div style={styles.viewModeDiv}>
                     {this.getInstancesCards()}
                     {this.getLinkCards()}
+                    <NexoWattEmsOverview
+                        socket={this.props.socket}
+                        t={this.props.t}
+                        lang={this.props.lang}
+                        theme={this.props.theme}
+                    />
                 </div>
-                {this.getButtons()}
-                {this.editLinkCard()}
+                {this.getOverviewRoleConfig().admin ? this.getButtons() : null}
+                {this.getOverviewRoleConfig().admin ? this.editLinkCard() : null}
             </TabContainer>
         );
     }

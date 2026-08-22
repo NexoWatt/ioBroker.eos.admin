@@ -1,166 +1,41 @@
-@font-face {
-    font-family: 'Material Icons';
-    font-style: normal;
-    font-weight: 400;
-    src:
-        url('./fonts/material.woff2') format('woff2'),
-        url('./fonts/material.woff') format('woff');
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+
+const root = path.resolve(__dirname, '..');
+const introPath = path.join(root, 'src-admin', 'src', 'tabs', 'Intro.tsx');
+const componentPath = path.join(root, 'src-admin', 'src', 'components', 'Intro', 'NexoWattEmsOverview.tsx');
+const cssPath = path.join(root, 'src-admin', 'src', 'index.css');
+const packagePath = path.join(root, 'package.json');
+
+function fail(message) {
+    console.error(`[NexoWatt EMS Overview Merge] ERROR: ${message}`);
+    process.exit(1);
 }
-
-/* hide link on maps */
-.leaflet-control-attribution .leaflet-control {
-    display: none;
+function read(file) {
+    try { return fs.readFileSync(file, 'utf8'); } catch (error) { fail(`${file} nicht lesbar: ${error.message}`); }
 }
+function write(file, content) { fs.writeFileSync(file, content, 'utf8'); }
 
-::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-    background-color: #ccc;
+if (!fs.existsSync(componentPath)) fail('NexoWattEmsOverview.tsx fehlt im Merge-Paket.');
+let intro = read(introPath);
+if (!intro.includes("import NexoWattEmsOverview from '@/components/Intro/NexoWattEmsOverview';")) {
+    const importAnchor = "import IntroCardCamera from '@/components/Intro/IntroCardCamera';\n";
+    if (!intro.includes(importAnchor)) fail('Intro.tsx Importanker nicht gefunden. Der Admin-Quellstand ist nicht kompatibel.');
+    intro = intro.replace(importAnchor, `${importAnchor}import NexoWattEmsOverview from '@/components/Intro/NexoWattEmsOverview';\n`);
 }
-
-::-webkit-scrollbar-thumb {
-    background-color: #575757;
-    border-radius: 5px;
+if (!intro.includes('<NexoWattEmsOverview')) {
+    const renderAnchor = `                    {this.getInstancesCards()}\n                    {this.getLinkCards()}\n`;
+    if (!intro.includes(renderAnchor)) fail('Intro.tsx Kartenanker nicht gefunden. Der Admin-Quellstand ist nicht kompatibel.');
+    intro = intro.replace(renderAnchor, `${renderAnchor}                    <NexoWattEmsOverview\n                        socket={this.props.socket}\n                        t={this.props.t}\n                        lang={this.props.lang}\n                        theme={this.props.theme}\n                    />\n`);
 }
+write(introPath, intro);
 
-::-webkit-scrollbar-track {
-    background-color: #ccc;
-    border-radius: 5px;
-}
-
-* {
-    box-sizing: inherit;
-    scrollbar-width: thin;
-    scrollbar-color: #575757 #ccc;
-}
-
-html,
-body {
-    height: 100%;
-}
-
-html {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Arial, 'Courier New', monospace;
-    font-size: 12px;
-    font-weight: 400;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-#root {
-    height: inherit;
-    width: inherit;
-}
-
-.draggable-item {
-    z-index: 99999;
-}
-
-.material-icons {
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -moz-font-feature-settings: 'liga';
-    -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'liga';
-}
-
-@keyframes updated {
-    0% {
-        background: #588042ff;
-    }
-    100% {
-        background: #00000000;
-    }
-}
-
-/* hide link on maps */
-.leaflet-control-attribution {
-    display: none;
-}
-
-/* NexoWatt EOS native shell v7.9.82 */
-.nexowatt-native-nav-item {
-    border-radius: 14px !important;
-    gap: 10px;
-}
-
-.nexowatt-native-nav-icon-slot {
-    min-width: 0 !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-}
-
-.nexowatt-native-nav-icon {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    min-height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    color: rgba(225, 244, 255, 0.94);
-    background:
-        radial-gradient(circle at 30% 30%, rgba(0, 255, 136, 0.18), transparent 48%),
-        linear-gradient(180deg, rgba(17, 43, 66, 0.96), rgba(7, 19, 33, 0.96));
-    border: 1px solid rgba(96, 189, 255, 0.18);
-    box-shadow:
-        0 9px 18px rgba(0, 0, 0, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        0 0 0 1px rgba(0, 255, 136, 0.05);
-    transition:
-        transform 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease,
-        box-shadow 0.18s ease,
-        background 0.18s ease;
-}
-
-.nexowatt-native-nav-icon svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-}
-
-.nexowatt-native-nav-item:hover .nexowatt-native-nav-icon {
-    transform: translateY(-1px);
-    color: #f9ffff;
-    border-color: rgba(0, 255, 136, 0.30);
-    box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.26),
-        0 0 20px rgba(0, 255, 136, 0.10),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.nexowatt-native-nav-item[aria-current='page'] .nexowatt-native-nav-icon {
-    color: #022031;
-    background: linear-gradient(135deg, rgba(0, 255, 136, 0.98), rgba(0, 212, 255, 0.92));
-    border-color: rgba(255, 255, 255, 0.30);
-    box-shadow:
-        0 12px 24px rgba(0, 0, 0, 0.28),
-        0 0 22px rgba(0, 255, 136, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.26);
-}
-
-
-/* nexowatt-ems-overview-v1 */
-
+const cssMarker = '/* nexowatt-ems-overview-v1 */';
+let css = read(cssPath);
+if (!css.includes(cssMarker)) {
+    css += `\n\n${cssMarker}\n` + String.raw`
 .eos-ems-overview-card {
     --eos-ems-status-color: #48b9ff;
     flex: 1 1 720px;
@@ -222,3 +97,19 @@ body {
     .eos-ems-overview-columns { grid-template-columns:1fr; }
     .eos-ems-overview-footer { display:grid; }
 }
+`;
+    write(cssPath, css);
+}
+
+const packageJson = JSON.parse(read(packagePath));
+packageJson.files = Array.isArray(packageJson.files) ? packageJson.files : [];
+const toolFile = 'tools/nexowatt-ems-overview-selftest.cjs';
+if (!packageJson.files.includes(toolFile)) packageJson.files.push(toolFile);
+packageJson.scripts = packageJson.scripts || {};
+const stability = String(packageJson.scripts['check:eos-stability'] || '');
+if (stability && !stability.includes('nexowatt-ems-overview-selftest.cjs')) {
+    packageJson.scripts['check:eos-stability'] = `${stability} && node tools/nexowatt-ems-overview-selftest.cjs`;
+}
+write(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
+
+console.log('[NexoWatt EMS Overview Merge] OK: Intro-Komponente, responsive Live-Diagnose und Selftest eingebunden.');

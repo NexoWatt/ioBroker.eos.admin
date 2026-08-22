@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.95",
+    "version": "7.9.96",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -282,6 +282,11 @@
         "en": "Fixes release validation for the modern EOS navigation icon update: package, lockfile and src-admin versions are synchronized, branding cache versioning is separated from the stable v79 React runtime, and future package checks verify both values explicitly.",
         "de": "Korrigiert die Release-Validierung des modernen EOS-Navigations-Icon-Updates: Paket-, Lockfile- und src-admin-Versionen sind synchron, die Branding-Cache-Version ist sauber von der stabilen v79-React-Runtime getrennt und zukünftige Paketprüfungen kontrollieren beide Werte ausdrücklich.",
         "nl": "Herstelt de releasevalidatie van de moderne EOS-navigatie-iconen: pakket-, lockfile- en src-admin-versies zijn gesynchroniseerd, de branding-cacheversie is gescheiden van de stabiele v79 React-runtime en toekomstige pakketcontroles valideren beide waarden expliciet."
+      },
+      "7.9.96": {
+        "de": "Native Übersicht für Admin, Installateur und Endkunde, read-only EMS-Live-Diagnose aus dem NexoWatt UI Adapter, größere scrollfreie Anmeldung sowie reparierte verpflichtende persönliche Kennwortvergabe nach der ersten Anmeldung mit nexowatt.",
+        "en": "Native overview for Admin, Installer and End User, read-only EMS live diagnosis from the NexoWatt UI adapter, a larger scroll-free login card, and repaired mandatory personal password setup after first sign-in with nexowatt.",
+        "nl": "Native overzicht voor Admin, Installateur en Eindgebruiker, read-only EMS-live diagnose uit de NexoWatt UI-adapter, een groter aanmeldvenster zonder interne schuifbalken en herstelde verplichte persoonlijke wachtwoordinstelling na de eerste aanmelding met nexowatt."
       }
     },
     "desc": {
@@ -319,7 +324,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.95/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.96/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -330,7 +335,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.95/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.96/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -398,7 +403,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.95/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.96/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -1107,5 +1112,5 @@
       }
     }
   },
-  "version": "7.9.95"
+  "version": "7.9.96"
 }

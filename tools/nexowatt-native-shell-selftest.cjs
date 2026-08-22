@@ -46,7 +46,7 @@ for (const marker of ['NEXOWATT_TAB_ICON', 'nexowatt-native-nav-item', 'nexowatt
 if (shell.includes('textNode.textContent = cfg.label') || shell.includes('innerHTML = cfg.svg')) fail('shell still rewrites native navigation content');
 if (!shell.includes('rendered natively by Drawer.tsx')) fail('shell native ownership comment missing');
 if (!shell.includes('ensureNavigationContainer')) fail('shell navigation container setup missing');
-if (!shell.includes('ensureModernOverview')) fail('modern current overview setup missing');
+if (!shell.includes('ensureModernOverview') || !shell.includes("label: 'Installateur'") || !shell.includes("label: 'Endkunde'")) fail('role-aware native overview setup missing');
 if (!css.includes('.nexowatt-native-nav-item') || !css.includes('.eos-native-nav-icon') || !css.includes('.nexowatt-native-nav-icon')) fail('shell CSS lacks native navigation styles');
 
 console.log('[NexoWatt EOS native shell] OK');

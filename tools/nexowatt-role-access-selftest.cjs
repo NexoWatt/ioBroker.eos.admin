@@ -49,11 +49,10 @@ for (const code of [webSource, webBuilt]) {
 }
 
 for (const marker of [
-  'v91-final-clickable-overview-live-reserve-filter', 'App.expertMode', "setItem('App.expertMode', 'false')",
+  'v96-native-overview-ems-live-reserve-filter', 'App.expertMode', "setItem('App.expertMode', 'false')",
   'data-eos-admin-only-control', 'data-eos-system-settings-control', 'NEXOWATT_EOS_BASIC_SETTINGS',
   'isRouteAllowed', "clean === 'tab-enums'", "clean === 'tab-intro'", "route === 'tab-users'",
-  'isOfficialBackupTab', 'isCustomerBackupTab', 'eos-role-safe-overview', 'Übersicht',
-  "overview.querySelectorAll('a[data-eos-role-tab]')", 'hideOfficialReserveSurfaces',
+  'isOfficialBackupTab', 'isCustomerBackupTab', 'never cover the real Admin Intro', 'hideOfficialReserveSurfaces',
   'navigateToTab', '.MuiAccordion-root', 'exact visible instance ID', 'Reused virtual rows must be unhidden',
   'repositories|repository|lizenzen|licenses|zertifikate|certificates|zugangsdaten|credentials',
 ]) if (!role.includes(marker)) fail(`role UI marker missing: ${marker}`);
@@ -63,7 +62,7 @@ if (role.includes("NEXOWATT_EOS_ACCOUNT_MANAGEMENT.open")) fail('account managem
 for (const marker of [
   'NEXOWATT_EOS_BOOTSTRAP_POLICY', 'nexowatt/security/context', 'dataset?.eosEntry', 'defaultTab',
   'lockExpertMode', 'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin',
-  'v91 compact normal-login first activation', "defaultTab = () => 'tab-intro'", 'isOfficialReserveTab', 'isCustomerBackupTab',
+  'v96 compact normal-login first activation', "defaultTab = () => 'tab-intro'", 'isOfficialReserveTab', 'isCustomerBackupTab',
 ]) if (!boot.includes(marker)) fail(`role bootstrap marker missing: ${marker}`);
 
 for (const marker of [
@@ -93,5 +92,8 @@ for (const field of ['eosServiceGroups','eosInstallerGroups','eosEndUserGroups']
   if (!Array.isArray(io.native?.[field]) || !io.native[field].length) fail(`${field} is not configured`);
 }
 
+
+if (role.includes('overview.innerHTML = `')) fail('obsolete role-specific action-tile overlay remains active');
+if (!role.includes('updateNativeOverviewRole') || !role.includes('hideIntroEditControls')) fail('native role overview helpers are missing');
 if (bad) process.exit(1);
 console.log('[NexoWatt EOS role access] OK');

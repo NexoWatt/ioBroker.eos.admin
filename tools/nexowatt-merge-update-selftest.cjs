@@ -15,7 +15,9 @@ const exists = file => fs.existsSync(path.join(root, file));
 for (const file of [
     'MERGE_UPDATE.ps1',
     'MERGE_UPDATE.cmd',
-    'MERGE_UPDATE_README_V7.9.95.md',
+    'MERGE_UPDATE.sh',
+    'MERGE_UPDATE_README_V7.9.96.md',
+    'tools/nexowatt-apply-ems-overview.cjs',
     'tools/nexowatt-sync-release-version.cjs',
     'tools/nexowatt-version-sync-selftest.cjs',
 ]) {
@@ -25,6 +27,7 @@ for (const file of [
 const ps = read('MERGE_UPDATE.ps1');
 for (const marker of [
     '$PSScriptRoot',
+    'nexowatt-apply-ems-overview.cjs',
     'nexowatt-sync-release-version.cjs',
     'npm run check:eos-package',
     'npm run check:eos-stability',
@@ -39,6 +42,19 @@ if (!cmd.includes('MERGE_UPDATE.ps1') || !/ExecutionPolicy\s+Bypass/i.test(cmd))
     fail('MERGE_UPDATE.cmd does not start the guarded PowerShell verifier');
 }
 
+const sh = read('MERGE_UPDATE.sh');
+for (const marker of [
+    'set -euo pipefail',
+    'nexowatt-apply-ems-overview.cjs',
+    'npm run sync:eos-version',
+    'npm run check:eos-package',
+    'npm run check:eos-stability',
+    'npm pack --dry-run',
+]) {
+    if (!sh.includes(marker)) fail(`MERGE_UPDATE.sh is missing ${marker}`);
+}
+if (/npm\s+publish/i.test(sh)) fail('MERGE_UPDATE.sh must never publish automatically');
+
 const pkg = JSON.parse(read('package.json'));
 if (pkg.scripts['sync:eos-version'] !== 'node tools/nexowatt-sync-release-version.cjs') {
     fail('sync:eos-version script is not canonical');
@@ -50,4 +66,4 @@ if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version')) {
     fail('npm publishing does not self-heal stale merged version files');
 }
 
-console.log('[NexoWatt EOS merge update selftest] OK (flat overwrite + automatic version repair + guarded verification)');
+console.log('[NexoWatt EOS merge update selftest] OK (flat overwrite + EMS merge + version repair + guarded verification)');

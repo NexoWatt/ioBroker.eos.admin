@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-final-clickable-overview-live-reserve-filter';
+    const VERSION = 'v96-native-overview-ems-live-reserve-filter';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -251,47 +251,43 @@
             if (/permissionerror|cannot get data/i.test(node.textContent || '')) node.classList.add('eos-role-hidden');
         });
     };
-    const ensureSafeOverview = () => safe(() => {
-        if (isLoginView() || state.role === 'admin' || state.role === 'unknown' || currentRoute() !== 'tab-intro') {
-            removeSafeOverview();
-            return;
+    const updateNativeOverviewRole = () => {
+        if (isLoginView() || currentRoute() !== 'tab-intro') return;
+        const config = state.role === 'admin'
+            ? { label: 'Admin / Service', text: 'Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.' }
+            : state.role === 'installer'
+                ? { label: 'Installateur', text: 'Inbetriebnahme, Fehlersuche, Geräte- und EMS-Diagnose – mit deinen freigegebenen Installateurrechten.' }
+                : { label: 'Endkunde', text: 'Energie, Laden, Gebäude und die aktuellen EMS-Entscheidungen auf einen Blick.' };
+        const hero = document.getElementById('eos-native-overview-hero');
+        const description = hero?.querySelector('p');
+        const role = hero?.querySelector('.eos-overview-role');
+        if (description) description.textContent = config.text;
+        if (role) {
+            role.innerHTML = '<span class="eos-overview-status-dot"></span>';
+            role.append(document.createTextNode(config.label));
+            role.setAttribute('data-nexowatt-overview-role', state.role);
         }
+    };
+    const hideIntroEditControls = () => {
         const paper = appPaper();
         if (!paper) return;
-        document.documentElement.classList.add('eos-safe-overview-active');
-        suppressPermissionErrors();
-        let overview = document.getElementById('eos-role-safe-overview');
-        if (!overview) {
-            overview = document.createElement('section');
-            overview.id = 'eos-role-safe-overview';
-            overview.className = 'eos-role-safe-overview';
-            paper.appendChild(overview);
-        }
-        const installer = state.role === 'installer';
-        const actions = actionDefinitions(state.role).filter(([, , tab]) => tab === 'basic-settings' || isRouteAllowed(state.role, tab));
-        overview.innerHTML = `
-            <header class="eos-overview-hero eos-role-overview-hero">
-                <div><span class="eos-overview-eyebrow">NexoWatt EOS</span><h1>Übersicht</h1><p>${installer ? 'Inbetriebnahme, Fehlersuche und Anlagenkonfiguration – passend zu deinen Installateurrechten.' : 'Deine freigegebenen Energie-, Smart-Home- und Sicherungsfunktionen.'}</p></div>
-                <div class="eos-overview-role"><span class="eos-overview-status-dot"></span>${installer ? 'Installateur' : 'Gast / Endkunde'}</div>
-            </header>
-            <div class="eos-overview-grid">${actions.map(([label, description, tab, icon]) => `
-                <a class="eos-overview-action" data-eos-role-tab="${tab}" href="${tab === 'basic-settings' ? '#tab-intro' : `#${tab}`}">
-                    <span class="eos-overview-action-icon" aria-hidden="true">${iconFor(icon)}</span>
-                    <span><strong>${label}</strong><small>${description}</small></span><i aria-hidden="true">›</i>
-                </a>`).join('')}</div>`;
-        overview.querySelectorAll('a[data-eos-role-tab]').forEach(link => {
-            link.addEventListener('click', event => {
-                event.preventDefault();
-                event.stopPropagation();
-                const targetTab = link.getAttribute('data-eos-role-tab') || '';
-                if (targetTab) navigateToTab(targetTab, link.textContent || '');
-            });
-            link.addEventListener('keydown', event => {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
-                event.preventDefault();
-                navigateToTab(link.getAttribute('data-eos-role-tab') || '', link.textContent || '');
-            });
+        const admin = state.role === 'admin';
+        paper.querySelectorAll(':scope > .MuiFab-root,:scope > button.MuiFab-root').forEach(button => {
+            button.classList.toggle('eos-intro-admin-edit-hidden', !admin);
+            if (!admin) button.setAttribute('aria-hidden', 'true'); else button.removeAttribute('aria-hidden');
         });
+    };
+    const ensureSafeOverview = () => safe(() => {
+        // 7.9.96: never cover the real Admin Intro with a second tile surface.
+        // Installer and end-user use the native card component; security remains
+        // enforced by route/instance filters and backend permissions.
+        removeSafeOverview();
+        if (isLoginView() || state.role === 'unknown' || currentRoute() !== 'tab-intro') return;
+        suppressPermissionErrors();
+        updateNativeOverviewRole();
+        hideIntroEditControls();
+        window.NEXOWATT_NATIVE_SHELL?.refresh?.();
+        window.NEXOWATT_EOS_EMS_OVERVIEW?.refresh?.();
     });
 
     const hideOfficialReserveSurfaces = () => safe(() => {
