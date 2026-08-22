@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.9.94",
+    "version": "7.9.95",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,15 +18,15 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
-      "7.9.94": {
-        "de": "Stabiler Anmeldeablauf für Service, Installateur und Endkunde: Standard-Erstkennwort nexowatt für verwaltete Konten, verpflichtende persönliche Kennwortvergabe nach der ersten Anmeldung, größere scrollfreie Anmeldekarte, bereinigte deutsche Texte und vorübergehend deaktivierter EOS Assist bis zur vollständigen Neuimplementierung.",
-        "en": "Stable sign-in flow for service, installer and customer accounts: managed accounts use the initial password nexowatt, a personal password is mandatory after first sign-in, the sign-in card is larger and has no inner scrollbar, German texts are corrected, and EOS Assist is temporarily disabled until its full redesign.",
-        "nl": "Stabiele aanmelding voor service, installateur en eindklant: beheerde accounts gebruiken het initiële wachtwoord nexowatt, na de eerste aanmelding is een persoonlijk wachtwoord verplicht, het aanmeldvenster is groter zonder interne schuifbalk, Duitse teksten zijn hersteld en EOS Assist is tijdelijk uitgeschakeld tot de volledige herbouw."
+      "7.9.95": {
+        "de": "Stable 7.9.95 macht den Release-Ordner mergesicher: Die flache Update-ZIP kann direkt über einen bestehenden Arbeitsordner entpackt werden. Vor Paketprüfung und npm-Veröffentlichung werden package.json, io-package.json, beide Lockdateien, die Frontend-Version, Build-Informationen und der aktuelle Repository-Eintrag automatisch auf dieselbe Version gebracht. Dadurch wird insbesondere ein stehen gebliebenes io-package.json aus 7.9.92/7.9.94 automatisch repariert. Die Funktionen aus 7.9.94 bleiben unverändert.",
+        "en": "Stable 7.9.95 makes the release folder merge-safe: the flat update ZIP can be extracted directly over an existing working directory. Before package validation and npm publishing, package.json, io-package.json, both lockfiles, the frontend version, build information and the current repository entry are synchronized automatically. In particular, a stale io-package.json from 7.9.92/7.9.94 is repaired automatically. Functional behavior from 7.9.94 remains unchanged.",
+        "nl": "Stable 7.9.95 maakt de releasemap merge-veilig: de vlakke update-ZIP kan direct over een bestaande werkmap worden uitgepakt. Vóór pakketcontrole en npm-publicatie worden package.json, io-package.json, beide lockbestanden, de frontendversie, buildinformatie en de actuele repositoryvermelding automatisch op dezelfde versie gezet. Een achtergebleven io-package.json uit 7.9.92/7.9.94 wordt daardoor automatisch hersteld. De functies uit 7.9.94 blijven ongewijzigd."
       },
-      "7.9.92": {
-        "de": "Stable 7.9.92 korrigiert die Release-Vorbereitung: Vor Paketprüfung und npm-Veröffentlichung werden die verbindlichen Verkaufsstandardwerte für Authentifizierung, Port 8081 sowie die ausschließlich für Admin/Service sichtbaren internen Admin- und BackItUp-Notfallreserven automatisch normalisiert. Dadurch kann ein gemischter lokaler Arbeitsordner die Sicherheitsprüfung nicht mehr durch einen fehlenden Standardwert abbrechen. Rollen-, Login-, Übersichts- und Dienstefilter aus 7.9.91 bleiben unverändert.",
-        "en": "Stable 7.9.92 hardens release preparation: before package validation and npm publishing, the mandatory sales defaults for authentication, port 8081 and the Admin/Service-only internal admin and BackItUp emergency reserves are normalized automatically. A mixed local working tree can therefore no longer abort the security check merely because a required default value is missing. Role, login, overview and service filtering from 7.9.91 remain unchanged.",
-        "nl": "Stable 7.9.92 verhardt de releasevoorbereiding: vóór pakketcontrole en npm-publicatie worden de verplichte verkoopstandaarden voor authenticatie, poort 8081 en de uitsluitend voor Admin/Service zichtbare interne admin- en BackItUp-noodreserve automatisch genormaliseerd. Een gemengde lokale werkmap kan de veiligheidscontrole daardoor niet meer laten stoppen door een ontbrekende standaardwaarde. Rollen-, login-, overzichts- en dienstenfilters uit 7.9.91 blijven ongewijzigd."
+      "7.9.94": {
+        "de": "Stable-Kandidat 7.9.94: Standardkonten installer, guest und user verwenden bei der Ersteinrichtung das Startpasswort nexowatt und müssen nach der ersten erfolgreichen Anmeldung sofort ein persönliches Passwort vergeben. Die passwortlose Aktivierung ist deaktiviert. Die Login-Karte bleibt auch bei Fehlermeldungen vollständig bedienbar. EOS Assist ist für diese Stable-Version vollständig deaktiviert, bis die neue lesende Systemassistenz separat freigegeben ist. Deutsche Sicherheitstexte und sichtbare Herstellerangaben wurden bereinigt.",
+        "en": "Stable candidate 7.9.94: the standard installer, guest and user accounts use the initial password nexowatt during commissioning and must set a personal password immediately after the first successful sign-in. Passwordless activation is disabled. The login card remains fully usable when an error is shown. EOS Assist is completely disabled in this stable version until the redesigned read-only system assistant is released separately. German security texts and visible publisher information were cleaned up.",
+        "nl": "Stable-kandidaat 7.9.94: de standaardaccounts installer, guest en user gebruiken bij de eerste ingebruikname het startwachtwoord nexowatt en moeten na de eerste succesvolle aanmelding direct een persoonlijk wachtwoord instellen. Activering zonder wachtwoord is uitgeschakeld. De aanmeldkaart blijft ook bij foutmeldingen volledig bedienbaar. EOS Assist is in deze stable-versie volledig uitgeschakeld totdat de vernieuwde alleen-lezen systeemassistent apart is vrijgegeven."
       },
       "7.9.90": {
         "de": "Stable 7.9.90 korrigiert die produktive Rollenoberfläche: Die Übersichtskacheln sind für Installateur und Gast/Endkunde zuverlässig bedienbar. Interner Admin und interne BackItUp-Notfallreserve werden in Dienste auch bei verzögert gerenderten Tabellen ausschließlich für Admin/Service angezeigt. Die Erstanmeldung prüft serverseitig, ob Installer, Guest oder User noch keinen persönlichen Zugang besitzen: Nur dann wird die normale Anmeldeschaltfläche bei leerem Passwort aktiv und öffnet die verpflichtende Passwortvergabe; nach abgeschlossener Aktivierung bleibt sie ohne Passwort gesperrt. NexoWatt Sicherung bleibt für freigegebene Rollen erreichbar, EOS Assist im Header und Standardport 8081 bleiben unverändert.",
@@ -319,7 +319,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.92/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.95/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -330,7 +330,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.92/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.95/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -398,9 +398,10 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.92/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.95/io-package.json",
     "npmPackage": "iobroker.eos-admin",
-    "packetName": "iobroker.eos-admin"
+    "packetName": "iobroker.eos-admin",
+    "publisher": "NexoWatt"
   },
   "native": {
     "autoUpdate": 24,
@@ -505,7 +506,7 @@
     ],
     "eosAdminOnlyGroup": "system.group.administrator",
     "eosApplyAdminOnlyAclToProtectedAdapters": false,
-    "eosAssistantEnabled": true,
+    "eosAssistantEnabled": false,
     "eosAssistantAdminOnly": false,
     "eosStrictProtectedAdapterAcl": false,
     "eosInstallerGroups": [
@@ -516,24 +517,29 @@
       }
     ],
     "eosEndUserGroups": [
-      "system.group.endkunden"
+      {
+        "group": "system.group.endkunde",
+        "note": "Endkunden / Bediener",
+        "enabled": true
+      },
+      {
+        "group": "system.group.endkunden",
+        "note": "Endkunden / Bediener",
+        "enabled": true
+      }
     ],
     "eosRequireFirstLoginPassword": true,
     "eosFirstLoginPasswordMinLength": 10,
     "eosAutoAssignDefaultRoleUsers": true,
     "eosPasswordlessFirstLogin": false,
-    "eosPasswordlessFirstLoginPrivateNetworkOnly": false,
+    "eosPasswordlessFirstLoginPrivateNetworkOnly": true,
     "eosPasswordClaimTtlMinutes": 10,
     "eosHideLegacyBackupFromNonAdmins": true,
     "nexowattHideLegacyBackupFromNonAdmins": true,
-    "eosAssistEnabled": false,
     "eosAllowPasswordlessFirstLogin": false,
-    "eosAllowFirstLoginWithoutPassword": false,
-    "eosFirstLoginWithoutPassword": false,
-    "eosForceFirstPasswordChange": true,
-    "eosRequirePersonalPassword": true,
-    "eosAutoAssignDefaultAccounts": true,
-    "eosHideInternalBackupFromNonAdmins": true
+    "eosRequireFirstLoginPasswordChange": true,
+    "eosAutoAssignStandardAccounts": true,
+    "eosAssistEnabled": false
   },
   "notifications": [
     {
@@ -1101,5 +1107,5 @@
       }
     }
   },
-  "version": "7.9.92"
+  "version": "7.9.95"
 }

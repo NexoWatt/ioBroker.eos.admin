@@ -675,7 +675,11 @@ class Web {
             const account = (native.nexowattEosAccount || {});
             const initialized = account.passwordInitialized === true
                 || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
-            const forced = account.forcePasswordChange === true;
+            const stableForced = native.nexowattPasswordChangeRequired === true
+                || native.eosPasswordChangeRequired === true
+                || native.nexowattFirstLoginPending === true
+                || native.eosFirstLoginRequired === true;
+            const forced = account.forcePasswordChange === true || stableForced;
             return { required: forced || !initialized, initialized: initialized && !forced, minLength, version: 1 };
         }
         catch (e) {
@@ -789,6 +793,12 @@ class Web {
         account.firstLoginCompletedAt = now;
         account.forcePasswordChange = false;
         account.passwordlessFirstLoginAllowed = false;
+        native.nexowattPasswordChangeRequired = false;
+        native.eosPasswordChangeRequired = false;
+        native.nexowattFirstLoginPending = false;
+        native.eosFirstLoginRequired = false;
+        native.nexowattInitialPasswordApplied = false;
+        native.nexowattPasswordChangedAt = now;
         await this.adapter.setForeignObjectAsync(access.userId, userObject);
         await this.destroyEosRequestSessions(req);
         for (const cookie of ['access_token', 'refresh_token', 'connect.sid']) {
@@ -1133,8 +1143,7 @@ class Web {
             res.status(409).json({ error: 'accountDisabled' });
             return;
         }
-        const bootstrapSecret = `${(0, node_crypto_1.randomBytes)(48).toString('base64url')}!aA1`;
-        await this.setEosUserPassword(targetUserId, bootstrapSecret);
+        await this.setEosUserPassword(targetUserId, 'nexowatt');
         const user = (await this.adapter.getForeignObjectAsync(targetUserId));
         if (!user) {
             throw new Error('userObjectUnavailableAfterPasswordReset');
@@ -1146,21 +1155,29 @@ class Web {
         account.passwordSetupVersion = 0;
         account.passwordInitializationVersion = 0;
         account.forcePasswordChange = true;
-        account.passwordlessFirstLoginAllowed = true;
+        account.passwordlessFirstLoginAllowed = false;
         account.passwordResetAt = now;
         account.passwordResetBy = access.userId;
-        account.passwordResetMode = 'passwordless-first-activation';
+        account.passwordResetMode = 'initial-password';
+        native.nexowattPasswordChangeRequired = true;
+        native.eosPasswordChangeRequired = true;
+        native.nexowattFirstLoginPending = true;
+        native.eosFirstLoginRequired = true;
+        native.nexowattInitialPasswordApplied = true;
+        native.nexowattInitialPasswordVersion = 1;
+        native.nexowattStableInitialCredentialVersion = 1;
         delete account.passwordSetAt;
         delete account.firstLoginCompletedAt;
         await this.adapter.setForeignObjectAsync(targetUserId, user);
         this.invalidateEosPasswordClaimsForUser(targetUserId);
-        this.adapter.log.warn(`EOS account ${targetUserId} was reset for passwordless first activation by ${access.userId}`);
+        this.adapter.log.warn(`EOS account ${targetUserId} was reset to the mandatory initial-password flow by ${access.userId}`);
         res.status(200).json({
             success: true,
             user: targetUserId,
             role: explicitlyManagedRole,
             firstLoginRequired: true,
-            passwordlessFirstLoginAllowed: true,
+            passwordlessFirstLoginAllowed: false,
+            initialPasswordRequired: true,
         });
     }
     async getEosHistoryInstances() {

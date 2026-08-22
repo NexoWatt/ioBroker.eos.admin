@@ -30,7 +30,6 @@ import { listModels, type AiProvider } from './lib/chat/llmProvider';
 import type { OpenAIMessage } from './lib/chat/anthropicAdapter';
 import type { AdminAdapterConfig } from './types';
 
-import { startNexowattStableAuth } from './lib/nexowattStableAuth';
 const adapterName = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), { encoding: 'utf-8' }))
     .name.split('.')
     .pop();
@@ -250,6 +249,97 @@ interface NewsMessage {
     content: ioBroker.Translated;
 }
 
+
+const EOS_STABLE_INITIAL_PASSWORD = 'nexowatt';
+const EOS_STABLE_ACCOUNTS = [
+    { user: 'installer', role: 'installer' },
+    { user: 'guest', role: 'customer' },
+    { user: 'user', role: 'customer' },
+] as const;
+
+
+async function ensureEosStableGroupMembership(adapter: Adapter, user: string, role: 'installer' | 'customer'): Promise<void> {
+    const candidateGroups =
+        role === 'installer'
+            ? ['system.group.installer', 'system.group.installateur', 'system.group.installers']
+            : ['system.group.endkunde', 'system.group.endkunden'];
+    const userId = `system.user.${user}`;
+    for (const groupId of candidateGroups) {
+        const group = (await adapter.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null | undefined;
+        if (!group) {
+            continue;
+        }
+        const members = Array.isArray(group.common?.members) ? [...group.common.members] : [];
+        if (!members.includes(userId)) {
+            members.push(userId);
+            await adapter.extendForeignObjectAsync(
+                groupId,
+                { common: { members } },
+                { user: 'system.user.admin' },
+            );
+        }
+    }
+}
+
+async function ensureEosStableInitialAccounts(adapter: Adapter): Promise<void> {
+    for (const account of EOS_STABLE_ACCOUNTS) {
+        const id = `system.user.${account.user}` as `system.user.${string}`;
+        let object = (await adapter.getForeignObjectAsync(id)) as ioBroker.UserObject | null | undefined;
+        let created = false;
+        if (!object) {
+            await adapter.setForeignObjectAsync(
+                id,
+                {
+                    type: 'user',
+                    common: {
+                        name: account.user,
+                        enabled: true,
+                        password: '',
+                    },
+                    native: {},
+                } as ioBroker.UserObject,
+                { user: 'system.user.admin' },
+            );
+            object = (await adapter.getForeignObjectAsync(id)) as ioBroker.UserObject | null | undefined;
+            created = true;
+        }
+        if (!object) {
+            adapter.log.error(`Cannot prepare EOS account ${account.user}`);
+            continue;
+        }
+        const eosNative = (object.native || {}) as Record<string, unknown>;
+        const resetRequested = eosNative.nexowattResetRequested === true || eosNative.eosResetRequested === true;
+        const passwordMissing = !object.common?.password;
+        const pendingFirstLogin = eosNative.nexowattPasswordChangeRequired === true || eosNative.eosPasswordChangeRequired === true || eosNative.nexowattFirstLoginPending === true || eosNative.eosFirstLoginRequired === true;
+        const stableCredentialMissing = eosNative.nexowattStableInitialCredentialVersion !== 1;
+        if (created || passwordMissing || resetRequested || (pendingFirstLogin && stableCredentialMissing)) {
+            await adapter.setPasswordAsync(account.user, EOS_STABLE_INITIAL_PASSWORD, { user: 'system.user.admin' });
+            await adapter.extendForeignObjectAsync(
+                id,
+                {
+                    native: {
+                        ...eosNative,
+                        nexowattManaged: true,
+                        nexowattRole: account.role,
+                        nexowattPasswordChangeRequired: true,
+                        eosPasswordChangeRequired: true,
+                        nexowattFirstLoginPending: true,
+                        eosFirstLoginRequired: true,
+                        nexowattInitialPasswordApplied: true,
+                        nexowattInitialPasswordVersion: 1,
+                        nexowattStableInitialCredentialVersion: 1,
+                        nexowattResetRequested: false,
+                        eosResetRequested: false,
+                    },
+                },
+                { user: 'system.user.admin' },
+            );
+            adapter.log.info(`Prepared EOS ${account.role} account ${account.user} for mandatory first password change`);
+        }
+        await ensureEosStableGroupMembership(adapter, account.user, account.role);
+    }
+}
+
 class Admin extends Adapter {
     declare public config: AdminAdapterConfig;
 
@@ -386,7 +476,6 @@ class Admin extends Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     onReady = async (): Promise<void> => {
-        startNexowattStableAuth(this);
         const systemConfig = await this.getForeignObjectAsync('system.config');
         if (systemConfig) {
             systemConfig.native = systemConfig.native || {};
@@ -396,6 +485,7 @@ class Admin extends Adapter {
                 systemLanguage = systemConfig.common.language;
             }
             I18n.init(__dirname, systemLanguage).catch(e => this.log.error(`Cannot init i18n: ${e}`));
+            await ensureEosStableInitialAccounts(this);
 
             if (!systemConfig.native.secret) {
                 randomBytes(24, (_ex, buf) => {
@@ -440,10 +530,6 @@ class Admin extends Adapter {
      * @param obj the message object
      */
     onMessage = (obj: ioBroker.Message): void => {
-        if (obj?.command?.startsWith('chat:')) {
-            if (obj.callback) this.sendTo(obj.from, obj.command, { error: 'EOS Assist is temporarily disabled in this stable release.' }, obj.callback);
-            return;
-        }
         if (!obj) {
             return;
         }
@@ -534,9 +620,11 @@ class Admin extends Adapter {
             });
             return;
         } else if (obj.command.startsWith('chat:')) {
-            this.processChatMessage(obj).catch(error => this.log.error(`Error by chat processing: ${error}`));
-            return;
-        } else if (webServer?.processMessage(obj)) {
+                if (obj.callback) {
+                    this.sendTo(obj.from, obj.command, { error: 'EOS Assist ist in dieser Stable-Version vorübergehend deaktiviert.' }, obj.callback);
+                }
+                return;
+            } else if (webServer?.processMessage(obj)) {
             return;
         }
 

@@ -361,8 +361,8 @@
                 eosRequireFirstLoginPassword: {
                     newLine: true,
                     type: 'checkbox',
-                    label: 'Persönliches Passwort nach der ersten Anmeldung erzwingen',
-                    help: 'Installateur und Endkunde melden sich zuerst mit dem Startkennwort „nexowatt“ an und müssen anschließend sofort ein persönliches Passwort vergeben. Administrator/NexoWatt Service bleibt unverändert.',
+                    label: 'Persönliches Passwort bei erster Anmeldung erzwingen',
+                    help: 'Installateur- und Endkundenrollen müssen nach der ersten erfolgreichen Anmeldung ein eigenes Passwort vergeben. Administrator/NexoWatt Service bleibt unverändert.',
                     default: true,
                     xs: 12,
                     sm: 12,
@@ -415,7 +415,7 @@
                 },
                 eosPasswordClaimTtlMinutes: {
                     type: 'number',
-                    label: 'Gültigkeit der Kennwortänderung (Minuten)',
+                    label: 'Gültigkeit der Erstaktivierung (Minuten)',
                     help: 'Der kurzlebige Aktivierungsnachweis verfällt automatisch. Zulässig sind 3 bis 30 Minuten.',
                     min: 3,
                     max: 30,

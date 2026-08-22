@@ -75,9 +75,16 @@ for (const marker of [
   '.eos-passwordless-launcher', '.eos-login-first-blocked', '.eos-login-first-checking',
 ]) if (!css.includes(marker)) fail(`first-login CSS marker missing: ${marker}`);
 
+
+for (const code of [mainSource, mainBuilt]) {
+  if (!code.includes("EOS_STABLE_INITIAL_PASSWORD = 'nexowatt'")) fail('stable initial password bootstrap is missing');
+  if (!code.includes('nexowattPasswordChangeRequired: true')) fail('mandatory password-change marker is missing');
+}
 if (io.native?.auth !== true) fail('authentication is not enabled by default');
 if (io.native?.eosRequireFirstLoginPassword !== true) fail('first-login password is not enabled by default');
-if (io.native?.eosPasswordlessFirstLogin !== true) fail('passwordless first activation is not enabled by default');
+if (io.native?.eosPasswordlessFirstLogin !== false) fail('passwordless first activation must be disabled in stable');
+if (io.native?.eosAllowPasswordlessFirstLogin !== false) fail('legacy passwordless first-login compatibility flag must be disabled in stable');
+if (io.native?.eosRequireFirstLoginPasswordChange !== true) fail('mandatory password change after the initial nexowatt login must be enabled');
 if (io.native?.eosPasswordlessFirstLoginPrivateNetworkOnly !== true) fail('passwordless first activation must default to private networks only');
 if (Number(io.native?.eosPasswordClaimTtlMinutes) < 3 || Number(io.native?.eosPasswordClaimTtlMinutes) > 30) fail('password claim TTL must be between 3 and 30 minutes');
 if (Number(io.native?.eosFirstLoginPasswordMinLength) < 10) fail('minimum password length must be at least 10');

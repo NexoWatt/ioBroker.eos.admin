@@ -1,4 +1,4 @@
-# Veröffentlichung 7.9.92
+# Veröffentlichung 7.9.94
 
 ```powershell
 npm login

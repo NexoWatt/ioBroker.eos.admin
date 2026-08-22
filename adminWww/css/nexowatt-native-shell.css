@@ -856,7 +856,7 @@ html.eos-modern-login body::before {
 
 
 /* ========================================================================== 
-   NexoWatt EOS 7.9.92 – stable product layout
+   NexoWatt EOS 7.9.94 – stable product layout
    Integrated first login, header assistant, role-safe overview and account
    management exclusively below "Zugänge & Rechte".
    ========================================================================== */
@@ -1193,7 +1193,7 @@ html.eos-role-enduser [data-instance-id^="backitup."] { display: none !important
 
 
 
-/* Final 7.9.92 interaction guards. */
+/* Final 7.9.94 interaction guards. */
 html.eos-safe-overview-active #app-paper { position: relative !important; }
 html.eos-safe-overview-active #app-paper > :not(#eos-role-safe-overview):not(.MuiSnackbar-root):not([role="presentation"]) {
     pointer-events: none !important;
