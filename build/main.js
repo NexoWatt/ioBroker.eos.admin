@@ -174,8 +174,13 @@ class Admin extends adapter_core_1.Adapter {
     timerNews;
     _tasks;
     changedPasswords = [];
-    /** In-process ioBroker.mcp connection backing the chat helper. Created on first chat message. */
+    /** Legacy in-process chat connection kept for compatibility with existing admin messages. */
     mcpChat = null;
+    /** Role-scoped, read-only MCP connections used by the header EOS Assist. */
+    eosAssistMcpChats = new Map();
+    /** Per-user throttling and concurrency guard for provider calls. */
+    eosAssistLastRequestAt = new Map();
+    eosAssistInFlight = new Set();
     /** Periodic guard that keeps EOS safety policy applied even if object events are missed. */
     eosSecurityTimer = null;
     /** Debounce timer for object-change triggered safety checks. */
@@ -315,6 +320,300 @@ class Admin extends adapter_core_1.Adapter {
             allowObjectChange: false,
         });
         return this.mcpChat;
+    }
+    /** Return a read-only MCP connection whose tool calls run under the authenticated user's ACL. */
+    getEosAssistMcp(userId) {
+        const key = `${userId}:${systemLanguage}`;
+        let manager = this.eosAssistMcpChats.get(key);
+        if (!manager) {
+            manager = new mcpClientManager_1.McpClientManager(this, {
+                defaultUser: userId,
+                language: systemLanguage,
+                allowSetState: false,
+                allowObjectChange: false,
+            });
+            this.eosAssistMcpChats.set(key, manager);
+        }
+        return manager;
+    }
+    normalizeEosAssistSettings(value) {
+        const native = value && typeof value === 'object' && !Array.isArray(value)
+            ? value
+            : {};
+        const allowed = ['openai', 'anthropic', 'gemini', 'deepseek', 'custom'];
+        const rawProvider = typeof native.provider === 'string' ? native.provider : 'anthropic';
+        const provider = allowed.includes(rawProvider) ? rawProvider : 'anthropic';
+        return {
+            provider,
+            model: typeof native.model === 'string' ? native.model.trim().substring(0, 200) : '',
+            credentialId: typeof native.credentialId === 'string' ? native.credentialId.trim().substring(0, 300) : '',
+            baseUrl: typeof native.baseUrl === 'string' ? native.baseUrl.trim().replace(/\/+$/, '').substring(0, 500) : '',
+            allowSelfSignedCerts: native.allowSelfSignedCerts === true,
+        };
+    }
+    isEosAssistConfigured(settings) {
+        if (!settings.model) {
+            return false;
+        }
+        return settings.provider === 'custom'
+            ? !!(settings.baseUrl || settings.credentialId)
+            : !!settings.credentialId;
+    }
+    async readEosAssistSettings() {
+        const object = await this.getForeignObjectAsync('system.ai');
+        return this.normalizeEosAssistSettings(object?.native);
+    }
+    sanitizeEosAssistVisibleText(value) {
+        const text = String(value || '');
+        // Preserve technical IDs and commands inside code spans while keeping product prose NexoWatt-only.
+        return text
+            .split(/(```[\s\S]*?```|`[^`\n]*`)/g)
+            .map((part, index) => (index % 2 ? part : part.replace(/\bioBroker\b/gi, 'NexoWatt EOS')))
+            .join('');
+    }
+    normalizeEosAssistMessages(value) {
+        if (!Array.isArray(value)) {
+            return [];
+        }
+        const messages = [];
+        let total = 0;
+        for (const entry of value.slice(-24)) {
+            if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+                continue;
+            }
+            const record = entry;
+            const role = record.role === 'assistant' ? 'assistant' : record.role === 'user' ? 'user' : null;
+            if (!role || typeof record.content !== 'string') {
+                continue;
+            }
+            const content = record.content.trim().substring(0, 6_000);
+            if (!content) {
+                continue;
+            }
+            total += content.length;
+            if (total > 30_000) {
+                break;
+            }
+            messages.push({ role, content });
+        }
+        return messages;
+    }
+    async getEosAssistStatus(socketClient, callback) {
+        const userId = socketClient?._acl?.user;
+        if (!userId) {
+            callback?.({ error: 'Nicht angemeldet.', code: 'notAuthenticated' });
+            return;
+        }
+        const role = this.getEosCachedRole(userId);
+        if (this.eosPasswordSetupRequired.has(userId)) {
+            callback?.({ error: 'Die persönliche Passwortvergabe muss zuerst abgeschlossen werden.', code: 'passwordSetupRequired' });
+            return;
+        }
+        try {
+            const settings = await this.readEosAssistSettings();
+            const credentials = role === 'admin' ? await (0, credentials_1.listAiCredentials)(this) : [];
+            callback?.({
+                success: true,
+                user: userId.replace(/^system\.user\./, ''),
+                role,
+                configured: this.isEosAssistConfigured(settings),
+                canConfigure: role === 'admin',
+                settings: role === 'admin' ? settings : undefined,
+                credentials,
+            });
+        }
+        catch (error) {
+            callback?.({ error: error instanceof Error ? error.message : String(error), code: 'statusFailed' });
+        }
+    }
+    async saveEosAssistSettings(socketClient, payload, callback) {
+        const userId = socketClient?._acl?.user;
+        if (!userId || this.getEosCachedRole(userId) !== 'admin') {
+            callback?.({ error: 'Diese Einstellung ist nur für Admin / NexoWatt Service verfügbar.', code: 'permissionDenied' });
+            return;
+        }
+        const settings = this.normalizeEosAssistSettings(payload);
+        if (!settings.model) {
+            callback?.({ error: 'Bitte ein Modell eintragen.', code: 'invalidSettings' });
+            return;
+        }
+        if (settings.provider === 'custom') {
+            if (!settings.baseUrl && !settings.credentialId) {
+                callback?.({ error: 'Für einen lokalen/individuellen Anbieter wird eine Basis-URL oder ein Zugang benötigt.', code: 'invalidSettings' });
+                return;
+            }
+            if (settings.baseUrl && !/^https?:\/\//i.test(settings.baseUrl)) {
+                callback?.({ error: 'Die Basis-URL muss mit http:// oder https:// beginnen.', code: 'invalidSettings' });
+                return;
+            }
+        }
+        else if (!settings.credentialId) {
+            callback?.({ error: 'Bitte einen gespeicherten KI-Zugang auswählen.', code: 'invalidSettings' });
+            return;
+        }
+        try {
+            const current = await this.getForeignObjectAsync('system.ai');
+            const next = {
+                ...(current || {}),
+                _id: 'system.ai',
+                type: 'config',
+                common: {
+                    ...(current?.common || {}),
+                    name: 'EOS Assist Einstellungen',
+                    expert: true,
+                },
+                native: {
+                    ...(current?.native || {}),
+                    ...settings,
+                },
+            };
+            await this.setForeignObjectAsync('system.ai', next);
+            callback?.({ success: true, configured: true, settings });
+        }
+        catch (error) {
+            callback?.({ error: error instanceof Error ? error.message : String(error), code: 'saveFailed' });
+        }
+    }
+    async testEosAssistSettings(socketClient, payload, callback) {
+        const userId = socketClient?._acl?.user;
+        if (!userId || this.getEosCachedRole(userId) !== 'admin') {
+            callback?.({ error: 'Der Verbindungstest ist nur für Admin / NexoWatt Service verfügbar.', code: 'permissionDenied' });
+            return;
+        }
+        const settings = this.normalizeEosAssistSettings(payload);
+        if (settings.provider === 'custom' && settings.baseUrl && !/^https?:\/\//i.test(settings.baseUrl)) {
+            callback?.({ error: 'Die Basis-URL muss mit http:// oder https:// beginnen.', code: 'invalidSettings' });
+            return;
+        }
+        try {
+            const apiKey = settings.credentialId ? await (0, credentials_1.resolveAiKey)(this, settings.credentialId) : '';
+            if (settings.provider !== 'custom' && !apiKey) {
+                callback?.({ error: 'Der ausgewählte Zugang enthält keinen verwendbaren API-Schlüssel.', code: 'credentialMissing' });
+                return;
+            }
+            const models = await (0, llmProvider_1.listModels)({
+                provider: settings.provider,
+                apiKey,
+                baseUrl: settings.baseUrl || undefined,
+                allowSelfSignedCerts: settings.allowSelfSignedCerts,
+            });
+            callback?.({ success: true, models, count: models.length });
+        }
+        catch (error) {
+            callback?.({ error: error instanceof Error ? error.message : String(error), code: 'connectionFailed' });
+        }
+    }
+    async processEosAssistSocketRequest(socketClient, payload, callback) {
+        const userId = socketClient?._acl?.user;
+        if (!userId) {
+            callback?.({ error: 'Nicht angemeldet.', code: 'notAuthenticated' });
+            return;
+        }
+        const role = this.getEosCachedRole(userId);
+        if (this.eosPasswordSetupRequired.has(userId)) {
+            callback?.({ error: 'Die persönliche Passwortvergabe muss zuerst abgeschlossen werden.', code: 'passwordSetupRequired' });
+            return;
+        }
+        const now = Date.now();
+        const previous = this.eosAssistLastRequestAt.get(userId) || 0;
+        if (now - previous < 1_500) {
+            callback?.({ error: 'Bitte einen Moment warten, bevor die nächste Frage gesendet wird.', code: 'rateLimited' });
+            return;
+        }
+        if (this.eosAssistInFlight.has(userId)) {
+            callback?.({ error: 'EOS Assist bearbeitet bereits eine Frage.', code: 'busy' });
+            return;
+        }
+        const record = payload && typeof payload === 'object' && !Array.isArray(payload)
+            ? payload
+            : {};
+        const messages = this.normalizeEosAssistMessages(record.messages);
+        if (!messages.some(message => message.role === 'user')) {
+            callback?.({ error: 'Bitte eine Frage eingeben.', code: 'emptyQuestion' });
+            return;
+        }
+        this.eosAssistLastRequestAt.set(userId, now);
+        this.eosAssistInFlight.add(userId);
+        try {
+            const settings = await this.readEosAssistSettings();
+            if (!this.isEosAssistConfigured(settings)) {
+                callback?.({
+                    error: 'EOS Assist ist noch nicht durch Admin / NexoWatt Service konfiguriert.',
+                    code: 'notConfigured',
+                    canConfigure: role === 'admin',
+                    role,
+                });
+                return;
+            }
+            const apiKey = settings.credentialId ? await (0, credentials_1.resolveAiKey)(this, settings.credentialId) : '';
+            if (settings.provider !== 'custom' && !apiKey) {
+                callback?.({
+                    error: 'Der konfigurierte KI-Zugang enthält keinen verwendbaren API-Schlüssel.',
+                    code: 'credentialMissing',
+                    canConfigure: role === 'admin',
+                });
+                return;
+            }
+            const orchestrator = new chatOrchestrator_1.ChatOrchestrator(this.getEosAssistMcp(userId), this);
+            const uiContextRecord = record.uiContext && typeof record.uiContext === 'object' && !Array.isArray(record.uiContext)
+                ? record.uiContext
+                : {};
+            const result = await orchestrator.run({
+                provider: settings.provider,
+                model: settings.model,
+                apiKey,
+                baseUrl: settings.baseUrl || undefined,
+                messages,
+                language: systemLanguage,
+                allowSelfSignedCerts: settings.allowSelfSignedCerts,
+                maxToolRounds: 10,
+                mode: 'read',
+                uiContext: {
+                    hash: typeof uiContextRecord.hash === 'string' ? uiContextRecord.hash.substring(0, 500) : '',
+                },
+                accessRole: role,
+            });
+            const content = this.sanitizeEosAssistVisibleText(result.content);
+            const newMessages = result.newMessages
+                .filter(message => message.role === 'assistant' && typeof message.content === 'string')
+                .map(message => ({ ...message, content: this.sanitizeEosAssistVisibleText(message.content) }));
+            callback?.({
+                success: true,
+                status: 'done',
+                content,
+                newMessages,
+                steps: result.steps.map(step => ({
+                    ...step,
+                    result: this.sanitizeEosAssistVisibleText(step.result),
+                })),
+                clientActions: result.clientActions || [],
+                role,
+            });
+        }
+        catch (error) {
+            callback?.({
+                error: error instanceof Error ? error.message : String(error),
+                code: 'assistFailed',
+                canConfigure: role === 'admin',
+            });
+        }
+        finally {
+            this.eosAssistInFlight.delete(userId);
+        }
+    }
+    installEosAssistSocketCommands(socketAdmin) {
+        socketAdmin.addCommandHandler('eosAssistStatus', (socketClient, _payload, callback) => {
+            void this.getEosAssistStatus(socketClient, callback);
+        });
+        socketAdmin.addCommandHandler('eosAssistSaveSettings', (socketClient, payload, callback) => {
+            void this.saveEosAssistSettings(socketClient, payload, callback);
+        });
+        socketAdmin.addCommandHandler('eosAssistTestSettings', (socketClient, payload, callback) => {
+            void this.testEosAssistSettings(socketClient, payload, callback);
+        });
+        socketAdmin.addCommandHandler('eosAssist', (socketClient, payload, callback) => {
+            void this.processEosAssistSocketRequest(socketClient, payload, callback);
+        });
     }
     /**
      * Some message was sent to this instance over the message box. Used by email, pushover, text2speech, ...
@@ -760,6 +1059,12 @@ class Admin extends adapter_core_1.Adapter {
             void this.mcpChat.close();
             this.mcpChat = null;
         }
+        for (const manager of this.eosAssistMcpChats.values()) {
+            void manager.close();
+        }
+        this.eosAssistMcpChats.clear();
+        this.eosAssistLastRequestAt.clear();
+        this.eosAssistInFlight.clear();
         try {
             this.log.info(`terminating http${this.config.secure ? 's' : ''} server on port ${this.config.port}`);
             socket?.close();
@@ -2052,6 +2357,7 @@ class Admin extends adapter_core_1.Adapter {
         }
         socket = new socket_classes_1.SocketAdmin(settings, this, objects);
         this.installEosSocketCommandGuard(socket);
+        this.installEosAssistSocketCommands(socket);
         socket.start(server, ws_server_1.SocketIO, { store, oauth2Only: true, noBasicAuth: this.config.noBasicAuth });
         // subscribe to all object changes
         socket.subscribe('objectChange', '*');

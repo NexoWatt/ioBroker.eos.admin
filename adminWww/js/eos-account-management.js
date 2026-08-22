@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-account-management-under-access-rights';
+    const VERSION = 'v93-account-management-under-access-rights';
     const script = document.currentScript || document.querySelector('script[src*="eos-account-management.js"]');
     const base = new URL('../', script?.src || window.location.href);
     const abort = new AbortController();

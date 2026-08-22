@@ -16,6 +16,7 @@ const role = read('adminWww/js/eos-role-ui.js');
 const boot = read('adminWww/js/eos-role-bootstrap.js');
 const drawer = read('src-admin/src/components/Drawer.tsx');
 const assist = read('adminWww/js/eos-assistant.js');
+const knowledge = read('src/lib/chat/assistantKnowledge.ts');
 const io = json('io-package.json');
 
 for (const code of [mainSource, mainBuilt]) {
@@ -44,7 +45,8 @@ for (const marker of ['isOfficialReserveTab', 'isCustomerBackupTab', 'backitup',
 for (const marker of ['System-Notfallsicherung', 'NexoWatt Sicherung', '^tab-backitup', 'nexowatt-backup|eos-backup']) {
   if (!drawer.includes(marker)) fail(`Drawer reserve marker missing: ${marker}`);
 }
-if (!assist.includes('NexoWatt Sicherung') || !assist.includes('System-Notfallsicherung')) fail('EOS Assist backup explanation is incomplete');
+if (!assist.includes('NexoWatt Backup') && !assist.includes('Sicherungsstatus')) fail('EOS Assist runtime lacks backup-system context');
+if (!knowledge.includes('NexoWatt Backup') || !knowledge.includes('Admin/Service')) fail('EOS Assist knowledge lacks role-aware backup context');
 if (io.native?.eosHideLegacyBackupFromNonAdmins !== true) fail('eosHideLegacyBackupFromNonAdmins must default to true');
 if (io.native?.nexowattHideLegacyBackupFromNonAdmins !== true) fail('nexowattHideLegacyBackupFromNonAdmins must default to true');
 const reserve = (io.native?.eosProtectedAdapters || []).find(entry => entry.adapter === 'backitup');

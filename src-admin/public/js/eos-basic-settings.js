@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-basic-settings';
+    const VERSION = 'v93-basic-settings';
     const existing = window.NEXOWATT_EOS_BASIC_SETTINGS;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();

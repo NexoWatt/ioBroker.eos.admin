@@ -103,10 +103,10 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.9.92.md',
-  'PUBLISH_STABLE_V7.9.92.md',
-  'INSTALL_TEST_V7.9.92.md',
-  'RELEASE_ACCEPTANCE_V7.9.92.md',
+  'README_STABILITY_V7.9.93.md',
+  'PUBLISH_STABLE_V7.9.93.md',
+  'INSTALL_TEST_V7.9.93.md',
+  'RELEASE_ACCEPTANCE_V7.9.93.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -203,7 +203,7 @@ if (accountManagement.includes("launcher.className = 'eos-account-management-lau
 if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account-management source/build drift');
 const roleBootstrap = read('adminWww/js/eos-role-bootstrap.js');
-if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v91 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
+if (!roleBootstrap.includes('installIntegratedFirstLogin') || !roleBootstrap.includes('v93 compact normal-login first activation')) fail('compact integrated first-login is incomplete');
 if (/data-eos-account=|selector\.innerHTML/.test(roleBootstrap)) fail('login role buttons must not enlarge the normal login card');
 if (!roleBootstrap.includes('nexowatt/account/passwordless-status') || !roleBootstrap.includes('eligibility.allowed')) fail('server-checked first-login eligibility is incomplete');
 if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher remains active');

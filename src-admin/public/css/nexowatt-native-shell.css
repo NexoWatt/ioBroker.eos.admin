@@ -96,12 +96,21 @@ html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
     max-width: none !important;
     max-height: none !important;
     padding: 28px !important;
-    overflow: auto !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
     border-radius: 24px !important;
     color: var(--nx-text) !important;
     background: linear-gradient(180deg, rgba(14, 36, 56, .97), rgba(4, 15, 27, .96)) !important;
     border: 1px solid var(--nx-border-accent) !important;
     box-shadow: 0 18px 44px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+html.eos-login .eos-login-card-modern::-webkit-scrollbar,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username)::-webkit-scrollbar,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password)::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 html.eos-login img[src*="admin"],
 html.eos-login .MuiAvatar-img { object-fit: contain !important; filter: drop-shadow(0 0 18px rgba(0,255,136,.35)); }
@@ -891,7 +900,8 @@ html.eos-login .eos-login-card-modern {
     min-height: 0 !important;
     max-width: none !important;
     max-height: none !important;
-    overflow: auto !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
 }
 .eos-login-role-selector {
     display: none !important;
@@ -1290,4 +1300,146 @@ html.eos-route-intro #app-paper [class*="card"] {
     .eos-overview-action { min-height: 90px; }
     .eos-account-management-entry { margin: 9px; padding: 19px; border-radius: 18px; }
     .eos-assist-header-root .eos-assist-panel { right: 8px !important; width: calc(100vw - 16px); }
+}
+
+/* v93 EOS Assist – live, role-aware system assistant in the fixed header. */
+.eos-assist-header-root .eos-assist-panel {
+    display: flex;
+    flex-direction: column;
+    width: min(520px, calc(100vw - 32px));
+    max-height: min(720px, calc(100vh - var(--nx-content-top) - 12px));
+    overflow: hidden !important;
+}
+.eos-assist-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+}
+.eos-assist-toolbar button,
+.eos-assist-settings-actions button {
+    min-height: 34px;
+    padding: 7px 11px;
+    color: #dcf8ff;
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid rgba(69, 213, 255, .2);
+    border-radius: 10px;
+    background: rgba(7, 27, 41, .78);
+    cursor: pointer;
+}
+.eos-assist-toolbar button:hover,
+.eos-assist-settings-actions button:hover { border-color: rgba(0, 229, 138, .48); }
+.eos-assist-conversation {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+.eos-assist-transcript {
+    flex: 1 1 auto;
+    min-height: 150px;
+    max-height: 390px;
+    margin-top: 12px;
+    padding: 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid rgba(0, 212, 255, .16);
+    border-radius: 15px;
+    background: rgba(0, 6, 12, .32);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 229, 138, .5) rgba(3, 16, 27, .7);
+}
+.eos-assist-welcome {
+    padding: 17px 12px;
+    color: #99b9c7;
+    font-size: 12px;
+    line-height: 1.55;
+    text-align: center;
+}
+.eos-assist-message {
+    max-width: 92%;
+    margin: 0 0 9px;
+    padding: 10px 12px;
+    color: #edfaff;
+    font-size: 12px;
+    line-height: 1.52;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    border: 1px solid rgba(69, 213, 255, .14);
+    border-radius: 14px;
+    background: rgba(9, 31, 45, .72);
+}
+.eos-assist-message strong { display: block; margin-bottom: 4px; color: #00e58a; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.eos-assist-message-user { margin-left: auto; border-color: rgba(0, 229, 138, .2); background: rgba(0, 98, 78, .24); }
+.eos-assist-message-error { border-color: rgba(255, 174, 66, .34); background: rgba(102, 58, 5, .25); }
+.eos-assist-message-error strong { color: #ffc56b; }
+.eos-assist-message a { color: #51dcff; font-weight: 800; text-decoration: underline; }
+.eos-assist-input-row { align-items: stretch; }
+.eos-assist-input {
+    min-height: 48px;
+    max-height: 110px;
+    resize: vertical;
+    font: inherit;
+    line-height: 1.4;
+}
+.eos-assist-send { min-width: 82px; }
+.eos-assist-send:disabled { cursor: progress; opacity: .62; }
+.eos-assist-status {
+    margin-top: 10px;
+    padding-top: 9px;
+    color: #8eaeba;
+    font-size: 10px;
+    line-height: 1.35;
+    border-top: 1px solid rgba(69, 213, 255, .1);
+}
+.eos-assist-status[data-kind="ready"] { color: #71eeb9; }
+.eos-assist-status[data-kind="warning"] { color: #ffc56b; }
+.eos-assist-status[data-kind="error"] { color: #ff8b8b; }
+.eos-assist-settings {
+    display: none;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 12px;
+    padding: 12px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 229, 138, .18);
+    border-radius: 15px;
+    background: rgba(0, 8, 15, .36);
+}
+.eos-assist-settings-open .eos-assist-conversation { display: none; }
+.eos-assist-settings-open .eos-assist-settings { display: grid; gap: 10px; }
+.eos-assist-settings label { display: grid; gap: 5px; color: #9fc0cc; font-size: 11px; font-weight: 750; }
+.eos-assist-settings input,
+.eos-assist-settings select {
+    width: 100%;
+    min-height: 37px;
+    box-sizing: border-box;
+    padding: 7px 9px;
+    color: #eafaff;
+    border: 1px solid rgba(69, 213, 255, .2);
+    border-radius: 9px;
+    background: #061724;
+    outline: none;
+}
+.eos-assist-settings input:focus,
+.eos-assist-settings select:focus { border-color: rgba(0, 229, 138, .58); box-shadow: 0 0 0 2px rgba(0, 229, 138, .08); }
+.eos-assist-settings .eos-assist-check { display: flex; align-items: center; gap: 8px; }
+.eos-assist-settings .eos-assist-check input { width: 18px; min-height: 18px; }
+.eos-assist-base-url-label { display: none !important; }
+.eos-assist-custom-provider .eos-assist-base-url-label { display: grid !important; }
+.eos-assist-settings-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.eos-assist-settings-actions .eos-assist-save { color: #00151c; border: 0; background: linear-gradient(135deg, #00e58a, #45d5ff); }
+.eos-assist-not-configured .eos-assist-dot { background: #ffc34d; box-shadow: 0 0 12px rgba(255, 195, 77, .9); }
+@media (max-width: 620px) {
+    .eos-assist-header-root .eos-assist-panel {
+        top: calc(var(--nx-shell-top) + var(--nx-header-h) + 5px) !important;
+        right: 7px !important;
+        width: calc(100vw - 14px);
+        max-height: calc(100vh - var(--nx-header-h) - 20px);
+        padding: 13px;
+    }
+    .eos-assist-transcript { max-height: 45vh; }
+    .eos-assist-input-row { flex-direction: column; }
+    .eos-assist-send { min-height: 40px; }
 }

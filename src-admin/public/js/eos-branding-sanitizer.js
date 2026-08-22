@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v91-visible-branding';
+    const VERSION = 'v93-visible-branding-publisher';
     const existing = window.NEXOWATT_EOS_BRANDING_SANITIZER;
     if (existing?.version === VERSION) return;
     existing?.destroy?.();
@@ -8,6 +8,8 @@
     let unsubscribe = null;
     const skip = new Set(['SCRIPT','STYLE','CODE','PRE','TEXTAREA','NOSCRIPT']);
     const rewrite = value => String(value || '')
+        .replace(/\[\s*iobroker\.eos-admin@[^\]\r\n]+\]/gi, '[NexoWatt]')
+        .replace(/\[\s*eos-admin@[^\]\r\n]+\]/gi, '[NexoWatt]')
         .replace(/ioBroker\.admin/gi, 'NexoWatt EOS Admin')
         .replace(/ioBroker\s*Admin/gi, 'NexoWatt EOS Admin')
         .replace(/ioBroker/gi, 'NexoWatt EOS');

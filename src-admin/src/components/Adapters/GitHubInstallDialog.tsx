@@ -775,9 +775,14 @@ class GitHubInstallDialog extends React.Component<GitHubInstallDialogProps, GitH
                         }
                     }
 
+                    const isNexoWattEosAdmin =
+                        el === 'eos-admin' ||
+                        adapter.packetName === 'iobroker.eos-admin' ||
+                        adapter.npmPackage === 'iobroker.eos-admin';
+                    const publisherLabel = isNexoWattEosAdmin ? 'NexoWatt' : parts[3];
                     const item = {
                         value: `${el}/${parts[3]}`,
-                        name: `${name} [${parts[3]}]`,
+                        name: `${name} [${publisherLabel}]`,
                         icon: adapter.extIcon || adapter.icon,
                         nogit: !!adapter.nogit,
                         title: el,

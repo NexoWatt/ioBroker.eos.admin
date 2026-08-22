@@ -13,12 +13,14 @@ const license = read('adminWww/js/license.js');
 const login = read('src-admin/src/login/Login.tsx');
 const manual = read('adminWww/js/eos-manual-write-policy.js');
 const io = JSON.parse(read('io-package.json'));
+const installDialog = read('src-admin/src/components/Adapters/GitHubInstallDialog.tsx');
+const adaptersBundle = read('adminWww/assets/Adapters-B5_jQ7DE-v84.js');
 
 if (!index.includes('eos-branding-sanitizer.js')) fail('branding sanitizer is not loaded');
 if (!index.includes('<title>NexoWatt EOS - Energy Operation System</title>')) fail('browser title is not NexoWatt EOS');
 if (!index.includes("window.loginTitle = 'NexoWatt EOS'")) fail('login title is not fixed to NexoWatt EOS');
 if (!sanitizer.includes("document.title = 'NexoWatt EOS – Energy Operation System'")) fail('runtime title hardening missing');
-for (const marker of ['ioBroker\\.admin', 'ioBroker\\s*Admin', 'replace(/ioBroker/gi', 'NEXOWATT_EOS_DOM_COORDINATOR']) {
+for (const marker of ['ioBroker\\.admin', 'ioBroker\\s*Admin', 'replace(/ioBroker/gi', 'NEXOWATT_EOS_DOM_COORDINATOR', "'[NexoWatt]'"]) {
   if (!sanitizer.includes(marker)) fail(`runtime replacement missing: ${marker}`);
 }
 if ((sanitizer.match(/new MutationObserver/g) || []).length) fail('branding layer must use the shared DOM observer');
@@ -28,8 +30,12 @@ if (/^\s*ioBroker\s*$/m.test(login)) fail('login footer still displays the upstr
 if (/ioBroker socket is not ready/i.test(manual)) fail('customer-visible connection error still names the upstream platform');
 const updates = (io.notifications || []).flatMap(scope => scope.categories || []).find(cat => cat.category === 'adapterUpdates');
 if (updates && Object.values(updates.description || {}).some(text => /ioBroker/i.test(String(text)))) fail('update notification still displays the upstream brand');
+if (JSON.stringify(io.common.authors) !== JSON.stringify(['NexoWatt']) || io.common.publisher !== 'NexoWatt') fail('published adapter metadata does not identify NexoWatt');
+for (const marker of ["el === 'eos-admin'", "const publisherLabel = isNexoWattEosAdmin ? 'NexoWatt'", 'adapter.packetName === \'iobroker.eos-admin\'']) {
+  if (!installDialog.includes(marker)) fail(`module install publisher source marker missing: ${marker}`);
+}
+if (!adaptersBundle.includes('x?"NexoWatt":l[3]') && !adaptersBundle.includes('?"NexoWatt":l[3]')) fail('built module install search does not show NexoWatt publisher');
 // Technical package IDs, compatibility routes and third-party legal notices intentionally remain unchanged.
-
 const accountManagement = read('adminWww/js/eos-account-management.js');
 if (!accountManagement.includes('NexoWatt EOS') || accountManagement.includes('ioBroker')) fail('account management visible branding is not NexoWatt-only');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account management source/build drift');

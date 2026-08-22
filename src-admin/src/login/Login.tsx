@@ -42,7 +42,7 @@ const styles: Record<string, any> = {
     paper: (theme: IobTheme) => ({
         backgroundColor: theme.palette.background.paper + (theme.palette.background.paper.length < 7 ? 'd' : 'dd'),
         p: '24px',
-        overflowY: 'auto',
+        overflowY: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         height: 'calc(100% - 48px)',

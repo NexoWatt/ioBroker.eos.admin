@@ -67,8 +67,10 @@ export interface OrchestratorRunParams {
     approvals?: Record<string, boolean>;
     /** Tool names the user has granted blanket approval for ("don't ask again") — run without prompting. */
     autoApprove?: string[];
-    /** Current admin UI context (e.g. the route hash) so the assistant knows where the user is. */
+    /** Current EOS UI context (e.g. the route hash) so the assistant knows where the user is. */
     uiContext?: { hash?: string };
+    /** Authenticated EOS role. Used only to constrain guidance; actual data access is enforced by MCP ACLs. */
+    accessRole?: 'admin' | 'installer' | 'enduser';
 }
 
 export interface OrchestratorResult {
@@ -162,79 +164,59 @@ export class ChatOrchestrator {
         this.adapter = adapter;
     }
 
-    /** System prompt describing the assistant's role, tool usage and the current permission mode. */
+    /** System prompt describing EOS Assist, tool usage and the authenticated role. */
     private buildSystemPrompt(
         language: ioBroker.Languages,
         mode: ChatMode,
         uiContext?: { hash?: string },
+        accessRole: 'admin' | 'installer' | 'enduser' = 'enduser',
     ): OpenAIMessage {
+        const roleText =
+            accessRole === 'admin'
+                ? 'Admin / NexoWatt Service with full service visibility'
+                : accessRole === 'installer'
+                  ? 'Installer with commissioning and troubleshooting visibility'
+                  : 'End user with only explicitly permitted Smart Home and operating visibility';
         const lines = [
-            'You are the ioBroker Admin Assistant, an in-app helper inside the ioBroker admin web UI.',
-            'You help the user operate their ioBroker installation: explain how to do things in the UI,',
-            'recommend which adapter to use for a device or service, and answer questions about the',
-            "user's actual system (their states, objects, devices grouped by room/function, installed",
-            'adapters, running instances, logs and historical values).',
+            'You are EOS Assist inside NexoWatt EOS.',
+            'Your job is to answer questions about the user\'s ACTUAL EOS system and guide them through the',
+            'NexoWatt EOS interface. You cover all settings and product areas: Cockpit/Overview, Modules,',
+            'Services, Datapoints, Structure (rooms/functions), System logs, Access & Rights, EOS applications,',
+            'System hosts, Files, NexoWatt Backup, licenses, devices, communication protocols and diagnostics.',
             '',
-            'KEY CAPABILITY: you can navigate the admin UI yourself. When the user asks you to OPEN or GO to',
-            'something, call the navigate_admin_ui tool with the hash route — it opens the tab OR the specific',
-            'dialog immediately (no confirmation, it only changes the view), e.g.',
-            '{"hash":"#tab-hosts/base-settings/system.host.MSI"}. Otherwise (just pointing the user somewhere)',
-            'offer a clickable Markdown hash link, e.g. [Base settings of MSI](#tab-hosts/base-settings/system.host.MSI).',
-            'NEVER say a dialog can only be opened manually or that deep-linking a dialog is not possible.',
+            `Authenticated role: ${roleText}.`,
+            'Never reveal data or instructions outside that role. The tool layer enforces ACLs; if data is not',
+            'available, state that it is not available to the current account instead of guessing.',
             '',
-            'Guidelines:',
-            '- Use the available tools to look up real data from THIS ioBroker system instead of guessing.',
-            '  E.g. to list devices in a room call list_devices with the room name; to read a value call',
-            '  get_states; to find objects call search_objects.',
-            '- Base your answer on the tool results. If a tool returns an error or nothing, say so briefly',
-            '  and suggest what the user could check.',
-            '- Be concise and practical. Use short lists or tables when listing devices or states.',
-            '- Object IDs are case-sensitive (e.g. "hue.0.lights.1.on"); show them in `monospace`.',
-            '- IMPORTANT — this admin version SUPPORTS deep links that open specific DIALOGS directly,',
-            '  not just tabs. It is FALSE to say a dialog "can only be opened with the gear/cog icon" or',
-            '  that deep-linking a dialog is "technically not possible" — never say that. Instead always',
-            '  offer a clickable Markdown hash link and let the USER click it; do NOT claim you opened or',
-            '  navigated anywhere yourself. Examples: [Instances](#tab-instances), [Objects](#tab-objects),',
-            '  [hue.0 config](#tab-instances/config/hue.0), [edit this object](#tab-objects/edit/<id>),',
-            "  and a host's base-settings dialog, e.g. MSI:",
-            '  [Base settings of MSI](#tab-hosts/base-settings/system.host.MSI). The exact dialog routes are',
-            '  listed in the knowledge below. Prefer these links over the navigate_admin_ui tool.',
-            `- Answer in the user's language. The admin UI language is currently "${language}".`,
+            'Rules:',
+            '- For every system-specific question, use the available read tools and base the answer on their results.',
+            '- Never invent installed modules, running services, settings, datapoint values, devices or errors.',
+            '- Use NexoWatt EOS product terminology in normal answers. Do not present the underlying platform name',
+            '  as the product. Technical package IDs or command names may appear only in `code` when strictly needed.',
+            '- Explain results clearly and practically. Use short lists or tables for multiple devices or values.',
+            '- Object and state IDs are case-sensitive; show necessary IDs in `monospace`.',
+            '- You may navigate the EOS interface with navigate_admin_ui when the user explicitly asks to open a',
+            '  page. Use these EOS routes: Cockpit `#tab-intro`, Modules `#tab-adapters`, Services `#tab-instances`,',
+            '  Datapoints `#tab-objects`, Structure `#tab-enums`, System logs `#tab-logs`, Access & Rights',
+            '  `#tab-users`, and instance configuration `#tab-instances/config/<module>.<instance>`.',
+            '- Do not claim an action was completed unless a tool result confirms it.',
+            `- Answer in the user\'s language. The current EOS language is "${language}".`,
         ];
         if (mode === 'act') {
             lines.push(
-                '- You may change things using the write/action tools (set_state, create_user_state,',
-                '  extend_object, assign_to_enums, install_adapter, run_command, run_node_script). Every such',
-                '  call is shown to the user for explicit confirmation before it runs, so propose the smallest',
-                '  sensible action.',
-                '- create_user_state only works in "0_userdata.0." or "javascript.<n>." — never elsewhere.',
-                '- extend_object merges common/native into an existing object — use it to start/stop an',
-                '  instance (common.enabled), change instance settings (native) or set enum members.',
-                '- assign_to_enums adds objects to room/function enums (add-only) — use it to sort devices.',
-                '- run_command runs an ioBroker CLI command and streams its output to the user; use it for',
-                '  maintenance actions (restart, upload, fix, ...), not to fetch data.',
-                '- run_node_script executes a short Node.js script on the host to CHECK things (network, files,',
-                '  environment). Prefer read-only checks, keep it short, and put results in console.log. Never',
-                '  use it for destructive operations.',
-                '- run_javascript runs a one-off JS/TS script INSIDE the javascript adapter (full ioBroker API:',
-                '  on/getState/setState/schedule/sendTo). Use it to test automation logic or do an API-based',
-                '  check/action; it is not saved. Use run_node_script instead for plain OS checks (no ioBroker API).',
+                '- Changes are possible only through explicit write/action tools and confirmation. Propose the',
+                '  smallest safe action and respect all EOS safety and role restrictions.',
             );
         } else {
             lines.push(
-                '- You currently have READ-ONLY access: you cannot change states, create objects or install',
-                '  adapters. When a change is needed, explain the exact steps the user should take in the UI.',
+                '- This header assistant is READ-ONLY. It may inspect and explain the system, but it must not',
+                '  change states, objects, settings, services, modules, passwords or backups.',
             );
         }
         if (uiContext?.hash) {
-            lines.push(
-                '',
-                `The user is currently in the admin UI at the route \`${uiContext.hash}\`. Take this into ` +
-                    "account — don't tell them to open a tab/page they are already on, and refer to where " +
-                    'they are when helpful.',
-            );
+            lines.push('', `The user is currently on EOS route \`${uiContext.hash}\`. Consider this context.`);
         }
-        lines.push('', 'ioBroker how-to knowledge (use this to guide the user precisely):', renderAssistantKnowledge());
+        lines.push('', 'NexoWatt EOS knowledge:', renderAssistantKnowledge());
         return { role: 'system', content: lines.join('\n') };
     }
 
@@ -271,7 +253,7 @@ export class ChatOrchestrator {
                 : message,
         );
         if (!messages.some(message => message.role === 'system')) {
-            messages.unshift(this.buildSystemPrompt(language, mode, params.uiContext));
+            messages.unshift(this.buildSystemPrompt(language, mode, params.uiContext, params.accessRole));
         }
 
         const newMessages: OpenAIMessage[] = [];

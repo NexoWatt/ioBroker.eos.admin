@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
-  "description": "NexoWatt EOS Admin stable product release with compact login, role-safe services and self-healing sales defaults",
-  "version": "7.9.92",
+  "description": "NexoWatt EOS Admin test candidate with compact login, visible NexoWatt publisher and live role-aware EOS Assist",
+  "version": "7.9.93",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -111,14 +111,14 @@
     "tools/nexowatt-account-management-selftest.cjs",
     "tools/nexowatt-modern-ui-selftest.cjs",
     "tools/nexowatt-login-layout-selftest.cjs",
-    "README_STABILITY_V7.9.92.md",
-    "RELEASE_NOTES_V7.9.92.md",
-    "PUBLISH_STABLE_V7.9.92.md",
-    "INSTALL_TEST_V7.9.92.md",
-    "RELEASE_ACCEPTANCE_V7.9.92.md",
     "tools/nexowatt-internal-reserve-selftest.cjs",
     "tools/nexowatt-ensure-release-defaults.cjs",
-    "tools/nexowatt-release-defaults-selftest.cjs"
+    "tools/nexowatt-release-defaults-selftest.cjs",
+    "README_STABILITY_V7.9.93.md",
+    "RELEASE_NOTES_V7.9.93.md",
+    "PUBLISH_STABLE_V7.9.93.md",
+    "INSTALL_TEST_V7.9.93.md",
+    "RELEASE_ACCEPTANCE_V7.9.93.md"
   ],
   "scripts": {
     "npm": "npm i -f && cd src-admin && npm i -f",
@@ -184,6 +184,6 @@
   },
   "nexowattReleasePolicy": {
     "distTag": "latest",
-    "purpose": "accepted stable NexoWatt EOS sales-product release 7.9.92"
+    "purpose": "test candidate for accepted stable NexoWatt EOS sales-product release 7.9.93"
   }
 }

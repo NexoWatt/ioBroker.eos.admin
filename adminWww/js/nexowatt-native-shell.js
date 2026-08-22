@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-nexowatt-native-shell-modern-overview';
+    const VERSION = 'v93-nexowatt-native-shell-modern-overview';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();

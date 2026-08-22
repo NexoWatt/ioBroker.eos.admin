@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-final-clickable-overview-live-reserve-filter';
+    const VERSION = 'v93-final-clickable-overview-live-reserve-filter';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {

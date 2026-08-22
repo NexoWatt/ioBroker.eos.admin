@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v91-product-role-access';
+    const VERSION = 'v93-product-role-access';
     const protectedAdapters = new Set([
         'admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui',
     ]);
