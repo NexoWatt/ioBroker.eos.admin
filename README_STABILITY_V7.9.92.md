@@ -1,4 +1,4 @@
-# NexoWatt EOS Admin 7.9.92
+# NexoWatt EOS Admin 7.9.94
 
 Stable Verkaufsprodukt-Version. Diese Version übernimmt die Bedien-, Rollen- und Login-Korrekturen aus 7.9.91 und härtet die Release-Vorbereitung.
 

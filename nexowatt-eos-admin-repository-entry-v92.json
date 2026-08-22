@@ -1,7 +1,7 @@
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.92",
+    "version": "7.9.94",
     "title": "NexoWatt EOS Admin",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
@@ -21,10 +21,10 @@
       "de": "Eigenständige NexoWatt EOS Administrationsoberfläche mit rollenbasierter Sichtbarkeit, Legacy-Admin-Sperre und geschützten Systemadaptern für Energy Operation System Installationen."
     },
     "news": {
-      "7.9.92": {
-        "de": "Stable 7.9.92 korrigiert die Release-Vorbereitung: Vor Paketprüfung und npm-Veröffentlichung werden die verbindlichen Verkaufsstandardwerte für Authentifizierung, Port 8081 sowie die ausschließlich für Admin/Service sichtbaren internen Admin- und BackItUp-Notfallreserven automatisch normalisiert. Dadurch kann ein gemischter lokaler Arbeitsordner die Sicherheitsprüfung nicht mehr durch einen fehlenden Standardwert abbrechen. Rollen-, Login-, Übersichts- und Dienstefilter aus 7.9.91 bleiben unverändert.",
-        "en": "Stable 7.9.92 hardens release preparation: before package validation and npm publishing, the mandatory sales defaults for authentication, port 8081 and the Admin/Service-only internal admin and BackItUp emergency reserves are normalized automatically. A mixed local working tree can therefore no longer abort the security check merely because a required default value is missing. Role, login, overview and service filtering from 7.9.91 remain unchanged.",
-        "nl": "Stable 7.9.92 verhardt de releasevoorbereiding: vóór pakketcontrole en npm-publicatie worden de verplichte verkoopstandaarden voor authenticatie, poort 8081 en de uitsluitend voor Admin/Service zichtbare interne admin- en BackItUp-noodreserve automatisch genormaliseerd. Een gemengde lokale werkmap kan de veiligheidscontrole daardoor niet meer laten stoppen door een ontbrekende standaardwaarde. Rollen-, login-, overzichts- en dienstenfilters uit 7.9.91 blijven ongewijzigd."
+      "7.9.94": {
+        "de": "Stable 7.9.94 korrigiert die Release-Vorbereitung: Vor Paketprüfung und npm-Veröffentlichung werden die verbindlichen Verkaufsstandardwerte für Authentifizierung, Port 8081 sowie die ausschließlich für Admin/Service sichtbaren internen Admin- und BackItUp-Notfallreserven automatisch normalisiert. Dadurch kann ein gemischter lokaler Arbeitsordner die Sicherheitsprüfung nicht mehr durch einen fehlenden Standardwert abbrechen. Rollen-, Login-, Übersichts- und Dienstefilter aus 7.9.91 bleiben unverändert.",
+        "en": "Stable 7.9.94 hardens release preparation: before package validation and npm publishing, the mandatory sales defaults for authentication, port 8081 and the Admin/Service-only internal admin and BackItUp emergency reserves are normalized automatically. A mixed local working tree can therefore no longer abort the security check merely because a required default value is missing. Role, login, overview and service filtering from 7.9.91 remain unchanged.",
+        "nl": "Stable 7.9.94 verhardt de releasevoorbereiding: vóór pakketcontrole en npm-publicatie worden de verplichte verkoopstandaarden voor authenticatie, poort 8081 en de uitsluitend voor Admin/Service zichtbare interne admin- en BackItUp-noodreserve automatisch genormaliseerd. Een gemengde lokale werkmap kan de veiligheidscontrole daardoor niet meer laten stoppen door een ontbrekende standaardwaarde. Rollen-, login-, overzichts- en dienstenfilters uit 7.9.91 blijven ongewijzigd."
       },
       "7.9.90": {
         "de": "Stable 7.9.90 korrigiert die produktive Rollenoberfläche: Die Übersichtskacheln sind für Installateur und Gast/Endkunde zuverlässig bedienbar. Interner Admin und interne BackItUp-Notfallreserve werden in Dienste auch bei verzögert gerenderten Tabellen ausschließlich für Admin/Service angezeigt. Die Erstanmeldung prüft serverseitig, ob Installer, Guest oder User noch keinen persönlichen Zugang besitzen: Nur dann wird die normale Anmeldeschaltfläche bei leerem Passwort aktiv und öffnet die verpflichtende Passwortvergabe; nach abgeschlossener Aktivierung bleibt sie ohne Passwort gesperrt. NexoWatt Sicherung bleibt für freigegebene Rollen erreichbar, EOS Assist im Header und Standardport 8081 bleiben unverändert.",
@@ -282,9 +282,9 @@
         "nl": "Herstelt de releasevalidatie van de moderne EOS-navigatie-iconen: pakket-, lockfile- en src-admin-versies zijn gesynchroniseerd, de branding-cacheversie is gescheiden van de stabiele v79 React-runtime en toekomstige pakketcontroles valideren beide waarden expliciet."
       }
     },
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.92/io-package.json",
-    "icon": "https://unpkg.com/iobroker.eos-admin@7.9.92/admin/admin.png",
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.92/admin/admin.svg",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.9.94/io-package.json",
+    "icon": "https://unpkg.com/iobroker.eos-admin@7.9.94/admin/admin.png",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.9.94/admin/admin.svg",
     "type": "general",
     "mode": "daemon",
     "platform": "Javascript/Node.js",
@@ -307,7 +307,7 @@
     "stopBeforeUpdate": false,
     "dontDelete": false,
     "nondeletable": false,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.92/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.9.94/README.md",
     "packetName": "iobroker.eos-admin",
     "npmPackage": "iobroker.eos-admin",
     "allowAdapterUpdate": true,

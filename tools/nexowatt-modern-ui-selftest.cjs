@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
+const json = rel => JSON.parse(read(rel));
 let bad = false;
 const fail = msg => { console.error(`[NexoWatt EOS modern UI] ${msg}`); bad = true; };
 const css = read('adminWww/css/nexowatt-native-shell.css');
@@ -14,6 +15,9 @@ const bootstrap = read('adminWww/js/eos-role-bootstrap.js');
 const shell = read('adminWww/js/nexowatt-native-shell.js');
 const role = read('adminWww/js/eos-role-ui.js');
 const assist = read('adminWww/js/eos-assistant.js');
+const assistSource = read('src-admin/public/js/eos-assistant.js');
+const io = json('io-package.json');
+const stability = read('README_STABILITY_V7.9.95.md');
 
 for (const marker of [
   '--nx-shadow-soft', '--nx-shadow-float', 'backdrop-filter: blur', '#app-paper', '.MuiDialog-paper',
@@ -37,8 +41,16 @@ if (bootstrap.includes("launcher.className = 'eos-passwordless-launcher'")) fail
 if (!shell.includes('ensureModernOverview') || !shell.includes("currentTab() !== 'tab-intro'")) fail('current overview is not modernized');
 if (!role.includes('eos-role-safe-overview') || !role.includes("currentRoute() !== 'tab-intro'") || !role.includes('navigateToTab') || !role.includes("overview.querySelectorAll('a[data-eos-role-tab]')")) fail('role-safe current overview is missing or not directly clickable');
 if (!role.includes('ensureReserveObserver') || !role.includes('state.reserveObserver.observe(paper')) fail('scoped delayed-row reserve filter is missing');
-if (!assist.includes('eos-assist-header-root') || !assist.includes('insertBefore(root, userAnchor)')) fail('EOS Assist is not integrated in the header');
-if (assist.includes('position:fixed;bottom') || assist.includes('bottom:')) fail('EOS Assist still uses a bottom floating position');
+
+for (const marker of [
+  'NEXOWATT_EOS_ASSIST_DISABLED = true', "classList.add('eos-assist-disabled')",
+  "querySelectorAll('.eos-assist-root,.eos-assist-header-root,[data-eos-assist-root]')", 'element.remove()',
+]) if (!assist.includes(marker)) fail(`EOS Assist stable-disable marker missing: ${marker}`);
+if (assistSource !== assist) fail('EOS Assist source/build drift');
+if (assist.includes('insertBefore(root, userAnchor)') || assist.includes('appendChild(root)') || assist.includes('new MutationObserver')) fail('disabled EOS Assist still creates or observes a UI surface');
+if (assist.includes('position:fixed;bottom') || assist.includes('bottom:')) fail('disabled EOS Assist still contains a bottom floating implementation');
+if (io.native?.disableMcp !== true || io.native?.eosAssistantEnabled !== false || io.native?.eosAssistEnabled !== false) fail('stable io-package does not disable EOS Assist consistently');
+if (!stability.includes('Deaktivierung des EOS Assist')) fail('stable documentation does not state that EOS Assist is disabled');
 
 const observerCount = [
   'eos-policy-client.js', 'eos-branding-sanitizer.js', 'nexowatt-native-shell.js', 'eos-native-security.js',
@@ -47,4 +59,4 @@ const observerCount = [
 if (observerCount !== 2) fail(`expected one shared observer plus one scoped reserve-row observer, found ${observerCount}`);
 
 if (bad) process.exit(1);
-console.log('[NexoWatt EOS modern UI] OK');
+console.log('[NexoWatt EOS modern UI] OK (EOS Assist stable-disable contract)');

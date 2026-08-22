@@ -1042,7 +1042,7 @@ class App extends Router<AppProps, AppState> {
                                     versionAdmin: versionInfo.version,
                                     // Default to enabled; overridden from the admin settings below. Setting it
                                     // together with `connected` avoids briefly showing the assistant launcher.
-                                    disableMcp: false,
+                                    disableMcp: true,
                                 };
 
                                 if (this.state.cmd && /\b(?:admin|eos-admin)(?:@[-.\w]+)?(?:\s+--debug)?$/.test(this.state.cmd)) {

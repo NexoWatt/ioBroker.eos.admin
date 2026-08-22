@@ -19,6 +19,17 @@ function setValue(changes, label, object, key, value) {
     }
 }
 
+function setJsonValue(changes, label, object, key, value) {
+    const previous = object[key];
+    if (JSON.stringify(previous) !== JSON.stringify(value)) {
+        changes.push({ label, previous, value });
+        object[key] = value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+        if (value === undefined) {
+            delete object[key];
+        }
+    }
+}
+
 function syncReleaseVersion(rootDir) {
     const root = path.resolve(rootDir);
     const packageFile = path.join(root, 'package.json');
@@ -62,7 +73,14 @@ function syncReleaseVersion(rootDir) {
             update(json) {
                 setValue(changes, 'package-lock.json version', json, 'version', version);
                 if (json.packages?.['']) {
-                    setValue(changes, 'package-lock.json packages[""] version', json.packages[''], 'version', version);
+                    const lockRoot = json.packages[''];
+                    setValue(changes, 'package-lock.json packages[""] version', lockRoot, 'version', version);
+                    for (const key of ['name', 'license', 'description', 'private']) {
+                        setJsonValue(changes, `package-lock.json packages[""] ${key}`, lockRoot, key, pkg[key]);
+                    }
+                    for (const key of ['dependencies', 'devDependencies', 'engines', 'scripts', 'publishConfig', 'nexowattReleasePolicy']) {
+                        setJsonValue(changes, `package-lock.json packages[""] ${key}`, lockRoot, key, pkg[key]);
+                    }
                 }
             },
         },
@@ -88,7 +106,12 @@ function syncReleaseVersion(rootDir) {
             update(json) {
                 setValue(changes, 'src-admin/package-lock.json version', json, 'version', version);
                 if (json.packages?.['']) {
-                    setValue(changes, 'src-admin/package-lock.json packages[""] version', json.packages[''], 'version', version);
+                    const srcPackage = readJson(path.join(root, 'src-admin/package.json'));
+                    const lockRoot = json.packages[''];
+                    setValue(changes, 'src-admin/package-lock.json packages[""] version', lockRoot, 'version', version);
+                    for (const key of ['name', 'dependencies', 'devDependencies', 'scripts']) {
+                        setJsonValue(changes, `src-admin/package-lock.json packages[""] ${key}`, lockRoot, key, srcPackage[key]);
+                    }
                 }
             },
         },

@@ -22,9 +22,23 @@ const writeJson = (file, value) => {
 
 try {
     const currentPkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    const currentSrcPkg = JSON.parse(fs.readFileSync(path.join(root, 'src-admin/package.json'), 'utf8'));
     const version = currentPkg.version;
     writeJson('package.json', currentPkg);
-    writeJson('package-lock.json', { name: currentPkg.name, version: '7.9.92', packages: { '': { version: '7.9.92' } } });
+    writeJson('package-lock.json', {
+        name: currentPkg.name,
+        version: '7.9.92',
+        packages: {
+            '': {
+                name: currentPkg.name,
+                version: '7.9.92',
+                scripts: { prepack: 'stale' },
+                dependencies: {},
+                devDependencies: {},
+                nexowattReleasePolicy: { purpose: 'stale 7.9.92' },
+            },
+        },
+    });
     writeJson('io-package.json', {
         version: '7.9.92',
         common: {
@@ -35,8 +49,12 @@ try {
         },
         native: {},
     });
-    writeJson('src-admin/package.json', { name: 'src-rx', version: '7.9.92' });
-    writeJson('src-admin/package-lock.json', { name: 'src-rx', version: '7.9.92', packages: { '': { version: '7.9.92' } } });
+    writeJson('src-admin/package.json', { ...currentSrcPkg, version: '7.9.92' });
+    writeJson('src-admin/package-lock.json', {
+        name: currentSrcPkg.name,
+        version: '7.9.92',
+        packages: { '': { name: currentSrcPkg.name, version: '7.9.92', scripts: { build: 'stale' } } },
+    });
     writeJson('src-admin/src/version.json', { version: '7.9.92' });
     writeJson('NEXOWATT_EOS_BUILD_INFO.json', { version: '7.9.92', label: 'v92', repositoryEntry: 'nexowatt-eos-admin-repository-entry-v92.json' });
     writeJson('nexowatt-eos-admin-repository-entry-v92.json', {
@@ -78,6 +96,11 @@ try {
     if (io.common.meta !== `${expectedBase}/io-package.json`) fail('io-package URL was not synchronized');
     if (entry.meta !== `${expectedBase}/io-package.json`) fail('repository entry URL was not synchronized');
     if (!fs.existsSync(path.join(temp, build.repositoryEntry))) fail('current repository entry was not created');
+    if (JSON.stringify(lock.packages[''].scripts) !== JSON.stringify(currentPkg.scripts)) fail('package-lock root scripts were not synchronized');
+    if (JSON.stringify(lock.packages[''].dependencies) !== JSON.stringify(currentPkg.dependencies)) fail('package-lock root dependencies were not synchronized');
+    if (JSON.stringify(lock.packages[''].nexowattReleasePolicy) !== JSON.stringify(currentPkg.nexowattReleasePolicy)) fail('package-lock root release policy was not synchronized');
+    if (JSON.stringify(srcLock.packages[''].scripts) !== JSON.stringify(currentSrcPkg.scripts)) fail('src-admin lock root scripts were not synchronized');
+    if (JSON.stringify(srcLock.packages[''].dependencies) !== JSON.stringify(currentSrcPkg.dependencies)) fail('src-admin lock root dependencies were not synchronized');
 
     fs.rmSync(temp, { recursive: true, force: true });
     console.log(`[NexoWatt EOS version sync selftest] OK (${version}; stale 7.9.92 merge repaired)`);

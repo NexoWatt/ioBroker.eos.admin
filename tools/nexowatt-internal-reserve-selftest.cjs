@@ -44,7 +44,7 @@ for (const marker of ['isOfficialReserveTab', 'isCustomerBackupTab', 'backitup',
 for (const marker of ['System-Notfallsicherung', 'NexoWatt Sicherung', '^tab-backitup', 'nexowatt-backup|eos-backup']) {
   if (!drawer.includes(marker)) fail(`Drawer reserve marker missing: ${marker}`);
 }
-if (!assist.includes('NexoWatt Sicherung') || !assist.includes('System-Notfallsicherung')) fail('EOS Assist backup explanation is incomplete');
+if (!assist.includes('NEXOWATT_EOS_ASSIST_DISABLED')) fail('EOS Assist must remain disabled in the stable reserve test');
 if (io.native?.eosHideLegacyBackupFromNonAdmins !== true) fail('eosHideLegacyBackupFromNonAdmins must default to true');
 if (io.native?.nexowattHideLegacyBackupFromNonAdmins !== true) fail('nexowattHideLegacyBackupFromNonAdmins must default to true');
 const reserve = (io.native?.eosProtectedAdapters || []).find(entry => entry.adapter === 'backitup');
