@@ -1348,7 +1348,7 @@ class Admin extends Adapter {
         }
         if (String(user.common.password || '') === '') {
             const bootstrapSecret = `${randomBytes(48).toString('base64url')}!aA1`;
-            await this.setPasswordAsync(userId, bootstrapSecret, { user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User });
+            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, { user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User });
             user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
             if (!user) {
                 return;

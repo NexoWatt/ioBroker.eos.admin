@@ -61,7 +61,7 @@
     .eos-ems-overview-footer { display:grid; }
 }
 
-/* v97: startup and compatibility messages stay compact. */
+/* v98: startup and compatibility messages stay compact. */
 .eos-ems-overview-card.is-loading,
 .eos-ems-overview-card.is-unavailable {
     min-height: 0;

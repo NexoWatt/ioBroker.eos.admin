@@ -1152,7 +1152,7 @@ class Admin extends adapter_core_1.Adapter {
         }
         if (String(user.common.password || '') === '') {
             const bootstrapSecret = `${(0, node_crypto_1.randomBytes)(48).toString('base64url')}!aA1`;
-            await this.setPasswordAsync(userId, bootstrapSecret, { user: ADMIN_OWNER_USER });
+            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, { user: ADMIN_OWNER_USER });
             user = (await this.getForeignObjectAsync(userId));
             if (!user) {
                 return;

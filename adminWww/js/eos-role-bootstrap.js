@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v97-first-login-password-native-overview';
+    const VERSION = 'v98-first-login-password-native-overview';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -192,13 +192,13 @@
             submit.disabled = true; submit.textContent = t.saving; setStatus('', '');
             try {
                 const response = await fetch(endpoint, {
-                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    method: 'POST', credentials: 'include', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-First-Login': '1' },
                     body: JSON.stringify({ password: password.value, passwordRepeat: repeat.value }),
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || data.error) {
-                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy };
+                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, passwordSetupNotAllowed: t.generic, invalidRequestOrigin: t.generic, passwordApiUnavailable: t.generic, passwordWriteFailed: t.generic, passwordVerificationFailed: t.generic, userObjectUnavailableAfterPasswordChange: t.generic };
                     throw new Error(messages[data.error] || t.generic);
                 }
                 setStatus(t.success, 'success');
@@ -265,7 +265,7 @@
             submit.disabled = true; submit.textContent = t.saving; setStatus('', '');
             try {
                 const response = await fetch(endpoint, {
-                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    method: 'POST', credentials: 'include', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Passwordless-Password': '1' },
                     body: JSON.stringify({ password: password.value, passwordRepeat: repeat.value }),
                 });
@@ -473,7 +473,7 @@
             setStatus(card, t.claimChecking, '');
             try {
                 const response = await fetch(new URL('nexowatt/account/passwordless-claim', base).href, {
-                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    method: 'POST', credentials: 'include', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Passwordless-Claim': '1' },
                     body: JSON.stringify({ user: account }),
                 });
@@ -500,7 +500,7 @@
             const { username, password, card, submit } = loginElements();
             if (!username || !password || !card) return;
             card.classList.add('eos-login-card-modern');
-            // v97 compact normal-login first activation: do not add role buttons or a second panel.
+            // v98 compact normal-login first activation: do not add role buttons or a second panel.
             // The account is entered in the existing Loginname field; a blank password is accepted only
             // after the backend confirms that this exact managed account is eligible.
             card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove());
@@ -634,7 +634,7 @@
     const timeout = window.setTimeout(() => controller.abort(), 8000);
 
     window.NEXOWATT_EOS_BOOTSTRAP_READY = fetch(contextUrl, {
-        credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal,
+        credentials: 'include', cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal,
     })
         .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
         .then(policy => {

@@ -1406,3 +1406,120 @@ html.eos-login form { max-width: 100% !important; }
 .eos-role-safe-overview { display: none !important; }
 html.eos-safe-overview-active #app-paper > :not(.MuiSnackbar-root):not([role="presentation"]) { pointer-events: auto !important; }
 .eos-intro-admin-edit-hidden { display: none !important; }
+
+/* NexoWatt EOS 7.9.98 – stable scrolling, clean login fields and expandable errors. */
+html.eos-app,
+html.eos-app body,
+html.eos-app #root {
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+}
+html.eos-app #app-paper {
+    height: calc(100vh - var(--nx-content-top) - 12px) !important;
+    height: calc(100dvh - var(--nx-content-top) - 12px) !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - var(--nx-content-top) - 12px) !important;
+    max-height: calc(100dvh - var(--nx-content-top) - 12px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 229, 138, .88) rgba(3, 18, 29, .72);
+}
+html.eos-app #app-paper::-webkit-scrollbar { width: 11px; }
+html.eos-app #app-paper::-webkit-scrollbar-track {
+    border-radius: 12px;
+    background: rgba(3, 18, 29, .72);
+}
+html.eos-app #app-paper::-webkit-scrollbar-thumb {
+    min-height: 46px;
+    border: 2px solid rgba(3, 18, 29, .72);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #00e58a, #39c9ef);
+}
+html.eos-app #app-paper::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #21f2a1, #60dcff);
+}
+
+html.eos-login main.MuiPaper-root::before {
+    width: min(456px, calc(100vw - 20px)) !important;
+    height: min(536px, calc(100dvh - 20px)) !important;
+    border-radius: 24px !important;
+}
+html.eos-login main.MuiPaper-root > .eos-login-card-modern,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
+    width: min(400px, calc(100vw - 48px)) !important;
+    max-width: 400px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 30px 32px 28px !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    border-radius: 22px !important;
+}
+html.eos-login .eos-login-card-modern > .MuiGrid2-root,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username) > .MuiGrid2-root,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) > .MuiGrid2-root {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+html.eos-login .MuiFormControl-root {
+    width: 100% !important;
+    margin: 13px 0 3px !important;
+}
+html.eos-login .MuiInputLabel-root { display: none !important; }
+html.eos-login .MuiOutlinedInput-root {
+    min-height: 46px !important;
+    border-radius: 6px !important;
+    background: rgba(4, 19, 31, .76) !important;
+}
+html.eos-login .MuiOutlinedInput-input {
+    min-height: 0 !important;
+    padding: 11px 14px !important;
+    line-height: 22px !important;
+}
+html.eos-login .MuiOutlinedInput-input::placeholder {
+    color: rgba(245, 251, 255, .92) !important;
+    opacity: 1 !important;
+}
+html.eos-login .MuiOutlinedInput-notchedOutline legend {
+    width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+}
+html.eos-login .MuiFormControlLabel-root {
+    margin: 7px 0 5px !important;
+}
+html.eos-login .MuiButton-root[type="submit"] {
+    min-height: 44px !important;
+    margin: 8px 0 0 !important;
+}
+html.eos-login .eos-login-card-modern > .MuiBox-root:last-child,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username) > .MuiBox-root:last-child,
+html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) > .MuiBox-root:last-child {
+    margin-top: 28px !important;
+}
+html.eos-login .MuiAlert-root,
+html.eos-login [role="alert"] {
+    margin: 14px 0 1px !important;
+    padding: 9px 11px !important;
+    line-height: 1.35 !important;
+}
+@media (max-width: 500px) {
+    html.eos-login main.MuiPaper-root::before {
+        width: calc(100vw - 12px) !important;
+        height: auto !important;
+        min-height: min(520px, calc(100dvh - 12px)) !important;
+    }
+    html.eos-login main.MuiPaper-root > .eos-login-card-modern,
+    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#username),
+    html.eos-login main.MuiPaper-root > .MuiPaper-root:has(#password) {
+        width: calc(100vw - 38px) !important;
+        max-width: none !important;
+        padding: 25px 22px 23px !important;
+    }
+}
+

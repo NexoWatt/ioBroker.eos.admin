@@ -5,7 +5,7 @@ const runtime=read('adminWww/js/eos-ems-overview.js');const source=read('src-adm
 if(runtime!==source)fail('runtime source/build drift');
 for(const marker of ['nexowatt-ems-overview-v1','nexowatt-ui.*.info.adminOverview.*','system.adapter.nexowatt-ui.*.alive','POLL_MS = 5000','STALE_MS = 20000',"REQUIRED_UI_VERSION = '0.8.198'",'getForeignStates','Keine Kachel besitzt Schreibhoheit','currentDecisions','§14a-Fallback','nexowatt-eos-admin-socket-ready','readUiAdapterInfo','socketFromReact'])if(!runtime.includes(marker))fail(`runtime marker missing: ${marker}`);
 for(const forbidden of ['setForeignState','setState(','sendToHost','writeFile','extendObject'])if(runtime.includes(forbidden))fail(`read-only runtime contains ${forbidden}`);
-for(const marker of ['eos-ems-overview.css?v=97','eos-ems-overview.js?v=97','nexowatt-stable-v97.js?v=97'])if(!index.includes(marker))fail(`index marker missing: ${marker}`);
+for(const marker of ['eos-ems-overview.css?v=98','eos-ems-overview.js?v=98','nexowatt-stable-v98.js?v=98'])if(!index.includes(marker))fail(`index marker missing: ${marker}`);
 if(!css.includes('#eos-ems-overview-runtime')||!css.includes('.eos-ems-overview-metrics')||!css.includes('startup and compatibility messages stay compact'))fail('EMS card CSS incomplete');
 if(role.includes('overview.innerHTML = `')||!role.includes('never cover the real Admin Intro'))fail('obsolete role overview still active');
 if(!shell.includes("label: 'Installateur'")||!shell.includes("label: 'Endkunde'")||!shell.includes('eosNativeReactOverview'))fail('native overview role bridge incomplete');

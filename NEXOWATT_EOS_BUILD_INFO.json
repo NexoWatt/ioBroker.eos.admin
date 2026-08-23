@@ -1,28 +1,28 @@
 {
-  "version": "7.9.97",
+  "version": "7.9.98",
   "channel": "stable-latest",
-  "baseFrontend": "validated Admin 7 runtime with compact product login, native role overview and authenticated EMS diagnosis bridge",
+  "baseFrontend": "validated Admin 7 runtime with scrollable native cockpit, clean placeholder login and verified ioBroker password writes",
   "runtimeEntry": "v84",
-  "releaseType": "stable-login-and-ems-connection-fix",
-  "release": "stable-login-and-ems-connection-fix",
-  "label": "v97",
+  "releaseType": "stable-scroll-login-password-write-fix",
+  "release": "stable-scroll-login-password-write-fix",
+  "label": "v98",
   "notes": [
-    "The login keeps the proven NexoWatt card proportions and is enlarged only moderately.",
-    "Wrong-password and first-password messages expand without any inner horizontal or vertical scrollbar.",
-    "The EMS live diagnosis receives the actual authenticated EOS Admin connection and refreshes immediately.",
-    "NexoWatt UI 0.8.198 and newer publish the read-only info.adminOverview contract used by the tile.",
-    "Native overview cards remain available for Admin, Installer and End User while all existing write restrictions stay active."
+    "The native cockpit keeps the fixed header and provides an explicit vertical content scrollbar.",
+    "The login uses clean placeholder fields without overlapping MUI outline labels and expands for errors.",
+    "Password reset writes the real ioBroker user password to nexowatt and forces personal password setup.",
+    "First-login password changes are verified through the ioBroker password API before success is shown.",
+    "EOS Assist remains disabled until its separate complete redesign."
   ],
   "changes": [
-    "Removed the oversized v96 login geometry and all runtime DOM sizing heuristics.",
-    "The real AdminConnection is exposed by the main app and reaffirmed by the native Intro tab.",
-    "The accidental generic adapter-configuration socket exposure is removed.",
-    "The EMS tile now distinguishes connection startup, missing UI adapter, old UI version, missing contract and permission errors.",
-    "First-password routing, protected adapters, internal reserve visibility and manual-write policy remain unchanged."
+    "Normalized system.user.* ids to the short account names expected by setPasswordAsync and checkPasswordAsync.",
+    "Separated password hash writes from EOS native metadata updates to prevent stale object replacement.",
+    "Relaxed same-host origin handling for reverse proxies while rejecting cross-site requests.",
+    "Added a stable vertical scroll surface to the overview and preserved the working EMS live diagnosis.",
+    "Removed floating login labels from the productive bundle and introduced clean accessible placeholders."
   ],
-  "brandingCacheVersion": 97,
-  "shellCacheVersion": 97,
-  "nativeShellVersion": 97,
-  "shellCacheTag": "97",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v97.json"
+  "brandingCacheVersion": 98,
+  "shellCacheVersion": 98,
+  "nativeShellVersion": 98,
+  "shellCacheTag": "98",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v98.json"
 }

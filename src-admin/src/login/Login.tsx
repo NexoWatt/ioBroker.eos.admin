@@ -41,15 +41,15 @@ const styles: Record<string, any> = {
     },
     paper: (theme: IobTheme) => ({
         backgroundColor: theme.palette.background.paper + (theme.palette.background.paper.length < 7 ? 'd' : 'dd'),
-        p: '28px 30px 26px',
+        p: '30px 32px 28px',
         overflowY: 'visible',
         display: 'flex',
         flexDirection: 'column',
         height: 'auto',
-        minHeight: 510,
-        width: 'calc(100% - 52px)',
+        minHeight: 0,
+        width: 'calc(100% - 48px)',
         maxHeight: 'none',
-        maxWidth: 380,
+        maxWidth: 400,
         boxShadow,
     }),
     avatar: (theme: IobTheme): any => ({
@@ -78,7 +78,7 @@ const styles: Record<string, any> = {
         textTransform: 'inherit',
     },
     marginTop: {
-        marginTop: 'auto',
+        marginTop: 28,
     },
     progress: {
         textAlign: 'center',
@@ -424,7 +424,8 @@ export default class Login extends Component<object, LoginState> {
                             fullWidth
                             size="small"
                             id="username"
-                            label={I18n.t('enterLogin')}
+                            placeholder={`${I18n.t('enterLogin')} *`}
+                            slotProps={{ htmlInput: { 'aria-label': I18n.t('enterLogin') } }}
                             name="username"
                             autoComplete="username"
                             autoFocus
@@ -453,6 +454,7 @@ export default class Login extends Component<object, LoginState> {
                                 }
                             }}
                             slotProps={{
+                                htmlInput: { 'aria-label': I18n.t('enterPassword') },
                                 input: {
                                     endAdornment: this.state.password ? (
                                         <IconButton
@@ -471,7 +473,7 @@ export default class Login extends Component<object, LoginState> {
                             }}
                             size="small"
                             name="password"
-                            label={I18n.t('enterPassword')}
+                            placeholder={`${I18n.t('enterPassword')} *`}
                             type={this.state.showPassword ? 'text' : 'password'}
                             id="password"
                             autoComplete="current-password"
