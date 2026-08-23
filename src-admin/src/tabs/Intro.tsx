@@ -68,9 +68,8 @@ const styles: Record<string, any> = {
         height: '100%',
     },
     button: {
-        position: 'absolute',
-        bottom: 16,
-        right: 16,
+        position: 'static',
+        margin: 0,
     },
     saveButton: (theme: IobTheme) => ({
         backgroundColor: theme.palette.success.main,
@@ -124,9 +123,13 @@ const styles: Record<string, any> = {
         pointerEvents: 'none',
     },
     viewModeDiv: {
+        position: 'relative',
         display: 'flex',
         flexFlow: 'wrap',
-        overflow: 'auto',
+        width: '100%',
+        minHeight: 80,
+        paddingBottom: 80,
+        overflow: 'visible',
         justifyContent: 'left',
     },
 };
@@ -1658,7 +1661,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
                         {...this.state.nodeUpdateDialog}
                     />
                 ) : null}
-                <div style={styles.viewModeDiv}>
+                <div style={styles.viewModeDiv} className="eos-native-intro-grid">
                     {this.getInstancesCards()}
                     {this.getLinkCards()}
                     <NexoWattEmsOverview
@@ -1667,8 +1670,10 @@ class Intro extends React.Component<IntroProps, IntroState> {
                         lang={this.props.lang}
                         theme={this.props.theme}
                     />
+                    {this.getOverviewRoleConfig().admin ? (
+                        <div className="eos-overview-edit-controls">{this.getButtons()}</div>
+                    ) : null}
                 </div>
-                {this.getOverviewRoleConfig().admin ? this.getButtons() : null}
                 {this.getOverviewRoleConfig().admin ? this.editLinkCard() : null}
             </TabContainer>
         );

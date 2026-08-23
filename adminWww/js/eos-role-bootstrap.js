@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v98-first-login-password-native-overview';
+    const VERSION = 'v99-first-login-password-persisted';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -80,6 +80,7 @@
             required: 'Bitte beide Passwortfelder ausfüllen.', mismatch: 'Die Passwörter stimmen nicht überein.',
             length: min => `Das Passwort muss mindestens ${min} Zeichen lang sein.`, complexity: 'Groß-/Kleinbuchstabe, Zahl und Sonderzeichen sind erforderlich.',
             easy: 'Das Passwort ist zu leicht oder enthält den Kontonamen.', generic: 'Das Passwort konnte nicht gespeichert werden.', success: 'Passwort gespeichert. Die Anmeldung wird neu gestartet …',
+            backendErrors: { invalidRequest: 'Die Sicherheitsbestätigung fehlt. Bitte erneut anmelden.', invalidRequestOrigin: 'Die Sitzung oder aufgerufene Adresse hat sich geändert. Bitte erneut anmelden.', passwordApiUnavailable: 'Die ioBroker-Passwortverwaltung ist nicht verfügbar.', passwordNotPersisted: 'Das Passwort wurde nicht im ioBroker-Benutzerkonto gespeichert.', passwordVerificationFailed: 'Das neue Passwort wurde geschrieben, aber nicht als gültige Anmeldung bestätigt.', passwordMetadataNotPersisted: 'Das Passwort wurde gespeichert, aber der Erstanmeldungsstatus konnte nicht abgeschlossen werden.', passwordSetupFailed: 'Das Passwort konnte serverseitig nicht gespeichert werden. Bitte das EOS-Systemlog prüfen.' },
             securityTitle: 'Zugriff wird geprüft', securityIntro: 'Die sichere Anmeldung wird gerade geprüft. Die Oberfläche bleibt gesperrt, bis die Berechtigungen eindeutig geladen wurden.',
             securityRetry: 'Jetzt erneut prüfen', securityLogout: 'Zur Anmeldung', securityAuto: seconds => `Automatischer neuer Versuch in ${seconds} Sekunden …`,
             claimLauncher: 'Erstanmeldung', claimTitle: 'Konto erstmals aktivieren',
@@ -99,6 +100,7 @@
             required: 'Please complete both password fields.', mismatch: 'The passwords do not match.',
             length: min => `The password must contain at least ${min} characters.`, complexity: 'Upper/lower case, a number and a special character are required.',
             easy: 'The password is too easy or contains the account name.', generic: 'The password could not be saved.', success: 'Password saved. Restarting sign-in …',
+            backendErrors: { invalidRequest: 'The security confirmation is missing. Sign in again.', invalidRequestOrigin: 'The session or address changed. Sign in again.', passwordApiUnavailable: 'The ioBroker password service is unavailable.', passwordNotPersisted: 'The password was not persisted in the ioBroker user account.', passwordVerificationFailed: 'The new password was written but could not be verified as a valid login.', passwordMetadataNotPersisted: 'The password was saved, but the first-login status could not be completed.', passwordSetupFailed: 'The password could not be saved on the server. Check the EOS system log.' },
             securityTitle: 'Checking access', securityIntro: 'The secure sign-in is being verified. The interface stays locked until the permissions are loaded unambiguously.',
             securityRetry: 'Check again now', securityLogout: 'Return to sign-in', securityAuto: seconds => `Retrying automatically in ${seconds} seconds …`,
             claimLauncher: 'First sign-in', claimTitle: 'Activate account for the first time',
@@ -118,6 +120,7 @@
             required: 'Vul beide wachtwoordvelden in.', mismatch: 'De wachtwoorden zijn niet gelijk.',
             length: min => `Het wachtwoord moet minimaal ${min} tekens bevatten.`, complexity: 'Hoofdletter, kleine letter, cijfer en speciaal teken zijn verplicht.',
             easy: 'Het wachtwoord is te eenvoudig of bevat de accountnaam.', generic: 'Het wachtwoord kon niet worden opgeslagen.', success: 'Wachtwoord opgeslagen. De aanmelding wordt opnieuw gestart …',
+            backendErrors: { invalidRequest: 'De beveiligingsbevestiging ontbreekt. Meld opnieuw aan.', invalidRequestOrigin: 'De sessie of het adres is gewijzigd. Meld opnieuw aan.', passwordApiUnavailable: 'De ioBroker-wachtwoordservice is niet beschikbaar.', passwordNotPersisted: 'Het wachtwoord is niet in het ioBroker-gebruikersaccount opgeslagen.', passwordVerificationFailed: 'Het nieuwe wachtwoord is geschreven maar kon niet als geldige aanmelding worden bevestigd.', passwordMetadataNotPersisted: 'Het wachtwoord is opgeslagen, maar de eerste-aanmeldstatus kon niet worden afgerond.', passwordSetupFailed: 'Het wachtwoord kon server-side niet worden opgeslagen. Controleer het EOS-systeemlogboek.' },
             securityTitle: 'Toegang wordt gecontroleerd', securityIntro: 'De veilige aanmelding wordt gecontroleerd. De interface blijft vergrendeld totdat de rechten eenduidig zijn geladen.',
             securityRetry: 'Nu opnieuw controleren', securityLogout: 'Terug naar aanmelden', securityAuto: seconds => `Automatisch opnieuw proberen over ${seconds} seconden …`,
             claimLauncher: 'Eerste aanmelding', claimTitle: 'Account voor het eerst activeren',
@@ -192,13 +195,13 @@
             submit.disabled = true; submit.textContent = t.saving; setStatus('', '');
             try {
                 const response = await fetch(endpoint, {
-                    method: 'POST', credentials: 'include', cache: 'no-store',
+                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-First-Login': '1' },
                     body: JSON.stringify({ password: password.value, passwordRepeat: repeat.value }),
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || data.error) {
-                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, passwordSetupNotAllowed: t.generic, invalidRequestOrigin: t.generic, passwordApiUnavailable: t.generic, passwordWriteFailed: t.generic, passwordVerificationFailed: t.generic, userObjectUnavailableAfterPasswordChange: t.generic };
+                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, ...(t.backendErrors || {}) };
                     throw new Error(messages[data.error] || t.generic);
                 }
                 setStatus(t.success, 'success');
@@ -265,13 +268,13 @@
             submit.disabled = true; submit.textContent = t.saving; setStatus('', '');
             try {
                 const response = await fetch(endpoint, {
-                    method: 'POST', credentials: 'include', cache: 'no-store',
+                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Passwordless-Password': '1' },
                     body: JSON.stringify({ password: password.value, passwordRepeat: repeat.value }),
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || data.error) {
-                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, claimExpired: t.claimExpired };
+                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, claimExpired: t.claimExpired, ...(t.backendErrors || {}) };
                     throw new Error(messages[data.error] || t.generic);
                 }
                 overlay.querySelector('.eos-activation-steps span:nth-of-type(2)')?.classList.add('done');
@@ -473,7 +476,7 @@
             setStatus(card, t.claimChecking, '');
             try {
                 const response = await fetch(new URL('nexowatt/account/passwordless-claim', base).href, {
-                    method: 'POST', credentials: 'include', cache: 'no-store',
+                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Passwordless-Claim': '1' },
                     body: JSON.stringify({ user: account }),
                 });
@@ -500,7 +503,7 @@
             const { username, password, card, submit } = loginElements();
             if (!username || !password || !card) return;
             card.classList.add('eos-login-card-modern');
-            // v98 compact normal-login first activation: do not add role buttons or a second panel.
+            // v99 normal-login first activation: do not add role buttons or a second panel.
             // The account is entered in the existing Loginname field; a blank password is accepted only
             // after the backend confirms that this exact managed account is eligible.
             card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove());
@@ -634,7 +637,7 @@
     const timeout = window.setTimeout(() => controller.abort(), 8000);
 
     window.NEXOWATT_EOS_BOOTSTRAP_READY = fetch(contextUrl, {
-        credentials: 'include', cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal,
+        credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal,
     })
         .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
         .then(policy => {

@@ -25,6 +25,8 @@ import * as cookieParser from 'cookie-parser';
 import type { InternalStorageToken } from '@iobroker/socket-classes';
 import { McpServer, type McpAdapterConfig } from 'iobroker.mcp';
 import type { AdminAdapterConfig } from '../types';
+import { setEosUserPasswordWithVerification } from './eosPassword';
+import { isEosSameOriginRequest } from './eosRequestSecurity';
 
 let AdapterStore;
 /** Content of a socket-io file */
@@ -171,11 +173,6 @@ interface WebOptions {
 interface AdminAdapter extends ioBroker.Adapter {
     secret: string;
     setPasswordAsync?: (user: string, password: string, options?: { user?: ioBroker.ObjectIDs.User }) => Promise<void>;
-    checkPasswordAsync?: (
-        user: string,
-        password: string,
-        options?: { user?: ioBroker.ObjectIDs.User },
-    ) => Promise<[boolean, `system.user.${string}`] | boolean>;
     setPassword?: (
         user: string,
         password: string,
@@ -894,69 +891,11 @@ export default class Web {
         return { valid: true, password: value };
     }
 
-    private getEosPasswordUserName(userId: string): string {
-        const userName = String(userId || '').trim().replace(/^system\.user\./, '');
-        if (!/^[A-Za-z0-9_.@-]+$/.test(userName)) {
-            throw new Error('invalidPasswordTarget');
-        }
-        return userName;
-    }
-
     private async setEosUserPassword(userId: string, password: string): Promise<void> {
-        // ioBroker's password API expects the account name (for example "user"), not the
-        // object id ("system.user.user"). Supplying the object id can return without changing
-        // the password on some controller versions. Always normalize to the real account name.
-        const userName = this.getEosPasswordUserName(userId);
-        // The server-side Admin/Service context performs the controller password write, so managed
-        // Installer and End User accounts do not need global users.write rights in the browser.
-        const options = { user: EOS_PASSWORD_SERVICE_USER };
-        if (typeof this.adapter.setPasswordAsync === 'function') {
-            await this.adapter.setPasswordAsync(userName, password, options);
-        } else if (typeof this.adapter.setPassword === 'function') {
-            await new Promise<void>((resolve, reject) => {
-                this.adapter.setPassword?.(userName, password, options, error => (error ? reject(error) : resolve()));
-            });
-        } else {
-            throw new Error('passwordApiUnavailable');
-        }
-
-        // Verify the write with the controller API whenever it is exposed. This prevents the
-        // UI from reporting success while the object database still contains the old hash.
-        if (typeof this.adapter.checkPasswordAsync === 'function') {
-            const result = await this.adapter.checkPasswordAsync(userName, password, options);
-            const valid = Array.isArray(result) ? result[0] === true : result === true;
-            if (!valid) {
-                throw new Error('passwordVerificationFailed');
-            }
-            return;
-        }
-
-        // Compatibility fallback for older controllers: require a non-empty stored password hash.
-        const userObject = (await this.adapter.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
-        if (!String(userObject?.common?.password || '').trim()) {
-            throw new Error('passwordWriteFailed');
-        }
-    }
-
-    private async updateEosAccountMetadata(
-        userId: string,
-        updater: (native: Record<string, unknown>, account: Record<string, unknown>) => void,
-    ): Promise<void> {
-        const userObject = (await this.adapter.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
-        if (!userObject) {
-            throw new Error('userObjectUnavailableAfterPasswordChange');
-        }
-        const native = { ...((userObject.native || {}) as Record<string, unknown>) };
-        const account = { ...((native.nexowattEosAccount || {}) as Record<string, unknown>) };
-        native.nexowattEosAccount = account;
-        updater(native, account);
-        // Extend only the EOS metadata. Replacing the complete user object here could overwrite the
-        // password hash which was just written by setPasswordAsync/changePassword.
-        await this.adapter.extendForeignObjectAsync(
-            userId,
-            { native },
-            { user: EOS_PASSWORD_SERVICE_USER },
-        );
+        // ioBroker's password API receives the short user name, while EOS access
+        // policy uses system.user.* object IDs. The helper also verifies the
+        // persisted hash and, where supported, the new credential itself.
+        await setEosUserPasswordWithVerification(this.adapter, userId, password, EOS_PASSWORD_SERVICE_USER);
     }
 
     private async destroyEosRequestSessions(req: Request): Promise<void> {
@@ -992,7 +931,11 @@ export default class Web {
             res.status(403).json({ error: 'passwordSetupNotAllowed' });
             return;
         }
-        if (!this.isEosSameOriginWrite(req) || req.headers['x-nexowatt-eos-first-login'] !== '1') {
+        if (req.headers['x-nexowatt-eos-first-login'] !== '1') {
+            res.status(403).json({ error: 'invalidRequest' });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req)) {
             res.status(403).json({ error: 'invalidRequestOrigin' });
             return;
         }
@@ -1014,24 +957,40 @@ export default class Web {
         }
 
         await this.setEosUserPassword(access.userId, validation.password);
+        const userObject = (await this.adapter.getForeignObjectAsync(access.userId)) as ioBroker.UserObject | null;
+        if (!userObject) {
+            throw new Error('userObjectUnavailableAfterPasswordChange');
+        }
+        const native = { ...((userObject.native || {}) as Record<string, unknown>) };
+        const account = { ...((native.nexowattEosAccount || {}) as Record<string, unknown>) };
         const now = new Date().toISOString();
-        await this.updateEosAccountMetadata(access.userId, (native, account) => {
-            account.passwordInitialized = true;
-            account.passwordInitializedAt = Date.now();
-            account.passwordInitializationVersion = 1;
-            account.passwordInitializedBy = 'self';
-            account.passwordSetupVersion = 1;
-            account.passwordSetAt = now;
-            account.firstLoginCompletedAt = now;
-            account.forcePasswordChange = false;
-            account.passwordlessFirstLoginAllowed = false;
-            native.nexowattPasswordChangeRequired = false;
-            native.eosPasswordChangeRequired = false;
-            native.nexowattFirstLoginPending = false;
-            native.eosFirstLoginRequired = false;
-            native.nexowattInitialPasswordApplied = false;
-            native.nexowattPasswordChangedAt = now;
-        });
+        account.passwordInitialized = true;
+        account.passwordInitializedAt = Date.now();
+        account.passwordInitializationVersion = 1;
+        account.passwordInitializedBy = 'self';
+        account.passwordSetupVersion = 1;
+        account.passwordSetAt = now;
+        account.firstLoginCompletedAt = now;
+        account.forcePasswordChange = false;
+        account.passwordlessFirstLoginAllowed = false;
+        native.nexowattEosAccount = account;
+        native.nexowattPasswordChangeRequired = false;
+        native.eosPasswordChangeRequired = false;
+        native.nexowattFirstLoginPending = false;
+        native.eosFirstLoginRequired = false;
+        native.nexowattInitialPasswordApplied = false;
+        native.nexowattPasswordChangedAt = now;
+        // Never write the stale full user object after setPasswordAsync: doing so
+        // could restore the previous common.password hash. Extend native only.
+        await this.adapter.extendForeignObjectAsync(
+            access.userId,
+            { native },
+            { user: EOS_PASSWORD_SERVICE_USER },
+        );
+        const persistedState = await this.getEosFirstLoginPasswordState(access.userId, access.role);
+        if (persistedState.required || !persistedState.initialized) {
+            throw new Error('passwordMetadataNotPersisted');
+        }
         await this.destroyEosRequestSessions(req);
         for (const cookie of ['access_token', 'refresh_token', 'connect.sid']) {
             res.clearCookie(cookie);
@@ -1280,25 +1239,33 @@ export default class Web {
             return;
         }
         await this.setEosUserPassword(claim.userId, validation.password);
+        const user = (await this.adapter.getForeignObjectAsync(claim.userId)) as ioBroker.UserObject | null;
+        if (!user) {
+            throw new Error('userObjectUnavailableAfterPasswordChange');
+        }
+        const native = { ...((user.native || {}) as Record<string, unknown>) };
+        const account = { ...((native.nexowattEosAccount || {}) as Record<string, unknown>) };
         const now = new Date().toISOString();
-        await this.updateEosAccountMetadata(claim.userId, (native, account) => {
-            account.passwordInitialized = true;
-            account.passwordInitializedAt = Date.now();
-            account.passwordInitializationVersion = 1;
-            account.passwordInitializedBy = 'passwordless-first-activation';
-            account.passwordSetupVersion = 1;
-            account.passwordSetAt = now;
-            account.firstLoginCompletedAt = now;
-            account.forcePasswordChange = false;
-            account.passwordlessFirstLoginAllowed = false;
-            account.passwordlessClaimCompletedAt = now;
-            native.nexowattPasswordChangeRequired = false;
-            native.eosPasswordChangeRequired = false;
-            native.nexowattFirstLoginPending = false;
-            native.eosFirstLoginRequired = false;
-            native.nexowattInitialPasswordApplied = false;
-            native.nexowattPasswordChangedAt = now;
-        });
+        account.passwordInitialized = true;
+        account.passwordInitializedAt = Date.now();
+        account.passwordInitializationVersion = 1;
+        account.passwordInitializedBy = 'passwordless-first-activation';
+        account.passwordSetupVersion = 1;
+        account.passwordSetAt = now;
+        account.firstLoginCompletedAt = now;
+        account.forcePasswordChange = false;
+        account.passwordlessFirstLoginAllowed = false;
+        account.passwordlessClaimCompletedAt = now;
+        native.nexowattEosAccount = account;
+        native.nexowattPasswordChangeRequired = false;
+        native.eosPasswordChangeRequired = false;
+        native.nexowattFirstLoginPending = false;
+        native.eosFirstLoginRequired = false;
+        await this.adapter.extendForeignObjectAsync(
+            claim.userId,
+            { native },
+            { user: EOS_PASSWORD_SERVICE_USER },
+        );
         this.invalidateEosPasswordClaimsForUser(claim.userId);
         res.clearCookie('nexowatt_eos_first_login', { path: '/nexowatt/account' });
         this.adapter.log.info(`EOS passwordless first activation completed for ${claim.userId}`);
@@ -1368,10 +1335,14 @@ export default class Web {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         const access = await this.getEosRequestAccess(req);
         if (!access.userId || (access.role !== 'admin' && access.role !== 'installer')) {
-            res.status(403).json({ error: 'permissionError' });
+            res.status(403).json({ error: 'permissionError', role: access.role });
             return;
         }
-        if (!this.isEosSameOriginWrite(req) || req.headers['x-nexowatt-eos-account-reset'] !== '1') {
+        if (req.headers['x-nexowatt-eos-account-reset'] !== '1') {
+            res.status(403).json({ error: 'invalidRequest' });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req)) {
             res.status(403).json({ error: 'invalidRequestOrigin' });
             return;
         }
@@ -1380,21 +1351,14 @@ export default class Web {
             res.status(400).json({ error: 'invalidTarget' });
             return;
         }
-        const targetAccess = await this.getEosAccessForUserId(targetUserId);
-        const explicitInstaller = targetAccess.groups.some(group => this.getEosInstallerGroups().includes(group));
-        const explicitEndUser = targetAccess.groups.some(group => this.getEosEndUserGroups().includes(group));
-        const explicitlyManagedRole: 'installer' | 'enduser' | null = explicitInstaller
-            ? 'installer'
-            : explicitEndUser
-              ? 'enduser'
-              : null;
-        if (
-            targetAccess.role === 'admin'
-            || !explicitlyManagedRole
-            || (access.role === 'installer' && explicitlyManagedRole !== 'enduser')
-        ) {
-            // Never rely on the secure-default "enduser" classification for a password reset. The
-            // target must be an explicit member of a managed EOS installer/end-user group.
+        // Authorize against the same managed-account list shown by the dialog.
+        // This avoids a second, diverging role classification during POST.
+        const managedAccounts = await this.getEosManagedAccounts(access.role);
+        const managedTarget = managedAccounts.find(account => account.id === targetUserId);
+        const explicitlyManagedRole = managedTarget?.role === 'installer' || managedTarget?.role === 'enduser'
+            ? managedTarget.role
+            : null;
+        if (!managedTarget || !explicitlyManagedRole) {
             res.status(403).json({ error: 'permissionError' });
             return;
         }
@@ -1408,26 +1372,40 @@ export default class Web {
             return;
         }
         await this.setEosUserPassword(targetUserId, 'nexowatt');
+        const user = (await this.adapter.getForeignObjectAsync(targetUserId)) as ioBroker.UserObject | null;
+        if (!user) {
+            throw new Error('userObjectUnavailableAfterPasswordReset');
+        }
+        const native = { ...((user.native || {}) as Record<string, unknown>) };
+        const account = { ...((native.nexowattEosAccount || {}) as Record<string, unknown>) };
         const now = new Date().toISOString();
-        await this.updateEosAccountMetadata(targetUserId, (native, account) => {
-            account.passwordInitialized = false;
-            account.passwordSetupVersion = 0;
-            account.passwordInitializationVersion = 0;
-            account.forcePasswordChange = true;
-            account.passwordlessFirstLoginAllowed = false;
-            account.passwordResetAt = now;
-            account.passwordResetBy = access.userId;
-            account.passwordResetMode = 'initial-password';
-            account.passwordSetAt = null;
-            account.firstLoginCompletedAt = null;
-            native.nexowattPasswordChangeRequired = true;
-            native.eosPasswordChangeRequired = true;
-            native.nexowattFirstLoginPending = true;
-            native.eosFirstLoginRequired = true;
-            native.nexowattInitialPasswordApplied = true;
-            native.nexowattInitialPasswordVersion = 1;
-            native.nexowattStableInitialCredentialVersion = 1;
-        });
+        account.passwordInitialized = false;
+        account.passwordSetupVersion = 0;
+        account.passwordInitializationVersion = 0;
+        account.forcePasswordChange = true;
+        account.passwordlessFirstLoginAllowed = false;
+        account.passwordResetAt = now;
+        account.passwordResetBy = access.userId;
+        account.passwordResetMode = 'initial-password';
+        native.nexowattPasswordChangeRequired = true;
+        native.eosPasswordChangeRequired = true;
+        native.nexowattFirstLoginPending = true;
+        native.eosFirstLoginRequired = true;
+        native.nexowattInitialPasswordApplied = true;
+        native.nexowattInitialPasswordVersion = 1;
+        native.nexowattStableInitialCredentialVersion = 1;
+        delete account.passwordSetAt;
+        delete account.firstLoginCompletedAt;
+        native.nexowattEosAccount = account;
+        await this.adapter.extendForeignObjectAsync(
+            targetUserId,
+            { native },
+            { user: EOS_PASSWORD_SERVICE_USER },
+        );
+        const resetState = await this.getEosFirstLoginPasswordState(targetUserId, explicitlyManagedRole);
+        if (!resetState.required || resetState.initialized) {
+            throw new Error('passwordMetadataNotPersisted');
+        }
         this.invalidateEosPasswordClaimsForUser(targetUserId);
         this.adapter.log.warn(`EOS account ${targetUserId} was reset to the mandatory initial-password flow by ${access.userId}`);
         res.status(200).json({
@@ -1507,28 +1485,7 @@ export default class Web {
     }
 
     private isEosSameOriginWrite(req: Request): boolean {
-        const fetchSite = String(req.headers['sec-fetch-site'] || '').trim().toLowerCase();
-        if (fetchSite === 'cross-site') {
-            return false;
-        }
-        const origin = String(req.headers.origin || '').trim();
-        if (!origin) {
-            // Older browsers and same-origin form requests may omit Origin. The custom route header
-            // remains mandatory on every write endpoint.
-            return true;
-        }
-        try {
-            const originUrl = new URL(origin);
-            const directHost = String(req.headers.host || '').trim().toLowerCase();
-            const forwardedHost = String(req.headers['x-forwarded-host'] || '')
-                .split(',')[0]
-                .trim()
-                .toLowerCase();
-            const allowedHosts = new Set([directHost, forwardedHost].filter(Boolean));
-            return allowedHosts.has(originUrl.host.toLowerCase());
-        } catch {
-            return false;
-        }
+        return isEosSameOriginRequest(req.headers as Record<string, unknown>);
     }
 
     private async saveEosBasicSettings(req: Request, res: Response): Promise<void> {
@@ -1777,6 +1734,9 @@ export default class Web {
             });*/
 
             this.server.app.get('/version', (_req: Request, res: Response): void => {
+                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
                 res.status(200).send(this.adapter.version);
             });
 
@@ -2067,8 +2027,13 @@ export default class Web {
             });
             this.server.app.post('/nexowatt/account/first-password', (req: Request, res: Response): void => {
                 void this.saveEosFirstLoginPassword(req, res).catch(e => {
-                    this.adapter.log.warn(`Cannot initialize EOS first-login password: ${e instanceof Error ? e.message : e}`);
-                    res.status(500).json({ error: 'passwordSetupFailed' });
+                    const detail = e instanceof Error ? e.message : String(e || '');
+                    this.adapter.log.warn(`Cannot initialize EOS first-login password: ${detail}`);
+                    const known = new Set([
+                        'passwordApiUnavailable', 'passwordNotPersisted', 'passwordVerificationFailed',
+                        'passwordMetadataNotPersisted', 'userObjectUnavailableAfterPasswordChange',
+                    ]);
+                    res.status(500).json({ error: known.has(detail) ? detail : 'passwordSetupFailed' });
                 });
             });
             this.server.app.get('/nexowatt/account/manage', (req: Request, res: Response): void => {
@@ -2079,8 +2044,13 @@ export default class Web {
             });
             this.server.app.post('/nexowatt/account/reset', (req: Request, res: Response): void => {
                 void this.resetEosAccountPassword(req, res).catch(e => {
-                    this.adapter.log.warn(`Cannot reset EOS account: ${e instanceof Error ? e.message : e}`);
-                    res.status(500).json({ error: 'accountResetFailed' });
+                    const detail = e instanceof Error ? e.message : String(e || '');
+                    this.adapter.log.warn(`Cannot reset EOS account: ${detail}`);
+                    const known = new Set([
+                        'passwordApiUnavailable', 'passwordNotPersisted', 'passwordVerificationFailed',
+                        'passwordMetadataNotPersisted', 'userObjectUnavailableAfterPasswordReset',
+                    ]);
+                    res.status(500).json({ error: known.has(detail) ? detail : 'accountResetFailed' });
                 });
             });
 
@@ -2222,7 +2192,31 @@ export default class Web {
                 }
             });
 
-            const appOptions: { maxAge?: number } = {};
+            const isEosCurrentAsset = (pathName: string): boolean =>
+                pathName === '/'
+                || pathName === '/index.html'
+                || pathName === '/manifest.json'
+                || pathName === '/mf-manifest.json'
+                || pathName === '/version'
+                || /^\/(?:js|css)\/(?:eos-|nexowatt-)/.test(pathName)
+                || /^\/static\/js\/nexowatt-stable-v\d+\.js$/.test(pathName)
+                || /^\/remoteEntry(?:-v\d+)?\.js$/.test(pathName)
+                || /^\/assets\/(?:bootstrap|hostInit|Intro|index-CQZugZ1z|index-D2ymscJA|iobroker_admin__mf_v__runtimeInit__mf_v__)-[^/]+\.js$/.test(pathName);
+
+            const applyNoStoreHeaders = (res: Response): void => {
+                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
+                res.setHeader('Surrogate-Control', 'no-store');
+            };
+
+            const appOptions: { maxAge?: number; setHeaders?: (res: any, filePath: string) => void } = {
+                setHeaders: (res, filePath): void => {
+                    const raw = filePath.startsWith(this.wwwDir) ? filePath.slice(this.wwwDir.length) : filePath;
+                    const relativePath = `/${raw.replace(/\\/g, '/').replace(/^\/+/, '')}`;
+                    if (isEosCurrentAsset(relativePath)) applyNoStoreHeaders(res);
+                },
+            };
             if (this.settings.cache) {
                 appOptions.maxAge = 30_758_400_000;
             }
@@ -2336,33 +2330,25 @@ export default class Web {
                     res.status(200).send('');
                 });
 
-                // Stability release: entrypoints and module-federation manifests must always
-                // revalidate. Hashed leaf assets remain cacheable through express.static.
+                // EOS entrypoints, overlays and patched module bundles must never be reused
+                // from a previous release. Hashed untouched leaf assets may remain cacheable.
                 this.server.app.use((req: Request, res: Response, next: NextFunction): void => {
                     const pathName = req.path || req.url.split('?')[0];
-                    if (pathName === '/'
-                        || pathName === '/index.html'
-                        || pathName === '/mf-manifest.json'
-                        || /^\/remoteEntry(?:-v\d+)?\.js$/.test(pathName)
-                        || /^\/assets\/(?:hostInit|index-CQZugZ1z)-[^/]+\.js$/.test(pathName)) {
-                        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-                        res.setHeader('Pragma', 'no-cache');
-                        res.setHeader('Expires', '0');
-                    }
+                    if (isEosCurrentAsset(pathName)) applyNoStoreHeaders(res);
                     next();
                 });
 
                 this.server.app.get('/index.html', async (_req: Request, res: Response): Promise<void> => {
-                    this.indexHTML ||= await this.prepareIndex('/index.html');
+                    this.indexHTML = await this.prepareIndex('/index.html');
                     res.header('Content-Type', 'text/html');
-                    res.header('Cache-Control', 'no-cache');
+                    applyNoStoreHeaders(res);
                     res.status(200).send(this.indexHTML);
                 });
 
                 this.server.app.get('/', async (_req: Request, res: Response): Promise<void> => {
-                    this.indexHTML ||= await this.prepareIndex('/index.html');
+                    this.indexHTML = await this.prepareIndex('/index.html');
                     res.header('Content-Type', 'text/html');
-                    res.header('Cache-Control', 'no-cache');
+                    applyNoStoreHeaders(res);
                     res.status(200).send(this.indexHTML);
                 });
 

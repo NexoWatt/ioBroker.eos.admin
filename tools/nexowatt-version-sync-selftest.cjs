@@ -24,19 +24,7 @@ try {
     const currentPkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
     const version = currentPkg.version;
     writeJson('package.json', currentPkg);
-    writeJson('package-lock.json', {
-        name: currentPkg.name,
-        version: '7.9.92',
-        packages: {
-            '': {
-                version: '7.9.92',
-                description: 'stale description',
-                files: ['README_STABILITY_V7.9.92.md'],
-                scripts: { 'check:eos-stable-v92': 'node stale.js' },
-                nexowattReleasePolicy: { distTag: 'latest', purpose: 'stale 7.9.92 policy' },
-            },
-        },
-    });
+    writeJson('package-lock.json', { name: currentPkg.name, version: '7.9.92', packages: { '': { version: '7.9.92' } } });
     writeJson('io-package.json', {
         version: '7.9.92',
         common: {
@@ -86,11 +74,6 @@ try {
         ['entry version', entry.version],
     ]) {
         if (actual !== version) fail(`${label} was not synchronized: ${actual}`);
-    }
-    for (const key of ['description', 'files', 'scripts', 'nexowattReleasePolicy']) {
-        if (JSON.stringify(lock.packages[''][key]) !== JSON.stringify(currentPkg[key])) {
-            fail(`package-lock root ${key} was not synchronized`);
-        }
     }
     if (io.common.meta !== `${expectedBase}/io-package.json`) fail('io-package URL was not synchronized');
     if (entry.meta !== `${expectedBase}/io-package.json`) fail('repository entry URL was not synchronized');

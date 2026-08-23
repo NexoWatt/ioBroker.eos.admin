@@ -10,6 +10,8 @@ const mainSource = read('src/main.ts');
 const mainBuilt = read('build/main.js');
 const source = read('src/lib/web.ts');
 const built = read('build/lib/web.js');
+const passwordSource = read('src/lib/eosPassword.ts');
+const passwordBuilt = read('build/lib/eosPassword.js');
 const boot = read('adminWww/js/eos-role-bootstrap.js');
 const bootSource = read('src-admin/public/js/eos-role-bootstrap.js');
 const login = read('src-admin/src/login/Login.tsx');
@@ -21,7 +23,7 @@ for (const code of [source, built]) {
     'getEosFirstLoginPasswordState', 'validateEosFirstLoginPassword', 'setEosUserPassword',
     'saveEosFirstLoginPassword', '/nexowatt/account/first-password', 'x-nexowatt-eos-first-login',
     'passwordInitialized', 'passwordSetupVersion', 'forcePasswordChange', 'logoutRequired', "role === 'admin'",
-    'setPasswordAsync', 'EOS_PASSWORD_SERVICE_USER', 'do not need global users.write rights', 'passwordComplexity',
+    'setEosUserPasswordWithVerification', 'EOS_PASSWORD_SERVICE_USER', 'passwordComplexity',
     'isEosSameOriginWrite', 'authenticated', 'destroyEosRequestSessions', 'destroySession', 'clearCookie',
     'getEosPasswordlessFirstLoginStatus', 'startEosPasswordlessFirstLogin', 'saveEosPasswordlessFirstLogin',
     '/nexowatt/account/passwordless-status', '/nexowatt/account/passwordless-claim', '/nexowatt/account/passwordless-password',
@@ -38,6 +40,13 @@ for (const code of [source, built]) {
   if (publicRoute < 0 || authMiddleware < 0 || publicRoute > authMiddleware) fail('passwordless claim routes are not narrowly registered before login middleware');
 }
 
+for (const code of [passwordSource, passwordBuilt]) {
+  for (const marker of ['setPasswordAsync', 'checkPasswordAsync', 'common.password', 'passwordNotPersisted', 'passwordVerificationFailed', 'userName']) if (!code.includes(marker)) fail(`password helper marker missing: ${marker}`);
+  if (/setForeignObject|common\.password\s*=/.test(code)) fail('password helper writes common.password itself');
+}
+if (source.includes('setForeignObjectAsync(access.userId, userObject)') || built.includes('setForeignObjectAsync(access.userId, userObject)')) fail('first-login still writes a stale full user object');
+if (!source.includes('passwordMetadataNotPersisted') || !built.includes('passwordMetadataNotPersisted')) fail('first-login metadata persistence verification missing');
+
 for (const code of [mainSource, mainBuilt]) {
   for (const marker of [
     'ensureEosDefaultUser', 'prepareEosPasswordlessFirstLogin', 'system.user.installer', 'system.user.guest',
@@ -49,9 +58,9 @@ for (const code of [mainSource, mainBuilt]) {
 }
 
 for (const marker of [
-  'v98-first-login-password-native-overview', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
+  'v99-first-login-password-persisted', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
   'passwordSetup?.required', 'X-NexoWatt-EOS-First-Login', 'autocomplete="new-password"', 'location.replace(logoutUrl)',
-  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v98 compact normal-login first activation',
+  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v99 normal-login first activation',
   "card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove())",
   "new Set(['installer', 'guest', 'user'])", 'requestEligibility', 'eligibility.allowed',
   'X-NexoWatt-EOS-Passwordless-Status', 'startClaim', '!password.value', 'X-NexoWatt-EOS-Passwordless-Claim',
@@ -69,8 +78,8 @@ for (const marker of ['NEXOWATT_EOS_FIRST_LOGIN', 'Keep the familiar compact log
 for (const marker of [
   '.eos-first-login-overlay', '.eos-first-login-card', '.eos-first-login-submit', '.eos-passwordless-card',
   '.eos-activation-steps', '.eos-login-role-selector', 'display: none !important', 'main.MuiPaper-root::before',
-  'width: min(456px, calc(100vw - 20px)) !important', 'height: min(536px, calc(100dvh - 20px)) !important',
-  'width: min(400px, calc(100vw - 48px)) !important', 'min-height: 0 !important', 'height: auto !important',
+  'width: min(440px, calc(100vw - 20px)) !important', 'height: min(580px, calc(100dvh - 20px)) !important',
+  'width: min(380px, calc(100vw - 52px)) !important', 'min-height: 510px !important', 'height: auto !important',
   '.eos-login-first-status:empty',
   '.eos-passwordless-launcher', '.eos-login-first-blocked', '.eos-login-first-checking',
 ]) if (!css.includes(marker)) fail(`first-login CSS marker missing: ${marker}`);

@@ -1,4 +1,4 @@
-/* NexoWatt EOS stable runtime v98 */
+/* NexoWatt EOS stable runtime v99 */
 (() => {
   'use strict';
   const MANAGED_USERS = new Set(['installer', 'guest', 'user']);
@@ -14,8 +14,8 @@
   const findSubmit = () => [...document.querySelectorAll('button,input[type="submit"]')].find(element => visible(element) && (/anmelden|login|sign in/i.test((element.textContent || element.value || '').trim()) || element.type === 'submit'));
   const sync = () => {
     if (!isLogin()) return;
-    document.documentElement.classList.add('nw-eos-login-v98');
-    document.body?.classList.add('nw-eos-login-v98');
+    document.documentElement.classList.add('nw-eos-login-v99');
+    document.body?.classList.add('nw-eos-login-v99');
     const username = findInput('user');
     const password = findInput('password');
     const submit = findSubmit();

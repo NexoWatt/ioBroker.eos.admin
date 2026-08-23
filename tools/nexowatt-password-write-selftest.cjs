@@ -1,48 +1,46 @@
 #!/usr/bin/env node
 'use strict';
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
-const root = path.resolve(__dirname, '..');
-const built = fs.readFileSync(path.join(root, 'build/lib/web.js'), 'utf8');
-const source = fs.readFileSync(path.join(root, 'src/lib/web.ts'), 'utf8');
-const begin = built.indexOf('    getEosPasswordUserName(userId) {');
-const end = built.indexOf('    async destroyEosRequestSessions', begin);
-assert(begin >= 0 && end > begin, 'password methods not found in built backend');
-const methods = built.slice(begin, end);
-const sandbox = { module: { exports: null }, EOS_PASSWORD_SERVICE_USER: 'system.user.admin' };
-vm.runInNewContext(`module.exports = class Harness {\nconstructor(adapter){this.adapter=adapter;}\n${methods}\n}`, sandbox);
-const Harness = sandbox.module.exports;
-(async () => {
-  const calls = [];
-  const userObject = { _id: 'system.user.user', common: { password: '$2b$hash' }, native: { keep: true } };
-  const adapter = {
-    setPasswordAsync: async (user, password, options) => calls.push(['set', user, password, options]),
-    checkPasswordAsync: async (user, password, options) => { calls.push(['check', user, password, options]); return [true, `system.user.${user}`]; },
-    getForeignObjectAsync: async id => { calls.push(['get', id]); return JSON.parse(JSON.stringify(userObject)); },
-    extendForeignObjectAsync: async (id, patch, options) => calls.push(['extend', id, patch, options]),
-    setForeignObjectAsync: async () => { throw new Error('full user object replacement must not be used'); },
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {normalizeEosPasswordTarget,setEosUserPasswordWithVerification}=require('../build/lib/eosPassword.js');
+const root=path.resolve(__dirname,'..');
+const source=fs.readFileSync(path.join(root,'src/lib/eosPassword.ts'),'utf8');
+const web=fs.readFileSync(path.join(root,'src/lib/web.ts'),'utf8');
+
+function adapterFixture({verify=true,persist=true,callback=false}={}){
+  let password='old';
+  let hash=persist?'$old':'';
+  const calls=[];
+  const adapter={
+    calls,
+    getForeignObjectAsync:async id=>id==='system.user.user'?{_id:id,common:{password:hash},native:{}}:null,
+    checkPasswordAsync:async (user,value,options)=>{calls.push({kind:'check',user,value,options});return [verify&&user==='user'&&value===password,'system.user.user'];},
   };
-  const harness = new Harness(adapter);
-  await harness.setEosUserPassword('system.user.user', 'NexoWatt2025!');
-  assert.deepEqual(calls[0].slice(0, 3), ['set', 'user', 'NexoWatt2025!']);
-  assert.deepEqual(calls[1].slice(0, 3), ['check', 'user', 'NexoWatt2025!']);
-  await harness.updateEosAccountMetadata('system.user.user', (native, account) => {
-    account.passwordInitialized = true;
-    native.nexowattPasswordChangeRequired = false;
-  });
-  const extend = calls.find(row => row[0] === 'extend');
-  assert(extend, 'native metadata was not extended');
-  assert.equal(extend[1], 'system.user.user');
-  assert.equal(extend[2].native.keep, true);
-  assert.equal(extend[2].native.nexowattEosAccount.passwordInitialized, true);
-  assert(!Object.prototype.hasOwnProperty.call(extend[2], 'common'), 'password/common must not be overwritten by metadata update');
-  for (const code of [source, built]) {
-    assert.match(code, /setPasswordAsync\(userName, password/);
-    assert.match(code, /checkPasswordAsync\(userName, password/);
-    assert.match(code, /extendForeignObjectAsync/);
-    assert.match(code, /passwordVerificationFailed/);
+  const set=async(user,value,options)=>{calls.push({kind:'set',user,value,options});if(user!=='user')throw new Error('shortUserNameRequired');if(persist){password=value;hash=`$hash:${value}`;}};
+  if(callback) adapter.setPassword=(user,value,options,cb)=>set(user,value,options).then(()=>cb(),cb);
+  else adapter.setPasswordAsync=set;
+  return adapter;
+}
+
+(async()=>{
+  assert.deepEqual(normalizeEosPasswordTarget('user'),{userId:'system.user.user',userName:'user'});
+  assert.deepEqual(normalizeEosPasswordTarget('system.user.user'),{userId:'system.user.user',userName:'user'});
+  assert.throws(()=>normalizeEosPasswordTarget('system.user.bad.name'),/invalidPasswordTarget/);
+  for(const fixture of [adapterFixture(),adapterFixture({callback:true})]){
+    const result=await setEosUserPasswordWithVerification(fixture,'system.user.user','Strong!2026');
+    assert.equal(result.userName,'user');
+    assert.equal(fixture.calls.find(c=>c.kind==='set').user,'user','password API must receive short user name');
+    assert.deepEqual(fixture.calls.find(c=>c.kind==='set').options,{user:'system.user.admin'});
+    assert.equal(fixture.calls.find(c=>c.kind==='check').user,'user','password check must receive short user name');
   }
-  console.log('[NexoWatt EOS password write] OK: real account name, verified password API and metadata-only update');
-})().catch(error => { console.error(error.stack || error); process.exit(1); });
+  const noCheck=adapterFixture();delete noCheck.checkPasswordAsync;
+  await setEosUserPasswordWithVerification(noCheck,'user','NoCheck!2026');
+  await assert.rejects(()=>setEosUserPasswordWithVerification(adapterFixture({persist:false}),'user','Missing!2026'),/passwordNotPersisted/);
+  await assert.rejects(()=>setEosUserPasswordWithVerification(adapterFixture({verify:false}),'user','Verify!2026'),/passwordVerificationFailed/);
+  for(const marker of ['setPasswordAsync(userName','checkPasswordAsync(userName','common?.password','userId.replace(/^system\\.user\\./']) assert(source.includes(marker),`source marker missing: ${marker}`);
+  assert(!/setForeignObject|common\.password\s*=/.test(source),'helper must never hash/write common.password itself');
+  assert(web.includes('extendForeignObjectAsync')&&web.includes('passwordMetadataNotPersisted'),'first-login metadata persistence guard missing');
+  assert(!web.includes('setForeignObjectAsync(access.userId, userObject)'),'stale full-user first-login write remains');
+  console.log('[NexoWatt EOS password write] OK (short name, persistence, credential and native-only metadata)');
+})().catch(error=>{console.error(error?.stack||error);process.exit(1);});

@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v98-scroll-login-password-write';
+    const VERSION = 'v99-compact-login-ems-connection';
     const MANAGED_USERS = new Set(['installer', 'guest', 'user']);
     const normalizeUser = value => String(value || '').trim().toLowerCase().replace(/^system\.user\./, '');
     const apply = () => {
@@ -29,5 +29,5 @@
         document.addEventListener('change', schedule, true);
     };
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', start, { once: true }) : start();
-    window.NEXOWATT_EOS_STABLE_V98 = Object.freeze({ version: VERSION, refresh: apply });
+    window.NEXOWATT_EOS_STABLE_V99 = Object.freeze({ version: VERSION, refresh: apply });
 })();

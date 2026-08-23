@@ -1,28 +1,29 @@
 {
-  "version": "7.9.98",
+  "version": "7.9.99",
   "channel": "stable-latest",
-  "baseFrontend": "validated Admin 7 runtime with scrollable native cockpit, clean placeholder login and verified ioBroker password writes",
+  "baseFrontend": "validated Admin 7 runtime with truthful EMS overview, in-grid edit controls, short-name password API and release cache invalidation",
   "runtimeEntry": "v84",
-  "releaseType": "stable-scroll-login-password-write-fix",
-  "release": "stable-scroll-login-password-write-fix",
-  "label": "v98",
+  "releaseType": "stable-truthful-ems-cache-password-fix",
+  "release": "stable-truthful-ems-cache-password-fix",
+  "label": "v99",
   "notes": [
-    "The native cockpit keeps the fixed header and provides an explicit vertical content scrollbar.",
-    "The login uses clean placeholder fields without overlapping MUI outline labels and expands for errors.",
-    "Password reset writes the real ioBroker user password to nexowatt and forces personal password setup.",
-    "First-login password changes are verified through the ioBroker password API before success is shown.",
-    "EOS Assist remains disabled until its separate complete redesign."
+    "The EMS overview exposes only destinations that exist in the installed product.",
+    "The Intro edit controls are anchored inside the lowest card grid.",
+    "EOS password changes use the ioBroker user-name API and verify persistence before clearing first-login flags.",
+    "EOS entrypoints, overlays and patched bundles are served with no-store headers.",
+    "A release watcher detects future server version changes and reloads without a browser hard reset."
   ],
   "changes": [
-    "Normalized system.user.* ids to the short account names expected by setPasswordAsync and checkPasswordAsync.",
-    "Separated password hash writes from EOS native metadata updates to prevent stale object replacement.",
-    "Relaxed same-host origin handling for reverse proxies while rejecting cross-site requests.",
-    "Added a stable vertical scroll surface to the overview and preserved the working EMS live diagnosis.",
-    "Removed floating login labels from the productive bundle and introduced clean accessible placeholders."
+    "Removed the unsupported full EMS diagnosis link from source and productive runtime.",
+    "Moved the pencil/FAB into the bottom Intro card grid.",
+    "Changed password writes from system.user.* IDs to the documented short user name.",
+    "Replaced stale full-user writes after password changes with native-only object extensions.",
+    "Added explicit password persistence, credential and first-login metadata verification.",
+    "Added versioned entrypoints, no-store response headers and an automatic release watcher."
   ],
-  "brandingCacheVersion": 98,
-  "shellCacheVersion": 98,
-  "nativeShellVersion": 98,
-  "shellCacheTag": "98",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v98.json"
+  "brandingCacheVersion": 99,
+  "shellCacheVersion": 99,
+  "nativeShellVersion": 99,
+  "shellCacheTag": "99",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v99.json"
 }

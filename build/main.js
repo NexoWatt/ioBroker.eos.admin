@@ -20,6 +20,7 @@ const socket_classes_1 = require("@iobroker/socket-classes");
 const ws_server_1 = require("@iobroker/ws-server");
 const translations_1 = require("./lib/translations");
 const web_1 = require("./lib/web");
+const eosPassword_1 = require("./lib/eosPassword");
 const checkLinuxPass_1 = require("./lib/checkLinuxPass");
 const plugin_docker_1 = require("@iobroker/plugin-docker");
 const objectFixes_1 = require("./lib/objectFixes");
@@ -1152,7 +1153,7 @@ class Admin extends adapter_core_1.Adapter {
         }
         if (String(user.common.password || '') === '') {
             const bootstrapSecret = `${(0, node_crypto_1.randomBytes)(48).toString('base64url')}!aA1`;
-            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, { user: ADMIN_OWNER_USER });
+            await (0, eosPassword_1.setEosUserPasswordWithVerification)(this, userId, bootstrapSecret, ADMIN_OWNER_USER);
             user = (await this.getForeignObjectAsync(userId));
             if (!user) {
                 return;

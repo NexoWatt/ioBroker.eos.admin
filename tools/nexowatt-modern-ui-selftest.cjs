@@ -19,7 +19,7 @@ for (const marker of [
   '--nx-shadow-soft', '--nx-shadow-float', 'backdrop-filter: blur', '#app-paper', '.MuiDialog-paper',
   '.MuiButton-root', '.MuiTableRow-root', ':focus-visible', 'border-radius: 24px', 'linear-gradient',
   '@media (max-width: 720px)', '.eos-activation-steps', '.eos-account-row:hover',
-  'main.MuiPaper-root::before', 'width: min(400px, calc(100vw - 48px)) !important', '.eos-assist-header-root', '.eos-overview-hero', '.eos-overview-grid',
+  'main.MuiPaper-root::before', 'width: min(380px, calc(100vw - 52px)) !important', '.eos-assist-header-root', '.eos-overview-hero', '.eos-overview-grid',
   '.eos-account-management-entry', 'pointer-events: auto !important', 'touch-action: manipulation', 'overflow: visible',
 ]) if (!css.includes(marker)) fail(`modern styling marker missing: ${marker}`);
 if (sourceCss !== css) fail('modern CSS source/build drift');
@@ -29,7 +29,7 @@ for (const marker of ['eos-account-management.js','nexowatt-native-shell.css','e
 for (const marker of ['NexoWatt EOS', 'Zugänge & Rollen', 'Endkunden-Zugänge', 'ensureEntrySurface']) {
   if (!accountUi.includes(marker)) fail(`modern account surface missing label: ${marker}`);
 }
-for (const marker of ['installIntegratedFirstLogin','v98 compact normal-login first activation','eos-passwordless-card','Idempotent writes are essential here']) {
+for (const marker of ['installIntegratedFirstLogin','v99 normal-login first activation','eos-passwordless-card','Idempotent writes are essential here']) {
   if (!bootstrap.includes(marker)) fail(`integrated first-activation surface missing: ${marker}`);
 }
 if (/data-eos-account=|selector\.innerHTML/.test(bootstrap)) fail('compact login still injects role buttons or a second panel');

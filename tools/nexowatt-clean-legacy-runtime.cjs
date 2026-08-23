@@ -74,7 +74,7 @@ function isLegacyVersionedRuntime(file, activeRuntime, activeShell) {
   // Stable product overlays use the product release number in their filename,
   // while the compiled React runtime can intentionally remain on v84. Keep
   // only the active stable overlay and remove stale release assets left behind
-  // by a flat ZIP update (for example v96 when installing v97).
+  // by a flat ZIP update (for example v98 when installing v99).
   const stableMatch = name.match(/^nexowatt-stable-v(\d+)\.js$/i);
   if (stableMatch) return Number(stableMatch[1]) !== activeShell;
   const versionMatch = name.match(/-v(\d+)\.(?:js|js\.map|css|css\.map)$/i);

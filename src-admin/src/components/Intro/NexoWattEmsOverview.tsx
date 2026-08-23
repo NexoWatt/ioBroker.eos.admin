@@ -287,10 +287,6 @@ export default function NexoWattEmsOverview({ socket }: Props): JSX.Element {
     if (forecast.available) tags.push({ label: `Prognose: ${text(forecast.source, 'aktiv')}${forecast.fresh === false ? ' · veraltet' : ''}`, warning: forecast.fresh === false });
     if (ems.safetyActive || ems.safetyEmergencyStop || ems.safetyValid === false) tags.push({ label: 'EOS Safety aktiv', warning: true });
 
-    const detailsPort = Math.max(1, finite(summary.details?.port, 8188));
-    const detailsPath = text(summary.details?.path, '/ems-apps.html?tab=status');
-    const detailsUrl = `${window.location.protocol}//${window.location.hostname}:${detailsPort}${detailsPath.startsWith('/') ? detailsPath : `/${detailsPath}`}`;
-
     if (!data && !loading) {
         return (
             <section className="eos-ems-overview-card" data-nexowatt-contract="nexowatt-ems-overview-v1" style={{ '--eos-ems-status-color': STATUS_COLORS.info } as React.CSSProperties}>
@@ -365,7 +361,6 @@ export default function NexoWattEmsOverview({ socket }: Props): JSX.Element {
 
             <footer className="eos-ems-overview-footer">
                 <span>Diagnose ist rein lesend. Keine Kachel besitzt Schreibhoheit.</span>
-                <a href={detailsUrl} target="_blank" rel="noreferrer">Vollständige EMS-Diagnose öffnen ↗</a>
             </footer>
         </section>
     );

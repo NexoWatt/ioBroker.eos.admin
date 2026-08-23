@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v98-native-overview-ems-live-reserve-filter';
+    const VERSION = 'v99-native-overview-ems-live-reserve-filter';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -278,7 +278,7 @@
         });
     };
     const ensureSafeOverview = () => safe(() => {
-        // 7.9.97: never cover the real Admin Intro with a second tile surface.
+        // 7.9.99: never cover the real Admin Intro with a second tile surface.
         // Installer and end-user use the native card component; security remains
         // enforced by route/instance filters and backend permissions.
         removeSafeOverview();

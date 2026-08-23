@@ -20,6 +20,7 @@ import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobr
 import { SocketIO } from '@iobroker/ws-server';
 import { getAdapterUpdateText } from './lib/translations';
 import Web from './lib/web';
+import { setEosUserPasswordWithVerification } from './lib/eosPassword';
 import { checkWellKnownPasswords, setLinuxPassword } from './lib/checkLinuxPass';
 import { DockerManager } from '@iobroker/plugin-docker';
 import { checkCommonObjects, updateDevicesObject, updateIcons, validateUserData0 } from './lib/objectFixes';
@@ -1348,7 +1349,7 @@ class Admin extends Adapter {
         }
         if (String(user.common.password || '') === '') {
             const bootstrapSecret = `${randomBytes(48).toString('base64url')}!aA1`;
-            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, { user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User });
+            await setEosUserPasswordWithVerification(this, userId, bootstrapSecret, ADMIN_OWNER_USER as ioBroker.ObjectIDs.User);
             user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
             if (!user) {
                 return;
