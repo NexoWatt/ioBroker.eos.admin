@@ -1292,7 +1292,7 @@ html.eos-route-intro #app-paper [class*="card"] {
     .eos-assist-header-root .eos-assist-panel { right: 8px !important; width: calc(100vw - 16px); }
 }
 
-/* NexoWatt EOS 7.9.99 – orderly login, moderately enlarged. */
+/* NexoWatt EOS 7.9.100 – orderly login, moderately enlarged. */
 html.eos-login,
 html.eos-login body {
     min-height: 100%;
@@ -1408,7 +1408,7 @@ html.eos-safe-overview-active #app-paper > :not(.MuiSnackbar-root):not([role="pr
 .eos-intro-admin-edit-hidden { display: none !important; }
 
 
-/* NexoWatt EOS 7.9.99 – edit controls belong to the lowest Intro card grid. */
+/* NexoWatt EOS 7.9.100 – edit controls belong to the lowest Intro card grid. */
 html.eos-route-intro .eos-native-intro-grid {
     position: relative !important;
     width: 100% !important;

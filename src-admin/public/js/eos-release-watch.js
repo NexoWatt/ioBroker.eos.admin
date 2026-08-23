@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const RELEASE = '7.9.99';
+    const RELEASE = '7.9.100';
     const RELEASE_KEY = 'nexowatt.eos.loadedRelease';
     const RELOAD_KEY = 'nexowatt.eos.reloadTarget';
     const CHECK_MS = 15000;

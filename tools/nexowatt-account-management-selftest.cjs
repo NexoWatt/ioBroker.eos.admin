@@ -12,7 +12,7 @@ for(const code of [webSource,webBuilt]){
   must(!code.includes('setForeignObjectAsync(targetUserId, user)'),'reset still writes stale full user object');
 }
 for(const marker of ['setPasswordAsync(userName','checkPasswordAsync(userName','passwordNotPersisted','passwordVerificationFailed'])must(passwordSource.includes(marker),`password helper marker missing: ${marker}`);
-for(const marker of ["VERSION = 'v99-account-management-password-write'","['admin', 'installer']",'nexowatt/account/manage','nexowatt/account/reset','X-NexoWatt-EOS-Account-Reset','data.canResetInstaller === true',"account.role === 'enduser'",'Admin/Service','Installateure','NEXOWATT_EOS_ACCOUNT_MANAGEMENT','ensureEntrySurface',"currentRoute() !== 'tab-users'",'eos-account-management-entry','Startpasswort „nexowatt“','passwordVerificationFailed'])must(sourceUi.includes(marker),`UI marker missing: ${marker}`);
+for(const marker of ["VERSION = 'v100-account-management-password-write'","['admin', 'installer']",'nexowatt/account/manage','nexowatt/account/reset','X-NexoWatt-EOS-Account-Reset','data.canResetInstaller === true',"account.role === 'enduser'",'Admin/Service','Installateure','NEXOWATT_EOS_ACCOUNT_MANAGEMENT','ensureEntrySurface',"currentRoute() !== 'tab-users'",'eos-account-management-entry','Startpasswort „nexowatt“','passwordVerificationFailed'])must(sourceUi.includes(marker),`UI marker missing: ${marker}`);
 must(sourceUi===builtUi,'account management source/build drift');
 must(!sourceUi.includes("launcher.className = 'eos-account-management-launcher'"),'standalone account launcher remains');
 must(!sourceUi.includes('new MutationObserver'),'account management adds a broad observer');

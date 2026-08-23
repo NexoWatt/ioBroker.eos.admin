@@ -27,6 +27,7 @@ import { McpServer, type McpAdapterConfig } from 'iobroker.mcp';
 import type { AdminAdapterConfig } from '../types';
 import { setEosUserPasswordWithVerification } from './eosPassword';
 import { isEosSameOriginRequest } from './eosRequestSecurity';
+import { NexoWattStableUpdateManager } from './eosAutoUpdate';
 
 let AdapterStore;
 /** Content of a socket-io file */
@@ -186,6 +187,7 @@ interface AdminAdapter extends ioBroker.Adapter {
 
 /** Webserver class */
 export default class Web {
+    private nexowattStableUpdateManager?: NexoWattStableUpdateManager;
     server: {
         app: null | Express;
         server: null | (Server & { __server: { app: null | Express; server: null | Server } });
@@ -1484,6 +1486,41 @@ export default class Web {
         });
     }
 
+    private getNexoWattStableUpdateManager(): NexoWattStableUpdateManager {
+        this.nexowattStableUpdateManager ||= new NexoWattStableUpdateManager(this.adapter as any);
+        return this.nexowattStableUpdateManager;
+    }
+
+    private async sendNexoWattStableUpdateStatus(req: Request, res: Response): Promise<void> {
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        res.status(200).json(await this.getNexoWattStableUpdateManager().getStatus(false));
+    }
+
+    private async saveNexoWattStableUpdateSettings(req: Request, res: Response): Promise<void> {
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        if (req.headers['x-nexowatt-eos-auto-update'] !== '1') {
+            res.status(403).json({ error: 'invalidRequest' });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req)) {
+            res.status(403).json({ error: 'invalidRequestOrigin' });
+            return;
+        }
+        if (typeof req.body?.enabled !== 'boolean') {
+            res.status(400).json({ error: 'invalidEnabledValue' });
+            return;
+        }
+        res.status(200).json(await this.getNexoWattStableUpdateManager().setEnabled(req.body.enabled));
+    }
+
     private isEosSameOriginWrite(req: Request): boolean {
         return isEosSameOriginRequest(req.headers as Record<string, unknown>);
     }
@@ -1733,6 +1770,21 @@ export default class Web {
                 next();
             });*/
 
+            void this.getNexoWattStableUpdateManager().start().catch(error => {
+                this.adapter.log.warn(`[NexoWatt stable updates] Startup reconciliation failed: ${error instanceof Error ? error.message : error}`);
+            });
+            this.server.app.get('/nexowatt/updates/status', (req: Request, res: Response): void => {
+                void this.sendNexoWattStableUpdateStatus(req, res).catch(error => {
+                    this.adapter.log.warn(`[NexoWatt stable updates] Cannot read status: ${error instanceof Error ? error.message : error}`);
+                    res.status(500).json({ error: 'autoUpdateStatusFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/updates/settings', (req: Request, res: Response): void => {
+                void this.saveNexoWattStableUpdateSettings(req, res).catch(error => {
+                    this.adapter.log.warn(`[NexoWatt stable updates] Cannot save settings: ${error instanceof Error ? error.message : error}`);
+                    res.status(500).json({ error: 'autoUpdateSettingsFailed' });
+                });
+            });
             this.server.app.get('/version', (_req: Request, res: Response): void => {
                 res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
                 res.setHeader('Pragma', 'no-cache');

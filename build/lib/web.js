@@ -23,6 +23,7 @@ const cookieParser = require("cookie-parser");
 const iobroker_mcp_1 = require("iobroker.mcp");
 const eosPassword_1 = require("./eosPassword");
 const eosRequestSecurity_1 = require("./eosRequestSecurity");
+const eosAutoUpdate_1 = require("./eosAutoUpdate");
 let AdapterStore;
 /** Content of a socket-io file */
 let socketIoFile;
@@ -1250,6 +1251,38 @@ class Web {
             ],
         });
     }
+    getNexoWattStableUpdateManager() {
+        this.nexowattStableUpdateManager ||= new eosAutoUpdate_1.NexoWattStableUpdateManager(this.adapter);
+        return this.nexowattStableUpdateManager;
+    }
+    async sendNexoWattStableUpdateStatus(req, res) {
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        res.status(200).json(await this.getNexoWattStableUpdateManager().getStatus(false));
+    }
+    async saveNexoWattStableUpdateSettings(req, res) {
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        if (req.headers['x-nexowatt-eos-auto-update'] !== '1') {
+            res.status(403).json({ error: 'invalidRequest' });
+            return;
+        }
+        if (!this.isEosSameOriginWrite(req)) {
+            res.status(403).json({ error: 'invalidRequestOrigin' });
+            return;
+        }
+        if (typeof req.body?.enabled !== 'boolean') {
+            res.status(400).json({ error: 'invalidEnabledValue' });
+            return;
+        }
+        res.status(200).json(await this.getNexoWattStableUpdateManager().setEnabled(req.body.enabled));
+    }
     isEosSameOriginWrite(req) {
         return (0, eosRequestSecurity_1.isEosSameOriginRequest)(req.headers);
     }
@@ -1483,6 +1516,21 @@ class Web {
                 res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
                 next();
             });*/
+            void this.getNexoWattStableUpdateManager().start().catch(error => {
+                this.adapter.log.warn(`[NexoWatt stable updates] Startup reconciliation failed: ${error instanceof Error ? error.message : error}`);
+            });
+            this.server.app.get('/nexowatt/updates/status', (req, res) => {
+                void this.sendNexoWattStableUpdateStatus(req, res).catch(error => {
+                    this.adapter.log.warn(`[NexoWatt stable updates] Cannot read status: ${error instanceof Error ? error.message : error}`);
+                    res.status(500).json({ error: 'autoUpdateStatusFailed' });
+                });
+            });
+            this.server.app.post('/nexowatt/updates/settings', (req, res) => {
+                void this.saveNexoWattStableUpdateSettings(req, res).catch(error => {
+                    this.adapter.log.warn(`[NexoWatt stable updates] Cannot save settings: ${error instanceof Error ? error.message : error}`);
+                    res.status(500).json({ error: 'autoUpdateSettingsFailed' });
+                });
+            });
             this.server.app.get('/version', (_req, res) => {
                 res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
                 res.setHeader('Pragma', 'no-cache');

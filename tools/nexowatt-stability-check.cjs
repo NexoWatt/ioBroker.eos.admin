@@ -50,7 +50,7 @@ for (const marker of [
   `eos-assistant.js?v=${shellTag}`,
   `nexowatt-native-shell.css?v=${shellTag}`,
   `eos-release-watch.js?v=${shellTag}`,
-  `nexowatt-stable-v99.js?v=${shellTag}`,
+  `nexowatt-stable-v${shellNo}.js?v=${shellTag}`,
 ]) if (!index.includes(marker)) fail(`index missing ${marker}`);
 for (const old of ['eos-branding.js','eos-branding.css','eos-security-ui.js','eos-console-quiet.js','eos-objects-state-tools.js']) {
   if (index.includes(old)) fail(`legacy overlay active: ${old}`);
