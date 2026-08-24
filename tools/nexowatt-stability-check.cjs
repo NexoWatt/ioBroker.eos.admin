@@ -22,7 +22,8 @@ const runtime = info.runtimeEntry;
 const runtimeNo = Number(String(runtime).replace(/^v/, ''));
 const shellNo = Number(info.shellCacheVersion ?? info.brandingCacheVersion);
 const shellTag = String(info.shellCacheTag || shellNo);
-if (!/^7\.10\.2(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
+const autoUpdateTag = String(info.autoUpdateCacheTag || info.autoUpdateCacheVersion || shellTag);
+if (!/^7\.10\.3(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
 if (!Number.isFinite(runtimeNo) || !Number.isFinite(shellNo)) fail('invalid runtime/shell version');
 for (const [name, value] of [
   ['build info', info.version],
@@ -46,7 +47,8 @@ for (const marker of [
   `nexowatt-native-shell.js?v=${shellTag}`,
   `eos-native-security.js?v=${shellTag}`,
   `eos-role-ui.js?v=${shellTag}`,
-  `eos-auto-update.js?v=${shellTag}`,
+  `eos-auto-update.js?v=${autoUpdateTag}`,
+  `eos-auto-update.css?v=${autoUpdateTag}`,
   `eos-assistant.js?v=${shellTag}`,
   `nexowatt-native-shell.css?v=${shellTag}`,
 ]) if (!index.includes(marker)) fail(`index missing ${marker}`);
@@ -88,7 +90,7 @@ const sec = read('adminWww/js/eos-native-security.js');
 if (sec.includes('querySelectorAll') || sec.includes('MutationObserver') || /addEventListener\(['"]click/.test(sec)) fail('security bridge touches DOM');
 if (!read('adminWww/js/eos-policy-client.js').includes('never downgrade an admin to enduser')) fail('policy transient guard missing');
 
-for (const rel of ['js/eos-role-bootstrap.js','js/eos-policy-client.js','js/eos-branding-sanitizer.js','js/nexowatt-native-shell.js','js/eos-native-security.js','js/eos-basic-settings.js','js/eos-role-ui.js','js/eos-account-management.js','js/eos-auto-update.js','js/eos-assistant.js','js/eos-manual-write-policy.js','css/nexowatt-native-shell.css']) {
+for (const rel of ['js/eos-role-bootstrap.js','js/eos-policy-client.js','js/eos-branding-sanitizer.js','js/nexowatt-native-shell.js','js/eos-native-security.js','js/eos-basic-settings.js','js/eos-role-ui.js','js/eos-account-management.js','js/eos-auto-update.js','css/eos-auto-update.css','js/eos-assistant.js','js/eos-manual-write-policy.js','css/nexowatt-native-shell.css']) {
   if (read(`src-admin/public/${rel}`) !== read(`adminWww/${rel}`)) fail(`source/build drift: ${rel}`);
 }
 

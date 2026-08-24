@@ -1,27 +1,28 @@
 {
-  "version": "7.10.2",
+  "version": "7.10.3",
   "channel": "stable-latest",
-  "baseFrontend": "validated 7.10.1 UI baseline with restart-safe backend auto-update management and complete npm runtime packaging",
+  "baseFrontend": "validated 7.10.2 stable runtime with automatic adapter updates relocated into System Settings",
   "runtimeEntry": "v84",
-  "releaseType": "stable-restart-loop-package-hotfix",
-  "release": "stable-restart-loop-package-hotfix",
-  "label": "v7-10-2",
+  "releaseType": "stable-system-settings-auto-update-placement",
+  "release": "stable-system-settings-auto-update-placement",
+  "label": "v7-10-3",
   "notes": [
-    "Built from the 7.10.1 stable candidate without changing the validated frontend baseline.",
-    "Auto-update runtime state is stored in acknowledged adapter states and never in the running instance native configuration.",
-    "Startup reconciliation is delayed so the web server can finish serving the initial browser assets.",
-    "Backend compilation is mandatory before pack/publish and packaged local runtime imports are verified."
+    "Retains the validated 7.10.2 restart-loop and package-completeness fixes.",
+    "The automatic NexoWatt adapter update card is no longer mounted in the normal overview or module pages.",
+    "The update control is mounted only inside the administrator System Settings dialog opened with the wrench button.",
+    "A dedicated placement selftest prevents the card from returning to global page content."
   ],
   "changes": [
-    "Removed the self-triggered eos-admin restart loop caused by writing eosNexoWattAutoUpdateState to system.adapter.eos-admin.0.native.",
-    "Added restart-safe info.nexowattStableUpdatesEnabled and info.nexowattStableUpdatesState objects.",
-    "Stopped auto-update timers during web server shutdown and avoided unchanged adapter/system configuration writes.",
-    "Added backend dependency closure, syntax and npm artifact completeness tests.",
-    "Guaranteed build/lib/eosRequestSecurity.js is compiled and packaged before release."
+    "Moved Automatic Adapter Updates from the normal page content into System Settings.",
+    "Added a dedicated auto-update cache key so browsers cannot keep the old global placement script.",
+    "Kept backend update policy, state storage and delayed startup reconciliation unchanged.",
+    "Added source/build drift and placement guards for the auto-update UI."
   ],
   "brandingCacheVersion": 7101,
   "shellCacheVersion": 7101,
   "nativeShellVersion": 7101,
   "shellCacheTag": "7101",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-2.json"
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-3.json",
+  "autoUpdateCacheVersion": 7103,
+  "autoUpdateCacheTag": "7103"
 }

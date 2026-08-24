@@ -43,7 +43,9 @@ if (pkg.scripts['test:eos-version-sync'] !== 'node tools/nexowatt-version-sync-s
 if (pkg.scripts['verify:eos-merge'] !== 'node tools/nexowatt-merge-update-selftest.cjs') fail('merge update selftest script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-version-sync-selftest.cjs')) fail('version sync selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-merge-update-selftest.cjs')) fail('merge update selftest is not part of check:eos-stability');
-if (pkg.scripts['check:eos-stable-v7102'] !== 'node tools/nexowatt-stable-v7102-selftest.cjs') fail('stable v7102 selftest script is missing or incorrect');
+if (pkg.scripts['check:eos-stable-v7103'] !== 'node tools/nexowatt-stable-v7103-selftest.cjs') fail('stable v7103 selftest script is missing or incorrect');
+if (pkg.scripts['test:eos-auto-update-placement'] !== 'node tools/nexowatt-auto-update-placement-selftest.cjs') fail('auto-update placement selftest script is missing or incorrect');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-auto-update-placement-selftest.cjs')) fail('auto-update placement selftest is not part of check:eos-stability');
 if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must use the dependency-free direct-publish workflow');
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) fail('prepublishOnly must not require local development dependencies');
 if (pkg.scripts['check:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs') fail('prebuilt release selftest script is missing or incorrect');
@@ -131,14 +133,14 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.10.2.md',
-  'RELEASE_NOTES_V7.10.2.md',
-  'PUBLISH_STABLE_V7.10.2.md',
-  'INSTALL_TEST_V7.10.2.md',
-  'RELEASE_ACCEPTANCE_V7.10.2.md',
+  'README_STABILITY_V7.10.3.md',
+  'RELEASE_NOTES_V7.10.3.md',
+  'PUBLISH_STABLE_V7.10.3.md',
+  'INSTALL_TEST_V7.10.3.md',
+  'RELEASE_ACCEPTANCE_V7.10.3.md',
   'MERGE_UPDATE.ps1',
   'MERGE_UPDATE.cmd',
-  'MERGE_UPDATE_README_V7.10.2.md',
+  'MERGE_UPDATE_README_V7.10.3.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -159,9 +161,14 @@ for (const file of [
   'tools/nexowatt-sync-release-version.cjs',
   'tools/nexowatt-version-sync-selftest.cjs',
   'tools/nexowatt-merge-update-selftest.cjs',
-  'tools/nexowatt-stable-v7102-selftest.cjs',
+  'tools/nexowatt-stable-v7103-selftest.cjs',
   'tools/nexowatt-password-write-selftest.cjs',
   'tools/nexowatt-account-password-flow-selftest.cjs',
+  'tools/nexowatt-auto-update-placement-selftest.cjs',
+  'adminWww/js/eos-auto-update.js',
+  'adminWww/css/eos-auto-update.css',
+  'src-admin/public/js/eos-auto-update.js',
+  'src-admin/public/css/eos-auto-update.css',
   'tools/nexowatt-ems-overview-selftest.cjs',
   'tools/nexowatt-ui-overview-runtime-selftest.cjs',
   'adminWww/js/eos-ems-overview.js',
@@ -191,6 +198,7 @@ const runtime = buildInfo.runtimeEntry;
 const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
 const shellCache = Number(buildInfo.shellCacheVersion ?? buildInfo.nativeShellVersion ?? runtimeNumber);
 const shellTag = String(buildInfo.shellCacheTag || shellCache);
+const autoUpdateTag = String(buildInfo.autoUpdateCacheTag || buildInfo.autoUpdateCacheVersion || shellTag);
 if (!runtime || !Number.isFinite(runtimeNumber)) fail(`invalid runtimeEntry ${runtime}`);
 if (!Number.isFinite(shellCache)) fail(`invalid shellCacheVersion ${buildInfo.shellCacheVersion}`);
 for (const marker of [
@@ -206,7 +214,8 @@ if (!index.includes(`eos-role-bootstrap.js?v=${shellTag}`)) fail('role bootstrap
 if (!index.includes(`eos-branding-sanitizer.js?v=${shellTag}`)) fail('branding sanitizer cache key mismatch');
 if (!index.includes(`eos-role-ui.js?v=${shellTag}`)) fail('role UI cache key mismatch');
 if (index.includes('eos-account-management.js')) fail('custom account-management runtime must not be loaded in standard password mode');
-if (!index.includes(`eos-auto-update.js?v=${shellTag}`)) fail('auto-update cache key mismatch');
+if (!index.includes(`eos-auto-update.js?v=${autoUpdateTag}`)) fail('auto-update JavaScript cache key mismatch');
+if (!index.includes(`eos-auto-update.css?v=${autoUpdateTag}`)) fail('auto-update CSS cache key mismatch');
 if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache key mismatch');
 if (!index.includes(`eos-ems-overview.js?v=${shellTag}`)) fail('EMS overview cache key mismatch');
 if (!index.includes(`eos-ems-overview.css?v=${shellTag}`)) fail('EMS overview CSS cache key mismatch');
