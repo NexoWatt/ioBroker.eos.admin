@@ -48,6 +48,10 @@ if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) fail('prepublishOnly must not require local development dependencies');
 if (pkg.scripts['check:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs') fail('prebuilt release selftest script is missing or incorrect');
 if (pkg.scripts['seal:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs --write') fail('prebuilt release sealing script is missing or incorrect');
+const backendRuntimeSelftest = read('tools/nexowatt-backend-runtime-selftest.cjs');
+if (!backendRuntimeSelftest.includes('dependency-free on Windows')) fail('backend runtime selftest is missing the cross-platform publish marker');
+if (/const\s+npm\s*=\s*process\.platform|spawnSync\(\s*npm\s*,|['"]npm\.cmd['"]/.test(backendRuntimeSelftest)) fail('backend runtime selftest must not spawn a nested npm process');
+if (!(pkg.files || []).some(value => String(value).replace(/\\/g, '/').replace(/\/+$/, '') === 'build')) fail('package.json files must include the complete build directory');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-prebuilt-release-selftest.cjs')) fail('prebuilt release selftest is not part of check:eos-stability');
 if (pkg.scripts['precheck:eos-package'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-package must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-stability must synchronize versions, normalize release defaults and clean stale runtime files');

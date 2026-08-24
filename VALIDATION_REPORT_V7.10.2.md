@@ -17,15 +17,16 @@
 
 Der vorherige Lifecycle führte in `prepublishOnly` und `prepack` automatisch `npm run build:backend` aus. Dadurch wurden `tsc` und `tsx` benötigt. In einer frisch entpackten Repository-ZIP ohne `node_modules` brach `npm publish` deshalb bereits vor dem Upload mit „`tsc` konnte nicht gefunden werden“ ab.
 
-Der reparierte Lifecycle:
+Der reparierte Lifecycle (einschließlich des Windows-Publish-Fixes):
 
 - startet in `prepublishOnly` und `prepack` weder `tsc` noch `tsx`;
+- startet während `prepublishOnly` keinen verschachtelten `npm pack`-Prozess mehr; dadurch entfällt der Windows-Abbruch beim Start von `npm.cmd`;
 - benötigt kein `npm install`, `npm ci` oder `npx`;
 - verwendet ausschließlich mitgelieferte Node.js-Prüfskripte;
 - prüft ein SHA-256-Manifest mit 1.386 versiegelten Quell-, Frontend-, Tool- und Backenddateien;
 - verfolgt die vollständige lokale Backend-Abhängigkeitskette ab `build/main.js`;
 - prüft die JavaScript-Syntax aller 14 lokalen Backend-Runtime-Dateien;
-- kontrolliert per `npm pack --dry-run --ignore-scripts`, dass sämtliche Runtime-Dateien im npm-Artefakt enthalten sind.
+- kontrolliert ohne verschachtelten npm-Prozess, dass sämtliche Runtime-Dateien durch die explizite `package.json`-Dateiliste abgedeckt sind; der endgültige Paketinhalt wird anschließend mit einem separaten `npm publish --dry-run` geprüft.
 
 Die Entwickler-Buildbefehle bleiben für spätere Quellcodeänderungen erhalten. `npm run build` kompiliert dann Frontend und Backend, bereinigt alte Runtime-Dateien und erneuert anschließend automatisch das versiegelte Manifest. Der bereitgestellte Release-Stand ist bereits gebaut und darf unverändert direkt veröffentlicht werden.
 

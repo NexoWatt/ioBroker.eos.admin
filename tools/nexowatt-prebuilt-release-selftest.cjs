@@ -244,7 +244,22 @@ function verifyLifecycle(failures) {
             if (forbidden.test(command)) failures.push(`${name} must not require local development dependencies: ${command}`);
         }
     }
+    const backendRuntimeSelftestFile = path.join(root, 'tools', 'nexowatt-backend-runtime-selftest.cjs');
+    if (!fs.existsSync(backendRuntimeSelftestFile)) {
+        failures.push('tools/nexowatt-backend-runtime-selftest.cjs is missing');
+    } else {
+        const backendRuntimeSelftest = fs.readFileSync(backendRuntimeSelftestFile, 'utf8');
+        if (!backendRuntimeSelftest.includes('dependency-free on Windows')) {
+            failures.push('backend runtime selftest is missing the cross-platform publish marker');
+        }
+        if (/const\s+npm\s*=\s*process\.platform|spawnSync\(\s*npm\s*,|['"]npm\.cmd['"]/.test(backendRuntimeSelftest)) {
+            failures.push('backend runtime selftest must not spawn a nested npm process');
+        }
+    }
     const packageFiles = new Set((pkg.files || []).map(value => String(value).replace(/\\/g, '/')));
+    if (![...packageFiles].some(value => value.replace(/\/+$/, '') === 'build')) {
+        failures.push('package.json files must include the complete build directory');
+    }
     for (const required of [
         'tools/nexowatt-prebuilt-release-selftest.cjs',
         'NEXOWATT_EOS_PREBUILT_MANIFEST.json',
