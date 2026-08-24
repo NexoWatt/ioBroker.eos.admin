@@ -41,8 +41,8 @@ if (pkg.scripts['test:eos-version-sync'] !== 'node tools/nexowatt-version-sync-s
 if (pkg.scripts['verify:eos-merge'] !== 'node tools/nexowatt-merge-update-selftest.cjs') fail('merge update selftest script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-version-sync-selftest.cjs')) fail('version sync selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-merge-update-selftest.cjs')) fail('merge update selftest is not part of check:eos-stability');
-if (pkg.scripts['check:eos-stable-v7101'] !== 'node tools/nexowatt-stable-v7101-selftest.cjs') fail('stable v7101 selftest script is missing or incorrect');
-if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run check:eos-publish-channel')) fail('prepublishOnly must synchronize versions and normalize release defaults before the publish channel guard');
+if (pkg.scripts['check:eos-stable-v7102'] !== 'node tools/nexowatt-stable-v7102-selftest.cjs') fail('stable v7102 selftest script is missing or incorrect');
+if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run build:backend && npm run check:eos-publish-channel')) fail('prepublishOnly must synchronize versions, normalize release defaults and rebuild the backend before the publish channel guard');
 if (pkg.scripts['precheck:eos-package'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-package must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-stability must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['test:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-selftest.cjs') fail('publish channel selftest script is missing');
@@ -53,6 +53,9 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flo
 if (io.native?.auth !== true) fail('fresh sales installations must default to authenticated access');
 if (io.native?.eosHideLegacyBackupFromNonAdmins !== true) fail('internal BackItUp reserve must default to Admin/Service visibility');
 if (io.native?.nexowattHideLegacyBackupFromNonAdmins !== true) fail('NexoWatt backup visibility compatibility flag must default to true');
+const instanceObjectIds = new Set((io.instanceObjects || []).map(object => object?._id));
+if (!instanceObjectIds.has('info.nexowattStableUpdatesEnabled')) fail('restart-safe auto-update enabled state is missing');
+if (!instanceObjectIds.has('info.nexowattStableUpdatesState')) fail('restart-safe auto-update runtime state is missing');
 for (const key of ['description', 'files', 'scripts', 'nexowattReleasePolicy']) {
   if (JSON.stringify(pkgLock.packages?.['']?.[key]) !== JSON.stringify(pkg[key])) {
     fail(`package-lock root ${key} must match package.json`);
@@ -114,23 +117,25 @@ for (const file of [
   'src-admin/src/components/Drawer.tsx',
   'src-admin/src/components/DrawerItem.tsx',
   'admin/admin.svg',
+  'build/lib/eosRequestSecurity.js',
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.10.1.md',
-  'RELEASE_NOTES_V7.10.1.md',
-  'PUBLISH_STABLE_V7.10.1.md',
-  'INSTALL_TEST_V7.10.1.md',
-  'RELEASE_ACCEPTANCE_V7.10.1.md',
+  'README_STABILITY_V7.10.2.md',
+  'RELEASE_NOTES_V7.10.2.md',
+  'PUBLISH_STABLE_V7.10.2.md',
+  'INSTALL_TEST_V7.10.2.md',
+  'RELEASE_ACCEPTANCE_V7.10.2.md',
   'MERGE_UPDATE.ps1',
   'MERGE_UPDATE.cmd',
-  'MERGE_UPDATE_README_V7.10.1.md',
+  'MERGE_UPDATE_README_V7.10.2.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
   'tools/nexowatt-runtime-cleanup-selftest.cjs',
   'tools/nexowatt-esm-syntax-selftest.cjs',
   'tools/nexowatt-import-integrity-selftest.cjs',
+  'tools/nexowatt-backend-runtime-selftest.cjs',
   'tools/nexowatt-entrypoint-smoke-selftest.cjs',
   'tools/nexowatt-role-access-selftest.cjs',
   'tools/nexowatt-first-login-selftest.cjs',
@@ -142,7 +147,7 @@ for (const file of [
   'tools/nexowatt-sync-release-version.cjs',
   'tools/nexowatt-version-sync-selftest.cjs',
   'tools/nexowatt-merge-update-selftest.cjs',
-  'tools/nexowatt-stable-v7101-selftest.cjs',
+  'tools/nexowatt-stable-v7102-selftest.cjs',
   'tools/nexowatt-password-write-selftest.cjs',
   'tools/nexowatt-account-password-flow-selftest.cjs',
   'tools/nexowatt-ems-overview-selftest.cjs',
@@ -255,18 +260,24 @@ if (!mf.includes(`remoteEntry-${runtime}.js`) || !mf.includes(`index-D2ymscJA-${
 const webBuild = read('build/lib/web.js');
 if (!webBuild.includes('refreshLifetime: 60 * 60 * 24 * 7')) fail('build/lib/web.js must keep upstream-compatible refresh lifetime');
 if (!webBuild.includes('Follow upstream admin semantics again')) fail('build/lib/web.js lacks session compatibility fix');
+if (!exists('build/lib/eosRequestSecurity.js')) fail('build/lib/eosRequestSecurity.js is missing');
+const autoUpdateSource = read('src/lib/eosAutoUpdate.ts');
+if (autoUpdateSource.includes('extendForeignObjectAsync(this.instanceId')) fail('auto-update runtime must not write the running instance native configuration');
+if (!autoUpdateSource.includes("const ENABLED_STATE_ID = 'info.nexowattStableUpdatesEnabled'")) fail('restart-safe auto-update state storage is missing');
 const mainBuild = read('build/main.js');
 if (!mainBuild.includes('v37 BackItUp/runtime-adapter compatibility')) fail('build/main.js lacks BackItUp compatibility guard');
 
 if (!pkg.scripts['nexowatt:patch-built-frontend']) fail('missing nexowatt:patch-built-frontend script');
 if (pkg.scripts['check:eos-esm'] !== 'node tools/nexowatt-esm-syntax-selftest.cjs') fail('check:eos-esm script is missing or incorrect');
 if (pkg.scripts['check:eos-imports'] !== 'node tools/nexowatt-import-integrity-selftest.cjs') fail('check:eos-imports script is missing or incorrect');
+if (pkg.scripts['check:eos-backend-runtime'] !== 'node tools/nexowatt-backend-runtime-selftest.cjs') fail('check:eos-backend-runtime script is missing or incorrect');
 if (pkg.scripts['check:eos-entry'] !== 'node tools/nexowatt-entrypoint-smoke-selftest.cjs') fail('check:eos-entry script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-esm-syntax-selftest.cjs')) fail('ESM syntax selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-import-integrity-selftest.cjs')) fail('import integrity selftest is not part of check:eos-stability');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-backend-runtime-selftest.cjs')) fail('backend runtime selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-entrypoint-smoke-selftest.cjs')) fail('entrypoint smoke selftest is not part of check:eos-stability');
 if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
-if (pkg.scripts.prepack !== 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must silently synchronize versions and clean stale runtime files');
+if (pkg.scripts.prepack !== 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && npm run build:backend && node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must synchronize versions, normalize defaults, rebuild the backend and clean stale runtime files');
 if (!pkg.scripts.build?.includes('npm run clean:eos-runtime')) fail('build must finish with runtime cleanup');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest.cjs')) fail('role access selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password flow selftest is not part of check:eos-stability');

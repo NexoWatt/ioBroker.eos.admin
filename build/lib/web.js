@@ -195,6 +195,7 @@ class Web {
             this.checkTimeout = null;
         }
         this.mcpServer?.unload();
+        this.nexowattStableUpdateManager?.stop();
         void this.adapter.setState('info.connection', false, true);
         this.server.server?.close();
     }
@@ -724,7 +725,9 @@ class Web {
         return userName;
     }
     async setEosUserPassword(userId, password) {
-        // ioBroker's password API expects the account name, not the system.user.* object id.
+        // ioBroker's password API expects the account name (for example "user"), not the
+        // object id ("system.user.user"). Supplying the object id can return without changing
+        // the password on some controller versions. Always normalize to the real account name.
         const userName = this.getEosPasswordUserName(userId);
         // The server-side Admin/Service context performs the controller password write, so managed
         // Installer and End User accounts do not need global users.write rights in the browser.
@@ -740,6 +743,8 @@ class Web {
         else {
             throw new Error('passwordApiUnavailable');
         }
+        // Verify the write with the controller API whenever it is exposed. This prevents the
+        // UI from reporting success while the object database still contains the old hash.
         if (typeof this.adapter.checkPasswordAsync === 'function') {
             const result = await this.adapter.checkPasswordAsync(userName, password, options);
             const valid = Array.isArray(result) ? result[0] === true : result === true;
@@ -748,6 +753,7 @@ class Web {
             }
             return;
         }
+        // Compatibility fallback for older controllers: require a non-empty stored password hash.
         const userObject = (await this.adapter.getForeignObjectAsync(userId));
         if (!String(userObject?.common?.password || '').trim()) {
             throw new Error('passwordWriteFailed');
@@ -762,6 +768,8 @@ class Web {
         const account = { ...(native.nexowattEosAccount || {}) };
         native.nexowattEosAccount = account;
         updater(native, account);
+        // Extend only the EOS metadata. Replacing the complete user object here could overwrite the
+        // password hash which was just written by setPasswordAsync/changePassword.
         await this.adapter.extendForeignObjectAsync(userId, { native }, { user: EOS_PASSWORD_SERVICE_USER });
     }
     async destroyEosRequestSessions(req) {
@@ -1270,12 +1278,37 @@ class Web {
             ],
         });
     }
-
-    getNexoWattStableUpdateManager() { this.nexowattStableUpdateManager ||= new eosAutoUpdate_1.NexoWattStableUpdateManager(this.adapter); return this.nexowattStableUpdateManager; }
-    async sendNexoWattStableUpdateStatus(req, res) { const access = await this.getEosRequestAccess(req); if (access.role !== 'admin') { res.status(403).json({ error: 'permissionError' }); return; } res.status(200).json(await this.getNexoWattStableUpdateManager().getStatus(false)); }
-    async saveNexoWattStableUpdateSettings(req, res) { const access = await this.getEosRequestAccess(req); if (access.role !== 'admin') { res.status(403).json({ error: 'permissionError' }); return; } if (req.headers['x-nexowatt-eos-auto-update'] !== '1' || !this.isEosSameOriginWrite(req)) { res.status(403).json({ error: 'invalidRequest' }); return; } if (typeof req.body?.enabled !== 'boolean') { res.status(400).json({ error: 'invalidEnabledValue' }); return; } res.status(200).json(await this.getNexoWattStableUpdateManager().setEnabled(req.body.enabled)); }
-
-    isEosSameOriginWrite(req) { return (0, eosRequestSecurity_1.isEosSameOriginRequest)(req.headers); }
+    getNexoWattStableUpdateManager() {
+        this.nexowattStableUpdateManager ||= new eosAutoUpdate_1.NexoWattStableUpdateManager(this.adapter);
+        return this.nexowattStableUpdateManager;
+    }
+    async sendNexoWattStableUpdateStatus(req, res) {
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        res.status(200).json(await this.getNexoWattStableUpdateManager().getStatus(false));
+    }
+    async saveNexoWattStableUpdateSettings(req, res) {
+        const access = await this.getEosRequestAccess(req);
+        if (access.role !== 'admin') {
+            res.status(403).json({ error: 'permissionError' });
+            return;
+        }
+        if (req.headers['x-nexowatt-eos-auto-update'] !== '1' || !this.isEosSameOriginWrite(req)) {
+            res.status(403).json({ error: 'invalidRequest' });
+            return;
+        }
+        if (typeof req.body?.enabled !== 'boolean') {
+            res.status(400).json({ error: 'invalidEnabledValue' });
+            return;
+        }
+        res.status(200).json(await this.getNexoWattStableUpdateManager().setEnabled(req.body.enabled));
+    }
+    isEosSameOriginWrite(req) {
+        return (0, eosRequestSecurity_1.isEosSameOriginRequest)(req.headers);
+    }
     async saveEosBasicSettings(req, res) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         const access = await this.getEosRequestAccess(req);
@@ -1505,11 +1538,9 @@ class Web {
                 res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
                 next();
             });*/
-
             void this.getNexoWattStableUpdateManager().start().catch(error => this.adapter.log.warn(`[NexoWatt stable updates] Startup reconciliation failed: ${error instanceof Error ? error.message : error}`));
             this.server.app.get('/nexowatt/updates/status', (req, res) => { void this.sendNexoWattStableUpdateStatus(req, res).catch(error => res.status(500).json({ error: String(error) })); });
             this.server.app.post('/nexowatt/updates/settings', (req, res) => { void this.saveNexoWattStableUpdateSettings(req, res).catch(error => res.status(500).json({ error: String(error) })); });
-
             this.server.app.get('/version', (_req, res) => {
                 res.status(200).send(this.adapter.version);
             });

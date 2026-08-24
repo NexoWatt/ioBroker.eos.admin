@@ -1,28 +1,27 @@
 {
-  "version": "7.10.1",
+  "version": "7.10.2",
   "channel": "stable-latest",
-  "baseFrontend": "validated Admin 7 runtime with scrollable native cockpit, clean placeholder login and verified ioBroker password writes",
+  "baseFrontend": "validated 7.10.1 UI baseline with restart-safe backend auto-update management and complete npm runtime packaging",
   "runtimeEntry": "v84",
-  "releaseType": "stable-native-account-scroll-auto-update",
-  "release": "stable-native-account-scroll-auto-update",
-  "label": "v7-10-1",
+  "releaseType": "stable-restart-loop-package-hotfix",
+  "release": "stable-restart-loop-package-hotfix",
+  "label": "v7-10-2",
   "notes": [
-    "Built directly from the known 7.9.98 stable repository baseline.",
-    "The forced EOS first-password and custom reset surfaces are disabled; native ioBroker password management is used.",
-    "Installer, customer and guest accounts receive nexowatt only when first created or genuinely passwordless.",
-    "The cockpit keeps a persistent visible scrollbar and the edit control lives inside the lowest card grid.",
-    "Installed NexoWatt stable adapters use native automatic upgrades by default and can be disabled by Admin/Service."
+    "Built from the 7.10.1 stable candidate without changing the validated frontend baseline.",
+    "Auto-update runtime state is stored in acknowledged adapter states and never in the running instance native configuration.",
+    "Startup reconciliation is delayed so the web server can finish serving the initial browser assets.",
+    "Backend compilation is mandatory before pack/publish and packaged local runtime imports are verified."
   ],
   "changes": [
-    "Normalized system.user.* ids to the short account names expected by setPasswordAsync and checkPasswordAsync.",
-    "Separated password hash writes from EOS native metadata updates to prevent stale object replacement.",
-    "Relaxed same-host origin handling for reverse proxies while rejecting cross-site requests.",
-    "Added a stable vertical scroll surface to the overview and preserved the working EMS live diagnosis.",
-    "Removed floating login labels from the productive bundle and introduced clean accessible placeholders."
+    "Removed the self-triggered eos-admin restart loop caused by writing eosNexoWattAutoUpdateState to system.adapter.eos-admin.0.native.",
+    "Added restart-safe info.nexowattStableUpdatesEnabled and info.nexowattStableUpdatesState objects.",
+    "Stopped auto-update timers during web server shutdown and avoided unchanged adapter/system configuration writes.",
+    "Added backend dependency closure, syntax and npm artifact completeness tests.",
+    "Guaranteed build/lib/eosRequestSecurity.js is compiled and packaged before release."
   ],
   "brandingCacheVersion": 7101,
   "shellCacheVersion": 7101,
   "nativeShellVersion": 7101,
   "shellCacheTag": "7101",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-1.json"
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-2.json"
 }

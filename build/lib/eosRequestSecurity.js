@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isEosSameOriginRequest = isEosSameOriginRequest;
+/** Testable same-origin guard for EOS JSON write routes. */
 function isEosSameOriginRequest(headers) {
     const origin = String(headers.origin || '').trim();
     if (!origin) {
+        // Older embedded browsers can omit Origin for same-site POST requests.
         return true;
     }
     try {
@@ -12,7 +14,7 @@ function isEosSameOriginRequest(headers) {
             return false;
         }
         const allowedHosts = new Set();
-        const addHost = value => {
+        const addHost = (value) => {
             const host = String(value || '').split(',')[0].trim().toLowerCase();
             if (host)
                 allowedHosts.add(host);
@@ -29,3 +31,4 @@ function isEosSameOriginRequest(headers) {
         return false;
     }
 }
+//# sourceMappingURL=eosRequestSecurity.js.map

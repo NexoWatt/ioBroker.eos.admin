@@ -280,6 +280,7 @@ export default class Web {
         }
 
         this.mcpServer?.unload();
+        this.nexowattStableUpdateManager?.stop();
 
         void this.adapter.setState('info.connection', false, true);
         this.server.server?.close();

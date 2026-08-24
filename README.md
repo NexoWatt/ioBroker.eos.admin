@@ -13,9 +13,9 @@ Standard-Port:          8081
 
 Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die alte ioBroker-Admin-Oberfläche kann parallel vorhanden bleiben, während NexoWatt-Systeme über `eos-admin.0` die EOS-Oberfläche nutzen.
 
-## Aktueller Stable-Verkaufskandidat 7.9.98
+## Aktueller Stable-Verkaufskandidat 7.10.2
 
-Version 7.9.98 verwendet die native **Übersicht** als Startseite und ergänzt dort die ausschließlich lesende EMS-Live-Diagnose. Der Inhaltsbereich ist vertikal scrollbar, während Header und Hauptnavigation stehen bleiben.
+Version 7.10.2 übernimmt die validierte 7.10.1-Oberfläche und repariert den kritischen Start-/Stop-Loop des Stable-Update-Managers. Laufzeitstatus wird ausschließlich in Adapter-States gespeichert, der erste Repository-Abgleich startet verzögert und jedes Release-Paket wird auf eine vollständige Backend-Modulkette geprüft. Die native **Übersicht** bleibt die Startseite; der Inhaltsbereich ist vertikal scrollbar, während Header und Hauptnavigation stehen bleiben.
 
 Verwaltete Installateur- und Endkundenkonten verwenden das Startpasswort `nexowatt`. Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
 
@@ -33,7 +33,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.98",
+    "version": "7.10.2",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -141,7 +141,7 @@ npm publish --dry-run --tag latest
 npm publish --tag latest
 ```
 
-Die Version muss vor jedem erneuten Publish erhöht werden. Für 7.9.98 ist die Veröffentlichung des separat geprüften `iobroker.eos-admin-7.9.98.tgz` der sicherste Weg.
+Die Version muss vor jedem erneuten Publish erhöht werden. Für 7.10.2 ist die Veröffentlichung des separat geprüften `iobroker.eos-admin-7.10.2.tgz` der sicherste Weg.
 
 ## Lizenz
 

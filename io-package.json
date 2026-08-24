@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.10.1",
+    "version": "7.10.2",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.10.2": {
+        "de": "Stable-Hotfix 7.10.2 beseitigt die EOS-Admin-Startschleife: Stable-Update-Status wird nicht mehr in die laufende Instanzkonfiguration geschrieben, der erste Abgleich startet verzögert und das Release prüft die vollständige Backend-Modulkette einschließlich eosRequestSecurity.",
+        "en": "Stable hotfix 7.10.2 removes the EOS Admin restart loop: stable-update status is no longer written to the running instance configuration, first reconciliation is delayed, and the release validates the complete backend module chain including eosRequestSecurity.",
+        "nl": "Stable-hotfix 7.10.2 verhelpt de EOS Admin-herstartlus: de status van stabiele updates wordt niet meer naar de configuratie van de actieve instantie geschreven, de eerste synchronisatie start vertraagd en de release controleert de volledige backendmoduleketen inclusief eosRequestSecurity."
+      },
       "7.10.1": {
         "de": "Stable-Kandidat 7.10.1 basiert wieder auf 7.9.98: native Passwortverwaltung ohne erzwungene Erstpasswortseite, dauerhafter Cockpit-Scrollbereich, Stift im unteren Kartenbereich und abschaltbare NexoWatt-Stable-Updates.",
         "en": "Stable candidate 7.10.1 returns to the 7.9.98 baseline: native password management without forced first-password page, persistent cockpit scrolling, in-grid edit control and optional NexoWatt stable updates.",
@@ -339,7 +344,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.1/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.2/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -350,7 +355,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.1/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.2/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -418,7 +423,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.1/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.2/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -849,6 +854,56 @@
       "native": {}
     },
     {
+      "_id": "info.nexowattStableUpdatesEnabled",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "NexoWatt stable automatic updates enabled",
+          "de": "Automatische NexoWatt-Stable-Updates aktiviert",
+          "ru": "Автоматические стабильные обновления NexoWatt включены",
+          "pt": "Atualizações estáveis automáticas da NexoWatt ativadas",
+          "nl": "Automatische stabiele NexoWatt-updates ingeschakeld",
+          "fr": "Mises à jour stables automatiques NexoWatt activées",
+          "it": "Aggiornamenti stabili automatici NexoWatt abilitati",
+          "es": "Actualizaciones estables automáticas de NexoWatt activadas",
+          "pl": "Automatyczne stabilne aktualizacje NexoWatt włączone",
+          "uk": "Автоматичні стабільні оновлення NexoWatt увімкнено",
+          "zh-cn": "已启用 NexoWatt 稳定版自动更新"
+        },
+        "role": "switch.enable",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.nexowattStableUpdatesState",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "NexoWatt stable automatic update runtime state",
+          "de": "Laufzeitstatus der automatischen NexoWatt-Stable-Updates",
+          "ru": "Состояние автоматических стабильных обновлений NexoWatt",
+          "pt": "Estado das atualizações estáveis automáticas da NexoWatt",
+          "nl": "Runtime-status van automatische stabiele NexoWatt-updates",
+          "fr": "État des mises à jour stables automatiques NexoWatt",
+          "it": "Stato degli aggiornamenti stabili automatici NexoWatt",
+          "es": "Estado de las actualizaciones estables automáticas de NexoWatt",
+          "pl": "Stan automatycznych stabilnych aktualizacji NexoWatt",
+          "uk": "Стан автоматичних стабільних оновлень NexoWatt",
+          "zh-cn": "NexoWatt 稳定版自动更新运行状态"
+        },
+        "role": "json",
+        "type": "json",
+        "read": true,
+        "write": false,
+        "def": "{}"
+      },
+      "native": {}
+    },
+    {
       "_id": "info.newsFeed",
       "type": "state",
       "common": {
@@ -1128,5 +1183,5 @@
       }
     }
   },
-  "version": "7.10.1"
+  "version": "7.10.2"
 }

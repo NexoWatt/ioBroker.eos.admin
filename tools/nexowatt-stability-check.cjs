@@ -22,7 +22,7 @@ const runtime = info.runtimeEntry;
 const runtimeNo = Number(String(runtime).replace(/^v/, ''));
 const shellNo = Number(info.shellCacheVersion ?? info.brandingCacheVersion);
 const shellTag = String(info.shellCacheTag || shellNo);
-if (!/^7\.10\.1(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
+if (!/^7\.10\.2(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
 if (!Number.isFinite(runtimeNo) || !Number.isFinite(shellNo)) fail('invalid runtime/shell version');
 for (const [name, value] of [
   ['build info', info.version],
