@@ -67,5 +67,11 @@ if (!pkg.scripts['precheck:eos-package']?.startsWith('npm run sync:eos-version')
 if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version')) {
     fail('npm publishing does not self-heal stale merged version files');
 }
+if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) {
+    fail('npm publishing must not require local development dependencies');
+}
+if (!pkg.scripts.prepack?.includes('nexowatt-prebuilt-release-selftest.cjs')) {
+    fail('npm packaging does not verify the sealed prebuilt release');
+}
 
 console.log('[NexoWatt EOS merge update selftest] OK (flat overwrite + EMS merge + version repair + guarded verification)');

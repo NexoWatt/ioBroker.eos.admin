@@ -11,6 +11,8 @@ const fail = msg => {
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const readJson = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
+const canonicalPrepublishOnly = 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
+const canonicalPrepack = 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
 
 const pkg = readJson('package.json');
 const pkgLock = readJson('package-lock.json');
@@ -42,7 +44,11 @@ if (pkg.scripts['verify:eos-merge'] !== 'node tools/nexowatt-merge-update-selfte
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-version-sync-selftest.cjs')) fail('version sync selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-merge-update-selftest.cjs')) fail('merge update selftest is not part of check:eos-stability');
 if (pkg.scripts['check:eos-stable-v7102'] !== 'node tools/nexowatt-stable-v7102-selftest.cjs') fail('stable v7102 selftest script is missing or incorrect');
-if (!pkg.scripts.prepublishOnly?.startsWith('npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run build:backend && npm run check:eos-publish-channel')) fail('prepublishOnly must synchronize versions, normalize release defaults and rebuild the backend before the publish channel guard');
+if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must use the dependency-free direct-publish workflow');
+if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) fail('prepublishOnly must not require local development dependencies');
+if (pkg.scripts['check:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs') fail('prebuilt release selftest script is missing or incorrect');
+if (pkg.scripts['seal:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs --write') fail('prebuilt release sealing script is missing or incorrect');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-prebuilt-release-selftest.cjs')) fail('prebuilt release selftest is not part of check:eos-stability');
 if (pkg.scripts['precheck:eos-package'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-package must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['precheck:eos-stability'] !== 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime') fail('precheck:eos-stability must synchronize versions, normalize release defaults and clean stale runtime files');
 if (pkg.scripts['test:eos-publish-channel'] !== 'node tools/nexowatt-publish-channel-selftest.cjs') fail('publish channel selftest script is missing');
@@ -136,6 +142,8 @@ for (const file of [
   'tools/nexowatt-esm-syntax-selftest.cjs',
   'tools/nexowatt-import-integrity-selftest.cjs',
   'tools/nexowatt-backend-runtime-selftest.cjs',
+  'tools/nexowatt-prebuilt-release-selftest.cjs',
+  'NEXOWATT_EOS_PREBUILT_MANIFEST.json',
   'tools/nexowatt-entrypoint-smoke-selftest.cjs',
   'tools/nexowatt-role-access-selftest.cjs',
   'tools/nexowatt-first-login-selftest.cjs',
@@ -277,8 +285,9 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-import-integrity-sel
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-backend-runtime-selftest.cjs')) fail('backend runtime selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-entrypoint-smoke-selftest.cjs')) fail('entrypoint smoke selftest is not part of check:eos-stability');
 if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
-if (pkg.scripts.prepack !== 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && npm run build:backend && node tools/nexowatt-clean-legacy-runtime.cjs --quiet') fail('prepack must synchronize versions, normalize defaults, rebuild the backend and clean stale runtime files');
-if (!pkg.scripts.build?.includes('npm run clean:eos-runtime')) fail('build must finish with runtime cleanup');
+if (pkg.scripts.prepack !== canonicalPrepack) fail('prepack must verify the sealed prebuilt artifact without tsc/tsx');
+if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepack || '')) fail('prepack must not require local development dependencies');
+if (pkg.scripts.build !== 'npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run seal:eos-prebuilt-release') fail('build must clean and seal the prebuilt release after compilation');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest.cjs')) fail('role access selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password flow selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password management selftest is not part of check:eos-stability');

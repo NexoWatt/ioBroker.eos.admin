@@ -7,7 +7,7 @@ Version 7.10.2 ist ein gezieltes Stabilitäts-Hotfix für den fehlerhaften Stand
 - Die automatische NexoWatt-Stable-Updateverwaltung schreibt ihren Laufzeitstatus nicht mehr in `system.adapter.eos-admin.0.native`. Dadurch wird die laufende EOS-Admin-Instanz beim Start nicht mehr fortlaufend neu gestartet.
 - Die erste Synchronisierung der Stable-Update-Richtlinien erfolgt erst nach einer Startschutzzeit. Der HTTP-Server kann JavaScript- und CSS-Dateien vollständig ausliefern, bevor Repository-Richtlinien geprüft werden.
 - Der Update-Manager beendet alle Zeitgeber beim Herunterfahren des Webservers.
-- Das Backend wird vor jedem Release-Paket neu kompiliert.
+- Das geprüfte Backend ist vollständig vorkompiliert und über ein SHA-256-Manifest versiegelt. `npm publish` und `npm pack` benötigen deshalb keine lokalen TypeScript-/TSX-Entwicklungswerkzeuge und starten weder `tsc` noch `tsx`.
 - Ein neuer Backend-Runtime-Test prüft alle lokalen `require`-/Import-Abhängigkeiten und kontrolliert, dass sie tatsächlich im npm-Paket enthalten sind.
 - `build/lib/eosRequestSecurity.js` ist fest Bestandteil des geprüften Runtime-Artefakts.
 
