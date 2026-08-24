@@ -1,4 +1,4 @@
-# Release Notes 7.10.3
+# Release Notes 7.10.4
 
 - Automatische NexoWatt-Adapter-Updates aus dem normalen Seiteninhalt entfernt.
 - Update-Karte ausschließlich in **Systemeinstellungen** hinter dem Schraubenschlüssel platziert.

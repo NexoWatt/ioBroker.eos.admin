@@ -13,9 +13,9 @@ Standard-Port:          8081
 
 Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die alte ioBroker-Admin-Oberfläche kann parallel vorhanden bleiben, während NexoWatt-Systeme über `eos-admin.0` die EOS-Oberfläche nutzen.
 
-## Aktueller Stable-Verkaufskandidat 7.10.3
+## Aktueller Stable-Verkaufskandidat 7.10.4
 
-Version 7.10.3 übernimmt den validierten und absturzfreien Stand 7.10.2. Die Einstellung **Automatische Adapter-Updates** liegt jetzt ausschließlich in den **Systemeinstellungen** hinter dem Schraubenschlüssel. Auf Übersicht, Module und allen anderen Hauptseiten wird die Karte nicht mehr angezeigt. Die restart-sichere Updateverwaltung, der verzögerte Repository-Abgleich und die vollständige Backend-Paketprüfung bleiben unverändert.
+Version 7.10.4 übernimmt den validierten und absturzfreien Stand 7.10.2. Die Einstellung **Automatische Adapter-Updates** liegt jetzt ausschließlich in den **Systemeinstellungen** hinter dem Schraubenschlüssel. Auf Übersicht, Module und allen anderen Hauptseiten wird die Karte nicht mehr angezeigt. Die restart-sichere Updateverwaltung, der verzögerte Repository-Abgleich und die vollständige Backend-Paketprüfung bleiben unverändert.
 
 Verwaltete Installateur- und Endkundenkonten verwenden das Startpasswort `nexowatt`. Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
 
@@ -33,7 +33,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.10.3",
+    "version": "7.10.4",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -141,7 +141,7 @@ npm publish --dry-run --tag latest
 npm publish --tag latest
 ```
 
-Die Version muss vor jedem erneuten Publish erhöht werden. Für 7.10.3 wird direkt aus der vollständig geprüften Repository-ZIP veröffentlicht; `npm publish` benötigt dabei weiterhin weder `tsc` noch `tsx`.
+Die Version muss vor jedem erneuten Publish erhöht werden. Für 7.10.4 wird direkt aus der vollständig geprüften Repository-ZIP veröffentlicht; `npm publish` benötigt dabei weiterhin weder `tsc` noch `tsx`.
 
 ## Lizenz
 

@@ -1,11 +1,11 @@
 {
-  "version": "7.10.3",
+  "version": "7.10.4",
   "channel": "stable-latest",
   "baseFrontend": "validated 7.10.2 stable runtime with automatic adapter updates relocated into System Settings",
   "runtimeEntry": "v84",
   "releaseType": "stable-system-settings-auto-update-placement",
   "release": "stable-system-settings-auto-update-placement",
-  "label": "v7-10-3",
+  "label": "v7-10-4",
   "notes": [
     "Retains the validated 7.10.2 restart-loop and package-completeness fixes.",
     "The automatic NexoWatt adapter update card is no longer mounted in the normal overview or module pages.",
@@ -22,7 +22,7 @@
   "shellCacheVersion": 7101,
   "nativeShellVersion": 7101,
   "shellCacheTag": "7101",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-3.json",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-4.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

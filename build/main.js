@@ -1,4 +1,7 @@
 "use strict";
+
+const eosRoleSecurity = require("./lib/eosRoleSecurity");
+eosRoleSecurity.installHttpGuard();
 /**
  *      Admin backend
  *
@@ -329,6 +332,8 @@ class Admin extends adapter_core_1.Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     onReady = async () => {
+        eosRoleSecurity.attachAdapter(this);
+        await eosRoleSecurity.enforceRoleAcls(this);
         const systemConfig = await this.getForeignObjectAsync('system.config');
         if (systemConfig) {
             systemConfig.native = systemConfig.native || {};
