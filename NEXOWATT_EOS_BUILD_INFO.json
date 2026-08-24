@@ -1,28 +1,29 @@
 {
-  "version": "7.9.100",
+  "version": "7.10.0",
   "channel": "stable-latest",
-  "baseFrontend": "validated Admin 7 runtime with truthful EMS overview, in-grid edit controls, short-name password API and release cache invalidation",
+  "baseFrontend": "validated Admin 7 runtime with native NexoWatt stable auto updates, fixed Intro scrollbar, clean login and verified user passwords",
   "runtimeEntry": "v84",
-  "releaseType": "stable-native-nexowatt-auto-update",
-  "release": "stable-native-nexowatt-auto-update",
-  "label": "v100",
+  "releaseType": "stable-candidate-scroll-login-password-auto-update",
+  "release": "stable-candidate-scroll-login-password-auto-update",
+  "label": "v7100",
   "notes": [
-    "Automatic updates are enabled by default only for installed NexoWatt adapters that have a stable repository entry.",
-    "The implementation configures ioBroker native adapterAutoUpgrade policies; EOS does not run an independent package installer.",
-    "The Admin/Service user can disable the feature in the EOS cockpit and previous repository/adapter policies are restored.",
-    "Third-party adapter upgrade policies remain untouched.",
-    "The browser release watcher and cache-safe runtime from 7.9.99 remain active."
+    "Installed NexoWatt adapters use native stable auto updates by default and can be disabled.",
+    "The Cockpit/Intro surface has a permanent visible vertical scrollbar while header and navigation remain fixed.",
+    "The product login uses one compact MUI Paper card with permanently notched labels and no overlap.",
+    "First-login and reset passwords use canonical ioBroker user IDs first with a legacy short-name fallback.",
+    "Passwords are accepted only after the user-object hash changes and the new credential is verified.",
+    "Release assets are tagged 7100 and delivered with no-store handling through the existing release watcher."
   ],
   "changes": [
-    "Added a NexoWatt Stable auto-update manager with repository and installed-adapter detection.",
-    "Added an admin-only cockpit toggle and status card.",
-    "Added native GET/POST endpoints for update status and enable/disable settings.",
-    "Added policy snapshot/restore so disabling reverts only changes owned by EOS.",
-    "Added a six-hour reconciliation and repository refresh through the ioBroker host."
+    "Restored the scroll surface in CSS and the productive stable runtime.",
+    "Removed the fixed login minimum height and corrected MUI label/notch geometry.",
+    "Corrected login Paper ownership to prevent nested form sizing.",
+    "Strengthened password writes with four controller API variants and explicit backend error codes.",
+    "Kept the NexoWatt stable auto-update manager and its default-enabled toggle unchanged."
   ],
-  "brandingCacheVersion": 100,
-  "shellCacheVersion": 100,
-  "nativeShellVersion": 100,
-  "shellCacheTag": "100",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v100.json"
+  "brandingCacheVersion": 7100,
+  "shellCacheVersion": 7100,
+  "nativeShellVersion": 7100,
+  "shellCacheTag": "7100",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7100.json"
 }

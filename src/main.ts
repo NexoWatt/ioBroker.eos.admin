@@ -314,7 +314,7 @@ async function ensureEosStableInitialAccounts(adapter: Adapter): Promise<void> {
         const pendingFirstLogin = eosNative.nexowattPasswordChangeRequired === true || eosNative.eosPasswordChangeRequired === true || eosNative.nexowattFirstLoginPending === true || eosNative.eosFirstLoginRequired === true;
         const stableCredentialMissing = eosNative.nexowattStableInitialCredentialVersion !== 1;
         if (created || passwordMissing || resetRequested || (pendingFirstLogin && stableCredentialMissing)) {
-            await adapter.setPasswordAsync(account.user, EOS_STABLE_INITIAL_PASSWORD, { user: 'system.user.admin' });
+            await setEosUserPasswordWithVerification(adapter, id, EOS_STABLE_INITIAL_PASSWORD, 'system.user.admin');
             await adapter.extendForeignObjectAsync(
                 id,
                 {

@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v100-nexowatt-stable-auto-update';
+    const VERSION = 'v7100-nexowatt-stable-auto-update';
     const ROOT_ID = 'eos-nexowatt-auto-update';
     const script = document.currentScript;
     const API = new URL('../nexowatt/updates/', script?.src || document.baseURI).href;

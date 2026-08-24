@@ -164,6 +164,8 @@ class Web {
     mcpServer = null;
     /** Short-lived passwordless first-activation claims. Keys are SHA-256 hashes of HttpOnly cookie tokens. */
     eosPasswordClaims = new Map();
+    /** One-time authenticated tickets for the mandatory personal-password POST. */
+    eosPasswordSetupTickets = new Map();
     /** Small in-memory rate limiter for unauthenticated first-activation requests. */
     eosPasswordClaimRates = new Map();
     /**
@@ -743,11 +745,6 @@ class Web {
     }
     async saveEosFirstLoginPassword(req, res) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        const access = await this.getEosRequestAccess(req);
-        if (!access.userId || access.role === 'admin') {
-            res.status(403).json({ error: 'passwordSetupNotAllowed' });
-            return;
-        }
         if (req.headers['x-nexowatt-eos-first-login'] !== '1') {
             res.status(403).json({ error: 'invalidRequest' });
             return;
@@ -756,22 +753,41 @@ class Web {
             res.status(403).json({ error: 'invalidRequestOrigin' });
             return;
         }
+        const body = req.body || {};
+        const suppliedToken = String(req.headers['x-nexowatt-eos-password-setup-token'] || body.setupToken || '').trim();
+        const ticket = this.resolveEosPasswordSetupTicket(req, suppliedToken);
+        const requestAccess = await this.getEosRequestAccess(req);
+        if (suppliedToken && !ticket) {
+            res.status(403).json({ error: 'passwordSetupTokenExpired' });
+            return;
+        }
+        if (ticket && requestAccess.userId && requestAccess.userId !== ticket.userId) {
+            res.status(403).json({ error: 'passwordSetupTokenMismatch' });
+            return;
+        }
+        const access = ticket ? { ...requestAccess, userId: ticket.userId, role: ticket.role } : requestAccess;
+        if (!access.userId || access.role === 'admin') {
+            res.status(403).json({ error: suppliedToken ? 'passwordSetupTokenMismatch' : 'passwordSetupNotAllowed' });
+            return;
+        }
         const passwordState = await this.getEosFirstLoginPasswordState(access.userId, access.role);
         if (!passwordState.required) {
+            this.invalidateEosPasswordSetupTicketsForUser(access.userId);
             res.status(200).json({ success: true, alreadyInitialized: true });
             return;
         }
-        const body = (req.body || {});
         const validation = this.validateEosFirstLoginPassword(body.password, body.passwordRepeat, access.userId);
         if (!validation.valid) {
-            res.status(400).json({
-                error: validation.error,
-                minLength: passwordState.minLength,
-            });
+            res.status(400).json({ error: validation.error, minLength: passwordState.minLength });
             return;
         }
-        await this.setEosUserPassword(access.userId, validation.password);
-        const userObject = (await this.adapter.getForeignObjectAsync(access.userId));
+        if (body.passwordAlreadyWritten === true) {
+            await (0, eosPassword_1.verifyEosUserPasswordCredential)(this.adapter, access.userId, validation.password, EOS_PASSWORD_SERVICE_USER);
+        }
+        else {
+            await this.setEosUserPassword(access.userId, validation.password);
+        }
+        const userObject = await this.adapter.getForeignObjectAsync(access.userId);
         if (!userObject) {
             throw new Error('userObjectUnavailableAfterPasswordChange');
         }
@@ -799,13 +815,17 @@ class Web {
         if (persistedState.required || !persistedState.initialized) {
             throw new Error('passwordMetadataNotPersisted');
         }
-        await this.destroyEosRequestSessions(req);
+        this.invalidateEosPasswordSetupTicketsForUser(access.userId);
         for (const cookie of ['access_token', 'refresh_token', 'connect.sid']) {
             res.clearCookie(cookie);
         }
-        this.adapter.log.info(`EOS first-login password initialized for ${access.userId}`);
         res.status(200).json({ success: true, role: access.role, logoutRequired: true, sessionInvalidated: true });
+        void this.destroyEosRequestSessions(req).catch(error => {
+            this.adapter.log.debug(`Deferred EOS session cleanup failed: ${error instanceof Error ? error.message : error}`);
+        });
+        this.adapter.log.info(`EOS first-login password initialized for ${access.userId}`);
     }
+
     isEosPasswordlessFirstLoginEnabled() {
         return this.settings.eosPasswordlessFirstLogin !== false;
     }
@@ -843,6 +863,53 @@ class Web {
     }
     hashEosPasswordClaim(token) {
         return (0, node_crypto_1.createHash)('sha256').update(token).digest('hex');
+    }
+    cleanEosPasswordSetupTickets() {
+        const now = Date.now();
+        for (const [key, ticket] of this.eosPasswordSetupTickets.entries()) {
+            if (ticket.expiresAt <= now) {
+                this.eosPasswordSetupTickets.delete(key);
+            }
+        }
+    }
+    invalidateEosPasswordSetupTicketsForUser(userId) {
+        for (const [key, ticket] of this.eosPasswordSetupTickets.entries()) {
+            if (ticket.userId === userId) {
+                this.eosPasswordSetupTickets.delete(key);
+            }
+        }
+    }
+    issueEosPasswordSetupTicket(req, userId, role) {
+        if (role !== 'installer' && role !== 'enduser') {
+            return null;
+        }
+        this.cleanEosPasswordSetupTickets();
+        // Policy-client refreshes must not invalidate the token displayed by bootstrap.
+        // Tokens are short-lived and all are removed after a successful password change.
+        const token = (0, node_crypto_1.randomBytes)(32).toString('base64url');
+        const expiresAt = Date.now() + 10 * 60_000;
+        this.eosPasswordSetupTickets.set(this.hashEosPasswordClaim(token), {
+            userId,
+            role,
+            expiresAt,
+            remoteAddress: this.getEosRemoteAddress(req),
+        });
+        return { token, expiresAt };
+    }
+    resolveEosPasswordSetupTicket(req, token) {
+        this.cleanEosPasswordSetupTickets();
+        if (!token) {
+            return null;
+        }
+        const ticket = this.eosPasswordSetupTickets.get(this.hashEosPasswordClaim(token));
+        if (!ticket || ticket.expiresAt <= Date.now()) {
+            return null;
+        }
+        const address = this.getEosRemoteAddress(req);
+        if (ticket.remoteAddress && address && ticket.remoteAddress !== address) {
+            return null;
+        }
+        return ticket;
     }
     readEosCookie(req, name) {
         const row = String(req.headers.cookie || '')
@@ -1354,6 +1421,7 @@ class Web {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         const { userId, groups, groupNames, adminGroups, role } = await this.getEosRequestAccess(req);
         const passwordSetup = await this.getEosFirstLoginPasswordState(userId, role);
+        const setupTicket = passwordSetup.required && userId ? this.issueEosPasswordSetupTicket(req, userId, role) : null;
         const isAdministrator = role === 'admin' && (userId === 'system.user.admin' || groups.includes('system.group.administrator'));
         const isEosAdminGroup = role === 'admin';
         const isInstaller = role === 'installer';
@@ -1374,7 +1442,12 @@ class Web {
             isEndUser,
             isAdmin: isEosAdminGroup,
             mustChangePassword: passwordSetup.required,
-            passwordSetup: { ...passwordSetup, userName: userId?.replace(/^system\.user\./, '') || '' },
+            passwordSetup: {
+                ...passwordSetup,
+                userName: userId?.replace(/^system\.user\./, '') || '',
+                setupToken: setupTicket?.token || '',
+                setupTokenExpiresAt: setupTicket?.expiresAt || 0,
+            },
             capabilities: this.getEosRoleCapabilities(role),
             hideLegacyAdminForNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
             hideLegacyAdminFromNonAdmins: this.settings.eosHideLegacyAdminForNonAdmins !== false && this.settings.eosHideLegacyAdminFromNonAdmins !== false,
@@ -1814,12 +1887,13 @@ class Web {
             this.server.app.post('/nexowatt/account/first-password', (req, res) => {
                 void this.saveEosFirstLoginPassword(req, res).catch(e => {
                     const detail = e instanceof Error ? e.message : String(e || '');
-                    this.adapter.log.warn(`Cannot initialize EOS first-login password: ${detail}`);
+                    const code = detail.split(':', 1)[0];
+                    this.adapter.log.warn(`Cannot initialize EOS first-login password [${code}]: ${detail}`);
                     const known = new Set([
                         'passwordApiUnavailable', 'passwordNotPersisted', 'passwordVerificationFailed',
                         'passwordMetadataNotPersisted', 'userObjectUnavailableAfterPasswordChange',
                     ]);
-                    res.status(500).json({ error: known.has(detail) ? detail : 'passwordSetupFailed' });
+                    res.status(500).json({ error: known.has(code) ? code : 'passwordSetupFailed', detail: code });
                 });
             });
             this.server.app.get('/nexowatt/account/manage', (req, res) => {
@@ -1831,12 +1905,13 @@ class Web {
             this.server.app.post('/nexowatt/account/reset', (req, res) => {
                 void this.resetEosAccountPassword(req, res).catch(e => {
                     const detail = e instanceof Error ? e.message : String(e || '');
-                    this.adapter.log.warn(`Cannot reset EOS account: ${detail}`);
+                    const code = detail.split(':', 1)[0];
+                    this.adapter.log.warn(`Cannot reset EOS account [${code}]: ${detail}`);
                     const known = new Set([
                         'passwordApiUnavailable', 'passwordNotPersisted', 'passwordVerificationFailed',
                         'passwordMetadataNotPersisted', 'userObjectUnavailableAfterPasswordReset',
                     ]);
-                    res.status(500).json({ error: known.has(detail) ? detail : 'accountResetFailed' });
+                    res.status(500).json({ error: known.has(code) ? code : 'accountResetFailed', detail: code });
                 });
             });
             this.server.app.get('/iobroker_check.html', (_req, res) => {

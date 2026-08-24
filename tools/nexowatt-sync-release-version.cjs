@@ -32,7 +32,10 @@ function syncReleaseVersion(rootDir) {
         throw new Error(`Invalid package.json version: ${version || '<missing>'}`);
     }
 
-    const releaseNo = version.match(/^7\.9\.(\d+)/)?.[1] || version.replace(/[^0-9A-Za-z]+/g, '-');
+    const parsed = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+    const releaseNo = parsed
+        ? (parsed[1] === '7' && parsed[2] === '9' ? parsed[3] : `${parsed[1]}${parsed[2]}${parsed[3]}`)
+        : version.replace(/[^0-9A-Za-z]+/g, '-');
     const expectedBase = `https://unpkg.com/iobroker.eos-admin@${version}`;
     const changes = [];
 

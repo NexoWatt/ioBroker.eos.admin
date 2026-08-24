@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v100-account-management-password-write';
+    const VERSION = 'v7100-account-management-password-write';
     const script = document.currentScript || document.querySelector('script[src*="eos-account-management.js"]');
     const base = new URL('../', script?.src || window.location.href);
     const abort = new AbortController();

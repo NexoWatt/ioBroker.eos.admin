@@ -41,22 +41,22 @@ const styles: Record<string, any> = {
     },
     paper: (theme: IobTheme) => ({
         backgroundColor: theme.palette.background.paper + (theme.palette.background.paper.length < 7 ? 'd' : 'dd'),
-        p: '28px 30px 26px',
+        p: '26px 28px 24px',
         overflowY: 'visible',
         display: 'flex',
         flexDirection: 'column',
         height: 'auto',
-        minHeight: 510,
-        width: 'calc(100% - 52px)',
+        minHeight: 0,
+        width: 'calc(100% - 48px)',
         maxHeight: 'none',
-        maxWidth: 380,
+        maxWidth: 372,
         boxShadow,
     }),
     avatar: (theme: IobTheme): any => ({
         m: 1,
         backgroundColor: theme.palette.mode === 'dark' ? '#111' : '#eee',
-        width: 100,
-        height: 100,
+        width: 90,
+        height: 90,
         '& .MuiAvatar-img': {
             width: 'calc(100% - 4px)',
             height: 'calc(100% - 4px)',
@@ -78,7 +78,7 @@ const styles: Record<string, any> = {
         textTransform: 'inherit',
     },
     marginTop: {
-        marginTop: 'auto',
+        marginTop: 18,
     },
     progress: {
         textAlign: 'center',
@@ -422,6 +422,7 @@ export default class Login extends Component<object, LoginState> {
                                 }
                             }}
                             fullWidth
+                            slotProps={{ inputLabel: { shrink: true } }}
                             size="small"
                             id="username"
                             label={I18n.t('enterLogin')}
@@ -453,6 +454,7 @@ export default class Login extends Component<object, LoginState> {
                                 }
                             }}
                             slotProps={{
+                                inputLabel: { shrink: true },
                                 input: {
                                     endAdornment: this.state.password ? (
                                         <IconButton

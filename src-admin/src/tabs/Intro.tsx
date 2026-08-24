@@ -1642,6 +1642,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
             <TabContainer
                 elevation={0}
                 overflow="visible"
+                className="eos-intro-scroll-content"
             >
                 {this.renderCopiedToast()}
                 <section id="eos-native-overview-hero" className="eos-overview-hero eos-native-overview-hero" data-eos-native-react-overview="true">

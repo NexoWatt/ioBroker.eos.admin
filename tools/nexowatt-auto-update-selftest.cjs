@@ -3,10 +3,10 @@
 const assert=require('node:assert/strict');
 const {NexoWattStableUpdateManager,isNexoWattRepositoryEntry}=require('../build/lib/eosAutoUpdate.js');
 const objects=new Map();
-objects.set('system.adapter.eos-admin.0',{_id:'system.adapter.eos-admin.0',common:{name:'eos-admin',version:'7.9.100'},native:{eosNexoWattAutoUpdate:true}});
+objects.set('system.adapter.eos-admin.0',{_id:'system.adapter.eos-admin.0',common:{name:'eos-admin',version:'7.10.0'},native:{eosNexoWattAutoUpdate:true}});
 objects.set('system.config',{_id:'system.config',common:{activeRepo:['stable'],adapterAutoUpgrade:{repositories:{stable:false},defaultPolicy:'none'}},native:{}});
-objects.set('system.repositories',{_id:'system.repositories',native:{repositories:{stable:{json:{'eos-admin':{name:'eos-admin',version:'7.9.100',meta:'https://github.com/NexoWatt/ioBroker.eos-admin'},'nexowatt-ui':{name:'nexowatt-ui',version:'0.8.198',publisher:'NexoWatt'},'nexowatt-beta':{name:'nexowatt-beta',version:'1.0.0-beta.1',publisher:'NexoWatt'},admin:{name:'admin',version:'7.7.0',publisher:'ioBroker'}}}}}});
-objects.set('system.adapter.eos-admin',{_id:'system.adapter.eos-admin',common:{name:'eos-admin',version:'7.9.100',automaticUpgrade:'patch'},native:{}});
+objects.set('system.repositories',{_id:'system.repositories',native:{repositories:{stable:{json:{'eos-admin':{name:'eos-admin',version:'7.10.0',meta:'https://github.com/NexoWatt/ioBroker.eos-admin'},'nexowatt-ui':{name:'nexowatt-ui',version:'0.8.198',publisher:'NexoWatt'},'nexowatt-beta':{name:'nexowatt-beta',version:'1.0.0-beta.1',publisher:'NexoWatt'},admin:{name:'admin',version:'7.7.0',publisher:'ioBroker'}}}}}});
+objects.set('system.adapter.eos-admin',{_id:'system.adapter.eos-admin',common:{name:'eos-admin',version:'7.10.0',automaticUpgrade:'patch'},native:{}});
 objects.set('system.adapter.nexowatt-ui',{_id:'system.adapter.nexowatt-ui',common:{name:'nexowatt-ui',version:'0.8.197'},native:{}});
 objects.set('system.adapter.admin',{_id:'system.adapter.admin',common:{name:'admin',version:'7.7.0',automaticUpgrade:'minor'},native:{}});
 const copy=v=>JSON.parse(JSON.stringify(v));
