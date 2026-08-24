@@ -21,9 +21,9 @@ for (const marker of [
     'Diagnose ist rein lesend',
     'system.adapter.nexowatt-ui.*.alive',
 ]) if (!component.includes(marker)) fail(`Komponenten-Vertrag fehlt: ${marker}`);
+if (component.includes('Vollständige EMS-Diagnose öffnen')) fail('Nicht vorhandener Diagnose-Link ist noch aktiv.');
 if ((component.match(/NexoWatt EMS · Live-Diagnose/g) || []).length !== 1) fail('EMS-Überschrift ist doppelt oder fehlt.');
 if (!css.includes('/* nexowatt-ems-overview-v1 */')) fail('Responsive EMS-CSS fehlt.');
-if (component.includes('Vollständige EMS-Diagnose öffnen')) fail('Nicht vorhandener Diagnose-Link darf nicht angeboten werden.');
 if (/setState\(|setForeignState\(|sendToHost\(/.test(component)) fail('EMS-Overview darf keine ioBroker-Schreiboperation enthalten.');
 const assetDir = path.join(root, 'admin', 'assets');
 if (fs.existsSync(assetDir)) {

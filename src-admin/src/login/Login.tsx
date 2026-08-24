@@ -41,7 +41,7 @@ const styles: Record<string, any> = {
     },
     paper: (theme: IobTheme) => ({
         backgroundColor: theme.palette.background.paper + (theme.palette.background.paper.length < 7 ? 'd' : 'dd'),
-        p: '26px 28px 24px',
+        p: '30px 32px 28px',
         overflowY: 'visible',
         display: 'flex',
         flexDirection: 'column',
@@ -49,14 +49,14 @@ const styles: Record<string, any> = {
         minHeight: 0,
         width: 'calc(100% - 48px)',
         maxHeight: 'none',
-        maxWidth: 372,
+        maxWidth: 400,
         boxShadow,
     }),
     avatar: (theme: IobTheme): any => ({
         m: 1,
         backgroundColor: theme.palette.mode === 'dark' ? '#111' : '#eee',
-        width: 90,
-        height: 90,
+        width: 100,
+        height: 100,
         '& .MuiAvatar-img': {
             width: 'calc(100% - 4px)',
             height: 'calc(100% - 4px)',
@@ -78,7 +78,7 @@ const styles: Record<string, any> = {
         textTransform: 'inherit',
     },
     marginTop: {
-        marginTop: 18,
+        marginTop: 28,
     },
     progress: {
         textAlign: 'center',
@@ -422,10 +422,10 @@ export default class Login extends Component<object, LoginState> {
                                 }
                             }}
                             fullWidth
-                            slotProps={{ inputLabel: { shrink: true } }}
                             size="small"
                             id="username"
-                            label={I18n.t('enterLogin')}
+                            placeholder={`${I18n.t('enterLogin')} *`}
+                            slotProps={{ htmlInput: { 'aria-label': I18n.t('enterLogin') } }}
                             name="username"
                             autoComplete="username"
                             autoFocus
@@ -454,7 +454,7 @@ export default class Login extends Component<object, LoginState> {
                                 }
                             }}
                             slotProps={{
-                                inputLabel: { shrink: true },
+                                htmlInput: { 'aria-label': I18n.t('enterPassword') },
                                 input: {
                                     endAdornment: this.state.password ? (
                                         <IconButton
@@ -473,7 +473,7 @@ export default class Login extends Component<object, LoginState> {
                             }}
                             size="small"
                             name="password"
-                            label={I18n.t('enterPassword')}
+                            placeholder={`${I18n.t('enterPassword')} *`}
                             type={this.state.showPassword ? 'text' : 'password'}
                             id="password"
                             autoComplete="current-password"

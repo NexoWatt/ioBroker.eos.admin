@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7100-account-management-password-write';
+    const VERSION = 'v98-account-management-real-password-write';
     const script = document.currentScript || document.querySelector('script[src*="eos-account-management.js"]');
     const base = new URL('../', script?.src || window.location.href);
     const abort = new AbortController();
@@ -19,11 +19,10 @@
             introInstaller: 'Du kannst Endkundenzugänge zurücksetzen. Admin- und Installateurzugänge bleiben NexoWatt Service vorbehalten.',
             loading: 'Zugänge werden geladen …', empty: 'Keine passenden Konten gefunden.', close: 'Schließen', refresh: 'Aktualisieren',
             installer: 'Installateur', enduser: 'Endkunde / Gast', active: 'Passwort aktiv', first: 'Erstanmeldung offen', disabled: 'Deaktiviert',
-            reset: 'Passwort zurücksetzen', resetting: 'Wird zurückgesetzt …', resetConfirm: name => `Soll der Zugang „${name}“ wirklich zurückgesetzt werden? Danach gilt einmalig das Startpasswort „nexowatt“ und anschließend muss ein persönliches Passwort vergeben werden.`,
-            resetDone: name => `Der Zugang „${name}“ wurde im EOS-Benutzerkonto auf „nexowatt“ zurückgesetzt. Nach der nächsten Anmeldung muss sofort ein persönliches Passwort vergeben werden.`,
-            resetFailed: 'Der Zugang konnte nicht zurückgesetzt werden.', lastSet: 'Letzte Passwortvergabe', lastReset: 'Letzter Reset', by: 'durch',
+            reset: 'Passwort zurücksetzen', resetting: 'Wird zurückgesetzt …', resetConfirm: name => `Soll der Zugang „${name}“ wirklich zurückgesetzt werden? Das bisherige Passwort wird ungültig. Danach gilt einmalig das Startpasswort „nexowatt“ und beim nächsten Login muss sofort ein persönliches Passwort vergeben werden.`,
+            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Einmalig mit dem Startpasswort „nexowatt“ anmelden und anschließend direkt ein persönliches Passwort festlegen.`,
+            resetFailed: 'Der Zugang konnte nicht zurückgesetzt werden.', permissionError: 'Für dieses Konto ist das Zurücksetzen nicht erlaubt.', originError: 'Die Sicherheitsprüfung der Anfrage ist fehlgeschlagen. Seite mit Strg+F5 neu laden.', disabledError: 'Das Konto ist deaktiviert und kann nicht zurückgesetzt werden.', notFoundError: 'Das Konto wurde nicht gefunden.', writeError: 'Das neue Startpasswort konnte nicht in das Benutzerkonto geschrieben werden.', lastSet: 'Letzte Passwortvergabe', lastReset: 'Letzter Reset', by: 'durch',
             security: 'Admin/Service darf Installateur und Endkunde zurücksetzen. Installateure dürfen ausschließlich Endkunden zurücksetzen.',
-            errors: { permissionError: 'Die Admin-/Installateurberechtigung konnte nicht bestätigt werden. Bitte neu anmelden.', invalidRequest: 'Die Sicherheitsbestätigung fehlt. Bitte die Seite neu laden.', invalidRequestOrigin: 'Die Sitzung oder Adresse hat sich geändert. Bitte die Seite neu laden.', invalidTarget: 'Dieses Konto darf nicht über EOS zurückgesetzt werden.', accountDisabled: 'Das Konto ist deaktiviert.', accountNotFound: 'Das Benutzerkonto wurde nicht gefunden.', passwordApiUnavailable: 'Die EOS-Passwortverwaltung ist nicht verfügbar.', passwordNotPersisted: 'Das Startpasswort wurde nicht gespeichert.', passwordVerificationFailed: 'Das Startpasswort wurde geschrieben, aber nicht als gültige Anmeldung bestätigt.', passwordMetadataNotPersisted: 'Der Erstanmeldungsstatus wurde nicht gespeichert.', accountResetFailed: 'Das Konto konnte serverseitig nicht zurückgesetzt werden.' },
         },
         en: {
             launcher: 'Accounts', titleAdmin: 'Accounts & roles', titleInstaller: 'End-user accounts',
@@ -31,11 +30,10 @@
             introInstaller: 'You may reset end-user accounts. Admin and installer accounts remain reserved for NexoWatt Service.',
             loading: 'Loading accounts …', empty: 'No matching accounts found.', close: 'Close', refresh: 'Refresh',
             installer: 'Installer', enduser: 'End user / Guest', active: 'Password active', first: 'First activation open', disabled: 'Disabled',
-            reset: 'Reset password', resetting: 'Resetting …', resetConfirm: name => `Reset account “${name}”? The one-time initial password will be “nexowatt”; a personal password must then be created immediately.`,
-            resetDone: name => `Account “${name}” was reset in the EOS user account to “nexowatt”. The next sign-in requires an immediate personal password change.`,
-            resetFailed: 'The account could not be reset.', lastSet: 'Last password setup', lastReset: 'Last reset', by: 'by',
+            reset: 'Reset password', resetting: 'Resetting …', resetConfirm: name => `Reset account “${name}”? The current password becomes invalid. Sign in once with the initial password “nexowatt”, then create a personal password immediately.`,
+            resetDone: name => `Account “${name}” was reset. Sign in once with “nexowatt” and then create a personal password.`,
+            resetFailed: 'The account could not be reset.', permissionError: 'Reset is not permitted for this account.', originError: 'The request security check failed. Reload the page with Ctrl+F5.', disabledError: 'The account is disabled and cannot be reset.', notFoundError: 'The account was not found.', writeError: 'The initial password could not be written to the user account.', lastSet: 'Last password setup', lastReset: 'Last reset', by: 'by',
             security: 'Admin/Service may reset installer and end-user accounts. Installers may reset end-user accounts only.',
-            errors: { permissionError: 'Admin/Installer permission could not be confirmed. Sign in again.', invalidRequest: 'The security confirmation is missing. Reload the page.', invalidRequestOrigin: 'The session or address changed. Reload the page.', invalidTarget: 'This account cannot be reset through EOS.', accountDisabled: 'The account is disabled.', accountNotFound: 'The user account was not found.', passwordApiUnavailable: 'The EOS password service is unavailable.', passwordNotPersisted: 'The initial password was not saved.', passwordVerificationFailed: 'The initial password was written but could not be verified.', passwordMetadataNotPersisted: 'The first-login status was not saved.', accountResetFailed: 'The account could not be reset on the server.' },
         },
         nl: {
             launcher: 'Toegangen', titleAdmin: 'Toegangen & rollen', titleInstaller: 'Eindgebruikerstoegangen',
@@ -43,15 +41,26 @@
             introInstaller: 'Je kunt eindgebruikersaccounts resetten. Admin- en installateurstoegang blijft voor NexoWatt Service.',
             loading: 'Toegangen worden geladen …', empty: 'Geen passende accounts gevonden.', close: 'Sluiten', refresh: 'Vernieuwen',
             installer: 'Installateur', enduser: 'Eindgebruiker / Guest', active: 'Wachtwoord actief', first: 'Eerste activering open', disabled: 'Uitgeschakeld',
-            reset: 'Wachtwoord resetten', resetting: 'Wordt gereset …', resetConfirm: name => `Account „${name}“ resetten? Eenmalig geldt het startwachtwoord „nexowatt“, waarna direct een persoonlijk wachtwoord moet worden ingesteld.`,
-            resetDone: name => `Account „${name}“ is in het EOS-gebruikersaccount teruggezet op „nexowatt“. Bij de volgende aanmelding moet direct een persoonlijk wachtwoord worden ingesteld.`,
-            resetFailed: 'Het account kon niet worden gereset.', lastSet: 'Laatste wachtwoordinstelling', lastReset: 'Laatste reset', by: 'door',
+            reset: 'Wachtwoord resetten', resetting: 'Wordt gereset …', resetConfirm: name => `Account „${name}“ resetten? Het huidige wachtwoord wordt ongeldig. Meld één keer aan met het startwachtwoord „nexowatt“ en stel daarna direct een persoonlijk wachtwoord in.`,
+            resetDone: name => `Account „${name}“ is gereset. Meld één keer aan met „nexowatt“ en stel daarna een persoonlijk wachtwoord in.`,
+            resetFailed: 'Het account kon niet worden gereset.', permissionError: 'Resetten is voor dit account niet toegestaan.', originError: 'De veiligheidscontrole van het verzoek is mislukt. Herlaad de pagina met Ctrl+F5.', disabledError: 'Het account is uitgeschakeld en kan niet worden gereset.', notFoundError: 'Het account werd niet gevonden.', writeError: 'Het startwachtwoord kon niet naar het gebruikersaccount worden geschreven.', lastSet: 'Laatste wachtwoordinstelling', lastReset: 'Laatste reset', by: 'door',
             security: 'Admin/service mag installateur- en eindgebruikersaccounts resetten. Installateurs alleen eindgebruikers.',
-            errors: { permissionError: 'De Admin-/Installateurrechten konden niet worden bevestigd. Meld opnieuw aan.', invalidRequest: 'De beveiligingsbevestiging ontbreekt. Herlaad de pagina.', invalidRequestOrigin: 'De sessie of het adres is gewijzigd. Herlaad de pagina.', invalidTarget: 'Dit account kan niet via EOS worden gereset.', accountDisabled: 'Het account is uitgeschakeld.', accountNotFound: 'Het gebruikersaccount is niet gevonden.', passwordApiUnavailable: 'De EOS-wachtwoordservice is niet beschikbaar.', passwordNotPersisted: 'Het startwachtwoord is niet opgeslagen.', passwordVerificationFailed: 'Het startwachtwoord is geschreven maar kon niet worden geverifieerd.', passwordMetadataNotPersisted: 'De eerste-aanmeldstatus is niet opgeslagen.', accountResetFailed: 'Het account kon server-side niet worden gereset.' },
         },
     };
     const t = () => i18n[language()];
-    const errorText = code => t().errors?.[String(code || '')] || String(code || t().resetFailed);
+    const accountErrorText = code => {
+        const text = t();
+        return ({
+            permissionError: text.permissionError,
+            invalidRequestOrigin: text.originError,
+            accountDisabled: text.disabledError,
+            accountNotFound: text.notFoundError,
+            passwordApiUnavailable: text.writeError,
+            passwordWriteFailed: text.writeError,
+            passwordVerificationFailed: text.writeError,
+            userObjectUnavailableAfterPasswordChange: text.writeError,
+        })[String(code || '')] || text.resetFailed;
+    };
     const roleFromPolicy = policy => {
         const raw = normalize(policy?.role || '');
         if (policy?.isAdmin || policy?.isEosAdminGroup || /admin|service/.test(raw)) return 'admin';
@@ -148,17 +157,17 @@
             reset.disabled = true; reset.textContent = t().resetting; setStatus('', '');
             try {
                 const response = await fetch(new URL('nexowatt/account/reset', base).href, {
-                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    method: 'POST', credentials: 'include', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-Account-Reset': '1' },
                     body: JSON.stringify({ user: account.id }),
                 });
                 const payload = await response.json().catch(() => ({}));
-                if (!response.ok || payload.error) throw new Error(payload.error || t().resetFailed);
+                if (!response.ok || payload.error) throw new Error(accountErrorText(payload.error));
                 setStatus(t().resetDone(label), 'success');
                 await loadAccounts();
             } catch (error) {
                 reset.disabled = false; reset.textContent = t().reset;
-                setStatus(errorText(error?.message), 'error');
+                setStatus(error?.message || t().resetFailed, 'error');
             }
         });
         actions.appendChild(reset);
@@ -180,12 +189,12 @@
         if (!state.overlay) return;
         setStatus(t().loading, '');
         try {
-            const response = await fetch(new URL('nexowatt/account/manage', base).href, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+            const response = await fetch(new URL('nexowatt/account/manage', base).href, { credentials: 'include', cache: 'no-store', headers: { Accept: 'application/json' } });
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.error) throw new Error(data.error || t().resetFailed);
             renderAccounts(data); setStatus('', '');
         } catch (error) {
-            setStatus(errorText(error?.message), 'error');
+            setStatus(error?.message || t().resetFailed, 'error');
         }
     };
 

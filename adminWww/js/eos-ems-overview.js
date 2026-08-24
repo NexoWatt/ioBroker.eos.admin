@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v7100-nexowatt-ems-overview-runtime';
+    const VERSION = 'v98-nexowatt-ems-overview-runtime';
     const CONTRACT = 'nexowatt-ems-overview-v1';
     const ROOT_ID = 'eos-ems-overview-runtime';
     const POLL_MS = 5000;

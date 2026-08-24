@@ -16,7 +16,7 @@ for (const file of [
     'MERGE_UPDATE.ps1',
     'MERGE_UPDATE.cmd',
     'MERGE_UPDATE.sh',
-    'MERGE_UPDATE_README_V7.10.0.md',
+    'MERGE_UPDATE_README_V7.10.1.md',
     'tools/nexowatt-apply-ems-overview.cjs',
     'tools/nexowatt-sync-release-version.cjs',
     'tools/nexowatt-version-sync-selftest.cjs',

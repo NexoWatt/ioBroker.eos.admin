@@ -13,11 +13,15 @@ Standard-Port:          8081
 
 Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die alte ioBroker-Admin-Oberfläche kann parallel vorhanden bleiben, während NexoWatt-Systeme über `eos-admin.0` die EOS-Oberfläche nutzen.
 
-## Aktuelle Stable 7.9.89
+## Aktueller Stable-Verkaufskandidat 7.9.98
 
-Die Verkaufsversion 7.9.89 verwendet die aktuelle **Übersicht** als Startseite, integriert EOS Assist in den Header und führt Zugangsverwaltung ausschließlich unter **Zugänge & Rechte**. Installer und Guest aktivieren ihr Konto beim ersten Login im normalen Anmeldeformular einmalig ohne Startpasswort und vergeben anschließend ein persönliches Passwort. Admin / Service bleibt unverändert.
+Version 7.9.98 verwendet die native **Übersicht** als Startseite und ergänzt dort die ausschließlich lesende EMS-Live-Diagnose. Der Inhaltsbereich ist vertikal scrollbar, während Header und Hauptnavigation stehen bleiben.
 
-Der interne Admin und die interne BackItUp-Notfallreserve bleiben installiert, sind aber ausschließlich für Admin / Service sichtbar. Für den regulären Betrieb wird die NexoWatt Sicherung verwendet.
+Verwaltete Installateur- und Endkundenkonten verwenden das Startpasswort `nexowatt`. Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
+
+Admin/Service darf verwaltete Installateur- und Endkundenkonten zurücksetzen. Installateure dürfen ausschließlich ausdrücklich zugeordnete Endkundenkonten zurücksetzen. Admin-, Eigen-, deaktivierte und nicht verwaltete Konten bleiben geschützt.
+
+EOS Assist ist in diesem Stand bewusst deaktiviert. Der interne Admin und die interne BackItUp-Notfallreserve bleiben installiert und sind ausschließlich für Admin/Service sichtbar. Für den regulären Betrieb wird die NexoWatt Sicherung verwendet.
 
 ## Installation über das NexoWatt Repository
 
@@ -29,7 +33,7 @@ Minimaler Repository-Eintrag:
 {
   "eos-admin": {
     "name": "eos-admin",
-    "version": "7.9.89",
+    "version": "7.9.98",
     "title": "NexoWatt EOS Admin",
     "desc": {
       "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
@@ -126,12 +130,18 @@ iobroker restart eos-admin.0
 
 ## Veröffentlichung auf npm
 
+Vor der Veröffentlichung müssen Paket- und Stabilitätsprüfung vollständig grün sein:
+
 ```bash
 npm login
-npm publish
+npm whoami
+npm run sync:eos-version
+npm run check:eos-release
+npm publish --dry-run --tag latest
+npm publish --tag latest
 ```
 
-Die Version muss vor jedem erneuten Publish erhöht werden.
+Die Version muss vor jedem erneuten Publish erhöht werden. Für 7.9.98 ist die Veröffentlichung des separat geprüften `iobroker.eos-admin-7.9.98.tgz` der sicherste Weg.
 
 ## Lizenz
 

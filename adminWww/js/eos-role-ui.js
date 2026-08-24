@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7100-native-overview-ems-live-reserve-filter';
+    const VERSION = 'v7101-native-overview-standard-users';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -65,7 +65,7 @@
         if (role === 'admin') return true;
         if (isOfficialReserveTab(route)) return false;
         if (role === 'installer') return route === 'tab-intro' || route === 'tab-users' || !isInstallerDenied(route, label);
-        if (role === 'enduser') return isEndUserTab(route, label);
+        if (role === 'enduser') return route === 'tab-users' || isEndUserTab(route, label);
         return false;
     };
     const defaultTab = () => 'tab-intro';
@@ -226,7 +226,7 @@
                 ['Datenpunkte', 'Messwerte prüfen und freigegebene Werte schreiben', 'tab-objects', 'datapoints'],
                 ['Struktur', 'Räume und Funktionen für Smart Home zuordnen', 'tab-enums', 'structure'],
                 ['Geräte', 'Geräteintegration und Inbetriebnahme öffnen', 'tab-devicemanager', 'devices'],
-                ['Zugänge & Rechte', 'Endkundenpasswörter sicher zurücksetzen', 'tab-users', 'rights'],
+                ['Zugänge & Rechte', 'Passwörter im nativen Benutzereditor verwalten', 'tab-users', 'rights'],
                 ['Basis-Einstellungen', 'Standort, Sprache und Anlagenparameter', 'basic-settings', 'settings'],
                 ...(backupTab ? [['NexoWatt Sicherung', 'Sicherung und Wiederherstellung des EOS-Systems', backupTab, 'backup']] : []),
                 ['EOS Cockpit', 'Energie-, Lade- und Gebäudesteuerung öffnen', uiTab, 'eos'],
@@ -277,8 +277,31 @@
             if (!admin) button.setAttribute('aria-hidden', 'true'); else button.removeAttribute('aria-hidden');
         });
     };
+    const filterNativeUsersPage = () => safe(() => {
+        if (currentRoute() !== 'tab-users' || state.role === 'admin') return;
+        const paper = appPaper(); if (!paper) return;
+        const policyUser = String(state.policy?.user || state.policy?.userId || window.NEXOWATT_EOS_BOOTSTRAP_POLICY?.user || '').replace(/^system\.user\./, '').toLowerCase();
+        const allowed = state.role === 'installer'
+            ? new Set(['installer', 'user', 'guest', policyUser].filter(Boolean))
+            : new Set([policyUser || (state.role === 'enduser' ? 'user' : '')].filter(Boolean));
+        paper.querySelectorAll('.MuiCard-root,[role="row"],li').forEach(row => {
+            const text = normalize(row.textContent || '');
+            const match = text.match(/system user ([a-z0-9_.@-]+)/) || text.match(/system\.user\.([a-z0-9_.@-]+)/);
+            if (!match) return;
+            row.classList.toggle('eos-role-hidden', !allowed.has(match[1]));
+        });
+        paper.querySelectorAll('button').forEach(button => {
+            const title = normalize(button.getAttribute('aria-label') || button.getAttribute('title') || button.textContent || '');
+            if (/add user|add group|delete|remove|benutzer hinzufugen|gruppe hinzufugen|loschen/.test(title)) {
+                button.classList.add('eos-role-hidden'); button.disabled = true;
+            }
+        });
+        paper.querySelectorAll('[data-eos-user-role-filter]').forEach(node => node.removeAttribute('data-eos-user-role-filter'));
+        paper.setAttribute('data-eos-user-role-filter', state.role);
+    });
+
     const ensureSafeOverview = () => safe(() => {
-        // 7.10.0: never cover the real Admin Intro with a second tile surface.
+        // 7.9.97: never cover the real Admin Intro with a second tile surface.
         // Installer and end-user use the native card component; security remains
         // enforced by route/instance filters and backend permissions.
         removeSafeOverview();
@@ -415,6 +438,7 @@
         applySensitiveDialogPolicy();
         redirectIfNeeded();
         ensureSafeOverview();
+        filterNativeUsersPage();
         hideOfficialReserveSurfaces();
         ensureReserveObserver();
         suppressPermissionErrors();

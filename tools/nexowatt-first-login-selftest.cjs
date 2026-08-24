@@ -10,8 +10,6 @@ const mainSource = read('src/main.ts');
 const mainBuilt = read('build/main.js');
 const source = read('src/lib/web.ts');
 const built = read('build/lib/web.js');
-const passwordSource = read('src/lib/eosPassword.ts');
-const passwordBuilt = read('build/lib/eosPassword.js');
 const boot = read('adminWww/js/eos-role-bootstrap.js');
 const bootSource = read('src-admin/public/js/eos-role-bootstrap.js');
 const login = read('src-admin/src/login/Login.tsx');
@@ -23,7 +21,7 @@ for (const code of [source, built]) {
     'getEosFirstLoginPasswordState', 'validateEosFirstLoginPassword', 'setEosUserPassword',
     'saveEosFirstLoginPassword', '/nexowatt/account/first-password', 'x-nexowatt-eos-first-login',
     'passwordInitialized', 'passwordSetupVersion', 'forcePasswordChange', 'logoutRequired', "role === 'admin'",
-    'setEosUserPasswordWithVerification', 'EOS_PASSWORD_SERVICE_USER', 'passwordComplexity',
+    'setPasswordAsync', 'EOS_PASSWORD_SERVICE_USER', 'do not need global users.write rights', 'passwordComplexity',
     'isEosSameOriginWrite', 'authenticated', 'destroyEosRequestSessions', 'destroySession', 'clearCookie',
     'getEosPasswordlessFirstLoginStatus', 'startEosPasswordlessFirstLogin', 'saveEosPasswordlessFirstLogin',
     '/nexowatt/account/passwordless-status', '/nexowatt/account/passwordless-claim', '/nexowatt/account/passwordless-password',
@@ -32,9 +30,6 @@ for (const code of [source, built]) {
     'isEosPasswordlessRequestNetworkAllowed', 'privateNetworkRequired', 'passwordlessFirstLoginAllowed',
     'passwordless-first-activation', 'Limit both individual-account guessing and username rotation from one client.',
     'req.ip || req.socket.remoteAddress',
-    'EosPasswordSetupTicket', 'eosPasswordSetupTickets', 'issueEosPasswordSetupTicket',
-    'x-nexowatt-eos-password-setup-token', 'passwordSetupTokenExpired',
-    'passwordAlreadyWritten', 'verifyEosUserPasswordCredential',
   ]) if (!code.includes(marker)) fail(`backend marker missing: ${marker}`);
   if (code.includes("req.headers['x-forwarded-for']")) fail('passwordless claim trusts forgeable X-Forwarded-For directly');
   if (/if \(!address \|\| address === '::1'/.test(code)) fail('unknown remote address is incorrectly treated as private');
@@ -42,18 +37,6 @@ for (const code of [source, built]) {
   const authMiddleware = code.indexOf('route middleware to make sure a user is logged in');
   if (publicRoute < 0 || authMiddleware < 0 || publicRoute > authMiddleware) fail('passwordless claim routes are not narrowly registered before login middleware');
 }
-
-
-if (/issueEosPasswordSetupTicket[\s\S]{0,600}invalidateEosPasswordSetupTicketsForUser\(userId\)/.test(source)) fail('security-context refresh still invalidates the token shown in the first-login form');
-if (/issueEosPasswordSetupTicket[\s\S]{0,500}invalidateEosPasswordSetupTicketsForUser\(userId\)/.test(built)) fail('built security-context refresh still invalidates setup tokens');
-if (!source.includes('res.status(200).json({ success: true') || source.indexOf('res.status(200).json({ success: true') > source.indexOf('void this.destroyEosRequestSessions(req)')) fail('success response must be sent before deferred session cleanup');
-
-for (const code of [passwordSource, passwordBuilt]) {
-  for (const marker of ['setPasswordAsync', 'checkPasswordAsync', 'common.password', 'passwordNotPersisted', 'passwordVerificationFailed', 'userName', 'verifyEosUserPasswordCredential']) if (!code.includes(marker)) fail(`password helper marker missing: ${marker}`);
-  if (/setForeignObject|common\.password\s*=/.test(code)) fail('password helper writes common.password itself');
-}
-if (source.includes('setForeignObjectAsync(access.userId, userObject)') || built.includes('setForeignObjectAsync(access.userId, userObject)')) fail('first-login still writes a stale full user object');
-if (!source.includes('passwordMetadataNotPersisted') || !built.includes('passwordMetadataNotPersisted')) fail('first-login metadata persistence verification missing');
 
 for (const code of [mainSource, mainBuilt]) {
   for (const marker of [
@@ -66,14 +49,14 @@ for (const code of [mainSource, mainBuilt]) {
 }
 
 for (const marker of [
-  'v7100-first-login-password-persisted', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
+  'v98-first-login-password-native-overview', 'showFirstLoginPassword', 'eos-first-login-overlay', 'mustChangePassword',
   'passwordSetup?.required', 'X-NexoWatt-EOS-First-Login', 'autocomplete="new-password"', 'location.replace(logoutUrl)',
-  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v7100 normal-login first activation',
+  'showSecurityRecovery', 'authenticated === false', 'installIntegratedFirstLogin', 'v98 compact normal-login first activation',
   "card.querySelectorAll('.eos-login-role-selector').forEach(element => element.remove())",
   "new Set(['installer', 'guest', 'user'])", 'requestEligibility', 'eligibility.allowed',
   'X-NexoWatt-EOS-Passwordless-Status', 'startClaim', '!password.value', 'X-NexoWatt-EOS-Passwordless-Claim',
   'X-NexoWatt-EOS-Passwordless-Password', 'showPasswordlessClaimPassword', 'eos-activation-steps', 'syncPasswordRequirement', "classList.toggle('Mui-disabled'", 'submit.disabled !== next', 'Idempotent writes are essential here', "attributeFilter: ['disabled', 'class', 'aria-disabled', 'tabindex']",
-  'eligibilityMatches', 'data-eos-passwordless-submit', 'autocomplete="username"', 'form.elements.username.value', 'waitForPasswordSocket', 'socket.changePassword', 'passwordAlreadyWritten', 'postWithTimeout',
+  'eligibilityMatches', 'data-eos-passwordless-submit', 'autocomplete="username"', 'form.elements.username.value',
 ]) if (!boot.includes(marker)) fail(`browser marker missing: ${marker}`);
 if (boot.includes("launcher.className = 'eos-passwordless-launcher'")) fail('separate first-login launcher is still created');
 if (boot.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher function remains active');
@@ -86,9 +69,8 @@ for (const marker of ['NEXOWATT_EOS_FIRST_LOGIN', 'Keep the familiar compact log
 for (const marker of [
   '.eos-first-login-overlay', '.eos-first-login-card', '.eos-first-login-submit', '.eos-passwordless-card',
   '.eos-activation-steps', '.eos-login-role-selector', 'display: none !important', 'main.MuiPaper-root::before',
-  'width: min(424px, calc(100vw - 20px)) !important', 'height: min(548px, calc(100dvh - 20px)) !important',
-  'width: min(372px, calc(100vw - 48px)) !important', 'min-height: 0 !important', 'height: auto !important',
-  'static labels above login fields', 'position: static !important', 'transform: none !important',
+  'width: min(456px, calc(100vw - 20px)) !important', 'height: min(536px, calc(100dvh - 20px)) !important',
+  'width: min(400px, calc(100vw - 48px)) !important', 'min-height: 0 !important', 'height: auto !important',
   '.eos-login-first-status:empty',
   '.eos-passwordless-launcher', '.eos-login-first-blocked', '.eos-login-first-checking',
 ]) if (!css.includes(marker)) fail(`first-login CSS marker missing: ${marker}`);

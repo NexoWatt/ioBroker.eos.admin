@@ -11,7 +11,7 @@ const CANONICAL_NATIVE_DEFAULTS = Object.freeze({
     eosHideLegacyAdminFromNonAdmins: true,
     eosHideLegacyBackupFromNonAdmins: true,
     nexowattHideLegacyBackupFromNonAdmins: true,
-    eosRequireFirstLoginPassword: true,
+    eosRequireFirstLoginPassword: false,
 });
 
 /**

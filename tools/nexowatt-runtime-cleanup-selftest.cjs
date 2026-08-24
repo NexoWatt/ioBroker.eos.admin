@@ -15,15 +15,15 @@ try {
   fs.mkdirSync(path.join(temp, 'src-admin', 'public', 'js'), { recursive: true });
   fs.mkdirSync(path.join(temp, 'src-admin', 'public', 'static', 'js'), { recursive: true });
   fs.mkdirSync(path.join(temp, 'adminWww', 'static', 'js'), { recursive: true });
-  fs.writeFileSync(path.join(temp, 'NEXOWATT_EOS_BUILD_INFO.json'), JSON.stringify({ runtimeEntry: 'v82', shellCacheVersion: 7100 }));
+  fs.writeFileSync(path.join(temp, 'NEXOWATT_EOS_BUILD_INFO.json'), JSON.stringify({ runtimeEntry: 'v82', shellCacheVersion: 98 }));
 
   const keep = [
     'adminWww/assets/bootstrap-current-v82.js',
     'adminWww/assets/Objects-current-v82.js',
     'adminWww/remoteEntry-v82.js',
     'adminWww/remoteEntry.js',
-    'adminWww/static/js/nexowatt-stable-v7100.js',
-    'src-admin/public/static/js/nexowatt-stable-v7100.js',
+    'adminWww/static/js/nexowatt-stable-v98.js',
+    'src-admin/public/static/js/nexowatt-stable-v98.js',
     'adminWww/static/js/nexowatt-stable-login.js',
   ];
   const remove = [
@@ -34,10 +34,8 @@ try {
     'adminWww/js/eos-branding.js',
     'adminWww/css/eos-branding.css',
     'src-admin/public/js/eos-security-ui.js',
-    'adminWww/static/js/nexowatt-stable-v100.js',
-    'src-admin/public/static/js/nexowatt-stable-v99.js',
-    'adminWww/static/js/nexowatt-stable-v98.js',
-    'src-admin/public/static/js/nexowatt-stable-v97.js',
+    'adminWww/static/js/nexowatt-stable-v97.js',
+    'src-admin/public/static/js/nexowatt-stable-v95.js',
   ];
   for (const rel of [...keep, ...remove]) {
     const file = path.join(temp, rel);
@@ -47,7 +45,7 @@ try {
 
   const result = cleanLegacyRuntime({ root: temp, quiet: true, silent: true });
   assert.strictEqual(result.activeRuntime, 82);
-  assert.strictEqual(result.activeShell, 7100);
+  assert.strictEqual(result.activeShell, 98);
   assert.strictEqual(result.removed.length, remove.length);
   for (const rel of keep) assert.ok(fs.existsSync(path.join(temp, rel)), `current runtime removed: ${rel}`);
   for (const rel of remove) assert.ok(!fs.existsSync(path.join(temp, rel)), `legacy file remained: ${rel}`);

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.10.0",
+    "version": "7.10.1",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,16 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.10.1": {
+        "de": "Stable-Kandidat 7.10.1 basiert wieder auf 7.9.98: native Passwortverwaltung ohne erzwungene Erstpasswortseite, dauerhafter Cockpit-Scrollbereich, Stift im unteren Kartenbereich und abschaltbare NexoWatt-Stable-Updates.",
+        "en": "Stable candidate 7.10.1 returns to the 7.9.98 baseline: native password management without forced first-password page, persistent cockpit scrolling, in-grid edit control and optional NexoWatt stable updates.",
+        "nl": "Stable-kandidaat 7.10.1 keert terug naar de 7.9.98-basis: native wachtwoordbeheer zonder verplichte eerste-wachtwoordpagina, blijvend cockpit-scrollen, bewerken in het onderste kaartgebied en uitschakelbare NexoWatt-stabiele updates."
+      },
+      "7.9.98": {
+        "de": "Stable-Kandidat 7.9.98 ergänzt den vertikalen Cockpit-Scrollbereich, bereinigt die Login-Felder und korrigiert Passwort-Reset sowie persönliche Erstpasswortvergabe über die echte ioBroker-Passwort-API.",
+        "en": "Stable candidate 7.9.98 adds vertical cockpit scrolling, cleans up login fields and fixes password reset plus first personal password setup through the real ioBroker password API.",
+        "nl": "Stable-kandidaat 7.9.98 voegt verticaal scrollen in het cockpit toe, herstelt de loginvelden en corrigeert wachtwoordreset en het eerste persoonlijke wachtwoord via de echte ioBroker-wachtwoord-API."
+      },
       "7.9.95": {
         "de": "Stable 7.9.95 macht den Release-Ordner mergesicher: Die flache Update-ZIP kann direkt über einen bestehenden Arbeitsordner entpackt werden. Vor Paketprüfung und npm-Veröffentlichung werden package.json, io-package.json, beide Lockdateien, die Frontend-Version, Build-Informationen und der aktuelle Repository-Eintrag automatisch auf dieselbe Version gebracht. Dadurch wird insbesondere ein stehen gebliebenes io-package.json aus 7.9.92/7.9.94 automatisch repariert. Die Funktionen aus 7.9.94 bleiben unverändert.",
         "en": "Stable 7.9.95 makes the release folder merge-safe: the flat update ZIP can be extracted directly over an existing working directory. Before package validation and npm publishing, package.json, io-package.json, both lockfiles, the frontend version, build information and the current repository entry are synchronized automatically. In particular, a stale io-package.json from 7.9.92/7.9.94 is repaired automatically. Functional behavior from 7.9.94 remains unchanged.",
@@ -329,7 +339,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.0/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.1/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -340,7 +350,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.0/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.1/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -408,7 +418,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.0/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.1/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -538,7 +548,7 @@
         "enabled": true
       }
     ],
-    "eosRequireFirstLoginPassword": true,
+    "eosRequireFirstLoginPassword": false,
     "eosFirstLoginPasswordMinLength": 10,
     "eosAutoAssignDefaultRoleUsers": true,
     "eosPasswordlessFirstLogin": false,
@@ -547,7 +557,7 @@
     "eosHideLegacyBackupFromNonAdmins": true,
     "nexowattHideLegacyBackupFromNonAdmins": true,
     "eosAllowPasswordlessFirstLogin": false,
-    "eosRequireFirstLoginPasswordChange": true,
+    "eosRequireFirstLoginPasswordChange": false,
     "eosAutoAssignStandardAccounts": true,
     "eosAssistEnabled": false,
     "eosNexoWattAutoUpdate": true
@@ -1118,5 +1128,5 @@
       }
     }
   },
-  "version": "7.10.0"
+  "version": "7.10.1"
 }

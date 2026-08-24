@@ -20,7 +20,6 @@ import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobr
 import { SocketIO } from '@iobroker/ws-server';
 import { getAdapterUpdateText } from './lib/translations';
 import Web from './lib/web';
-import { setEosUserPasswordWithVerification } from './lib/eosPassword';
 import { checkWellKnownPasswords, setLinuxPassword } from './lib/checkLinuxPass';
 import { DockerManager } from '@iobroker/plugin-docker';
 import { checkCommonObjects, updateDevicesObject, updateIcons, validateUserData0 } from './lib/objectFixes';
@@ -290,53 +289,40 @@ async function ensureEosStableInitialAccounts(adapter: Adapter): Promise<void> {
         if (!object) {
             await adapter.setForeignObjectAsync(
                 id,
-                {
-                    type: 'user',
-                    common: {
-                        name: account.user,
-                        enabled: true,
-                        password: '',
-                    },
-                    native: {},
-                } as ioBroker.UserObject,
+                { type: 'user', common: { name: account.user, enabled: true, password: '' }, native: {} } as ioBroker.UserObject,
                 { user: 'system.user.admin' },
             );
             object = (await adapter.getForeignObjectAsync(id)) as ioBroker.UserObject | null | undefined;
             created = true;
         }
-        if (!object) {
-            adapter.log.error(`Cannot prepare EOS account ${account.user}`);
-            continue;
+        if (!object) { adapter.log.error(`Cannot prepare EOS account ${account.user}`); continue; }
+        if (created || !String(object.common?.password || '').trim()) {
+            await adapter.setPasswordAsync(account.user, EOS_STABLE_INITIAL_PASSWORD, { user: 'system.user.admin' });
+            object = (await adapter.getForeignObjectAsync(id)) as ioBroker.UserObject | null | undefined;
         }
-        const eosNative = (object.native || {}) as Record<string, unknown>;
-        const resetRequested = eosNative.nexowattResetRequested === true || eosNative.eosResetRequested === true;
-        const passwordMissing = !object.common?.password;
-        const pendingFirstLogin = eosNative.nexowattPasswordChangeRequired === true || eosNative.eosPasswordChangeRequired === true || eosNative.nexowattFirstLoginPending === true || eosNative.eosFirstLoginRequired === true;
-        const stableCredentialMissing = eosNative.nexowattStableInitialCredentialVersion !== 1;
-        if (created || passwordMissing || resetRequested || (pendingFirstLogin && stableCredentialMissing)) {
-            await setEosUserPasswordWithVerification(adapter, id, EOS_STABLE_INITIAL_PASSWORD, 'system.user.admin');
-            await adapter.extendForeignObjectAsync(
-                id,
-                {
-                    native: {
-                        ...eosNative,
-                        nexowattManaged: true,
-                        nexowattRole: account.role,
-                        nexowattPasswordChangeRequired: true,
-                        eosPasswordChangeRequired: true,
-                        nexowattFirstLoginPending: true,
-                        eosFirstLoginRequired: true,
-                        nexowattInitialPasswordApplied: true,
-                        nexowattInitialPasswordVersion: 1,
-                        nexowattStableInitialCredentialVersion: 1,
-                        nexowattResetRequested: false,
-                        eosResetRequested: false,
-                    },
-                },
-                { user: 'system.user.admin' },
-            );
-            adapter.log.info(`Prepared EOS ${account.role} account ${account.user} for mandatory first password change`);
-        }
+        if (!object) continue;
+        const previous = (object.native || {}) as Record<string, unknown>;
+        const previousAccount = (previous.nexowattEosAccount || {}) as Record<string, unknown>;
+        await adapter.extendForeignObjectAsync(id, { native: {
+            ...previous,
+            nexowattManaged: true,
+            nexowattRole: account.role,
+            nexowattPasswordChangeRequired: false,
+            eosPasswordChangeRequired: false,
+            nexowattFirstLoginPending: false,
+            eosFirstLoginRequired: false,
+            nexowattResetRequested: false,
+            eosResetRequested: false,
+            nexowattEosAccount: {
+                ...previousAccount,
+                passwordInitialized: true,
+                passwordSetupVersion: 1,
+                passwordInitializationVersion: 1,
+                forcePasswordChange: false,
+                passwordlessFirstLoginAllowed: false,
+                standardPasswordMode: true,
+            },
+        } }, { user: 'system.user.admin' });
         await ensureEosStableGroupMembership(adapter, account.user, account.role);
     }
 }
@@ -1150,7 +1136,7 @@ class Admin extends Adapter {
                 object: { ...full },
                 state: { ...full },
                 file: { ...full },
-                users: { ...none },
+                users: { list: true, read: true, write: false, create: false, delete: false },
                 other: { execute: false, http: true, sendto: true },
             };
         }
@@ -1158,7 +1144,7 @@ class Admin extends Adapter {
             object: { list: true, read: true, write: true, create: true, delete: true },
             state: { list: true, read: true, write: true, create: false, delete: false },
             file: { list: true, read: true, write: false, create: false, delete: false },
-            users: { ...none },
+            users: { list: true, read: true, write: false, create: false, delete: false },
             other: { execute: false, http: true, sendto: true },
         };
     }
@@ -1314,10 +1300,10 @@ class Admin extends Adapter {
             },
             native: {
                 nexowattEosAccount: {
-                    passwordInitialized: false,
-                    passwordSetupVersion: 0,
-                    forcePasswordChange: true,
-                    passwordlessFirstLoginAllowed: true,
+                    passwordInitialized: true,
+                    passwordSetupVersion: 1,
+                    forcePasswordChange: false,
+                    passwordlessFirstLoginAllowed: false,
                     provisionedBy: 'NexoWatt EOS',
                     provisionedAt: new Date().toISOString(),
                 },
@@ -1349,7 +1335,7 @@ class Admin extends Adapter {
         }
         if (String(user.common.password || '') === '') {
             const bootstrapSecret = `${randomBytes(48).toString('base64url')}!aA1`;
-            await setEosUserPasswordWithVerification(this, userId, bootstrapSecret, ADMIN_OWNER_USER as ioBroker.ObjectIDs.User);
+            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, { user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User });
             user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
             if (!user) {
                 return;
@@ -1396,11 +1382,9 @@ class Admin extends Adapter {
         const endUsers = ['system.user.guest', 'system.user.user', 'system.user.endkunde', 'system.user.kunde'];
         for (const userId of installerUsers) {
             await this.addUserToEosGroup(userId, installerGroup);
-            await this.prepareEosPasswordlessFirstLogin(userId);
         }
         for (const userId of endUsers) {
             await this.addUserToEosGroup(userId, endUserGroup);
-            await this.prepareEosPasswordlessFirstLogin(userId);
         }
     }
 
@@ -1410,9 +1394,7 @@ class Admin extends Adapter {
         const priorities = { enduser: 1, installer: 2, admin: 3 } as const;
         const assign = (userId: string, role: 'admin' | 'installer' | 'enduser'): void => {
             const current = next.get(userId);
-            if (!current || priorities[role] > priorities[current]) {
-                next.set(userId, role);
-            }
+            if (!current || priorities[role] > priorities[current]) next.set(userId, role);
         };
         for (const [roleName, groupIds] of [
             ['admin', this.getEosRoleGroupIds('service')],
@@ -1422,27 +1404,12 @@ class Admin extends Adapter {
         ] as const) {
             for (const groupId of groupIds) {
                 const group = (await this.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null;
-                for (const member of group?.common?.members || []) {
-                    assign(member, roleName);
-                }
+                for (const member of group?.common?.members || []) assign(member, roleName);
             }
         }
         this.eosRoleCache.clear();
         this.eosPasswordSetupRequired.clear();
-        for (const [userId, role] of next.entries()) {
-            this.eosRoleCache.set(userId, role);
-            if (role === 'admin') {
-                continue;
-            }
-            const user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
-            const native = (user?.native || {}) as Record<string, unknown>;
-            const account = (native.nexowattEosAccount || {}) as Record<string, unknown>;
-            const initialized = account.passwordInitialized === true
-                || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
-            if (account.forcePasswordChange === true || !initialized) {
-                this.eosPasswordSetupRequired.add(userId);
-            }
-        }
+        for (const [userId, role] of next.entries()) this.eosRoleCache.set(userId, role);
     }
 
     private getEosCachedRole(userId?: string): 'admin' | 'installer' | 'enduser' {
@@ -1479,9 +1446,6 @@ class Admin extends Adapter {
             if (role === 'admin') {
                 return original(socketClient, command, callback, ...args);
             }
-            if (userId && this.eosPasswordSetupRequired.has(userId)) {
-                return deny(socketClient, command, callback, 'personal password setup is required');
-            }
             if (command === 'cmdExec') {
                 if (role !== 'installer') {
                     return deny(socketClient, command, callback, 'raw command execution is Service-only');
@@ -1503,6 +1467,16 @@ class Admin extends Adapter {
             }
             if (role === 'enduser' && ['readLogs', 'sendToHost'].includes(command)) {
                 return deny(socketClient, command, callback, 'technical diagnostics are installer/service-only');
+            }
+            if (command === 'changePassword') {
+                const targetRaw = String(args[0] || '').trim();
+                const targetUser = targetRaw.startsWith('system.user.') ? targetRaw : `system.user.${targetRaw}`;
+                const selfUser = String(userId || '');
+                const allowed = role === 'installer'
+                    ? new Set([selfUser, 'system.user.installer', 'system.user.user', 'system.user.guest']).has(targetUser)
+                    : targetUser === selfUser;
+                if (!allowed) return deny(socketClient, command, callback, 'password target outside EOS role scope');
+                return true;
             }
             if (['addUser', 'delUser', 'addGroup', 'delGroup'].includes(command)) {
                 return deny(socketClient, command, callback, 'account administration is Service-only');

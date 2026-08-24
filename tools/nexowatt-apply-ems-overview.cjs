@@ -52,7 +52,7 @@ if (!css.includes(cssMarker)) {
     overflow: hidden;
 }
 .eos-ems-overview-card * { box-sizing: border-box; }
-.eos-ems-overview-header { display:flex; align-items:flex-start; justify-content:flex-start; gap:20px; }
+.eos-ems-overview-header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
 .eos-ems-overview-header h2 { margin:5px 0 6px; font-size:clamp(1.2rem,2vw,1.65rem); color:#f5fbff; }
 .eos-ems-overview-header p { margin:0; max-width:760px; color:#9eb2c2; line-height:1.45; }
 .eos-ems-overview-eyebrow { color:#49e39e; font-size:.72rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
@@ -83,7 +83,9 @@ if (!css.includes(cssMarker)) {
 .eos-ems-overview-event time { color:#6f8799; font-size:.68rem; font-variant-numeric:tabular-nums; }
 .eos-ems-overview-event div { display:grid; gap:2px; min-width:0; }
 .eos-ems-overview-empty { color:#718797; font-size:.76rem; }
-.eos-ems-overview-footer { display:flex; justify-content:flex-start; gap:12px; margin-top:12px; color:#60798a; font-size:.67rem; }
+.eos-ems-overview-footer { display:flex; justify-content:space-between; gap:12px; margin-top:12px; color:#60798a; font-size:.67rem; }
+.eos-ems-overview-footer a { color:#5ee0c2; font-weight:800; text-decoration:none; }
+.eos-ems-overview-footer a:hover,.eos-ems-overview-footer a:focus-visible { color:#9af2dd; text-decoration:underline; }
 @media (max-width: 1100px) {
     .eos-ems-overview-card { flex-basis:100%; max-width:none; }
 }

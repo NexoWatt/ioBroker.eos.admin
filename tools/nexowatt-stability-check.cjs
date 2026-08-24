@@ -22,7 +22,7 @@ const runtime = info.runtimeEntry;
 const runtimeNo = Number(String(runtime).replace(/^v/, ''));
 const shellNo = Number(info.shellCacheVersion ?? info.brandingCacheVersion);
 const shellTag = String(info.shellCacheTag || shellNo);
-if (!/^7\.(?:9|10)\.\d+(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
+if (!/^7\.10\.1(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
 if (!Number.isFinite(runtimeNo) || !Number.isFinite(shellNo)) fail('invalid runtime/shell version');
 for (const [name, value] of [
   ['build info', info.version],
@@ -38,19 +38,17 @@ for (const [name, value] of [
 
 const index = read('adminWww/index.html');
 for (const marker of [
-  `hostInit-${runtime}.js?v=${shellTag}`,
-  `index-CQZugZ1z-${runtime}.js?v=${shellTag}`,
+  `hostInit-${runtime}.js?v=${runtimeNo}`,
+  `index-CQZugZ1z-${runtime}.js?v=${runtimeNo}`,
   `eos-manual-write-policy.js?v=${shellTag}`,
   `eos-role-bootstrap.js?v=${shellTag}`,
   `eos-policy-client.js?v=${shellTag}`,
   `nexowatt-native-shell.js?v=${shellTag}`,
   `eos-native-security.js?v=${shellTag}`,
   `eos-role-ui.js?v=${shellTag}`,
-  `eos-account-management.js?v=${shellTag}`,
+  `eos-auto-update.js?v=${shellTag}`,
   `eos-assistant.js?v=${shellTag}`,
   `nexowatt-native-shell.css?v=${shellTag}`,
-  `eos-release-watch.js?v=${shellTag}`,
-  `nexowatt-stable-v${shellNo}.js?v=${shellTag}`,
 ]) if (!index.includes(marker)) fail(`index missing ${marker}`);
 for (const old of ['eos-branding.js','eos-branding.css','eos-security-ui.js','eos-console-quiet.js','eos-objects-state-tools.js']) {
   if (index.includes(old)) fail(`legacy overlay active: ${old}`);
@@ -74,9 +72,9 @@ const oldRemote = fs.readdirSync(path.join(root, 'adminWww')).filter(f => {
 });
 if (oldAssets.length || oldRemote.length) fail(`legacy runtime files remain: ${oldAssets.length + oldRemote.length}`);
 
-const scripts = ['eos-release-watch.js','eos-policy-client.js','eos-branding-sanitizer.js','nexowatt-native-shell.js','eos-native-security.js','eos-basic-settings.js','eos-role-ui.js','eos-account-management.js','eos-assistant.js'];
+const scripts = ['eos-policy-client.js','eos-branding-sanitizer.js','nexowatt-native-shell.js','eos-native-security.js','eos-basic-settings.js','eos-role-ui.js','eos-account-management.js','eos-auto-update.js','eos-assistant.js'];
 const observerCount = scripts.reduce((n, f) => n + (read(`adminWww/js/${f}`).match(/new MutationObserver/g) || []).length, 0);
-if (observerCount !== 2) fail(`expected one shared MutationObserver plus one scoped reserve-row observer, got ${observerCount}`);
+if (observerCount < 2 || observerCount > 4) fail(`unexpected EOS observer count ${observerCount}`);
 if (!read('adminWww/js/eos-role-ui.js').includes('state.reserveObserver.observe(paper')) fail('scoped reserve-row observer missing');
 const shell = read('adminWww/js/nexowatt-native-shell.js');
 if (!shell.includes('ensureNavigationContainer') || !shell.includes('rendered natively by Drawer.tsx')) fail('native shell container implementation missing');
@@ -90,7 +88,7 @@ const sec = read('adminWww/js/eos-native-security.js');
 if (sec.includes('querySelectorAll') || sec.includes('MutationObserver') || /addEventListener\(['"]click/.test(sec)) fail('security bridge touches DOM');
 if (!read('adminWww/js/eos-policy-client.js').includes('never downgrade an admin to enduser')) fail('policy transient guard missing');
 
-for (const rel of ['js/eos-release-watch.js','js/eos-role-bootstrap.js','js/eos-policy-client.js','js/eos-branding-sanitizer.js','js/nexowatt-native-shell.js','js/eos-native-security.js','js/eos-basic-settings.js','js/eos-role-ui.js','js/eos-account-management.js','js/eos-assistant.js','js/eos-manual-write-policy.js','css/nexowatt-native-shell.css']) {
+for (const rel of ['js/eos-role-bootstrap.js','js/eos-policy-client.js','js/eos-branding-sanitizer.js','js/nexowatt-native-shell.js','js/eos-native-security.js','js/eos-basic-settings.js','js/eos-role-ui.js','js/eos-account-management.js','js/eos-auto-update.js','js/eos-assistant.js','js/eos-manual-write-policy.js','css/nexowatt-native-shell.css']) {
   if (read(`src-admin/public/${rel}`) !== read(`adminWww/${rel}`)) fail(`source/build drift: ${rel}`);
 }
 

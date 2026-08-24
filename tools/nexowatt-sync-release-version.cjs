@@ -19,6 +19,14 @@ function setValue(changes, label, object, key, value) {
     }
 }
 
+function setJsonValue(changes, label, object, key, value) {
+    const previous = object[key];
+    if (JSON.stringify(previous) !== JSON.stringify(value)) {
+        changes.push({ label, previous, value });
+        object[key] = value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    }
+}
+
 function syncReleaseVersion(rootDir) {
     const root = path.resolve(rootDir);
     const packageFile = path.join(root, 'package.json');
@@ -32,10 +40,7 @@ function syncReleaseVersion(rootDir) {
         throw new Error(`Invalid package.json version: ${version || '<missing>'}`);
     }
 
-    const parsed = version.match(/^(\d+)\.(\d+)\.(\d+)/);
-    const releaseNo = parsed
-        ? (parsed[1] === '7' && parsed[2] === '9' ? parsed[3] : `${parsed[1]}${parsed[2]}${parsed[3]}`)
-        : version.replace(/[^0-9A-Za-z]+/g, '-');
+    const releaseNo = version.match(/^7\.9\.(\d+)/)?.[1] || version.replace(/[^0-9A-Za-z]+/g, '-');
     const expectedBase = `https://unpkg.com/iobroker.eos-admin@${version}`;
     const changes = [];
 
@@ -65,7 +70,40 @@ function syncReleaseVersion(rootDir) {
             update(json) {
                 setValue(changes, 'package-lock.json version', json, 'version', version);
                 if (json.packages?.['']) {
-                    setValue(changes, 'package-lock.json packages[""] version', json.packages[''], 'version', version);
+                    const rootPackage = json.packages[''];
+                    setValue(changes, 'package-lock.json packages[""] version', rootPackage, 'version', version);
+                    // A merge archive can update package.json while leaving stale release scripts,
+                    // files and policy metadata in package-lock.json. npm reads the lock root during
+                    // packaging, so keep every release-critical root field canonical as well.
+                    for (const key of [
+                        'name',
+                        'description',
+                        'license',
+                        'author',
+                        'private',
+                        'engines',
+                        'main',
+                        'files',
+                        'scripts',
+                        'dependencies',
+                        'devDependencies',
+                        'overrides',
+                        'keywords',
+                        'publishConfig',
+                        'nexowattReleasePolicy',
+                        'publisher',
+                        'copyright',
+                    ]) {
+                        if (Object.prototype.hasOwnProperty.call(pkg, key)) {
+                            setJsonValue(
+                                changes,
+                                `package-lock.json packages[""] ${key}`,
+                                rootPackage,
+                                key,
+                                pkg[key],
+                            );
+                        }
+                    }
                 }
             },
         },

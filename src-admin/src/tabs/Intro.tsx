@@ -68,8 +68,9 @@ const styles: Record<string, any> = {
         height: '100%',
     },
     button: {
-        position: 'static',
-        margin: 0,
+        position: 'absolute',
+        bottom: 16,
+        right: 16,
     },
     saveButton: (theme: IobTheme) => ({
         backgroundColor: theme.palette.success.main,
@@ -127,8 +128,8 @@ const styles: Record<string, any> = {
         display: 'flex',
         flexFlow: 'wrap',
         width: '100%',
-        minHeight: 80,
-        paddingBottom: 80,
+        minHeight: 72,
+        paddingBottom: 72,
         overflow: 'visible',
         justifyContent: 'left',
     },
@@ -1642,7 +1643,6 @@ class Intro extends React.Component<IntroProps, IntroState> {
             <TabContainer
                 elevation={0}
                 overflow="visible"
-                className="eos-intro-scroll-content"
             >
                 {this.renderCopiedToast()}
                 <section id="eos-native-overview-hero" className="eos-overview-hero eos-native-overview-hero" data-eos-native-react-overview="true">
