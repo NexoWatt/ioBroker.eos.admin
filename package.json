@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin – repaired stable baseline with restart-safe automatic updates, native account passwords and persistent cockpit scrolling.",
-  "version": "7.10.4",
+  "version": "7.10.5",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -133,15 +133,15 @@
     "NEXOWATT_EOS_PREBUILT_MANIFEST.json",
     "tools/nexowatt-prebuilt-release-selftest.cjs",
     "tools/nexowatt-stable-v7103-selftest.cjs",
-    "README_STABILITY_V7.10.4.md",
-    "RELEASE_NOTES_V7.10.4.md",
-    "PUBLISH_STABLE_V7.10.4.md",
-    "INSTALL_TEST_V7.10.4.md",
-    "RELEASE_ACCEPTANCE_V7.10.4.md",
-    "MERGE_UPDATE_README_V7.10.4.md",
+    "README_STABILITY_V7.10.5.md",
+    "RELEASE_NOTES_V7.10.5.md",
+    "PUBLISH_STABLE_V7.10.5.md",
+    "INSTALL_TEST_V7.10.5.md",
+    "RELEASE_ACCEPTANCE_V7.10.5.md",
+    "MERGE_UPDATE_README_V7.10.5.md",
     "tools/nexowatt-auto-update-placement-selftest.cjs",
     "tools/nexowatt-role-security-selftest.cjs",
-    "src-admin/nexowatt-role-security.js"
+    "SECURITY_ROLE_MATRIX_V7.10.5.md"
   ],
   "scripts": {
     "npm": "npm i -f && cd src-admin && npm i -f",
@@ -216,7 +216,7 @@
   },
   "nexowattReleasePolicy": {
     "distTag": "latest",
-    "purpose": "accepted stable NexoWatt EOS sales-product candidate 7.10.4"
+    "purpose": "accepted stable NexoWatt EOS admin-rights and RBAC correction 7.10.5"
   },
   "publisher": "NexoWatt"
 }

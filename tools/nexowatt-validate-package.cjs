@@ -68,6 +68,7 @@ if (io.native?.nexowattHideLegacyBackupFromNonAdmins !== true) fail('NexoWatt ba
 const instanceObjectIds = new Set((io.instanceObjects || []).map(object => object?._id));
 if (!instanceObjectIds.has('info.nexowattStableUpdatesEnabled')) fail('restart-safe auto-update enabled state is missing');
 if (!instanceObjectIds.has('info.nexowattStableUpdatesState')) fail('restart-safe auto-update runtime state is missing');
+if (!instanceObjectIds.has('info.uiTabsVisible')) fail('restart-safe navigation state info.uiTabsVisible is missing');
 for (const key of ['description', 'files', 'scripts', 'nexowattReleasePolicy']) {
   if (JSON.stringify(pkgLock.packages?.['']?.[key]) !== JSON.stringify(pkg[key])) {
     fail(`package-lock root ${key} must match package.json`);
@@ -133,14 +134,14 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.10.4.md',
-  'RELEASE_NOTES_V7.10.4.md',
-  'PUBLISH_STABLE_V7.10.4.md',
-  'INSTALL_TEST_V7.10.4.md',
-  'RELEASE_ACCEPTANCE_V7.10.4.md',
+  'README_STABILITY_V7.10.5.md',
+  'RELEASE_NOTES_V7.10.5.md',
+  'PUBLISH_STABLE_V7.10.5.md',
+  'INSTALL_TEST_V7.10.5.md',
+  'RELEASE_ACCEPTANCE_V7.10.5.md',
   'MERGE_UPDATE.ps1',
   'MERGE_UPDATE.cmd',
-  'MERGE_UPDATE_README_V7.10.4.md',
+  'MERGE_UPDATE_README_V7.10.5.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -173,7 +174,7 @@ for (const file of [
   'tools/nexowatt-ui-overview-runtime-selftest.cjs',
   'adminWww/js/eos-ems-overview.js',
   'adminWww/css/eos-ems-overview.css',
-  'adminWww/static/js/nexowatt-stable-v7101.js',
+  'adminWww/static/js/nexowatt-stable-v7105.js',
   'src-admin/src/components/Intro/NexoWattEmsOverview.tsx',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',
@@ -219,7 +220,7 @@ if (!index.includes(`eos-auto-update.css?v=${autoUpdateTag}`)) fail('auto-update
 if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache key mismatch');
 if (!index.includes(`eos-ems-overview.js?v=${shellTag}`)) fail('EMS overview cache key mismatch');
 if (!index.includes(`eos-ems-overview.css?v=${shellTag}`)) fail('EMS overview CSS cache key mismatch');
-if (!index.includes(`nexowatt-stable-v7101.js?v=${shellTag}`)) fail('stable v98 cache key mismatch');
+if (!index.includes(`nexowatt-stable-v${shellTag}.js?v=${shellTag}`)) fail('stable shell overlay cache key mismatch');
 if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {

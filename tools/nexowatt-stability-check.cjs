@@ -23,7 +23,7 @@ const runtimeNo = Number(String(runtime).replace(/^v/, ''));
 const shellNo = Number(info.shellCacheVersion ?? info.brandingCacheVersion);
 const shellTag = String(info.shellCacheTag || shellNo);
 const autoUpdateTag = String(info.autoUpdateCacheTag || info.autoUpdateCacheVersion || shellTag);
-if (!/^7\.10\.4(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
+if (!/^7\.10\.5(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
 if (!Number.isFinite(runtimeNo) || !Number.isFinite(shellNo)) fail('invalid runtime/shell version');
 for (const [name, value] of [
   ['build info', info.version],
@@ -51,6 +51,7 @@ for (const marker of [
   `eos-auto-update.css?v=${autoUpdateTag}`,
   `eos-assistant.js?v=${shellTag}`,
   `nexowatt-native-shell.css?v=${shellTag}`,
+  `nexowatt-stable-v${shellTag}.js?v=${shellTag}`,
 ]) if (!index.includes(marker)) fail(`index missing ${marker}`);
 for (const old of ['eos-branding.js','eos-branding.css','eos-security-ui.js','eos-console-quiet.js','eos-objects-state-tools.js']) {
   if (index.includes(old)) fail(`legacy overlay active: ${old}`);

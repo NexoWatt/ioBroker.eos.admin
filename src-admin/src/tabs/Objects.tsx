@@ -241,6 +241,9 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
     }
 
     render(): JSX.Element[] {
+        const eosRole = String((window as Window & { NEXOWATT_EOS_ACCESS_ROLE?: string }).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
+        const readOnly = eosRole === 'enduser';
+
         // Derive the browser's navigation target from the URL hash `#tab-objects/<mode>/<id>`.
         // The ObjectBrowser stays URL-agnostic; we translate the route here and back (onNavigateTo).
         const location = Router.getLocation();
@@ -294,16 +297,13 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                 objectMoveRenameDialog={ObjectMoveRenameDialog}
                 objectBrowserInsertJsonObjects={ObjectImportFromTextDialog}
                 router={Router}
-                enableStateValueEdit
-                onObjectDelete={(id: string, hasChildren: boolean, objectExists: boolean, childrenCount: number) =>
-                    this.setState({
-                        deleteObjectShow: {
-                            id,
-                            hasChildren,
-                            exists: objectExists,
-                            childrenCount,
-                        },
-                    })
+                enableStateValueEdit={!readOnly}
+                onObjectDelete={readOnly
+                    ? undefined
+                    : (id: string, hasChildren: boolean, objectExists: boolean, childrenCount: number) =>
+                          this.setState({
+                              deleteObjectShow: { id, hasChildren, exists: objectExists, childrenCount },
+                          })
                 }
                 onFilterChanged={(filterConfig: ObjectBrowserFilter) => {
                     this.filters = filterConfig;
@@ -325,11 +325,11 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                         );
                     }
                 }}
-                objectEditBoolean
-                objectAddBoolean
+                objectEditBoolean={!readOnly}
+                objectAddBoolean={!readOnly}
                 objectStatesView
-                objectImportExport
-                objectEditOfAccessControl
+                objectImportExport={!readOnly}
+                objectEditOfAccessControl={!readOnly}
                 modalNewObject={(context: ObjectBrowserClass) => (
                     <ObjectAddNewObject
                         objects={context.objects}
@@ -363,7 +363,7 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                     />
                 )}
             />,
-            this.renderDeleteDialog(),
+            readOnly ? null : this.renderDeleteDialog(),
         ];
     }
 }

@@ -480,43 +480,77 @@ class Drawer extends Component<DrawerProps, DrawerState> {
         }
     }
 
+    private getTabsLayoutStateId(): string {
+        return `${this.props.adminInstance}.info.uiTabsVisible`;
+    }
+
+    private static parseTabsLayout(value: unknown): { name: string; visible: boolean; color?: string }[] | null {
+        try {
+            const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+            if (!Array.isArray(parsed)) {
+                return null;
+            }
+            const unique = new Set<string>();
+            return parsed
+                .filter(item => item && typeof item === 'object' && typeof item.name === 'string')
+                .map(item => ({
+                    name: String(item.name),
+                    visible: item.visible !== false,
+                    ...(typeof item.color === 'string' ? { color: item.color } : {}),
+                }))
+                .filter(item => {
+                    if (unique.has(item.name)) {
+                        return false;
+                    }
+                    unique.add(item.name);
+                    return true;
+                });
+        } catch {
+            return null;
+        }
+    }
+
     async getTabs(update?: boolean): Promise<void> {
         try {
             const _instances = await this.props.socket.getCompactInstances(update);
             this.tabsRetryAttempt = 0;
             const instances = _instances as any as Record<string, ioBroker.AdapterCommon>;
             const dynamicTabs: AdminTab[] = [];
+            const backupAdapters = new Set(['backitup', 'backup', 'nexowatt-backup', 'eos-backup']);
+
             if (instances) {
                 Object.keys(instances).forEach(id => {
-                    const instance = instances[id];
+                    const instance = instances[id] as ioBroker.AdapterCommon & { enabled?: boolean };
+                    const adapterName = id.replace(/^system\.adapter\./, '').replace(/\.\d+$/, '').toLowerCase();
 
+                    // A backup entry without a running/enabled instance is a dead navigation target.
+                    if (backupAdapters.has(adapterName) && instance.enabled !== true) {
+                        return;
+                    }
                     if (!instance?.adminTab) {
                         return;
                     }
 
                     let tab = `tab-${id.replace('system.adapter.', '').replace(/\.\d+$/, '')}`;
-
                     const singleton = instance.adminTab.singleton;
-                    let instNum;
+                    let instNum: number | undefined;
                     if (!singleton) {
-                        const m = id.match(/\.(\d+)$/);
-                        if (m) {
-                            instNum = parseInt(m[1], 10);
+                        const match = id.match(/\.(\d+)$/);
+                        if (match) {
+                            instNum = parseInt(match[1], 10);
                             tab += `-${instNum}`;
                         }
                     }
-
                     if (dynamicTabs.find(item => item.name === tab)) {
                         return;
                     }
 
-                    let title;
-
+                    let title: string;
                     if (instance.adminTab.name) {
                         if (typeof instance.adminTab.name === 'object') {
-                            if (instance.adminTab.name && instance.adminTab.name[this.props.lang]) {
+                            if (instance.adminTab.name[this.props.lang]) {
                                 title = instance.adminTab.name[this.props.lang];
-                            } else if (instance.adminTab.name?.en) {
+                            } else if (instance.adminTab.name.en) {
                                 title = this.props.t(instance.adminTab.name.en);
                             } else {
                                 title = this.props.t(instance.name);
@@ -539,31 +573,21 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                             supportsLoadingMessage: (instance.adminTab as any).supportsLoadingMessage,
                         };
                     }
-
                     if (!obj.icon) {
                         obj.icon = `adapter/${instance.name}/${instance.icon}`;
-                    } else if (
-                        typeof obj.icon !== 'object' &&
-                        !obj.icon.startsWith('data:image') &&
-                        !obj.icon.includes('/')
-                    ) {
+                    } else if (typeof obj.icon !== 'object' && !obj.icon.startsWith('data:image') && !obj.icon.includes('/')) {
                         obj.icon = `adapter/${instance.name}/${obj.icon}`;
                     }
-
                     obj.title = getNexoWattTabTitle(tab, title);
                     obj.icon = getNexoWattTabIcon(tab) || obj.icon;
-
-                    if (!singleton) {
-                        // obj.instance = instance;
-                        if (instNum) {
-                            obj.title += ` ${instNum}`;
-                        }
+                    if (!singleton && instNum) {
+                        obj.title += ` ${instNum}`;
                     }
                     dynamicTabs.push(obj);
                 });
             }
 
-            const READY_TO_USE = [
+            const readyToUse = [
                 'tab-intro',
                 'tab-adapters',
                 'tab-instances',
@@ -575,93 +599,63 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                 'tab-enums',
             ];
             if (await this.isDeviceManagerVisible()) {
-                READY_TO_USE.push('tab-devicemanager');
+                readyToUse.push('tab-devicemanager');
             }
 
-            // DEV ONLY
-            const tabNames = Object.keys(tabsInfo).filter(name => READY_TO_USE.includes(name));
-
+            const tabNames = Object.keys(tabsInfo).filter(name => readyToUse.includes(name));
             let tabs: AdminTab[] = tabNames.map(name => {
                 const obj: AdminTab = { name, ...tabsInfo[name] };
                 const defaultTitle = I18n.t(
-                    ucFirst(
-                        name
-                            .replace('tab-', '')
-                            .replace('-0', '')
-                            .replace(/-(\d+)$/, ' $1'),
-                    ),
+                    ucFirst(name.replace('tab-', '').replace('-0', '').replace(/-(\d+)$/, ' $1')),
                 );
                 obj.title = getNexoWattTabTitle(name, defaultTitle);
                 obj.icon = getNexoWattTabIcon(name) || obj.icon;
                 obj.visible = true;
                 return obj;
             });
-
-            // add dynamic tabs
-            tabs = tabs.concat(dynamicTabs);
-
-            tabs = tabs.filter(obj => obj);
+            tabs = tabs.concat(dynamicTabs).filter(Boolean);
             tabs.forEach(obj => (obj.visible = true));
-
             tabs.sort((a, b) => {
-                if (a.order && b.order) {
-                    return a.order - b.order;
-                }
-                if (a.order) {
-                    return -1;
-                }
-                if (b.order) {
-                    return 1;
-                }
-                return a.name > b.name ? -1 : a.name > b.name ? 1 : 0;
+                if (a.order && b.order) return a.order - b.order;
+                if (a.order) return -1;
+                if (b.order) return 1;
+                return a.name.localeCompare(b.name);
             });
 
-            // Convert
-            void this.props.socket.getCompactSystemConfig().then(systemConfig => {
-                const tabsVisible: { name: string; visible: boolean; color?: string }[] =
-                    systemConfig.common.tabsVisible || [];
+            let tabsVisible: { name: string; visible: boolean; color?: string }[] | null = null;
+            try {
+                const stored = await this.props.socket.getState(this.getTabsLayoutStateId());
+                tabsVisible = Drawer.parseTabsLayout(stored?.val);
+            } catch {
+                // Missing state on an upgraded installation: read the legacy layout once.
+            }
+            if (!tabsVisible) {
+                try {
+                    const systemConfig = await this.props.socket.getCompactSystemConfig();
+                    tabsVisible = Drawer.parseTabsLayout(systemConfig.common.tabsVisible) || [];
+                } catch {
+                    tabsVisible = [];
+                }
+            }
 
-                tabs.forEach(tab => {
-                    const it = tabsVisible.find(el => el.name === tab.name);
-                    if (it) {
-                        tab.visible = it.visible;
-                        tab.color = it.color;
-                    }
-                });
-
-                const map: Record<string, number> = {};
-                tabsVisible.forEach((item, i) => (map[item.name] = i));
-
-                tabs.sort((a, b) => {
-                    const aa = map[a.name];
-                    const bb = map[b.name];
-                    if (aa !== undefined && bb !== undefined) {
-                        return aa - bb;
-                    }
-                    if (aa) {
-                        return -1;
-                    }
-                    if (bb) {
-                        return 1;
-                    }
-                    return 0;
-                });
-
-                this.setState({ tabs }, () => {
-                    this.props.provideTabsInfo(this.state.tabs);
-                    const newTabsVisible = tabs.map(({ name, visible, color }) => ({ name, visible, color }));
-
-                    if (JSON.stringify(newTabsVisible) !== JSON.stringify(tabsVisible)) {
-                        void this.props.socket.getSystemConfig(true).then(_systemConfig => {
-                            _systemConfig.common.tabsVisible = tabsVisible;
-
-                            return this.props.socket
-                                .setSystemConfig(_systemConfig)
-                                .catch(e => window.alert(`Cannot set system config: ${e}`));
-                        });
-                    }
-                });
+            tabs.forEach(tab => {
+                const stored = tabsVisible?.find(item => item.name === tab.name);
+                if (stored) {
+                    tab.visible = stored.visible;
+                    tab.color = stored.color;
+                }
             });
+            const order = new Map((tabsVisible || []).map((item, index) => [item.name, index]));
+            tabs.sort((a, b) => {
+                const aa = order.get(a.name);
+                const bb = order.get(b.name);
+                if (aa !== undefined && bb !== undefined) return aa - bb;
+                if (aa !== undefined) return -1;
+                if (bb !== undefined) return 1;
+                return 0;
+            });
+
+            this.setState({ tabs }, () => this.props.provideTabsInfo(this.state.tabs));
         } catch (error) {
             if (Drawer.isTransientConnectionError(error)) {
                 this.scheduleTabsRetry(true);
@@ -743,34 +737,34 @@ class Drawer extends Component<DrawerProps, DrawerState> {
     }
 
     tabsEditSystemConfig = async (idx?: number, isVisibility?: boolean, newColor?: string): Promise<void> => {
-        const { tabs } = this.state;
-        const { socket } = this.props;
-        const newTabs: AdminTab[] = JSON.parse(JSON.stringify(tabs)) as AdminTab[];
-        if (isVisibility) {
+        const newTabs: AdminTab[] = JSON.parse(JSON.stringify(this.state.tabs)) as AdminTab[];
+        if (idx !== undefined && isVisibility) {
             newTabs[idx].visible = !newTabs[idx].visible;
         }
-        if (newColor !== undefined) {
+        if (idx !== undefined && newColor !== undefined) {
             if (newColor === null) {
                 delete newTabs[idx].color;
             } else {
                 newTabs[idx].color = newColor;
             }
         }
-        const newObjCopy = await this.props.socket.getSystemConfig(true);
-        newObjCopy.common.tabsVisible = newTabs.map(({ name, visible, color }) => ({ name, visible, color }));
 
-        if (isVisibility || newColor !== undefined) {
-            this.setState({ tabs: newTabs }, () =>
-                socket.setSystemConfig(newObjCopy).catch(e => window.alert(`Cannot set system config: ${e}`)),
-            );
-        } else {
-            try {
-                await socket.setSystemConfig(newObjCopy);
-            } catch (e) {
-                window.alert(`Cannot set system config: ${e}`);
+        const serialized = JSON.stringify(newTabs.map(({ name, visible, color }) => ({ name, visible, color })));
+        if (idx !== undefined && (isVisibility || newColor !== undefined)) {
+            this.setState({ tabs: newTabs });
+        }
+        try {
+            // Never write menu preferences to system.config. Changing system.config restarts the
+            // running Admin adapter and used to tear down the browser while the pencil dialog saved.
+            await this.props.socket.setState(this.getTabsLayoutStateId(), serialized);
+        } catch (error) {
+            window.alert(`Cannot save navigation layout: ${error}`);
+            if (idx !== undefined && (isVisibility || newColor !== undefined)) {
+                void this.getTabs(true);
             }
         }
     };
+
 
     getNavigationItems(): JSX.Element[] {
         const { tabs, logErrors, logWarnings } = this.state;

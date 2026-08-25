@@ -495,11 +495,18 @@ class Intro extends React.Component<IntroProps, IntroState> {
     getInstancesCards(): (JSX.Element | null)[] {
         return this.state.instances?.map(instance => {
             const cardKey = `${instance.id}_${instance.linkName}`;
-            const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'admin').toLowerCase();
+            const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
+            const isAdministrator = role === 'admin' || role === 'service';
+            // ioBroker Admin and XTerm are internal service surfaces. They stay fully visible for
+            // administrators and are removed only from Installer/End User overview cards.
+            if (!isAdministrator && /^(?:admin|xterm)(?:\.|$)/i.test(instance.id)) {
+                return null;
+            }
             // The NexoWatt UI card carries the operational EOS entry point. A card hidden earlier by
             // an Admin intro preference must therefore remain visible for Installer and End User.
-            const forceVisibleRoleCard = role !== 'admin' && role !== 'service' && /^nexowatt-ui(?:\.|$)/i.test(instance.id);
-            const enabled = forceVisibleRoleCard || !this.state.deactivated?.includes(cardKey);
+            const forceVisibleRoleCard = !isAdministrator && /^nexowatt-ui(?:\.|$)/i.test(instance.id);
+            const forceVisibleAdminCard = isAdministrator && /^(?:admin|xterm)(?:\.|$)/i.test(instance.id);
+            const enabled = forceVisibleAdminCard || forceVisibleRoleCard || !this.state.deactivated?.includes(cardKey);
             if (enabled || this.state.edit) {
                 let linkText = instance.link ? instance.link.replace(/^https?:\/\//, '') : '';
                 linkText = linkText.split('/')[0];
@@ -1624,7 +1631,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
     }
 
     private getOverviewRoleConfig(): { role: string; label: string; text: string; admin: boolean } {
-        const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'admin').toLowerCase();
+        const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
         if (role === 'installer' || role === 'installateur') {
             return { role: 'installer', label: 'Installateur', text: 'Inbetriebnahme, Fehlersuche, Geräte- und EMS-Diagnose – mit deinen freigegebenen Installateurrechten.', admin: false };
         }

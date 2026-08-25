@@ -1,7 +1,5 @@
 "use strict";
 
-const eosRoleSecurity = require("./lib/eosRoleSecurity");
-eosRoleSecurity.installHttpGuard();
 /**
  *      Admin backend
  *
@@ -332,8 +330,6 @@ class Admin extends adapter_core_1.Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     onReady = async () => {
-        eosRoleSecurity.attachAdapter(this);
-        await eosRoleSecurity.enforceRoleAcls(this);
         const systemConfig = await this.getForeignObjectAsync('system.config');
         if (systemConfig) {
             systemConfig.native = systemConfig.native || {};
@@ -1272,14 +1268,9 @@ class Admin extends adapter_core_1.Adapter {
                 return deny(socketClient, command, callback, 'technical diagnostics are installer/service-only');
             }
             if (command === 'changePassword') {
-                const targetRaw = String(args[0] || '').trim();
-                const targetUser = targetRaw.startsWith('system.user.') ? targetRaw : `system.user.${targetRaw}`;
-                const selfUser = String(userId || '');
-                const allowed = role === 'installer'
-                    ? new Set([selfUser, 'system.user.installer', 'system.user.user', 'system.user.guest']).has(targetUser)
-                    : targetUser === selfUser;
-                if (!allowed) return deny(socketClient, command, callback, 'password target outside EOS role scope');
-                return true;
+                // Initial password activation has a separate, tightly scoped backend endpoint.
+                // The normal Admin socket password editor remains Service/Admin-only.
+                return deny(socketClient, command, callback, 'password administration is Service-only');
             }
             if (['addUser', 'delUser', 'addGroup', 'delGroup'].includes(command)) {
                 return deny(socketClient, command, callback, 'account administration is Service-only');
@@ -1300,9 +1291,16 @@ class Admin extends adapter_core_1.Adapter {
                     return deny(socketClient, command, callback, 'end users may only maintain Smart Home assignments');
                 }
             }
-            if (['setState', 'delState', 'createState'].includes(command)
-                && /^(?:admin|backitup)\.\d+(?:\.|$)/.test(objectId)) {
-                return deny(socketClient, command, callback, 'internal Service reserve is Admin/Service-only');
+            if (['setState', 'delState', 'createState'].includes(command)) {
+                if (role === 'enduser') {
+                    return deny(socketClient, command, callback, 'end-user datapoints are read-only in EOS Admin');
+                }
+                if (objectId === `${this.namespace}.info.uiTabsVisible`) {
+                    return deny(socketClient, command, callback, 'navigation layout is Service-only');
+                }
+                if (/^(?:admin|backitup|xterm)\.\d+(?:\.|$)/.test(objectId)) {
+                    return deny(socketClient, command, callback, 'internal Service reserve is Admin/Service-only');
+                }
             }
             return original(socketClient, command, callback, ...args);
         };

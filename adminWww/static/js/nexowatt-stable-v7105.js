@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v7101-scroll-standard-password';
+    const VERSION = 'v7105-scroll-standard-password';
     const ensureScroll = () => {
         const root = document.documentElement;
         const paper = document.getElementById('app-paper');

@@ -1184,12 +1184,23 @@ html.eos-login .eos-login-card-modern {
 /* Internal fallback services are never exposed outside Admin / Service. */
 html.eos-role-installer [data-instance^="admin."],
 html.eos-role-installer [data-instance^="backitup."],
+html.eos-role-installer [data-instance^="xterm."],
 html.eos-role-enduser [data-instance^="admin."],
 html.eos-role-enduser [data-instance^="backitup."],
+html.eos-role-enduser [data-instance^="xterm."],
 html.eos-role-installer [data-instance-id^="admin."],
 html.eos-role-installer [data-instance-id^="backitup."],
+html.eos-role-installer [data-instance-id^="xterm."],
 html.eos-role-enduser [data-instance-id^="admin."],
-html.eos-role-enduser [data-instance-id^="backitup."] { display: none !important; }
+html.eos-role-enduser [data-instance-id^="backitup."],
+html.eos-role-enduser [data-instance-id^="xterm."] { display: none !important; }
+
+html.eos-role-enduser #app-paper[data-eos-datapoints-readonly] [data-eos-object-writable="1"],
+html.eos-role-enduser #app-paper[data-eos-datapoints-readonly] [data-eos-enduser-write-blocked="1"] {
+    pointer-events: none !important;
+    cursor: default !important;
+    opacity: 0.62 !important;
+}
 
 
 

@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7101-standard-password-native-overview';
+    const VERSION = 'v7105-admin-authoritative-rbac';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -16,7 +16,7 @@
 
     const roleFromPolicy = policy => {
         const raw = normalize(policy?.role || policy?.eosRole || policy?.accessRole || '');
-        if (policy?.isAdmin || policy?.isEosAdminGroup || policy?.isAdministrator || /^(?:admin|administrator)$/.test(raw)) return 'admin';
+        if (policy?.user === 'system.user.admin' || policy?.userId === 'system.user.admin' || policy?.isAdmin || policy?.isEosAdminGroup || policy?.isAdministrator || /^(?:admin|administrator)$/.test(raw)) return 'admin';
         if (/nexowatt service|eos service|service admin|service administrator/.test(raw)) return 'admin';
         if (policy?.isInstaller || /installateur|installer|installation|inbetriebnahme|techniker|technician|integrator|partner/.test(raw)) return 'installer';
         return 'enduser';
@@ -25,11 +25,11 @@
     const isCustomerBackupTab = tab => /^(?:tab-)?(?:nexowatt-backup|eos-backup|nexowatt-sicherung)(?:-|$)/.test(normalize(tab));
     const isReleasedEndUserTab = tab => /^(?:tab-)?(?:nexowatt-ui|nexowatt-cockpit|eos-cockpit|eos-dashboard|kunden-cockpit|endkunden-cockpit|lovelace|jarvis|vis|iqontrol|material)(?:-|$)/.test(normalize(tab));
     const isOfficialReserveTab = tab => /^(?:tab-)?(?:admin|backitup)(?:-\d+)?$/.test(normalize(tab));
-    const isInstallerDenied = tab => /(?:tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-system|hosts|files|console|terminal|security)/.test(normalize(tab)) || isOfficialReserveTab(tab);
+    const isInstallerDenied = tab => /(?:tab-users|tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-system|users|hosts|files|console|terminal|security)/.test(normalize(tab)) || isOfficialReserveTab(tab);
     const isAllowed = (role, route) => route !== 'easy' && (role === 'admin'
         || (role === 'installer'
-            ? route === 'tab-intro' || route === 'tab-users' || isCustomerBackupTab(route) || !isInstallerDenied(route)
-            : route === 'tab-intro' || route === 'tab-enums' || isCustomerBackupTab(route) || isReleasedEndUserTab(route)));
+            ? route === 'tab-intro' || isCustomerBackupTab(route) || !isInstallerDenied(route)
+            : route === 'tab-intro' || route === 'tab-enums' || route === 'tab-objects' || isCustomerBackupTab(route) || isReleasedEndUserTab(route)));
     const defaultTab = () => 'tab-intro';
     const currentRoute = () => {
         const hash = decodeURIComponent(window.location.hash || '').toLowerCase();

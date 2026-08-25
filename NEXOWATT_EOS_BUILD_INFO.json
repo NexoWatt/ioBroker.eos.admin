@@ -1,28 +1,32 @@
 {
-  "version": "7.10.4",
+  "version": "7.10.5",
   "channel": "stable-latest",
-  "baseFrontend": "validated 7.10.2 stable runtime with automatic adapter updates relocated into System Settings",
+  "baseFrontend": "validated v84 runtime with authoritative RBAC, restored administrator rights and restart-safe navigation layout",
   "runtimeEntry": "v84",
-  "releaseType": "stable-system-settings-auto-update-placement",
-  "release": "stable-system-settings-auto-update-placement",
-  "label": "v7-10-4",
+  "releaseType": "stable-admin-rights-rbac-navigation",
+  "release": "stable-admin-rights-rbac-navigation",
+  "label": "v7-10-5",
   "notes": [
-    "Retains the validated 7.10.2 restart-loop and package-completeness fixes.",
-    "The automatic NexoWatt adapter update card is no longer mounted in the normal overview or module pages.",
-    "The update control is mounted only inside the administrator System Settings dialog opened with the wrench button.",
-    "A dedicated placement selftest prevents the card from returning to global page content."
+    "Administrator authority is derived only from the authenticated backend security context; DOM text is never used to classify a role.",
+    "Admin keeps full datapoint write access, all overview cards and reversible expert mode.",
+    "Installer and End User do not see ioBroker Admin, XTerm, App Center, License, Simulation or account administration.",
+    "End User can open Datapoints in read-only mode; backend socket writes are denied independently of the browser.",
+    "Navigation visibility/order is stored in eos-admin.0.info.uiTabsVisible and no longer modifies system.config or restarts the adapter.",
+    "Backup navigation is shown only while a supported backup instance is enabled."
   ],
   "changes": [
-    "Moved Automatic Adapter Updates from the normal page content into System Settings.",
-    "Added a dedicated auto-update cache key so browsers cannot keep the old global placement script.",
-    "Kept backend update policy, state storage and delayed startup reconciliation unchanged.",
-    "Added source/build drift and placement guards for the auto-update UI."
+    "Removed the legacy DOM-text role heuristic that could downgrade system.user.admin to End User.",
+    "Added explicit Admin bypass regression guards in source, backend runtime and frontend bundles.",
+    "Added End User-only ObjectBrowser read-only wiring while retaining Admin/Installer native write controls.",
+    "Moved menu layout persistence away from system.config into a dedicated adapter state.",
+    "Hid Admin/XTerm cards only for restricted roles and forced them visible for Admin.",
+    "Protected App Center, License and Simulation in the authenticated role layer and cleared inherited UI-admin sessions for non-admin roles."
   ],
-  "brandingCacheVersion": 7101,
-  "shellCacheVersion": 7101,
-  "nativeShellVersion": 7101,
-  "shellCacheTag": "7101",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-4.json",
+  "brandingCacheVersion": 7105,
+  "shellCacheVersion": 7105,
+  "nativeShellVersion": 7105,
+  "shellCacheTag": "7105",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-5.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

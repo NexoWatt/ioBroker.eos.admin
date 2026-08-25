@@ -139,6 +139,7 @@ declare global {
             addPanel: (name: string, icon: string, element: React.ReactNode) => void;
         };
         opera: boolean;
+        NEXOWATT_EOS_ACCESS_ROLE?: string;
     }
     interface Navigator {
         // @deprecated
@@ -147,6 +148,9 @@ declare global {
 }
 
 const query: { login?: boolean } = {};
+
+const getEosAccessRole = (): string => String(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
+const isEosAdministrator = (): boolean => ['admin', 'service'].includes(getEosAccessRole());
 
 (window.location.search || '')
     .replace(/^\?/, '')
@@ -1188,9 +1192,8 @@ class App extends Router<AppProps, AppState> {
                         const storedExpertMode = (window._sessionStorage || window.sessionStorage).getItem(
                             'App.expertMode',
                         );
-                        newState.expertMode = storedExpertMode
-                            ? storedExpertMode === 'true'
-                            : !!newState.systemConfig.common.expertMode;
+                        newState.expertMode = isEosAdministrator()
+                            && (storedExpertMode ? storedExpertMode === 'true' : !!newState.systemConfig.common.expertMode);
 
                         // Read the user and show him
                         if (this.socket.isSecure || this.socket.systemConfig.native?.vendor) {
@@ -2809,6 +2812,7 @@ class App extends Router<AppProps, AppState> {
                             />
                         </IsVisible>
                     ) : null}
+                    {isEosAdministrator() ? (
                     <IsVisible
                         name="admin.appBar.expertMode"
                         config={this.adminGuiConfig}
@@ -2827,6 +2831,7 @@ class App extends Router<AppProps, AppState> {
                             >
                                 <IconButton
                                     size="large"
+                                    data-eos-expert-control="1"
                                     onClick={() => {
                                         if (!!this.state.systemConfig.common.expertMode === !this.state.expertMode) {
                                             (window._sessionStorage || window.sessionStorage).setItem(
@@ -2867,7 +2872,8 @@ class App extends Router<AppProps, AppState> {
                             </Badge>
                         </Tooltip>
                     </IsVisible>
-                    {this.state.expertMode ? (
+                    ) : null}
+                    {isEosAdministrator() && this.state.expertMode ? (
                         <Tooltip
                             title={I18n.t('Synchronize admin settings between all opened browser windows')}
                             slotProps={{ popper: { sx: styles.tooltip } }}

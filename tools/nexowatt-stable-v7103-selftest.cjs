@@ -25,18 +25,18 @@ const index = read('adminWww/index.html');
 const ems = read('adminWww/js/eos-ems-overview.js');
 const intro = read('src-admin/src/tabs/Intro.tsx');
 const bundle = read('adminWww/assets/Intro-DkwRiz1n-v84.js');
-const stable = read('adminWww/static/js/nexowatt-stable-v7101.js');
+const stable = read(`adminWww/static/js/nexowatt-stable-v${String(info.shellCacheTag || info.shellCacheVersion)}.js`);
 const autoBackend = read('src/lib/eosAutoUpdate.ts');
 const autoUi = read('adminWww/js/eos-auto-update.js');
 const autoCss = read('adminWww/css/eos-auto-update.css');
 const autoTag = String(info.autoUpdateCacheTag || info.autoUpdateCacheVersion || info.shellCacheTag || info.shellCacheVersion);
 
-must(pkg.version === '7.10.4' && io.version === '7.10.4' && io.common.version === '7.10.4' && info.version === '7.10.4', 'version drift');
+must(pkg.version === '7.10.5' && io.version === '7.10.5' && io.common.version === '7.10.5' && info.version === '7.10.5', 'version drift');
 must(io.native.eosRequireFirstLoginPassword === false && io.native.eosRequireFirstLoginPasswordChange === false, 'forced first password still enabled');
 must(!index.includes('eos-account-management.js'), 'custom reset UI still loaded');
 must(!boot.includes('installIntegratedFirstLogin(base);') && !boot.includes('showFirstLoginPassword(resolved, base);'), 'forced first-login UI still active');
 must(main.includes('standardPasswordMode: true') && main.includes('nexowattPasswordChangeRequired: false'), 'account migration missing');
-must(role.includes("route === 'tab-users'") && main.includes("command === 'changePassword'"), 'role-aware native password editing missing');
+must(role.includes("route !== 'tab-users'") && main.includes("command === 'changePassword'") && main.includes('password administration is Service-only'), 'non-admin account/password administration guard missing');
 must(css.includes('persistent native overview scrolling') && stable.includes("overflow-y','scroll"), 'persistent scroll missing');
 must(intro.includes('eos-overview-edit-controls') && bundle.includes('eos-overview-edit-controls'), 'edit control not in bottom grid');
 must(!ems.includes('Vollständige EMS-Diagnose öffnen'), 'unsupported EMS link remains');
@@ -49,7 +49,7 @@ must(!autoBackend.includes('extendForeignObjectAsync(this.instanceId'), 'runtime
 must(web.includes('this.nexowattStableUpdateManager?.stop();'), 'auto-update manager is not stopped with the web server');
 must(fs.existsSync(path.join(root, 'build/lib/eosRequestSecurity.js')), 'eosRequestSecurity runtime module missing');
 
-// 7.10.4 placement acceptance: System Settings only.
+// 7.10.4 placement acceptance remains mandatory in 7.10.5: System Settings only.
 must(index.includes(`eos-auto-update.js?v=${autoTag}`), 'auto-update JavaScript cache key missing');
 must(index.includes(`eos-auto-update.css?v=${autoTag}`), 'auto-update CSS cache key missing');
 must(autoUi.includes('[role="dialog"][aria-labelledby="system-settings-dialog-title"]'), 'System Settings selector missing');

@@ -116,4 +116,16 @@ const importCheck = spawnSync(process.execPath, [path.join(root, 'tools', 'nexow
 });
 if (importCheck.status !== 0) fail(`generated import graph is invalid: ${(importCheck.stderr || importCheck.stdout || '').trim()}`);
 
+// The RBAC layer is part of the production frontend, not just the TypeScript source.
+// A future frontend rebuild must therefore fail immediately if it removes the
+// administrator full-rights branch, the reversible expert-mode control, the
+// End User read-only datapoint policy, or restart-safe navigation persistence.
+const roleSecurityCheck = spawnSync(process.execPath, [path.join(root, 'tools', 'nexowatt-role-security-selftest.cjs')], {
+    cwd: root,
+    encoding: 'utf8',
+});
+if (roleSecurityCheck.status !== 0) {
+    fail(`generated role-security runtime is invalid: ${(roleSecurityCheck.stderr || roleSecurityCheck.stdout || '').trim()}`);
+}
+
 console.log(`[NexoWatt EOS post-build guard] OK (${sharedAsset}, ${objectCandidates[0].file})`);
