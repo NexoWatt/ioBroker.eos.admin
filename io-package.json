@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.10.6",
+    "version": "7.10.7",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.10.7": {
+        "de": "Stable 7.10.7 gibt dem Installateur den Zugriff auf „EMS Apps öffnen“ und das EMS App-Center frei. Simulation und Lizenzverwaltung bleiben ausschließlich dem Administrator vorbehalten. Endkundenbereich, Nur-Lese-Datenpunkte und Adminrechte bleiben unverändert.",
+        "en": "Stable 7.10.7 grants the Installer access to “Open EMS Apps” and the EMS App-Center. Simulation and license administration remain Administrator-only. End User read-only datapoints and all Administrator rights remain unchanged.",
+        "nl": "Stable 7.10.7 geeft de installateur toegang tot “EMS Apps openen” en het EMS App-Center. Simulatie en licentiebeheer blijven uitsluitend voor beheerders. Alleen-lezen datapunten voor eindgebruikers en alle beheerdersrechten blijven ongewijzigd."
+      },
       "7.10.6": {
         "de": "Stable 7.10.6 bereinigt ausschließlich den Endkundenbereich: Datenpunkte bleiben sichtbar und nur lesbar, Bearbeiten-/Löschen-/Einstellungsaktionen werden ausgeblendet, und die Systeminfokarte erhält Plattform, RAM, Node.js und NPM über einen authentifizierten Nur-Lese-Endpunkt. Die Administratoroberfläche und sämtliche Adminrechte bleiben unverändert.",
         "en": "Stable 7.10.6 cleans up the End User area only: datapoints stay visible and read-only, edit/delete/settings actions are hidden, and the system information card receives platform, RAM, Node.js and NPM through an authenticated read-only endpoint. The administrator UI and all Admin rights remain unchanged.",
@@ -359,7 +364,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.6/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.7/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -370,7 +375,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.6/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.7/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -438,7 +443,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.6/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.7/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -1215,5 +1220,5 @@
       }
     }
   },
-  "version": "7.10.6"
+  "version": "7.10.7"
 }

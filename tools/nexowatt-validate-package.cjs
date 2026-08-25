@@ -45,6 +45,8 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-version-sync-selftes
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-merge-update-selftest.cjs')) fail('merge update selftest is not part of check:eos-stability');
 if (pkg.scripts['check:eos-stable-v7103'] !== 'node tools/nexowatt-stable-v7103-selftest.cjs') fail('stable v7103 selftest script is missing or incorrect');
 if (pkg.scripts['test:eos-auto-update-placement'] !== 'node tools/nexowatt-auto-update-placement-selftest.cjs') fail('auto-update placement selftest script is missing or incorrect');
+if (pkg.scripts['test:eos-installer-ems'] !== 'node tools/nexowatt-installer-ems-selftest.cjs') fail('Installer EMS selftest script is missing or incorrect');
+if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-installer-ems-selftest.cjs')) fail('Installer EMS selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-auto-update-placement-selftest.cjs')) fail('auto-update placement selftest is not part of check:eos-stability');
 if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must use the dependency-free direct-publish workflow');
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) fail('prepublishOnly must not require local development dependencies');
@@ -134,14 +136,14 @@ for (const file of [
   'LICENSE',
   'NEXOWATT_PROPRIETARY_LICENSE.md',
   'THIRD_PARTY_NOTICES.md',
-  'README_STABILITY_V7.10.6.md',
-  'RELEASE_NOTES_V7.10.6.md',
-  'PUBLISH_STABLE_V7.10.6.md',
-  'INSTALL_TEST_V7.10.6.md',
-  'RELEASE_ACCEPTANCE_V7.10.6.md',
+  'README_STABILITY_V7.10.7.md',
+  'RELEASE_NOTES_V7.10.7.md',
+  'PUBLISH_STABLE_V7.10.7.md',
+  'INSTALL_TEST_V7.10.7.md',
+  'RELEASE_ACCEPTANCE_V7.10.7.md',
   'MERGE_UPDATE.ps1',
   'MERGE_UPDATE.cmd',
-  'MERGE_UPDATE_README_V7.10.6.md',
+  'MERGE_UPDATE_README_V7.10.7.md',
   'tools/nexowatt-patch-built-frontend.cjs',
   'tools/nexowatt-native-shell-selftest.cjs',
   'tools/nexowatt-clean-legacy-runtime.cjs',
@@ -174,7 +176,7 @@ for (const file of [
   'tools/nexowatt-ui-overview-runtime-selftest.cjs',
   'adminWww/js/eos-ems-overview.js',
   'adminWww/css/eos-ems-overview.css',
-  'adminWww/static/js/nexowatt-stable-v7106.js',
+  'adminWww/static/js/nexowatt-stable-v7107.js',
   'src-admin/src/components/Intro/NexoWattEmsOverview.tsx',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',

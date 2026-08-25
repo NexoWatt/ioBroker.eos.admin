@@ -1,6 +1,6 @@
 (() => {
     'use strict';
-    const VERSION = 'v7106-scroll-standard-password';
+    const VERSION = 'v7107-scroll-standard-password';
     const ensureScroll = () => {
         const root = document.documentElement;
         const paper = document.getElementById('app-paper');
@@ -23,5 +23,5 @@
     const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;apply();});};
     const start=()=>{apply();new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true});window.addEventListener('hashchange',schedule);window.addEventListener('resize',schedule,{passive:true});};
     document.readyState==='loading'?document.addEventListener('DOMContentLoaded',start,{once:true}):start();
-    window.NEXOWATT_EOS_STABLE_V7101=Object.freeze({version:VERSION,refresh:apply,ensureScroll});
+    window.NEXOWATT_EOS_STABLE_V7107=Object.freeze({version:VERSION,refresh:apply,ensureScroll});
 })();

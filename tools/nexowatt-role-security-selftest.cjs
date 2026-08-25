@@ -32,9 +32,9 @@ const cleanupSource = read('tools/nexowatt-clean-legacy-runtime.cjs');
 // visible header happened to contain "user". Only authenticated backend policy may define the role.
 for (const html of [index, sourceIndex]) {
     assert.doesNotMatch(html, /nexowatt-role-security\.js/i, 'legacy heuristic role guard is still loaded');
-    assert.match(html, /eos-role-bootstrap\.js\?v=7106/, 'authoritative role bootstrap cache tag is missing');
-    assert.match(html, /eos-policy-client\.js\?v=7106/, 'authoritative policy client cache tag is missing');
-    assert.match(html, /eos-role-ui\.js\?v=7106/, 'authoritative role UI cache tag is missing');
+    assert.match(html, /eos-role-bootstrap\.js\?v=7107/, 'authoritative role bootstrap cache tag is missing');
+    assert.match(html, /eos-policy-client\.js\?v=7107/, 'authoritative policy client cache tag is missing');
+    assert.match(html, /eos-role-ui\.js\?v=7107/, 'authoritative role UI cache tag is missing');
 }
 assert.equal(fs.existsSync(path.join(root, 'adminWww/nexowatt-role-security.js')), false, 'legacy runtime still exists');
 assert.equal(fs.existsSync(path.join(root, 'build/lib/eosRoleSecurity.js')), false, 'legacy backend heuristic still exists');
@@ -100,9 +100,22 @@ assert.match(introBundle, /_forceAdmin=_eosAdmin/);
 assert.doesNotMatch(introSource, /NEXOWATT_EOS_ACCESS_ROLE \|\| 'admin'/, 'Intro source must fail closed while role is unresolved');
 assert.doesNotMatch(introBundle, /NEXOWATT_EOS_ACCESS_ROLE\|\|"admin"/, 'Intro runtime must fail closed while role is unresolved');
 
-// App Center, License, Simulation and normal account administration are not available to Installer/End User.
+// Installer receives EMS App-Center access only. Simulation and License remain Admin-only;
+// End User remains blocked from all three actions and from inherited port-8188 sessions.
 for (const token of ['app center', 'app-center', 'appcenter', 'simulation', 'simulator', 'lizenz', 'license']) {
     assert.ok(roleUi.toLowerCase().includes(token), `role UI is missing protected action ${token}`);
+}
+for (const code of [roleUi, sourceRoleUi]) {
+    assert.match(code, /const privilegedActionKind = element =>/, 'privileged actions are not separated by capability');
+    assert.match(code, /if \(action === 'ems'\)/, 'EMS action branch is missing');
+    assert.match(code, /state\.role === 'installer' && state\.policy\?\.capabilities\?\.emsAppCenter !== false/, 'Installer EMS App-Center allowance is missing');
+    assert.match(code, /return state\.role === 'admin';/, 'Simulation and License must remain Admin-only');
+    assert.match(code, /if \(state\.role !== 'enduser'\) return;/, 'port 8188 session scrubbing must be End User-only');
+}
+for (const code of [webSource, webBuilt]) {
+    assert.match(code, /emsAppCenter: technical/, 'backend role capabilities do not grant Installer EMS access');
+    assert.match(code, /simulation: role === 'admin'/, 'Simulation capability must remain Admin-only');
+    assert.match(code, /licenseAdministration: role === 'admin'/, 'License capability must remain Admin-only');
 }
 assert.match(roleUi, /applyPrivilegedIframePolicy/);
 assert.match(roleUi, /:8188\/logout\?/);
@@ -130,7 +143,7 @@ assert.ok((io.instanceObjects || []).some(object => object?._id === 'info.uiTabs
 assert.match(drawerSource, /backupAdapters\.has\(adapterName\) && instance\.enabled !== true/);
 assert.match(builtDrawer, /o\.has\(A\)&&d\.enabled!==!0/);
 
-// 7.10.6 End User cleanup: system information is read-only and object actions disappear only for End User.
+// 7.10.7 End User cleanup: system information is read-only and object actions disappear only for End User.
 for (const code of [webSource, webBuilt]) {
     assert.match(code, /nexowatt\/readonly\/system-info/, 'authenticated read-only system-info route is missing');
     assert.match(code, /authenticationRequired/, 'read-only system-info route must require an authenticated session');
@@ -146,4 +159,4 @@ for (const code of [roleUi, sourceRoleUi]) {
 }
 assert.match(sourceMain, /role === 'enduser' && \['readLogs', 'sendToHost'\]\.includes\(command\)/, 'End User technical diagnostics must remain denied');
 
-console.log('[NexoWatt EOS role security] OK (authoritative Admin rights, End User read-only datapoints, protected tools, restart-safe menu storage)');
+console.log('[NexoWatt EOS role security] OK (Admin full rights, Installer EMS App-Center access, End User read-only datapoints, protected Admin tools)');

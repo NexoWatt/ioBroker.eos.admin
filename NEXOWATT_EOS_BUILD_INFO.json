@@ -1,29 +1,28 @@
 {
-  "version": "7.10.6",
+  "version": "7.10.7",
   "channel": "stable-latest",
-  "baseFrontend": "validated v84 runtime with authoritative RBAC and End User read-only UI correction",
+  "baseFrontend": "validated v84 runtime with authoritative RBAC, End User read-only UI and Installer EMS App-Center access",
   "runtimeEntry": "v84",
-  "releaseType": "stable-enduser-readonly-system-info",
-  "release": "stable-enduser-readonly-system-info",
-  "label": "v7-10-6",
+  "releaseType": "stable-installer-ems-appcenter",
+  "release": "stable-installer-ems-appcenter",
+  "label": "v7-10-7",
   "notes": [
     "Administrator authority and all Admin controls remain unchanged.",
-    "End User datapoints remain visible but all edit, delete and settings actions are hidden.",
-    "End User datapoint writes remain denied by the backend role guard.",
-    "The End User system card receives read-only platform, RAM, Node.js and NPM information from an authenticated endpoint.",
-    "The restricted End User system-card info popup is removed to prevent permissionError dialogs."
+    "Installer may open and use the EMS App-Center.",
+    "Simulation and License remain Administrator-only.",
+    "End User App-Center blocking, read-only datapoints and port 8188 session scrubbing remain active."
   ],
   "changes": [
-    "Added an authenticated read-only system information endpoint for restricted roles.",
-    "Added End User-only action-column suppression in the ObjectBrowser.",
-    "Kept the system.user.admin full-rights bypass untouched.",
-    "Raised the release and browser cache identity to 7.10.6 / 7106."
+    "Split privileged UI actions into EMS, Simulation and License categories.",
+    "Allowed EMS App-Center actions for Admin and Installer only.",
+    "Kept Simulation and License actions Administrator-only.",
+    "Raised the release and browser cache identity to 7.10.7 / 7107."
   ],
-  "brandingCacheVersion": 7106,
-  "shellCacheVersion": 7106,
-  "nativeShellVersion": 7106,
-  "shellCacheTag": "7106",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-6.json",
+  "brandingCacheVersion": 7107,
+  "shellCacheVersion": 7107,
+  "nativeShellVersion": 7107,
+  "shellCacheTag": "7107",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-7.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

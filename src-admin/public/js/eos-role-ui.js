@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7106-admin-authoritative-rbac';
+    const VERSION = 'v7107-installer-ems-rbac';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -483,12 +483,26 @@
 
 
     const privilegedFrameObservers = new WeakMap();
-    const privilegedActionPattern = /^(?:ems apps?(?: offnen| öffnen)?|app center|app-center|appcenter|simulation|simulator|lizenz|license)$/;
-    const isPrivilegedAction = element => {
+    const privilegedActionKind = element => {
         const signature = normalize(textOf(element));
         const href = normalize(element?.getAttribute?.('href') || element?.href || element?.getAttribute?.('data-href') || '');
-        return privilegedActionPattern.test(signature)
-            || /(?:^|[\/#?&_.-])(?:appcenter|app-center|simulation|simulator|license|lizenz)(?:$|[\/#?&=_.-])/.test(href);
+        if (/^(?:ems apps?(?: offnen| öffnen)?|app center|app-center|appcenter)$/.test(signature)
+            || /(?:^|[\/#?&_.-])(?:appcenter|app-center)(?:$|[\/#?&=_.-])/.test(href)) return 'ems';
+        if (/^(?:simulation|simulator)$/.test(signature)
+            || /(?:^|[\/#?&_.-])(?:simulation|simulator)(?:$|[\/#?&=_.-])/.test(href)) return 'simulation';
+        if (/^(?:lizenz|license)$/.test(signature)
+            || /(?:^|[\/#?&_.-])(?:license|lizenz)(?:$|[\/#?&=_.-])/.test(href)) return 'license';
+        return '';
+    };
+    const isPrivilegedAction = element => !!privilegedActionKind(element);
+    const canUsePrivilegedAction = element => {
+        const action = privilegedActionKind(element);
+        if (!action) return true;
+        if (action === 'ems') {
+            return state.role === 'admin'
+                || (state.role === 'installer' && state.policy?.capabilities?.emsAppCenter !== false);
+        }
+        return state.role === 'admin';
     };
     const setPrivilegedActionHidden = (element, hidden) => {
         if (!element) return;
@@ -507,19 +521,18 @@
     };
     const applyPrivilegedActionsInDocument = doc => safe(() => {
         if (!doc?.documentElement) return;
-        const admin = state.role === 'admin';
         doc.querySelectorAll('[data-eos-privileged-action-hidden="1"]').forEach(element => {
-            if (admin || !isPrivilegedAction(element)) setPrivilegedActionHidden(element, false);
+            if (!isPrivilegedAction(element) || canUsePrivilegedAction(element)) setPrivilegedActionHidden(element, false);
         });
         for (const element of doc.querySelectorAll('a,button,[role="button"],[role="tab"],.MuiButtonBase-root')) {
-            if (isPrivilegedAction(element)) setPrivilegedActionHidden(element, !admin);
+            if (isPrivilegedAction(element)) setPrivilegedActionHidden(element, !canUsePrivilegedAction(element));
         }
         if (!doc.documentElement.dataset.eosPrivilegedClickGuard) {
             doc.documentElement.dataset.eosPrivilegedClickGuard = '1';
             doc.addEventListener('click', event => {
-                if (state.role === 'admin' || state.role === 'unknown') return;
+                if (state.role === 'unknown') return;
                 const target = event.target?.closest?.('a,button,[role="button"],[role="tab"],.MuiButtonBase-root');
-                if (!target || !isPrivilegedAction(target)) return;
+                if (!target || !isPrivilegedAction(target) || canUsePrivilegedAction(target)) return;
                 event.preventDefault();
                 event.stopImmediatePropagation();
             }, true);
@@ -544,9 +557,9 @@
         });
     });
     const scrubInheritedUiAdminSession = () => safe(() => {
-        if (state.role === 'admin' || state.role === 'unknown') return;
+        if (state.role !== 'enduser') return;
         const user = String(state.policy?.user || state.policy?.userId || '').replace(/^system\.user\./, '') || state.role;
-        const key = `eosUiAdminSessionScrubbed:v7106:${user}:${state.role}`;
+        const key = `eosUiAdminSessionScrubbed:v7107:${user}:${state.role}`;
         if (sessionStorage.getItem(key) === '1') return;
         sessionStorage.setItem(key, '1');
         const frame = document.createElement('iframe');
