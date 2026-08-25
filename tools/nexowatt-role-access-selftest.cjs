@@ -7,7 +7,7 @@ for(const code of [source,built]){
  must(!code.includes("personal password setup is required"),'socket still blocks standard password mode');
 }
 must(role.includes("route !== 'tab-users'")&&role.includes('filterNativeUsersPage'),'native user/account administration is not blocked for restricted roles');
-must(role.includes("v7107-installer-ems-rbac"),'authoritative role UI version missing');
+must(role.includes("v7108-modern-core-surfaces-rbac"),'authoritative role UI version missing');
 must(!index.includes('eos-account-management.js'),'custom reset runtime is still active');
 must(boot.includes('NEXOWATT_EOS_STANDARD_PASSWORD_MODE')&&!boot.includes('installIntegratedFirstLogin(base);')&&!boot.includes('showFirstLoginPassword(resolved, base);'),'forced first-login UI remains');
 must(io.native.eosRequireFirstLoginPassword===false&&io.native.eosRequireFirstLoginPasswordChange===false,'standard password defaults not active');

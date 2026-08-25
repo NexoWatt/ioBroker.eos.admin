@@ -32,9 +32,9 @@ const cleanupSource = read('tools/nexowatt-clean-legacy-runtime.cjs');
 // visible header happened to contain "user". Only authenticated backend policy may define the role.
 for (const html of [index, sourceIndex]) {
     assert.doesNotMatch(html, /nexowatt-role-security\.js/i, 'legacy heuristic role guard is still loaded');
-    assert.match(html, /eos-role-bootstrap\.js\?v=7107/, 'authoritative role bootstrap cache tag is missing');
-    assert.match(html, /eos-policy-client\.js\?v=7107/, 'authoritative policy client cache tag is missing');
-    assert.match(html, /eos-role-ui\.js\?v=7107/, 'authoritative role UI cache tag is missing');
+    assert.match(html, /eos-role-bootstrap\.js\?v=7108/, 'authoritative role bootstrap cache tag is missing');
+    assert.match(html, /eos-policy-client\.js\?v=7108/, 'authoritative policy client cache tag is missing');
+    assert.match(html, /eos-role-ui\.js\?v=7108/, 'authoritative role UI cache tag is missing');
 }
 assert.equal(fs.existsSync(path.join(root, 'adminWww/nexowatt-role-security.js')), false, 'legacy runtime still exists');
 assert.equal(fs.existsSync(path.join(root, 'build/lib/eosRoleSecurity.js')), false, 'legacy backend heuristic still exists');
@@ -143,7 +143,7 @@ assert.ok((io.instanceObjects || []).some(object => object?._id === 'info.uiTabs
 assert.match(drawerSource, /backupAdapters\.has\(adapterName\) && instance\.enabled !== true/);
 assert.match(builtDrawer, /o\.has\(A\)&&d\.enabled!==!0/);
 
-// 7.10.7 End User cleanup: system information is read-only and object actions disappear only for End User.
+// 7.10.8 End User cleanup: system information is read-only and object actions disappear only for End User.
 for (const code of [webSource, webBuilt]) {
     assert.match(code, /nexowatt\/readonly\/system-info/, 'authenticated read-only system-info route is missing');
     assert.match(code, /authenticationRequired/, 'read-only system-info route must require an authenticated session');

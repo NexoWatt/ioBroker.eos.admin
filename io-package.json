@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.10.7",
+    "version": "7.10.8",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -364,7 +364,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.7/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.8/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -375,7 +375,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.7/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.8/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -443,7 +443,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.7/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.8/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -1220,5 +1220,5 @@
       }
     }
   },
-  "version": "7.10.7"
+  "version": "7.10.8"
 }

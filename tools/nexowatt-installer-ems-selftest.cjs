@@ -15,7 +15,7 @@ const runtimeRole = read('adminWww/js/eos-role-ui.js');
 const sourceWeb = read('src/lib/web.ts');
 const runtimeWeb = read('build/lib/web.js');
 
-assert.equal(pkg.version, '7.10.7', 'Installer EMS release must use npm version 7.10.7');
+assert.equal(pkg.version, '7.10.8', 'Installer EMS release must use npm version 7.10.8');
 assert.equal(runtimeRole, sourceRole, 'built and source role runtimes must be identical');
 
 for (const code of [sourceRole, runtimeRole]) {

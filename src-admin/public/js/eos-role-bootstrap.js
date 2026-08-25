@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7107-admin-authoritative-rbac';
+    const VERSION = 'v7108-modern-core-surfaces-rbac';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;
@@ -25,11 +25,12 @@
     const isCustomerBackupTab = tab => /^(?:tab-)?(?:nexowatt-backup|eos-backup|nexowatt-sicherung)(?:-|$)/.test(normalize(tab));
     const isReleasedEndUserTab = tab => /^(?:tab-)?(?:nexowatt-ui|nexowatt-cockpit|eos-cockpit|eos-dashboard|kunden-cockpit|endkunden-cockpit|lovelace|jarvis|vis|iqontrol|material)(?:-|$)/.test(normalize(tab));
     const isOfficialReserveTab = tab => /^(?:tab-)?(?:admin|backitup)(?:-\d+)?$/.test(normalize(tab));
+    const isGloballyHiddenTab = tab => normalize(tab) === 'tab-enums';
     const isInstallerDenied = tab => /(?:tab-users|tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-system|users|hosts|files|console|terminal|security)/.test(normalize(tab)) || isOfficialReserveTab(tab);
-    const isAllowed = (role, route) => route !== 'easy' && (role === 'admin'
+    const isAllowed = (role, route) => route !== 'easy' && !isGloballyHiddenTab(route) && (role === 'admin'
         || (role === 'installer'
             ? route === 'tab-intro' || isCustomerBackupTab(route) || !isInstallerDenied(route)
-            : route === 'tab-intro' || route === 'tab-enums' || route === 'tab-objects' || isCustomerBackupTab(route) || isReleasedEndUserTab(route)));
+            : route === 'tab-intro' || route === 'tab-objects' || isCustomerBackupTab(route) || isReleasedEndUserTab(route)));
     const defaultTab = () => 'tab-intro';
     const currentRoute = () => {
         const hash = decodeURIComponent(window.location.hash || '').toLowerCase();

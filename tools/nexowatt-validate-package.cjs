@@ -176,7 +176,7 @@ for (const file of [
   'tools/nexowatt-ui-overview-runtime-selftest.cjs',
   'adminWww/js/eos-ems-overview.js',
   'adminWww/css/eos-ems-overview.css',
-  'adminWww/static/js/nexowatt-stable-v7107.js',
+  'adminWww/static/js/nexowatt-stable-v7108.js',
   'src-admin/src/components/Intro/NexoWattEmsOverview.tsx',
   'tools/nexowatt-publish-channel-guard.cjs',
   'tools/nexowatt-publish-channel-selftest.cjs',

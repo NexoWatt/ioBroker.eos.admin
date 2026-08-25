@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7107-installer-ems-rbac';
+    const VERSION = 'v7108-modern-core-surfaces-rbac';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -45,6 +45,7 @@
         if (policy?.isInstaller || /installateur|installer|installation|inbetriebnahme|techniker|technician|integrator|partner/.test(raw)) return 'installer';
         return 'enduser';
     };
+    const isGloballyHiddenTab = tab => normalize(tab) === 'tab-enums';
     const isOfficialAdminTab = tab => /^tab-admin(?:-\d+)?$/.test(normalize(tab));
     const isOfficialBackupTab = tab => /^tab-backitup(?:-\d+)?$/.test(normalize(tab));
     const isOfficialReserveTab = tab => isOfficialAdminTab(tab) || isOfficialBackupTab(tab);
@@ -53,7 +54,7 @@
     const endUserDeniedByText = value => /(module|dienste|systemlogs|logs|zugange|rechte|benutzer|users|gruppen|groups|system hosts|system-hosts|hosts|dateien|files|konsole|console|terminal|xterm|adapter|instances?|instanzen|geraetesuche|discovery|systemschutz|security)/.test(normalize(value));
     const isEndUserTab = (tab, label = '') => {
         const clean = normalize(tab); const text = `${clean} ${normalize(label)}`;
-        if (clean === 'tab-intro' || clean === 'tab-enums' || clean === 'tab-objects' || isCustomerBackupTab(clean)) return true;
+        if (clean === 'tab-intro' || clean === 'tab-objects' || isCustomerBackupTab(clean)) return true;
         if (/^tab-(nexowatt-ui|nexowatt-cockpit|eos-cockpit|eos-dashboard|kunden-cockpit|endkunden-cockpit|lovelace|jarvis|vis|iqontrol|material)(?:-|$)/.test(clean)) return true;
         return !!clean && !endUserDeniedByText(text) && endUserAllowedByText(text);
     };
@@ -64,7 +65,7 @@
         return /(?:tab-users|tab-hosts|tab-files|tab-xterm|tab-xtrem|tab-system|users|benutzer|gruppen|groups|system-hosts|system hosts|hosts|dateien|files|konsole|console|terminal|xterm|systemschutz|security)/.test(text);
     };
     const isRouteAllowed = (role, route, label = '') => {
-        if (route === 'easy') return false;
+        if (route === 'easy' || isGloballyHiddenTab(route)) return false;
         if (role === 'admin') return true;
         if (isOfficialReserveTab(route)) return false;
         if (role === 'installer') return route === 'tab-intro' || (route !== 'tab-users' && !isInstallerDenied(route, label));
@@ -136,6 +137,8 @@
         return normalize(`${button?.getAttribute?.('aria-label') || ''} ${button?.getAttribute?.('title') || ''} ${testIds}`);
     };
     const isSystemSettingsButton = button => /buildicon|system settings|systemeinstellungen|systeeminstellingen/.test(toolbarButtonSignature(button));
+    const isHeaderSystemSettingsButton = button => button?.dataset?.eosSystemSettingsControl === '1'
+        && !!button.closest?.('.eos-top-toolbar,.MuiAppBar-root .MuiToolbar-root');
     const isExpertModeButton = button => button?.dataset?.eosExpertControl === '1' || /expert|experten/.test(toolbarButtonSignature(button));
     const markAdminOnlyToolbarControls = () => safe(() => {
         const toolbar = document.querySelector('.eos-top-toolbar,.MuiAppBar-root .MuiToolbar-root');
@@ -227,7 +230,6 @@
                 ['Dienste', 'Instanzen starten, stoppen und diagnostizieren', 'tab-instances', 'services'],
                 ['Module', 'Module installieren, aktualisieren und konfigurieren', 'tab-adapters', 'modules'],
                 ['Datenpunkte', 'Messwerte prüfen und freigegebene Werte schreiben', 'tab-objects', 'datapoints'],
-                ['Struktur', 'Räume und Funktionen für Smart Home zuordnen', 'tab-enums', 'structure'],
                 ['Geräte', 'Geräteintegration und Inbetriebnahme öffnen', 'tab-devicemanager', 'devices'],
                 ['Basis-Einstellungen', 'Standort, Sprache und Anlagenparameter', 'basic-settings', 'settings'],
                 ...(backupTab ? [['NexoWatt Sicherung', 'Sicherung und Wiederherstellung des EOS-Systems', backupTab, 'backup']] : []),
@@ -237,7 +239,6 @@
         return [
             ['EOS Cockpit', 'Energie, Laden und Gebäude bedienen', uiTab, 'eos'],
             ['Datenpunkte', 'Messwerte und Zustände ausschließlich lesen', 'tab-objects', 'datapoints'],
-            ['Smart Home', 'Räume, Funktionen und freigegebene Geräte zuordnen', 'tab-enums', 'structure'],
             ...(backupTab ? [['NexoWatt Sicherung', 'Eigene Sicherungen ausführen und wiederherstellen', backupTab, 'backup']] : []),
         ];
     };
@@ -559,7 +560,7 @@
     const scrubInheritedUiAdminSession = () => safe(() => {
         if (state.role !== 'enduser') return;
         const user = String(state.policy?.user || state.policy?.userId || '').replace(/^system\.user\./, '') || state.role;
-        const key = `eosUiAdminSessionScrubbed:v7107:${user}:${state.role}`;
+        const key = `eosUiAdminSessionScrubbed:v7108:${user}:${state.role}`;
         if (sessionStorage.getItem(key) === '1') return;
         sessionStorage.setItem(key, '1');
         const frame = document.createElement('iframe');
@@ -689,7 +690,7 @@
         if (clickedButton && isExpertModeButton(clickedButton)) {
             event.preventDefault(); event.stopImmediatePropagation(); lockExpertMode(); return;
         }
-        if (clickedButton && isSystemSettingsButton(clickedButton)) {
+        if (clickedButton && isHeaderSystemSettingsButton(clickedButton)) {
             event.preventDefault(); event.stopImmediatePropagation();
             if (state.role === 'installer') window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.();
             return;
@@ -701,7 +702,7 @@
         const target = event.target?.closest?.('[data-eos-admin-only-control="1"],[data-eos-system-settings-control="1"],[data-eos-role-tab],a[href*="#tab-"],a[href*="#/tab-"]');
         if (!target) return;
         if (target.matches('[data-eos-admin-only-control="1"]')) { event.preventDefault(); event.stopImmediatePropagation(); return; }
-        if (target.matches('[data-eos-system-settings-control="1"]') && state.role === 'installer') {
+        if (isHeaderSystemSettingsButton(target) && state.role === 'installer') {
             event.preventDefault(); event.stopImmediatePropagation(); window.NEXOWATT_EOS_BASIC_SETTINGS?.open?.(); return;
         }
         const roleTab = target.getAttribute('data-eos-role-tab');
@@ -722,6 +723,8 @@
         getRole: () => state.role,
         getPolicy: () => state.policy,
         isRouteAllowed,
+        isGloballyHiddenTab,
+        isHeaderSystemSettingsButton,
         defaultTab,
         isOfficialReserveTab,
         isCustomerBackupTab,

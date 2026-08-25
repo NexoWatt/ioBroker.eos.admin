@@ -1550,3 +1550,335 @@ html.eos-app.eos-route-intro #app-paper {
 html.eos-route-intro .eos-native-intro-grid { position: relative !important; width:100% !important; padding-bottom:72px !important; overflow:visible !important; }
 html.eos-route-intro .eos-overview-edit-controls { position:absolute !important; right:16px !important; bottom:16px !important; z-index:3 !important; padding:6px !important; border:1px solid rgba(0,229,138,.24) !important; border-radius:16px !important; background:rgba(3,23,34,.94) !important; }
 html.eos-route-intro .eos-overview-edit-controls .MuiFab-root { position:static !important; inset:auto !important; margin:0 !important; }
+
+
+
+
+/* NexoWatt EOS 7.10.8 – modern core operating surfaces.
+   These rules are presentation-only: native ioBroker/EOS event handlers,
+   accordions, state editors and virtualized tables remain authoritative. */
+
+/* Structure is intentionally unavailable in this EOS foundation release. */
+html.eos-app [data-eos-tab="tab-enums"],
+html.eos-app a[href="#tab-enums"],
+html.eos-app a[href="#/tab-enums"],
+html.eos-app .nexowatt-native-nav-item:has(a[href*="tab-enums"]) {
+    display: none !important;
+}
+
+.eos-technical-surface-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    box-sizing: border-box;
+    min-height: 104px;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    margin: 12px 14px 14px;
+    padding: 16px 20px;
+    color: #effcff;
+    border: 1px solid rgba(0, 229, 138, .25);
+    border-radius: 19px;
+    background:
+        radial-gradient(circle at 4% 20%, rgba(0, 229, 138, .16), transparent 31%),
+        radial-gradient(circle at 92% 20%, rgba(69, 213, 255, .10), transparent 30%),
+        linear-gradient(135deg, rgba(7, 31, 45, .97), rgba(3, 15, 27, .97));
+    box-shadow: 0 15px 34px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .045);
+    backdrop-filter: blur(16px) saturate(120%);
+}
+.eos-technical-surface-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    color: #061923;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 17px;
+    background: linear-gradient(135deg, #00e58a, #45d5ff);
+    box-shadow: 0 12px 25px rgba(0, 229, 138, .16), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.eos-technical-surface-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.eos-technical-surface-copy { min-width: 0; }
+.eos-technical-surface-copy > span {
+    display: block;
+    margin-bottom: 3px;
+    color: #55eeb0;
+    font-size: 10px;
+    font-weight: 950;
+    letter-spacing: .18em;
+}
+.eos-technical-surface-copy h1 {
+    margin: 0;
+    color: #f2fbff;
+    font-size: clamp(23px, 2.2vw, 32px);
+    line-height: 1.12;
+}
+.eos-technical-surface-copy p {
+    margin: 6px 0 0;
+    max-width: 780px;
+    color: #9dbbc8;
+    font-size: 13px;
+    line-height: 1.45;
+}
+.eos-technical-surface-meta {
+    min-width: 150px;
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    align-items: center;
+    gap: 1px 8px;
+    padding: 10px 13px;
+    border: 1px solid rgba(133, 193, 218, .17);
+    border-radius: 13px;
+    background: rgba(3, 17, 28, .66);
+}
+.eos-technical-surface-meta i {
+    grid-row: 1 / span 2;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #00e58a;
+    box-shadow: 0 0 12px rgba(0,229,138,.8);
+}
+.eos-technical-surface-meta strong { color: #eafaff; font-size: 12px; }
+.eos-technical-surface-meta small { color: #83a8b8; font-size: 10px; }
+
+/* Shared technical toolbars. */
+html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root,
+html.eos-app #app-paper[data-eos-technical-surface] [role="toolbar"] {
+    min-height: 54px !important;
+    margin: 0 14px 10px !important;
+    padding: 7px 10px !important;
+    gap: 7px !important;
+    color: #eaf9ff !important;
+    border: 1px solid rgba(133, 193, 218, .13) !important;
+    border-radius: 15px !important;
+    background: linear-gradient(180deg, rgba(9, 31, 47, .94), rgba(4, 18, 30, .95)) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root .MuiIconButton-root,
+html.eos-app #app-paper[data-eos-technical-surface] [role="toolbar"] button {
+    min-width: 38px;
+    min-height: 38px;
+    color: #dff8ff !important;
+    border: 1px solid rgba(133, 193, 218, .12) !important;
+    border-radius: 11px !important;
+    background: rgba(255,255,255,.025) !important;
+}
+html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root .MuiIconButton-root:hover,
+html.eos-app #app-paper[data-eos-technical-surface] [role="toolbar"] button:hover {
+    color: #fff !important;
+    border-color: rgba(0,229,138,.30) !important;
+    background: rgba(0,229,138,.085) !important;
+}
+html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root .MuiInputBase-root,
+html.eos-app #app-paper[data-eos-technical-surface] [role="toolbar"] input {
+    min-height: 38px !important;
+    border-radius: 10px !important;
+    background: rgba(2, 13, 23, .72) !important;
+}
+
+/* Dienste & Instanzen – modern operating cards while preserving every native action. */
+html.eos-route-instances #app-paper .MuiAccordion-root {
+    margin: 7px 14px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(133, 193, 218, .14) !important;
+    border-radius: 14px !important;
+    background: linear-gradient(180deg, rgba(10, 32, 48, .94), rgba(5, 20, 32, .95)) !important;
+    box-shadow: 0 9px 22px rgba(0, 0, 0, .17) !important;
+}
+html.eos-route-instances #app-paper .MuiAccordion-root::before { display: none !important; }
+html.eos-route-instances #app-paper .MuiAccordionSummary-root {
+    min-height: 52px !important;
+    padding: 0 14px !important;
+    transition: background .15s ease, border-color .15s ease !important;
+}
+html.eos-route-instances #app-paper .MuiAccordionSummary-root:hover {
+    background: rgba(0, 229, 138, .045) !important;
+}
+html.eos-route-instances #app-paper .MuiAccordionSummary-root.Mui-expanded {
+    min-height: 54px !important;
+    background: linear-gradient(90deg, rgba(0,229,138,.08), rgba(69,213,255,.035)) !important;
+}
+html.eos-route-instances #app-paper .MuiAccordionDetails-root {
+    padding: 15px 18px 18px !important;
+    border-top: 1px solid rgba(133, 193, 218, .12) !important;
+    background: rgba(2, 14, 24, .54) !important;
+}
+html.eos-route-instances #app-paper .eos-service-row {
+    transition: filter .14s ease, box-shadow .14s ease, transform .14s ease !important;
+}
+html.eos-route-instances #app-paper .eos-service-row:hover {
+    filter: brightness(1.07);
+}
+html.eos-route-instances #app-paper tr.eos-service-row > td {
+    border-top: 1px solid rgba(133, 193, 218, .09) !important;
+    border-bottom: 1px solid rgba(1, 8, 14, .35) !important;
+}
+html.eos-route-instances #app-paper tr.eos-service-row > td:first-child { border-radius: 10px 0 0 10px; }
+html.eos-route-instances #app-paper tr.eos-service-row > td:last-child { border-radius: 0 10px 10px 0; }
+html.eos-route-instances #app-paper .eos-service-row-expanded {
+    box-shadow: inset 3px 0 0 rgba(0,229,138,.62) !important;
+}
+html.eos-route-instances #app-paper .MuiTableContainer-root,
+html.eos-route-instances #app-paper [role="grid"] {
+    margin: 0 14px 14px !important;
+    overflow: auto !important;
+    border: 1px solid rgba(133, 193, 218, .12) !important;
+    border-radius: 15px !important;
+    background: rgba(2, 14, 24, .42) !important;
+}
+html.eos-route-instances #app-paper .MuiTableHead-root .MuiTableCell-root {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: rgba(7, 29, 43, .97) !important;
+}
+
+/* Datenpunkte – calm, readable technical tree/grid. */
+html.eos-route-objects #app-paper [role="grid"],
+html.eos-route-objects #app-paper [role="treegrid"],
+html.eos-route-objects #app-paper .MuiDataGrid-root,
+html.eos-route-objects #app-paper .ReactVirtualized__Grid {
+    border-color: rgba(133, 193, 218, .15) !important;
+    background: linear-gradient(180deg, rgba(5, 21, 34, .82), rgba(2, 13, 23, .90)) !important;
+}
+html.eos-route-objects #app-paper .MuiDataGrid-columnHeaders,
+html.eos-route-objects #app-paper [role="columnheader"],
+html.eos-route-objects #app-paper thead th {
+    color: #e8f8ff !important;
+    font-weight: 850 !important;
+    background: linear-gradient(180deg, rgba(13, 42, 59, .97), rgba(6, 25, 39, .97)) !important;
+    border-bottom-color: rgba(0, 229, 138, .20) !important;
+}
+html.eos-route-objects #app-paper .eos-datapoint-row,
+html.eos-route-objects #app-paper .MuiDataGrid-row,
+html.eos-route-objects #app-paper [role="row"] {
+    transition: background .12s ease, box-shadow .12s ease !important;
+}
+html.eos-route-objects #app-paper .eos-datapoint-row:hover,
+html.eos-route-objects #app-paper .MuiDataGrid-row:hover,
+html.eos-route-objects #app-paper [role="row"]:hover {
+    background: rgba(69, 213, 255, .045) !important;
+}
+html.eos-route-objects #app-paper .Mui-selected,
+html.eos-route-objects #app-paper [aria-selected="true"] {
+    color: #f4ffff !important;
+    background: linear-gradient(90deg, rgba(0, 229, 138, .19), rgba(69, 213, 255, .08)) !important;
+    box-shadow: inset 3px 0 0 #00e58a !important;
+}
+html.eos-route-objects #app-paper .eos-object-value-cell {
+    min-height: 30px !important;
+    padding: 3px 7px !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    font-variant-numeric: tabular-nums;
+}
+html.eos-route-objects #app-paper .eos-object-value-cell[data-eos-object-writable="1"] {
+    border-color: rgba(0,229,138,.12) !important;
+    background: rgba(0,229,138,.035) !important;
+}
+html.eos-route-objects #app-paper input,
+html.eos-route-objects #app-paper .MuiSelect-select {
+    border-radius: 9px !important;
+}
+html.eos-role-enduser.eos-route-objects #app-paper[data-eos-datapoints-readonly]::before {
+    content: 'NUR LESEN';
+    position: sticky;
+    top: 112px;
+    z-index: 75;
+    float: right;
+    margin: 0 24px -32px 0;
+    padding: 6px 10px;
+    color: #89b5c5;
+    font-size: 9px;
+    font-weight: 950;
+    letter-spacing: .13em;
+    border: 1px solid rgba(133,193,218,.18);
+    border-radius: 999px;
+    background: rgba(3,17,28,.88);
+    pointer-events: none;
+}
+
+/* Systemlogs – diagnostic stream with severity accenting. */
+html.eos-route-logs #app-paper .MuiTableContainer-root,
+html.eos-route-logs #app-paper [role="grid"] {
+    margin: 0 14px 14px !important;
+    overflow: auto !important;
+    border: 1px solid rgba(133, 193, 218, .13) !important;
+    border-radius: 15px !important;
+    background: rgba(2, 13, 22, .72) !important;
+}
+html.eos-route-logs #app-paper .MuiTableHead-root .MuiTableCell-root,
+html.eos-route-logs #app-paper [role="columnheader"] {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    color: #e9f9ff !important;
+    font-weight: 850 !important;
+    background: rgba(7, 29, 43, .98) !important;
+    border-bottom: 1px solid rgba(0,229,138,.18) !important;
+}
+html.eos-route-logs #app-paper .eos-log-row {
+    box-shadow: inset 3px 0 0 rgba(133,193,218,.25) !important;
+    transition: background .12s ease, filter .12s ease !important;
+}
+html.eos-route-logs #app-paper .eos-log-row:hover { filter: brightness(1.08); }
+html.eos-route-logs #app-paper .eos-log-row-error {
+    background: rgba(255, 77, 103, .075) !important;
+    box-shadow: inset 3px 0 0 #ff4d67 !important;
+}
+html.eos-route-logs #app-paper .eos-log-row-warn {
+    background: rgba(255, 201, 51, .06) !important;
+    box-shadow: inset 3px 0 0 #ffc933 !important;
+}
+html.eos-route-logs #app-paper .eos-log-row-info {
+    box-shadow: inset 3px 0 0 rgba(69, 213, 255, .55) !important;
+}
+html.eos-route-logs #app-paper .eos-log-row-debug {
+    opacity: .78;
+    box-shadow: inset 3px 0 0 rgba(157, 181, 193, .35) !important;
+}
+html.eos-route-logs #app-paper .eos-log-row td,
+html.eos-route-logs #app-paper .eos-log-row [role="cell"] {
+    font-variant-numeric: tabular-nums;
+    border-bottom-color: rgba(133,193,218,.075) !important;
+}
+html.eos-route-logs #app-paper pre,
+html.eos-route-logs #app-paper code {
+    color: #dff7ff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (max-width: 850px) {
+    .eos-technical-surface-header {
+        grid-template-columns: 46px minmax(0, 1fr);
+        min-height: 92px;
+        margin: 9px;
+        padding: 14px;
+        gap: 12px;
+        border-radius: 16px;
+    }
+    .eos-technical-surface-icon { width: 44px; height: 44px; border-radius: 13px; }
+    .eos-technical-surface-icon svg { width: 23px; height: 23px; }
+    .eos-technical-surface-meta { grid-column: 1 / -1; min-width: 0; }
+    html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root,
+    html.eos-app #app-paper[data-eos-technical-surface] [role="toolbar"],
+    html.eos-route-instances #app-paper .MuiAccordion-root,
+    html.eos-route-instances #app-paper .MuiTableContainer-root,
+    html.eos-route-instances #app-paper [role="grid"],
+    html.eos-route-logs #app-paper .MuiTableContainer-root,
+    html.eos-route-logs #app-paper [role="grid"] {
+        margin-left: 9px !important;
+        margin-right: 9px !important;
+    }
+}

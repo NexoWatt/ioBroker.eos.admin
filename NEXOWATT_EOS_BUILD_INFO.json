@@ -1,28 +1,29 @@
 {
-  "version": "7.10.7",
+  "version": "7.10.8",
   "channel": "stable-latest",
-  "baseFrontend": "validated v84 runtime with authoritative RBAC, End User read-only UI and Installer EMS App-Center access",
+  "baseFrontend": "validated v84 runtime with modern Services, Datapoints and System Logs surfaces",
   "runtimeEntry": "v84",
-  "releaseType": "stable-installer-ems-appcenter",
-  "release": "stable-installer-ems-appcenter",
-  "label": "v7-10-7",
+  "releaseType": "stable-ui-foundation",
+  "release": "stable-ui-foundation",
+  "label": "v7-10-8",
   "notes": [
-    "Administrator authority and all Admin controls remain unchanged.",
-    "Installer may open and use the EMS App-Center.",
-    "Simulation and License remain Administrator-only.",
-    "End User App-Center blocking, read-only datapoints and port 8188 session scrubbing remain active."
+    "Administrator, Installer and End User role behavior from 7.10.7 remains unchanged.",
+    "Services, Datapoints and System Logs use modern NexoWatt EOS presentation layers.",
+    "Structure is hidden and direct tab-enums navigation is redirected for every role.",
+    "Installer service rows expand and remain operable without opening Basic Settings."
   ],
   "changes": [
-    "Split privileged UI actions into EMS, Simulation and License categories.",
-    "Allowed EMS App-Center actions for Admin and Installer only.",
-    "Kept Simulation and License actions Administrator-only.",
-    "Raised the release and browser cache identity to 7.10.7 / 7107."
+    "Restricted the Basic Settings click guard to the actual top-header system settings control.",
+    "Added modern route headers and technical surface styling for Services, Datapoints and System Logs.",
+    "Added log severity accents without changing native log behavior.",
+    "Removed Structure from the native and role-filtered navigation for all roles.",
+    "Raised release and browser cache identity to 7.10.8 / 7108."
   ],
-  "brandingCacheVersion": 7107,
-  "shellCacheVersion": 7107,
-  "nativeShellVersion": 7107,
-  "shellCacheTag": "7107",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-7.json",
+  "brandingCacheVersion": 7108,
+  "shellCacheVersion": 7108,
+  "nativeShellVersion": 7108,
+  "shellCacheTag": "7108",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-8.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

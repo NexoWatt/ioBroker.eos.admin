@@ -596,7 +596,6 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                 'tab-objects',
                 'tab-hosts',
                 'tab-users',
-                'tab-enums',
             ];
             if (await this.isDeviceManagerVisible()) {
                 readyToUse.push('tab-devicemanager');
@@ -613,7 +612,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                 obj.visible = true;
                 return obj;
             });
-            tabs = tabs.concat(dynamicTabs).filter(Boolean);
+            tabs = tabs.concat(dynamicTabs).filter(tab => Boolean(tab) && tab.name !== 'tab-enums');
             tabs.forEach(obj => (obj.visible = true));
             tabs.sort((a, b) => {
                 if (a.order && b.order) return a.order - b.order;
