@@ -24,6 +24,7 @@ const bootstrapBundle = read('adminWww/assets/bootstrap-COulQZax-v84.js');
 const objectsBundle = read('adminWww/assets/Objects-DPan0bzw-v84.js');
 const introBundle = read('adminWww/assets/Intro-DkwRiz1n-v84.js');
 const io = json('io-package.json');
+const cleanupSource = read('tools/nexowatt-clean-legacy-runtime.cjs');
 
 // The removed DOM-text heuristic classified a real administrator as end user when the
 // visible header happened to contain "user". Only authenticated backend policy may define the role.
@@ -36,6 +37,13 @@ for (const html of [index, sourceIndex]) {
 assert.equal(fs.existsSync(path.join(root, 'adminWww/nexowatt-role-security.js')), false, 'legacy runtime still exists');
 assert.equal(fs.existsSync(path.join(root, 'build/lib/eosRoleSecurity.js')), false, 'legacy backend heuristic still exists');
 assert.doesNotMatch(builtMain, /eosRoleSecurity|installHttpGuard|enforceRoleAcls/);
+for (const obsolete of [
+    'adminWww/nexowatt-role-security.js',
+    'src-admin/nexowatt-role-security.js',
+    'build/lib/eosRoleSecurity.js',
+]) {
+    assert.ok(cleanupSource.includes(`'${obsolete}'`), `runtime cleanup must remove stale ${obsolete}`);
+}
 for (const code of [bootstrap, roleUi, sourceRoleUi]) {
     assert.match(code, /policy\?\.user === 'system\.user\.admin'/, 'system.user.admin is not explicitly authoritative');
     assert.match(code, /policy\?\.isAdministrator/, 'backend administrator capability is not honored');

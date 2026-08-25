@@ -23,6 +23,12 @@ const LEGACY_OVERLAYS = [
   'src-admin/public/js/eos-runtime-fixes.js',
   'src-admin/public/js/eos-hard-logout.js',
   'src-admin/public/css/eos-branding.css',
+  // Removed 7.10.4 role-security overlays. These files must be deleted when
+  // a complete repository ZIP is accidentally extracted over an older tree;
+  // otherwise the sealed-release check correctly rejects them as stale input.
+  'adminWww/nexowatt-role-security.js',
+  'src-admin/nexowatt-role-security.js',
+  'build/lib/eosRoleSecurity.js',
 ];
 
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));

@@ -15,6 +15,7 @@ try {
   fs.mkdirSync(path.join(temp, 'src-admin', 'public', 'js'), { recursive: true });
   fs.mkdirSync(path.join(temp, 'src-admin', 'public', 'static', 'js'), { recursive: true });
   fs.mkdirSync(path.join(temp, 'adminWww', 'static', 'js'), { recursive: true });
+  fs.mkdirSync(path.join(temp, 'build', 'lib'), { recursive: true });
   fs.writeFileSync(path.join(temp, 'NEXOWATT_EOS_BUILD_INFO.json'), JSON.stringify({ runtimeEntry: 'v82', shellCacheVersion: 98 }));
 
   const keep = [
@@ -36,6 +37,9 @@ try {
     'src-admin/public/js/eos-security-ui.js',
     'adminWww/static/js/nexowatt-stable-v97.js',
     'src-admin/public/static/js/nexowatt-stable-v95.js',
+    'adminWww/nexowatt-role-security.js',
+    'src-admin/nexowatt-role-security.js',
+    'build/lib/eosRoleSecurity.js',
   ];
   for (const rel of [...keep, ...remove]) {
     const file = path.join(temp, rel);
