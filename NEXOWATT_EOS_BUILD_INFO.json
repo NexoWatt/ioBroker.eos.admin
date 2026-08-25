@@ -1,29 +1,28 @@
 {
-  "version": "7.10.8",
+  "version": "7.10.9",
   "channel": "stable-latest",
-  "baseFrontend": "validated v84 runtime with modern Services, Datapoints and System Logs surfaces",
+  "baseFrontend": "validated v84 runtime with clean modern Services, Datapoints and System Logs surfaces",
   "runtimeEntry": "v84",
-  "releaseType": "stable-ui-foundation",
-  "release": "stable-ui-foundation",
-  "label": "v7-10-8",
+  "releaseType": "stable-clean-ui-foundation",
+  "release": "stable-clean-ui-foundation",
+  "label": "v7-10-9",
   "notes": [
-    "Administrator, Installer and End User role behavior from 7.10.7 remains unchanged.",
-    "Services, Datapoints and System Logs use modern NexoWatt EOS presentation layers.",
-    "Structure is hidden and direct tab-enums navigation is redirected for every role.",
-    "Installer service rows expand and remain operable without opening Basic Settings."
+    "Administrator, Installer and End User role behavior from 7.10.8 remains unchanged.",
+    "Services, Datapoints and System Logs retain the modern NexoWatt EOS styling.",
+    "Redundant title, description and role information panels were removed from the self-explanatory core tabs.",
+    "Structure remains hidden for every role and Installer service controls remain native and operable."
   ],
   "changes": [
-    "Restricted the Basic Settings click guard to the actual top-header system settings control.",
-    "Added modern route headers and technical surface styling for Services, Datapoints and System Logs.",
-    "Added log severity accents without changing native log behavior.",
-    "Removed Structure from the native and role-filtered navigation for all roles.",
-    "Raised release and browser cache identity to 7.10.8 / 7108."
+    "Removed the generated technical information header from Services, Datapoints and System Logs.",
+    "Preserved modern toolbars, rows, state tables and log severity accents.",
+    "Kept all role permissions, navigation protection and native service controls unchanged.",
+    "Raised release and browser cache identity to 7.10.9 / 7109."
   ],
-  "brandingCacheVersion": 7108,
-  "shellCacheVersion": 7108,
-  "nativeShellVersion": 7108,
-  "shellCacheTag": "7108",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-8.json",
+  "brandingCacheVersion": 7109,
+  "shellCacheVersion": 7109,
+  "nativeShellVersion": 7109,
+  "shellCacheTag": "7109",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-9.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

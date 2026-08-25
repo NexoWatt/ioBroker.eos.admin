@@ -1554,7 +1554,7 @@ html.eos-route-intro .eos-overview-edit-controls .MuiFab-root { position:static 
 
 
 
-/* NexoWatt EOS 7.10.8 – modern core operating surfaces.
+/* NexoWatt EOS 7.10.9 – clean modern core operating surfaces.
    These rules are presentation-only: native ioBroker/EOS event handlers,
    accordions, state editors and virtualized tables remain authoritative. */
 
@@ -1566,91 +1566,6 @@ html.eos-app .nexowatt-native-nav-item:has(a[href*="tab-enums"]) {
     display: none !important;
 }
 
-.eos-technical-surface-header {
-    position: sticky;
-    top: 0;
-    z-index: 80;
-    box-sizing: border-box;
-    min-height: 104px;
-    display: grid;
-    grid-template-columns: 58px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 16px;
-    margin: 12px 14px 14px;
-    padding: 16px 20px;
-    color: #effcff;
-    border: 1px solid rgba(0, 229, 138, .25);
-    border-radius: 19px;
-    background:
-        radial-gradient(circle at 4% 20%, rgba(0, 229, 138, .16), transparent 31%),
-        radial-gradient(circle at 92% 20%, rgba(69, 213, 255, .10), transparent 30%),
-        linear-gradient(135deg, rgba(7, 31, 45, .97), rgba(3, 15, 27, .97));
-    box-shadow: 0 15px 34px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .045);
-    backdrop-filter: blur(16px) saturate(120%);
-}
-.eos-technical-surface-icon {
-    width: 54px;
-    height: 54px;
-    display: grid;
-    place-items: center;
-    color: #061923;
-    border: 1px solid rgba(255, 255, 255, .22);
-    border-radius: 17px;
-    background: linear-gradient(135deg, #00e58a, #45d5ff);
-    box-shadow: 0 12px 25px rgba(0, 229, 138, .16), inset 0 1px 0 rgba(255,255,255,.28);
-}
-.eos-technical-surface-icon svg {
-    width: 28px;
-    height: 28px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.9;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-.eos-technical-surface-copy { min-width: 0; }
-.eos-technical-surface-copy > span {
-    display: block;
-    margin-bottom: 3px;
-    color: #55eeb0;
-    font-size: 10px;
-    font-weight: 950;
-    letter-spacing: .18em;
-}
-.eos-technical-surface-copy h1 {
-    margin: 0;
-    color: #f2fbff;
-    font-size: clamp(23px, 2.2vw, 32px);
-    line-height: 1.12;
-}
-.eos-technical-surface-copy p {
-    margin: 6px 0 0;
-    max-width: 780px;
-    color: #9dbbc8;
-    font-size: 13px;
-    line-height: 1.45;
-}
-.eos-technical-surface-meta {
-    min-width: 150px;
-    display: grid;
-    grid-template-columns: 10px 1fr;
-    align-items: center;
-    gap: 1px 8px;
-    padding: 10px 13px;
-    border: 1px solid rgba(133, 193, 218, .17);
-    border-radius: 13px;
-    background: rgba(3, 17, 28, .66);
-}
-.eos-technical-surface-meta i {
-    grid-row: 1 / span 2;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #00e58a;
-    box-shadow: 0 0 12px rgba(0,229,138,.8);
-}
-.eos-technical-surface-meta strong { color: #eafaff; font-size: 12px; }
-.eos-technical-surface-meta small { color: #83a8b8; font-size: 10px; }
 
 /* Shared technical toolbars. */
 html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root,
@@ -1860,17 +1775,6 @@ html.eos-route-logs #app-paper code {
 }
 
 @media (max-width: 850px) {
-    .eos-technical-surface-header {
-        grid-template-columns: 46px minmax(0, 1fr);
-        min-height: 92px;
-        margin: 9px;
-        padding: 14px;
-        gap: 12px;
-        border-radius: 16px;
-    }
-    .eos-technical-surface-icon { width: 44px; height: 44px; border-radius: 13px; }
-    .eos-technical-surface-icon svg { width: 23px; height: 23px; }
-    .eos-technical-surface-meta { grid-column: 1 / -1; min-width: 0; }
     html.eos-app #app-paper[data-eos-technical-surface] .MuiToolbar-root,
     html.eos-app #app-paper[data-eos-technical-surface] [role="toolbar"],
     html.eos-route-instances #app-paper .MuiAccordion-root,

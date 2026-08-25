@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7108-modern-core-surfaces-rbac';
+    const VERSION = 'v7109-clean-core-surfaces-rbac';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;

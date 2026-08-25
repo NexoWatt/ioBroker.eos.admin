@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7108-nexowatt-native-shell-modern-core-surfaces';
+    const VERSION = 'v7109-nexowatt-native-shell-clean-core-surfaces';
     const previous = window.NEXOWATT_NATIVE_SHELL;
     if (previous?.version === VERSION) return;
     previous?.destroy?.();
@@ -25,27 +25,7 @@
     const safe = fn => {
         try { return fn(); } catch (_) { return undefined; }
     };
-    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match] || match));
-    const TECHNICAL_SURFACES = Object.freeze({
-        instances: {
-            eyebrow: 'EOS SYSTEMDIENSTE',
-            title: 'Dienste & Instanzen',
-            text: 'Laufzeit, Status, Ressourcen und Konfiguration aller aktiven EOS-Dienste auf einen Blick.',
-            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/><path d="M8 7h.01M8 17h.01M12 7h5M12 17h5"/></svg>',
-        },
-        objects: {
-            eyebrow: 'EOS DATENEBENE',
-            title: 'Datenpunkte & Zustände',
-            text: 'Messwerte, Status und freigegebene Steuerwerte in einer klaren technischen Ansicht.',
-            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.9 15.7 7M8.3 13.1l7.4 3.9"/></svg>',
-        },
-        logs: {
-            eyebrow: 'EOS DIAGNOSE',
-            title: 'Systemlogs',
-            text: 'Live-Protokoll für Adapter, Dienste und Systemereignisse mit klarer Priorisierung.',
-            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14M5 10h14M5 15h9M5 20h6"/><circle cx="18" cy="17" r="3"/><path d="m20.2 19.2 1.8 1.8"/></svg>',
-        },
-    });
+    const TECHNICAL_SURFACE_KEYS = new Set(['instances', 'objects', 'logs']);
 
     // Navigation labels and icons are rendered natively by Drawer.tsx.
     // This runtime only positions the shell and never rewrites React content.
@@ -197,18 +177,11 @@
             <div class="eos-overview-role" data-nexowatt-overview-role="${role}"><span class="eos-overview-status-dot"></span>${config.label}</div>`;
     };
 
-    const roleLabel = () => {
-        const role = String(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
-        if (role === 'admin') return 'Admin / Service';
-        if (role === 'installer' || role === 'installateur') return 'Installateur';
-        return 'Endkunde';
-    };
-
     const classifyTechnicalRows = (paper, surface) => {
         if (!paper || !surface) return;
         if (surface === 'instances') {
             paper.querySelectorAll('.MuiAccordion-root,tbody tr,.MuiTableRow-root,[role="row"]').forEach(row => {
-                if (row.closest?.('.eos-technical-surface-header') || row.classList.contains('MuiTableHead-root')) return;
+                if (row.classList.contains('MuiTableHead-root')) return;
                 row.classList.add('eos-service-row');
                 const expanded = row.classList.contains('Mui-expanded') || !!row.querySelector?.('[aria-expanded="true"]');
                 row.classList.toggle('eos-service-row-expanded', expanded);
@@ -217,14 +190,12 @@
         }
         if (surface === 'objects') {
             paper.querySelectorAll('[role="row"],.MuiTableRow-root,.MuiDataGrid-row').forEach(row => {
-                if (row.closest?.('.eos-technical-surface-header')) return;
                 row.classList.add('eos-datapoint-row');
             });
             return;
         }
         if (surface === 'logs') {
             paper.querySelectorAll('tbody tr,.MuiTableRow-root,[role="row"]').forEach(row => {
-                if (row.closest?.('.eos-technical-surface-header')) return;
                 const text = String(row.textContent || '').toLowerCase();
                 let level = 'info';
                 if (/\b(error|fatal|fehler|kritisch|critical)\b/.test(text)) level = 'error';
@@ -241,38 +212,14 @@
         const paper = document.getElementById('app-paper');
         if (!paper || isLogin()) return;
         const surface = routeKey(currentTab());
-        const config = TECHNICAL_SURFACES[surface];
-        const existing = document.getElementById('eos-technical-surface-header');
-        if (!config) {
-            existing?.remove();
+        // The tabs are self-explanatory. Keep the modern route styling and row
+        // classification, but never insert a second title/description panel.
+        document.getElementById('eos-technical-surface-header')?.remove();
+        if (!TECHNICAL_SURFACE_KEYS.has(surface)) {
             paper.removeAttribute('data-eos-technical-surface');
             return;
         }
         paper.setAttribute('data-eos-technical-surface', surface);
-        let header = existing;
-        if (!header) {
-            header = document.createElement('section');
-            header.id = 'eos-technical-surface-header';
-            header.className = 'eos-technical-surface-header';
-            header.setAttribute('aria-live', 'polite');
-            paper.insertBefore(header, paper.firstChild || null);
-        }
-        if (header.dataset.eosSurface !== surface || header.dataset.eosRole !== roleLabel()) {
-            header.dataset.eosSurface = surface;
-            header.dataset.eosRole = roleLabel();
-            header.innerHTML = `
-                <div class="eos-technical-surface-icon">${config.icon}</div>
-                <div class="eos-technical-surface-copy">
-                    <span>${escapeHtml(config.eyebrow)}</span>
-                    <h1>${escapeHtml(config.title)}</h1>
-                    <p>${escapeHtml(config.text)}</p>
-                </div>
-                <div class="eos-technical-surface-meta">
-                    <i aria-hidden="true"></i>
-                    <strong>${escapeHtml(roleLabel())}</strong>
-                    <small>${surface === 'logs' ? 'Live-Diagnose' : surface === 'instances' ? 'Betriebsbereit' : 'Zentrale Datenansicht'}</small>
-                </div>`;
-        }
         classifyTechnicalRows(paper, surface);
     };
 

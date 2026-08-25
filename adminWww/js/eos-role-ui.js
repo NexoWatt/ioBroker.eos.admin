@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7108-modern-core-surfaces-rbac';
+    const VERSION = 'v7109-clean-core-surfaces-rbac';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -560,7 +560,7 @@
     const scrubInheritedUiAdminSession = () => safe(() => {
         if (state.role !== 'enduser') return;
         const user = String(state.policy?.user || state.policy?.userId || '').replace(/^system\.user\./, '') || state.role;
-        const key = `eosUiAdminSessionScrubbed:v7108:${user}:${state.role}`;
+        const key = `eosUiAdminSessionScrubbed:v7109:${user}:${state.role}`;
         if (sessionStorage.getItem(key) === '1') return;
         sessionStorage.setItem(key, '1');
         const frame = document.createElement('iframe');

@@ -13,7 +13,7 @@ const runtimeRole = read('adminWww/js/eos-role-ui.js');
 const sourceMain = read('src/main.ts');
 const builtMain = read('build/main.js');
 
-assert.equal(pkg.version, '7.10.8', 'release must use a new npm version');
+assert.equal(pkg.version, '7.10.9', 'release must use a new npm version');
 for (const web of [sourceWeb, builtWeb]) {
     assert.match(web, /nexowatt\/readonly\/system-info/, 'read-only system information endpoint missing');
     assert.match(web, /sendEosReadonlySystemInfo/, 'read-only system information handler missing');
