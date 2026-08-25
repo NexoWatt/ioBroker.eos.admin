@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7105-admin-authoritative-rbac';
+    const VERSION = 'v7106-admin-authoritative-rbac';
     const script = document.currentScript || document.querySelector('script[src*="eos-role-bootstrap.js"]');
     const entry = script?.dataset?.eosEntry || '';
     let launched = false;

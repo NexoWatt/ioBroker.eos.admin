@@ -6,8 +6,9 @@ import type { Server } from 'node:http';
 import { readFileSync, existsSync, createReadStream, readdirSync, lstatSync } from 'node:fs';
 import { inherits } from 'node:util';
 import { join, normalize, parse, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
+import { tmpdir, totalmem } from 'node:os';
 import { Transform } from 'node:stream';
+import { execFileSync } from 'node:child_process';
 import * as compression from 'compression';
 import { getType } from 'mime';
 import { gunzipSync } from 'node:zlib';
@@ -1602,6 +1603,36 @@ export default class Web {
         await this.sendEosBasicSettings(req, res);
     }
 
+
+    private getEosReadonlySystemInfo(): { platform: string; ramMb: number; nodejs: string; npm: string; active: boolean } {
+        let npm = '--';
+        try {
+            const binary = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+            npm = execFileSync(binary, ['-v'], { encoding: 'utf8', timeout: 1500 }).trim() || '--';
+        } catch {
+            // ignore
+        }
+        return {
+            platform: process.platform || '--',
+            ramMb: Math.round(totalmem() / 1024 / 1024),
+            nodejs: process.version || '--',
+            npm,
+            active: true,
+        };
+    }
+
+    private async sendEosReadonlySystemInfo(req: Request, res: Response): Promise<void> {
+        const access = await this.getEosRequestAccess(req);
+        const authenticated = !this.settings.auth || !!access.userId;
+        if (!authenticated) {
+            res.status(401).json({ error: 'authenticationRequired' });
+            return;
+        }
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.status(200).json(this.getEosReadonlySystemInfo());
+    }
+
     private async sendEosSecuritySession(req: Request, res: Response): Promise<void> {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -2061,6 +2092,12 @@ export default class Web {
             this.server.app.get('/eos/security/status', sendSecuritySession);
             this.server.app.get('/nexowatt/security/session', sendSecuritySession);
             this.server.app.get('/nexowatt/security/context', sendSecuritySession);
+            this.server.app.get('/nexowatt/readonly/system-info', (req: Request, res: Response): void => {
+                void this.sendEosReadonlySystemInfo(req, res).catch(e => {
+                    this.adapter.log.warn(`Cannot read EOS readonly system info: ${e instanceof Error ? e.message : e}`);
+                    res.status(500).json({ error: 'readonlySystemInfoFailed' });
+                });
+            });
             this.server.app.get('/nexowatt/role-settings/basic', (req: Request, res: Response): void => {
                 void this.sendEosBasicSettings(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot read EOS basic settings: ${e instanceof Error ? e.message : e}`);

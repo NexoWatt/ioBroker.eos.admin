@@ -1,32 +1,29 @@
 {
-  "version": "7.10.5",
+  "version": "7.10.6",
   "channel": "stable-latest",
-  "baseFrontend": "validated v84 runtime with authoritative RBAC, restored administrator rights and restart-safe navigation layout",
+  "baseFrontend": "validated v84 runtime with authoritative RBAC and End User read-only UI correction",
   "runtimeEntry": "v84",
-  "releaseType": "stable-admin-rights-rbac-navigation",
-  "release": "stable-admin-rights-rbac-navigation",
-  "label": "v7-10-5",
+  "releaseType": "stable-enduser-readonly-system-info",
+  "release": "stable-enduser-readonly-system-info",
+  "label": "v7-10-6",
   "notes": [
-    "Administrator authority is derived only from the authenticated backend security context; DOM text is never used to classify a role.",
-    "Admin keeps full datapoint write access, all overview cards and reversible expert mode.",
-    "Installer and End User do not see ioBroker Admin, XTerm, App Center, License, Simulation or account administration.",
-    "End User can open Datapoints in read-only mode; backend socket writes are denied independently of the browser.",
-    "Navigation visibility/order is stored in eos-admin.0.info.uiTabsVisible and no longer modifies system.config or restarts the adapter.",
-    "Backup navigation is shown only while a supported backup instance is enabled."
+    "Administrator authority and all Admin controls remain unchanged.",
+    "End User datapoints remain visible but all edit, delete and settings actions are hidden.",
+    "End User datapoint writes remain denied by the backend role guard.",
+    "The End User system card receives read-only platform, RAM, Node.js and NPM information from an authenticated endpoint.",
+    "The restricted End User system-card info popup is removed to prevent permissionError dialogs."
   ],
   "changes": [
-    "Removed the legacy DOM-text role heuristic that could downgrade system.user.admin to End User.",
-    "Added explicit Admin bypass regression guards in source, backend runtime and frontend bundles.",
-    "Added End User-only ObjectBrowser read-only wiring while retaining Admin/Installer native write controls.",
-    "Moved menu layout persistence away from system.config into a dedicated adapter state.",
-    "Hid Admin/XTerm cards only for restricted roles and forced them visible for Admin.",
-    "Protected App Center, License and Simulation in the authenticated role layer and cleared inherited UI-admin sessions for non-admin roles."
+    "Added an authenticated read-only system information endpoint for restricted roles.",
+    "Added End User-only action-column suppression in the ObjectBrowser.",
+    "Kept the system.user.admin full-rights bypass untouched.",
+    "Raised the release and browser cache identity to 7.10.6 / 7106."
   ],
-  "brandingCacheVersion": 7105,
-  "shellCacheVersion": 7105,
-  "nativeShellVersion": 7105,
-  "shellCacheTag": "7105",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-5.json",
+  "brandingCacheVersion": 7106,
+  "shellCacheVersion": 7106,
+  "nativeShellVersion": 7106,
+  "shellCacheTag": "7106",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-6.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

@@ -16,6 +16,8 @@ const roleUi = read('adminWww/js/eos-role-ui.js');
 const sourceRoleUi = read('src-admin/public/js/eos-role-ui.js');
 const sourceMain = read('src/main.ts');
 const builtMain = read('build/main.js');
+const webSource = read('src/lib/web.ts');
+const webBuilt = read('build/lib/web.js');
 const appSource = read('src-admin/src/App.tsx');
 const objectsSource = read('src-admin/src/tabs/Objects.tsx');
 const introSource = read('src-admin/src/tabs/Intro.tsx');
@@ -30,9 +32,9 @@ const cleanupSource = read('tools/nexowatt-clean-legacy-runtime.cjs');
 // visible header happened to contain "user". Only authenticated backend policy may define the role.
 for (const html of [index, sourceIndex]) {
     assert.doesNotMatch(html, /nexowatt-role-security\.js/i, 'legacy heuristic role guard is still loaded');
-    assert.match(html, /eos-role-bootstrap\.js\?v=7105/, 'authoritative role bootstrap cache tag is missing');
-    assert.match(html, /eos-policy-client\.js\?v=7105/, 'authoritative policy client cache tag is missing');
-    assert.match(html, /eos-role-ui\.js\?v=7105/, 'authoritative role UI cache tag is missing');
+    assert.match(html, /eos-role-bootstrap\.js\?v=7106/, 'authoritative role bootstrap cache tag is missing');
+    assert.match(html, /eos-policy-client\.js\?v=7106/, 'authoritative policy client cache tag is missing');
+    assert.match(html, /eos-role-ui\.js\?v=7106/, 'authoritative role UI cache tag is missing');
 }
 assert.equal(fs.existsSync(path.join(root, 'adminWww/nexowatt-role-security.js')), false, 'legacy runtime still exists');
 assert.equal(fs.existsSync(path.join(root, 'build/lib/eosRoleSecurity.js')), false, 'legacy backend heuristic still exists');
@@ -127,5 +129,21 @@ assert.ok((io.instanceObjects || []).some(object => object?._id === 'info.uiTabs
 // Backup navigation is emitted only for an actually enabled instance.
 assert.match(drawerSource, /backupAdapters\.has\(adapterName\) && instance\.enabled !== true/);
 assert.match(builtDrawer, /o\.has\(A\)&&d\.enabled!==!0/);
+
+// 7.10.6 End User cleanup: system information is read-only and object actions disappear only for End User.
+for (const code of [webSource, webBuilt]) {
+    assert.match(code, /nexowatt\/readonly\/system-info/, 'authenticated read-only system-info route is missing');
+    assert.match(code, /authenticationRequired/, 'read-only system-info route must require an authenticated session');
+    assert.match(code, /ramMb/, 'read-only system-info payload is incomplete');
+}
+for (const code of [roleUi, sourceRoleUi]) {
+    assert.match(code, /state\.role !== 'enduser' \|\| currentRoute\(\) !== 'tab-intro'/, 'system-info hydration is not End User-only');
+    assert.match(code, /data-eos-enduser-action-hidden/, 'End User object action hiding marker is missing');
+    assert.match(code, /svg\[data-testid\*="Edit"\]/, 'Edit icon fallback selector is missing');
+    assert.match(code, /svg\[data-testid\*="Settings"\]/, 'Settings icon fallback selector is missing');
+    assert.match(code, /svg\[data-testid\*="Delete"\]/, 'Delete icon fallback selector is missing');
+    assert.match(code, /state\.role !== 'admin'/, 'Admin restriction guard is missing');
+}
+assert.match(sourceMain, /role === 'enduser' && \['readLogs', 'sendToHost'\]\.includes\(command\)/, 'End User technical diagnostics must remain denied');
 
 console.log('[NexoWatt EOS role security] OK (authoritative Admin rights, End User read-only datapoints, protected tools, restart-safe menu storage)');

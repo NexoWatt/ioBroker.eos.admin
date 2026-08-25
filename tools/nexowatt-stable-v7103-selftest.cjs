@@ -31,7 +31,7 @@ const autoUi = read('adminWww/js/eos-auto-update.js');
 const autoCss = read('adminWww/css/eos-auto-update.css');
 const autoTag = String(info.autoUpdateCacheTag || info.autoUpdateCacheVersion || info.shellCacheTag || info.shellCacheVersion);
 
-must(pkg.version === '7.10.5' && io.version === '7.10.5' && io.common.version === '7.10.5' && info.version === '7.10.5', 'version drift');
+must(pkg.version === '7.10.6' && io.version === '7.10.6' && io.common.version === '7.10.6' && info.version === '7.10.6', 'version drift');
 must(io.native.eosRequireFirstLoginPassword === false && io.native.eosRequireFirstLoginPasswordChange === false, 'forced first password still enabled');
 must(!index.includes('eos-account-management.js'), 'custom reset UI still loaded');
 must(!boot.includes('installIntegratedFirstLogin(base);') && !boot.includes('showFirstLoginPassword(resolved, base);'), 'forced first-login UI still active');
@@ -49,7 +49,7 @@ must(!autoBackend.includes('extendForeignObjectAsync(this.instanceId'), 'runtime
 must(web.includes('this.nexowattStableUpdateManager?.stop();'), 'auto-update manager is not stopped with the web server');
 must(fs.existsSync(path.join(root, 'build/lib/eosRequestSecurity.js')), 'eosRequestSecurity runtime module missing');
 
-// 7.10.4 placement acceptance remains mandatory in 7.10.5: System Settings only.
+// 7.10.4 placement acceptance remains mandatory in 7.10.6: System Settings only.
 must(index.includes(`eos-auto-update.js?v=${autoTag}`), 'auto-update JavaScript cache key missing');
 must(index.includes(`eos-auto-update.css?v=${autoTag}`), 'auto-update CSS cache key missing');
 must(autoUi.includes('[role="dialog"][aria-labelledby="system-settings-dialog-title"]'), 'System Settings selector missing');

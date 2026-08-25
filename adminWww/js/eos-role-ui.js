@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const VERSION = 'v7105-admin-authoritative-rbac';
+    const VERSION = 'v7106-admin-authoritative-rbac';
     window.NEXOWATT_EOS_ROLE_UI_VERSION = VERSION;
 
     const state = {
@@ -15,10 +15,13 @@
         reserveObserver: null,
         reservePaper: null,
         reserveScheduled: false,
+        readonlySystemInfo: null,
+        readonlySystemInfoPromise: null,
     };
     const abort = new AbortController();
 
     const safe = fn => { try { return fn(); } catch (_) { return undefined; } };
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match] || match));
     const normalize = value => String(value || '')
         .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss')
         .replace(/[^a-z0-9#/_:.-]+/g, ' ').trim();
@@ -268,6 +271,55 @@
             role.setAttribute('data-nexowatt-overview-role', state.role);
         }
     };
+
+    const fetchReadonlySystemInfo = () => {
+        if (state.readonlySystemInfo) return Promise.resolve(state.readonlySystemInfo);
+        if (state.readonlySystemInfoPromise) return state.readonlySystemInfoPromise;
+        state.readonlySystemInfoPromise = fetch('/nexowatt/readonly/system-info', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' },
+        })
+            .then(response => (response.ok ? response.json() : null))
+            .then(data => {
+                state.readonlySystemInfo = data && typeof data === 'object' ? data : null;
+                return state.readonlySystemInfo;
+            })
+            .catch(() => null)
+            .finally(() => {
+                state.readonlySystemInfoPromise = null;
+                scheduleApply();
+            });
+        return state.readonlySystemInfoPromise;
+    };
+    const applyReadonlySystemInfoCard = () => safe(() => {
+        if (state.role !== 'enduser' || currentRoute() !== 'tab-intro') return;
+        const paper = appPaper();
+        if (!paper) return;
+        const title = Array.from(paper.querySelectorAll('h1,h2,h3,h4,h5,h6')).find(node => normalize(node.textContent || '') === 'nexowatt');
+        const card = title?.closest?.('.MuiCard-root');
+        if (!card || !/platform|ram|node\.js|npm/i.test(String(card.textContent || ''))) return;
+        Array.from(card.querySelectorAll('button')).forEach(button => {
+            if (/info/i.test(textOf(button))) {
+                button.classList.add('eos-role-hidden');
+                button.setAttribute('aria-hidden', 'true');
+                button.disabled = true;
+            }
+        });
+        if (!state.readonlySystemInfo && !state.readonlySystemInfoPromise) {
+            void fetchReadonlySystemInfo();
+            return;
+        }
+        const data = state.readonlySystemInfo;
+        const list = card.querySelector('ul');
+        if (!data || !list) return;
+        list.innerHTML = `
+            <li><span><span style="font-weight:600">Platform: </span>${escapeHtml(data.platform || '--')}</span></li>
+            <li><span><span style="font-weight:600">RAM: </span>${escapeHtml(Number.isFinite(Number(data.ramMb)) ? `${Math.round(Number(data.ramMb))} MB` : '--')}</span></li>
+            <li><span><span style="font-weight:600">Node.js: </span>${escapeHtml(data.nodejs || '--')}</span></li>
+            <li><span><span style="font-weight:600">NPM: </span>${escapeHtml(data.npm || '--')}</span></li>`;
+    });
+
     const hideIntroEditControls = () => {
         const paper = appPaper();
         if (!paper) return;
@@ -494,7 +546,7 @@
     const scrubInheritedUiAdminSession = () => safe(() => {
         if (state.role === 'admin' || state.role === 'unknown') return;
         const user = String(state.policy?.user || state.policy?.userId || '').replace(/^system\.user\./, '') || state.role;
-        const key = `eosUiAdminSessionScrubbed:v7105:${user}:${state.role}`;
+        const key = `eosUiAdminSessionScrubbed:v7106:${user}:${state.role}`;
         if (sessionStorage.getItem(key) === '1') return;
         sessionStorage.setItem(key, '1');
         const frame = document.createElement('iframe');
@@ -511,11 +563,38 @@
         if (!paper) return;
         const readonly = state.role === 'enduser' && currentRoute() === 'tab-objects';
         paper.toggleAttribute('data-eos-datapoints-readonly', readonly);
+        const clearControl = control => {
+            if (!control) return;
+            control.removeAttribute('aria-disabled');
+            control.removeAttribute('data-eos-enduser-write-blocked');
+            control.removeAttribute('data-eos-enduser-action-hidden');
+            control.classList.remove('eos-role-hidden');
+            control.removeAttribute('aria-hidden');
+            if ('disabled' in control) control.disabled = false;
+        };
+        paper.querySelectorAll('[data-eos-enduser-write-blocked="1"],[data-eos-enduser-action-hidden="1"]').forEach(clearControl);
         if (!readonly) return;
-        paper.querySelectorAll('[data-eos-object-writable="1"],button[title*="edit" i],button[title*="delete" i],button[aria-label*="edit" i],button[aria-label*="delete" i]').forEach(control => {
+        const blockControl = control => {
+            if (!control) return;
             control.setAttribute('aria-disabled', 'true');
             control.setAttribute('data-eos-enduser-write-blocked', '1');
-        });
+        };
+        const hideControl = control => {
+            if (!control) return;
+            control.setAttribute('aria-disabled', 'true');
+            control.setAttribute('data-eos-enduser-action-hidden', '1');
+            control.classList.add('eos-role-hidden');
+            control.setAttribute('aria-hidden', 'true');
+            if ('disabled' in control) control.disabled = true;
+        };
+        paper.querySelectorAll('[data-eos-object-writable="1"]').forEach(blockControl);
+        paper.querySelectorAll([
+            'button[title*="edit" i]','button[title*="delete" i]','button[title*="remove" i]','button[title*="setting" i]','button[title*="einstell" i]',
+            'button[aria-label*="edit" i]','button[aria-label*="delete" i]','button[aria-label*="remove" i]','button[aria-label*="setting" i]','button[aria-label*="einstell" i]',
+            '[role="button"][title*="edit" i]','[role="button"][title*="delete" i]','[role="button"][title*="setting" i]',
+            '[role="button"][aria-label*="edit" i]','[role="button"][aria-label*="delete" i]','[role="button"][aria-label*="setting" i]'
+        ].join(',')).forEach(hideControl);
+        paper.querySelectorAll('svg[data-testid*="Edit"],svg[data-testid*="Delete"],svg[data-testid*="Settings"],svg[data-testid*="Tune"],svg[data-testid*="Build"]').forEach(icon => hideControl(icon.closest('button,[role="button"]')));
     });
     const clearLegacyHeuristicRestrictionsForAdmin = () => safe(() => {
         if (state.role !== 'admin') return;
@@ -524,9 +603,10 @@
             element.removeAttribute('aria-hidden');
             element.style.removeProperty('display');
         });
-        document.querySelectorAll('[data-eos-readonly],[data-eos-enduser-write-blocked]').forEach(element => {
+        document.querySelectorAll('[data-eos-readonly],[data-eos-enduser-write-blocked],[data-eos-enduser-action-hidden]').forEach(element => {
             element.removeAttribute('data-eos-readonly');
             element.removeAttribute('data-eos-enduser-write-blocked');
+            element.removeAttribute('data-eos-enduser-action-hidden');
             element.removeAttribute('aria-disabled');
             element.style.removeProperty('pointer-events');
             element.style.removeProperty('opacity');
@@ -544,6 +624,7 @@
         clearLegacyHeuristicRestrictionsForAdmin();
         redirectIfNeeded();
         ensureSafeOverview();
+        applyReadonlySystemInfoCard();
         filterNativeUsersPage();
         hideOfficialReserveSurfaces();
         applyEndUserDatapointPolicy();

@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.10.5",
+    "version": "7.10.6",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,11 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.10.6": {
+        "de": "Stable 7.10.6 bereinigt ausschließlich den Endkundenbereich: Datenpunkte bleiben sichtbar und nur lesbar, Bearbeiten-/Löschen-/Einstellungsaktionen werden ausgeblendet, und die Systeminfokarte erhält Plattform, RAM, Node.js und NPM über einen authentifizierten Nur-Lese-Endpunkt. Die Administratoroberfläche und sämtliche Adminrechte bleiben unverändert.",
+        "en": "Stable 7.10.6 cleans up the End User area only: datapoints stay visible and read-only, edit/delete/settings actions are hidden, and the system information card receives platform, RAM, Node.js and NPM through an authenticated read-only endpoint. The administrator UI and all Admin rights remain unchanged.",
+        "nl": "Stable 7.10.6 ruimt uitsluitend het eindgebruikersgedeelte op: datapunten blijven zichtbaar en alleen-lezen, bewerk-/verwijder-/instellingsacties worden verborgen en de systeeminformatiekaart ontvangt platform, RAM, Node.js en NPM via een geauthenticeerd alleen-lezen eindpunt. De beheerdersinterface en alle beheerdersrechten blijven ongewijzigd."
+      },
       "7.10.5": {
         "de": "Stable 7.10.5 stellt die vollständigen Administratorrechte wieder her und trennt die Rollen verbindlich über den authentifizierten Backend-Kontext. Admin darf Datenpunkte schreiben, den Expertenmodus in beide Richtungen schalten und sieht Admin-/XTerm-Kacheln. Endkunden sehen Datenpunkte ausschließlich lesend; App-Center, Lizenz, Simulation, Benutzerverwaltung, ioBroker Admin, XTerm und Expertenmodus bleiben für Installateur und Endkunde gesperrt. Navigationsänderungen werden neustartsicher im Adapter-State gespeichert; Sicherung erscheint nur bei aktiver Backup-Instanz.",
         "en": "Stable 7.10.5 restores full administrator authority and binds roles exclusively to the authenticated backend context. Admin can write datapoints, toggle expert mode in both directions and sees the Admin/XTerm cards. End users can view datapoints read-only; App Center, License, Simulation, account management, ioBroker Admin, XTerm and expert mode remain blocked for Installer and End User. Navigation changes are stored restart-safely in an adapter state, and Backup is shown only for an enabled backup instance.",
@@ -354,7 +359,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.5/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.6/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -365,7 +370,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.5/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.6/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -433,7 +438,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.5/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.6/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -1210,5 +1215,5 @@
       }
     }
   },
-  "version": "7.10.5"
+  "version": "7.10.6"
 }
