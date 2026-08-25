@@ -60,6 +60,28 @@ function shellNumber(root) {
   throw new Error('Invalid shellCacheVersion in NEXOWATT_EOS_BUILD_INFO.json');
 }
 
+function releaseNumber(root) {
+  const pkg = readJson(path.join(root, 'package.json'));
+  const parts = String(pkg.version || '').split('.').slice(0, 3).map(part => {
+    const match = part.match(/^\d+/);
+    return match ? match[0] : '';
+  });
+  if (parts.length !== 3 || parts.some(part => !part)) {
+    throw new Error(`Invalid package version for release cleanup: ${pkg.version}`);
+  }
+  const value = Number(parts.join(''));
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`Invalid package version for release cleanup: ${pkg.version}`);
+  }
+  return value;
+}
+
+function isLegacyVersionedTool(file, activeRelease) {
+  const name = path.basename(file);
+  const match = name.match(/^nexowatt-v(\d+)-.+-selftest\.cjs$/i);
+  return !!match && Number(match[1]) !== activeRelease;
+}
+
 function walkFiles(dir) {
   if (!fs.existsSync(dir)) return [];
   const result = [];
@@ -96,6 +118,7 @@ function isLegacyVersionedRuntime(file, activeRuntime, activeShell) {
 function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
   const activeRuntime = runtimeNumber(root);
   const activeShell = shellNumber(root);
+  const activeRelease = releaseNumber(root);
   const scanRoots = [
     path.join(root, 'adminWww', 'assets'),
     path.join(root, 'adminWww'),
@@ -109,11 +132,14 @@ function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
       if (isLegacyVersionedRuntime(file, activeRuntime, activeShell)) files.add(file);
     }
   }
+  for (const file of walkFiles(path.join(root, 'tools'))) {
+    if (isLegacyVersionedTool(file, activeRelease)) files.add(file);
+  }
   for (const rel of LEGACY_OVERLAYS) {
     const file = path.join(root, rel);
     if (fs.existsSync(file)) files.add(file);
   }
-  return { activeRuntime, activeShell, files: [...files].sort() };
+  return { activeRuntime, activeShell, activeRelease, files: [...files].sort() };
 }
 
 function cleanLegacyRuntime(options = {}) {
@@ -121,7 +147,7 @@ function cleanLegacyRuntime(options = {}) {
   const dryRun = options.dryRun === true;
   const quiet = options.quiet === true;
   const silent = options.silent === true;
-  const { activeRuntime, activeShell, files } = collectLegacyRuntimeFiles(root);
+  const { activeRuntime, activeShell, activeRelease, files } = collectLegacyRuntimeFiles(root);
   const removed = [];
   const failed = [];
 
@@ -159,7 +185,7 @@ function cleanLegacyRuntime(options = {}) {
     }
   }
 
-  return { activeRuntime, activeShell, removed };
+  return { activeRuntime, activeShell, activeRelease, removed };
 }
 
 if (require.main === module) {
@@ -176,5 +202,7 @@ module.exports = {
   collectLegacyRuntimeFiles,
   cleanLegacyRuntime,
   isLegacyVersionedRuntime,
+  isLegacyVersionedTool,
+  releaseNumber,
   shellNumber,
 };
