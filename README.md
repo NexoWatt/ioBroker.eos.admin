@@ -12,11 +12,11 @@ Sofern dieser Adapter auf Open-Source-Komponenten basiert oder solche enthält, 
 
 DIE NEXOWATT-SPEZIFISCHEN BESTANDTEILE WERDEN, SOWEIT GESETZLICH ZULÄSSIG, OHNE AUSDRÜCKLICHE ODER KONKLUDENTE GEWÄHRLEISTUNG BEREITGESTELLT.
 
-<<<<<<< HEAD
+
 ## Hinweis zur öffentlichen npm-Bereitstellung
 =======
 Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
->>>>>>> 6a344891f7bedf6382396d0ff1243ac845ca3ba1
+
 
 Eine öffentliche technische Bereitstellung dieses Pakets in einem npm-Registry, Git-Repository, Download-Archiv oder einem NexoWatt-Repository stellt keine Open-Source-Lizenz und keine allgemeine Nutzungserlaubnis dar. Die Nutzung, Installation und Weitergabe bleibt ausschließlich autorisierten NexoWatt-Systemen und ausdrücklich durch NexoWatt lizenzierten Nutzern vorbehalten.
 
