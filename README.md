@@ -1,209 +1,65 @@
-# NexoWatt EOS Admin
+# NexoWatt EOS – Proprietary License Notice
 
-**NexoWatt EOS Admin** ist die Administrationsoberfläche für das **Energy Operation System**.
+Copyright (c) 2026 NexoWatt. Alle Rechte vorbehalten.
 
-Diese Ausgabe ist bewusst als eigenständiger ioBroker-Adapter aufgebaut:
+Diese NexoWatt EOS Administrationsoberfläche, einschließlich der NexoWatt/EOS-spezifischen Branding-Dateien, Logos, Stylesheets, Layout-Anpassungen, UI-Overlays, Grafiken, Texte und sonstigen NexoWatt-spezifischen Erweiterungen, ist proprietär.
 
-```text
-Technischer Adaptername: eos-admin
-npm-Paketname:          iobroker.eos-admin
-Sichtbarer Name:        NexoWatt EOS Admin
-Standard-Port:          8081
-```
+Die Nutzung, Installation, Vervielfältigung, Veröffentlichung, Weitergabe, Unterlizenzierung, Vermietung, der Verkauf oder die Bereitstellung an Dritte ist ohne vorherige schriftliche Zustimmung von NexoWatt nicht gestattet.
 
-Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die alte ioBroker-Admin-Oberfläche kann parallel vorhanden bleiben, während NexoWatt-Systeme über `eos-admin.0` die EOS-Oberfläche nutzen.
+Der Adapter ist ausschließlich für Systeme und Installationen bestimmt, die von NexoWatt betrieben, geliefert, autorisiert oder ausdrücklich lizenziert wurden.
 
-## Aktueller Stable-Verkaufskandidat 7.10.4
+Sofern dieser Adapter auf Open-Source-Komponenten basiert oder solche enthält, gelten für diese Bestandteile zusätzlich die jeweiligen Drittanbieter-Lizenzen. Die in diesem Repository enthaltenen Hinweise zu Drittanbieter-Lizenzen bleiben unberührt. Diese proprietäre NexoWatt-Lizenz beschränkt insbesondere die NexoWatt-spezifischen Änderungen, das sichtbare EOS-Design, das Branding und die damit verbundenen Assets.
 
-Version 7.10.4 übernimmt den validierten und absturzfreien Stand 7.10.2. Die Einstellung **Automatische Adapter-Updates** liegt jetzt ausschließlich in den **Systemeinstellungen** hinter dem Schraubenschlüssel. Auf Übersicht, Module und allen anderen Hauptseiten wird die Karte nicht mehr angezeigt. Die restart-sichere Updateverwaltung, der verzögerte Repository-Abgleich und die vollständige Backend-Paketprüfung bleiben unverändert.
+DIE NEXOWATT-SPEZIFISCHEN BESTANDTEILE WERDEN, SOWEIT GESETZLICH ZULÄSSIG, OHNE AUSDRÜCKLICHE ODER KONKLUDENTE GEWÄHRLEISTUNG BEREITGESTELLT.
 
-Verwaltete Installateur- und Endkundenkonten verwenden das Startpasswort `nexowatt`. Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
+## Hinweis zur öffentlichen npm-Bereitstellung
 
-Admin/Service darf verwaltete Installateur- und Endkundenkonten zurücksetzen. Installateure dürfen ausschließlich ausdrücklich zugeordnete Endkundenkonten zurücksetzen. Admin-, Eigen-, deaktivierte und nicht verwaltete Konten bleiben geschützt.
+Eine öffentliche technische Bereitstellung dieses Pakets in einem npm-Registry, Git-Repository, Download-Archiv oder einem NexoWatt-Repository stellt keine Open-Source-Lizenz und keine allgemeine Nutzungserlaubnis dar. Die Nutzung, Installation und Weitergabe bleibt ausschließlich autorisierten NexoWatt-Systemen und ausdrücklich durch NexoWatt lizenzierten Nutzern vorbehalten.
 
-EOS Assist ist in diesem Stand bewusst deaktiviert. Der interne Admin und die interne BackItUp-Notfallreserve bleiben installiert und sind ausschließlich für Admin/Service sichtbar. Für den regulären Betrieb wird die NexoWatt Sicherung verwendet.
+---
 
-## Installation über das NexoWatt Repository
+# NexoWatt EOS – Proprietary License Notice
 
-Im NexoWatt Repository muss der Adapter unter dem Key `eos-admin` stehen. Da das npm-Paket unscoped `iobroker.eos-admin` heißt, ist kein `packetName` nötig.
+Copyright (c) 2026 NexoWatt. All rights reserved.
 
-Minimaler Repository-Eintrag:
+This NexoWatt EOS administration interface, including all NexoWatt/EOS-specific branding files, logos, stylesheets, layout modifications, UI overlays, graphics, texts and other NexoWatt-specific additions, is proprietary.
 
-```json
-{
-  "eos-admin": {
-    "name": "eos-admin",
-    "version": "7.10.4",
-    "title": "NexoWatt EOS Admin",
-    "desc": {
-      "de": "NexoWatt EOS Administrationsoberfläche als eigenständiger Adapter.",
-      "en": "NexoWatt EOS administration interface as a standalone adapter."
-    },
-    "meta": "https://iobroker.live/repo/eos-admin/io-package.json",
-    "icon": "https://iobroker.live/repo/eos-admin/admin.png"
-  }
-}
-```
+Use, installation, copying, publication, redistribution, sublicensing, rental, sale or provision to third parties is not permitted without prior written permission from NexoWatt.
 
-Installation auf dem Zielsystem:
+This adapter is intended exclusively for systems and installations operated, delivered, authorized or expressly licensed by NexoWatt.
 
-```bash
-cd /opt/iobroker
-iobroker repo set nexowatt
-iobroker update
-iobroker install eos-admin
-iobroker upload eos-admin
-iobroker start eos-admin.0
-```
+Where this adapter is based on or includes open-source components, the respective third-party licenses continue to apply to those components. Third-party license notices contained in this repository remain unaffected. This proprietary NexoWatt notice applies in particular to the NexoWatt-specific modifications, the visible EOS design, branding and related assets.
 
-Danach ist die Oberfläche standardmäßig erreichbar unter:
+THE NEXOWATT-SPECIFIC PARTS ARE PROVIDED, TO THE MAXIMUM EXTENT PERMITTED BY LAW, WITHOUT EXPRESS OR IMPLIED WARRANTY.
 
-```text
-http://DEINE-IP:8081
-```
+## Public npm availability notice
 
-## Migration vom offiziellen Admin
+Technical availability of this package through a public npm registry, Git repository, download archive or NexoWatt repository does not constitute an open-source license or a general permission to use. Use, installation and redistribution remain limited to authorized NexoWatt systems and users expressly licensed by NexoWatt.
 
-Empfohlener sicherer Ablauf:
+---
 
-```bash
-cd /opt/iobroker
+# Third-party / upstream notice
 
-# 1. EOS Admin parallel installieren und testen
-iobroker install eos-admin
-iobroker upload eos-admin
-iobroker start eos-admin.0
+Portions of this adapter are based on the upstream ioBroker.admin project and remain subject to the following MIT license notice:
 
-# 2. Im Browser testen
-# http://DEINE-IP:8081
+The MIT License (MIT)
 
-# 3. Wenn alles sauber läuft, offiziellen Admin stoppen
-iobroker stop admin.0
+Copyright (c) 2014-2026 bluefox <dogafox@gmail.com>
 
-# 4. EOS Admin auf Standard-Port setzen
-iobroker set eos-admin.0 --port 8081 --enabled true
-iobroker restart eos-admin.0
-```
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Danach läuft NexoWatt EOS Admin unter:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-```text
-http://DEINE-IP:8081
-```
-
-Den internen `admin`-Adapter nicht löschen. Er bleibt deaktiviert auf `127.0.0.1:18081` als geschützte Service-Reserve erhalten.
-
-
-## EOS Rollen- und Löschschutz
-
-Ab Version `7.9.25` überwacht der EOS Admin sensible Systembereiche direkt:
-
-- Der alte `admin`-Adapter und `admin.0` werden für Benutzer außerhalb der konfigurierten EOS-Admin-Gruppen ausgeblendet.
-- `admin.0` bleibt durch den Security Guard deaktiviert und auf `127.0.0.1:18081` verschoben, solange die Legacy-Admin-Sperre aktiv ist.
-- Geschützte Adapter können vom Installateur- oder Endkundenbereich nicht gelöscht werden. Die Löschbuttons werden für Nicht-Administratoren ausgeblendet beziehungsweise deaktiviert.
-- Die Schutzliste wird vom Administrator im Bereich **EOS security** gepflegt. Updates bleiben möglich, weil `dontDelete=false` und `nondeletable=false` bleiben. Der Schutz läuft über Administrator-ACLs, EOS-UI-Regeln und den Security Guard.
-
-Standardmäßig geschützt:
-
-```text
-eos-admin
-admin
-backitup
-nexowatt-backup
-eos-backup
-nexowatt-devices
-nexowatt-ui
-```
-
-Administratoren können weitere Adapter in der Tabelle `Protected adapters` ergänzen. Die sichtbaren Admin-Gruppen werden über `EOS admin groups` definiert, standardmäßig `administrator`.
-
-## Updates
-
-Da `eos-admin` ein eigener Adapter ist, laufen Updates unabhängig vom offiziellen `admin`-Adapter:
-
-```bash
-iobroker update
-iobroker upgrade eos-admin
-iobroker upload eos-admin
-iobroker restart eos-admin.0
-```
-
-## Veröffentlichung auf npm
-
-Vor der Veröffentlichung müssen Paket- und Stabilitätsprüfung vollständig grün sein:
-
-```bash
-npm login
-npm whoami
-npm run sync:eos-version
-npm run check:eos-release
-npm publish --dry-run --tag latest
-npm publish --tag latest
-```
-
-Die Version muss vor jedem erneuten Publish erhöht werden. Für 7.10.4 wird direkt aus der vollständig geprüften Repository-ZIP veröffentlicht; `npm publish` benötigt dabei weiterhin weder `tsc` noch `tsx`.
-
-## Lizenz
-
-Die NexoWatt EOS Oberfläche, das Branding, das Layout und alle NexoWatt-spezifischen Anpassungen sind proprietär. Die öffentliche technische Bereitstellung über npm oder ein Repository ist keine Open-Source-Lizenz und keine allgemeine Nutzungserlaubnis.
-
-Details stehen in:
-
-```text
-LICENSE
-NEXOWATT_PROPRIETARY_LICENSE.md
-THIRD_PARTY_NOTICES.md
-```
-
-### 7.9.29
-
-- Self-Update über die EOS-Oberfläche repariert: der gebaute Adapter-Bundle nutzt jetzt `eos-admin` statt `admin` für den Webserver-Updatepfad.
-- `eos-admin` wird im Update-Alle-Dialog übersprungen, damit sich die laufende Oberfläche nicht selbst über den normalen Terminal-Befehl beendet.
-- Objektbasierte Löschsperren (`dontDelete`/`nondeletable`) werden für EOS Admin entfernt, damit Updates nicht blockiert werden. Der Schutz bleibt über EOS-UI, Rollen und ACLs aktiv.
-
-### 7.9.27
-
-- Header-Logo links optisch verstärkt und leicht nach oben gesetzt.
-- Benutzername/Kontoanzeige oben rechts kontrastreicher dargestellt.
-
-
-## v29 Update-Fix
-
-Version `7.9.29` entfernt den harten `common.dontDelete`-Schutz vom `eos-admin` Adapterobjekt. Dieser harte Objekt-Flag kann den ioBroker-Upgrade-Ablauf stören. Der EOS Admin bleibt für Installateur-/Endkundenrollen geschützt, bleibt aber updatefähig, weil der Schutz jetzt über ACLs, UI-Regeln und den Security Guard läuft.
-
-Empfohlene Reparatur auf bestehenden Anlagen:
-
-```bash
-cd /opt/iobroker
-iobroker object set system.adapter.eos-admin common.dontDelete=false || true
-iobroker object set system.adapter.eos-admin common.nondeletable=false || true
-iobroker object set system.adapter.eos-admin.0 common.dontDelete=false || true
-iobroker object set system.adapter.eos-admin.0 common.nondeletable=false || true
-iobroker upgrade eos-admin https://iobroker.live/repo/repo-nexowatt.json
-iobroker upload eos-admin
-iobroker restart eos-admin.0
-```
-
-## v7.9.29 update reliability note
-
-This release fixes the EOS Admin self-update path. Previous standalone builds could still route the `eos-admin` update through the normal adapter command dialog in the prebuilt frontend bundle. Because EOS Admin is the active web interface, that path can terminate the running web process during the update. Version 7.9.29 routes the `eos-admin` adapter card update through the webserver update flow and excludes `eos-admin` from bulk update-all operations. The repository metadata must also keep `stopBeforeUpdate: false` and valid `meta`/`icon` URLs.
-
-If an older installation has stale update-blocking object flags, repair them once with:
-
-```bash
-cd /opt/iobroker
-node /opt/iobroker/node_modules/iobroker.eos-admin/tools/nexowatt-repair-eos-admin-update.cjs
-```
-
-
-## NexoWatt EOS v7.9.40 Update-Hinweis
-
-Diese Version korrigiert den Repository-Update-Pfad für den eigenständigen Adapter `eos-admin`. Der Repository-Eintrag muss `packetName: "iobroker.eos-admin"` enthalten, damit ioBroker beim Update nicht den falschen Paketpräfix verwendet. Technische Paketnamen in Befehls-/npm-Dialogen werden nicht mehr zu Branding-Text umgeschrieben, damit Fehlermeldungen eindeutig bleiben.
-
-## NexoWatt EOS v7.9.42 Force-Update-Hinweis
-
-Dieses Paket hebt die sichtbare Adapter-Version und die EOS-Frontend-Cache-Buster auf v7.9.42 an. Es enthält den Delete-/DP-Write-Fix aus v7.9.41 und sorgt dafür, dass Browser nicht weiter die v40-Hilfsskripte verwenden.
-
-## NexoWatt EOS v7.9.45 Dienste/Module Delete Hardfix
-
-Fixes trash-icon deletion. DOM security scripts no longer capture delete clicks; only EOS core adapters stay protected and stale delete locks are repaired automatically.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

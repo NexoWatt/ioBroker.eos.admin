@@ -1365,7 +1365,7 @@
     "tools/nexowatt-clean-legacy-runtime.cjs": "bfad004370eb83df101cf69e86fc62c97a8649b9e0bca31a318ab0540a2e5045",
     "tools/nexowatt-datapoint-interaction-selftest.cjs": "3931d59d8a116c791096a5d1f5b36ab4c343b7ba8587f59ac4d46fadb24efa1c",
     "tools/nexowatt-datapoint-selftest.cjs": "357db8a875fb24fd0050c9bd9dbba17d3f330b67a1b50ba72f8d9fc5fe7fb0c5",
-    "tools/nexowatt-default-port-selftest.cjs": "0e555a1e6cd8e05c7df7fcc482964310f86feb6ad4aa88e98a2e487975688411",
+    "tools/nexowatt-default-port-selftest.cjs": "5b286066d36811f5c00ece385f9f69b009fa3dcd564626cba11e7b2e25ff63fc",
     "tools/nexowatt-ems-overview-selftest.cjs": "a98abfa0d94bb53af9a6c64bee54b0d1fef08b8041952ba7e7029c79616b524e",
     "tools/nexowatt-ensure-release-defaults.cjs": "cf02ad47fae16c4d3a9633331fcf58bf0e83408edd772e16f7564ac208c382d3",
     "tools/nexowatt-entrypoint-smoke-selftest.cjs": "cd0bedb6ed6e1487ff180106949a85a02706bb8328b4ed8b6e926460f071d227",
