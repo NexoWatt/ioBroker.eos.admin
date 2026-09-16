@@ -17,7 +17,7 @@ Damit überschreibt der Adapter den offiziellen `admin`-Adapter nicht mehr. Die 
 
 Version 7.10.4 übernimmt den validierten und absturzfreien Stand 7.10.2. Die Einstellung **Automatische Adapter-Updates** liegt jetzt ausschließlich in den **Systemeinstellungen** hinter dem Schraubenschlüssel. Auf Übersicht, Module und allen anderen Hauptseiten wird die Karte nicht mehr angezeigt. Die restart-sichere Updateverwaltung, der verzögerte Repository-Abgleich und die vollständige Backend-Paketprüfung bleiben unverändert.
 
-Verwaltete Installateur- und Endkundenkonten verwenden das Startpasswort `nexowatt`. Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
+Nach der ersten Anmeldung beziehungsweise nach einem Reset muss unmittelbar ein persönliches Passwort vergeben werden. Der Reset und die persönliche Passwortvergabe schreiben das reale ioBroker-Benutzerkennwort; EOS-Metadaten werden davon getrennt aktualisiert.
 
 Admin/Service darf verwaltete Installateur- und Endkundenkonten zurücksetzen. Installateure dürfen ausschließlich ausdrücklich zugeordnete Endkundenkonten zurücksetzen. Admin-, Eigen-, deaktivierte und nicht verwaltete Konten bleiben geschützt.
 
