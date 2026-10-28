@@ -23,3 +23,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+## OAuth2-Modell-Testfixture
+
+`test/fixtures/oauth2-model-v1.4.0.ts` stammt unverändert aus `ioBroker/webserver`, Tag v1.4.0, Git-Blob `3651fb210e04ebb92d952b2a532cebf6d5223df6`. Die MIT-Lizenz des Projekts liegt als `test/fixtures/OAUTH2_MODEL_LICENSE` bei. Die Datei dient ausschließlich der reproduzierbaren Prüfung des EOS-Sitzungswiderrufs; sie ersetzt keine ausgelieferte Laufzeitabhängigkeit.

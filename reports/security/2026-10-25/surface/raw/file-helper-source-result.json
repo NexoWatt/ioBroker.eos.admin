@@ -1,0 +1,15 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "test/eos-file-transfer-security.test.cjs"
+  ],
+  "utc": "2026-10-25T15:10:12.794369+00:00",
+  "exitCode": 0,
+  "node": "v24.22.1",
+  "files": {
+    "src/lib/eosFileTransferSecurity.js": "fc71202fbdf958ad3bca3311a8e53b486ce640bddb476ea74483dd938392ee89",
+    "test/eos-file-transfer-security.test.cjs": "229e2949d4978dc92b1a0c68ddf8c0a9b49f2637d3ef746d1653827448086c57",
+    "docs/security/FILE_DELIVERY_2026-10-25.md": "a2103adfaab1c051000851ebde7c3a7900a2ab2f68b054028c10ec0442a1a9fa"
+  }
+}

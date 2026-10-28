@@ -1,0 +1,13 @@
+[
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-transpile-security-backend.cjs",
+      "--write"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "utc": "2026-10-25T15:09:15.281025+00:00",
+    "exit": 0,
+    "seconds": 0.925
+  }
+]

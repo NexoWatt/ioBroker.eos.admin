@@ -1,0 +1,67 @@
+Quelle: https://github.com/ioBroker/ioBroker.js-controller/blob/master/packages/adapter/src/lib/adapter/adapter.ts
+Abgerufen: 2026-10-25. Offizielle API-Dokumentation; kein Beleg der installierten Controller-Version.
+
+readDirAsync(
+        adapterName: string | null,
+        path: string,
+        options?: { user?: ioBroker.ObjectIDs.User } | null,
+    ): ioBroker.ReadDirPromise;
+    /** Deletes a given file */
+    unlinkAsync(
+        adapterName: string | null,
+        path: string,
+        options?: { user?: ioBroker.ObjectIDs.User } | null,
+    ): Promise<void>;
+    /** Deletes a given f
+
+readFileAsync(
+        adapterName: string | null,
+        path: string,
+        options?: { user?: ioBroker.ObjectIDs.User } | null,
+    ): ioBroker.ReadFilePromise;
+    /** Writes a file into the DB */
+    writeFileAsync(
+        adapterName: string | null,
+        path: string,
+        data: Buffer | string,
+        options?: {
+            virtualFile?: boolean;
+            
+
+adapter.readDir('vis-2.0', '/main/', function (err, filesOrDirs) {
+     *        // All enums
+     *        if (err) adapter.log.error('Cannot read directory: ' + err);
+     *        if (filesOrDirs) {
+     *           for (var f = 0; f < filesOrDirs.length; f++) {
+     *              adapter.log.debug('Directory main has the following files and dirs: ' + filesOrDirs[f].file + '[dir - ' + filesOrDirs[f].isDir + ']');
+     *           }
+     *       }
+     *      });
+     * ```
+     *
+     * @param _adapter adapter name. If the adapter name is null, so the name (not instance) of the current adapter will be taken.
+     * @param path path to directory without adapter name. E.g., If you want to read "/vis-2.0/main/views.json", here must be "/main/views.json" and _adapter must be equal to "vis-2.0".
+     * @param options optional user context
+     * @param callback return result
+     *        ```js
+     *            function (err, filesOrDirs) {
+     *                // filesOrDirs is array with elements like
+     *                // {
+     *                //      file:       'views.json,
+     *                //      stats:      node.js stats object like https://nodejs.org/api/fs.html#fs_class_fs_stats ,
+     *                //      isDir:      true/false,
+     *                //      acl:        access control list object,
+     *                //      modifiedAt: time when modified,
+     *                //      createdAt:  time when created
+     *                // }
+     *            }
+     *        ```
+     */
+    readDir(_adapter: unknown, path: unknown, options: unknown, callback?: unknown): any {
+        if (_adapter === null) {
+            _adapter = this.name;
+        }
+
+        if (typeof options === 'function') {
+            callback = options;
+            op

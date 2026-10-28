@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-10-25T15:04:40.773086+00:00",
+  "sha256": {
+    "00---version.log": "249baf635bb43877fcb9422efa1a4904b702d0ddf14d3949b7cd0950d5229c81",
+    "01---version.log": "914292ceb275d166f6be503a5816e64ab31d82bbce8df5924c8c52cc3cf1f13e",
+    "02-eos-license-trust.test.log": "16c8a1bb47974f9b4a49e2f682e54af74a0c72cc5a8024016748d74b1cd22b5d",
+    "03-nexowatt-lock-provenance-check.log": "72994e0435f051132e22e2ec8c9c23c9ea7164ed728cac0cfb191d762b80d2e9",
+    "04-nexowatt-lock-provenance-selftest.log": "3e04048cfe4f7751a0fdbce04da5cb7c29e713c38e304710d9835252f27db9b7",
+    "05-nexowatt-auto-update-selftest.log": "f8987d89970d0c3dca14f2da5a6c17eb805c5ebe109206a878516920eee00ee8",
+    "06-nexowatt-prebuilt-release-selftest.log": "f8ad33e3ea4c2adcbd45040ae090fd9f1dc57f14f0af6c97b01d8083ceb9bb56",
+    "07-quota-boundary-check.log": "6104567fb3e0c38c4cd790b306b43bf010ed0ee748cb51bb1ada593c683f8648",
+    "08-publish-channel-guard.log": "cda48e3594cc9e558363d8a6e8853679c709519ae56187c7393c2c2f57f9a4e3",
+    "SUPPLY_LICENSE_AUDIT_2026-10-25.md": "c8b9c1f3c59730ee29776f0ef6b91f38aa7c4ae5259972cba38844761fba8813",
+    "commands.json": "4be601e947a0c5d600ca0a45490834f1389abb8b30e76a7818937fee473cc8f3",
+    "dependency-baseline.json": "f3a19db7363ebe0fa37e9a2307f545af39f55cd8d21e6422634b8fcfaa631109",
+    "fix-commands.json": "fe9f2a29d5cc67398dec0f2dd17e2992d891cdfa31ceb5be089a44afb39a1d6e",
+    "fixed-production-admission.log": "e38d22bb8cef84e73f4db3a16c8ac2bc558fcf75f701a8206735911b80efbba6",
+    "fixed-release-admission-tests.log": "7833e5c2db232d93b38db7a178c2ea45f068bdc8bb077b496e36e8aafd0aecbb",
+    "license-shipped-equivalence.json": "c5f1b20c539e62cbb8279bc9b5ff335bf2141989f9ff5873942d9a5197f134bc",
+    "quota-boundary-check.cjs": "8aef10ea895dacf97a34c3a5bceb11e25a9799ccaf38f1af184970fbe1748320",
+    "secret-pattern-scan.json": "d6c26c5980a17834b6db91e9eb3eb1da2d10e14e2e9cbece76735e5a507f9892"
+  }
+}

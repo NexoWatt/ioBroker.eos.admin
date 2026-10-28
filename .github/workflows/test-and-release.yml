@@ -1,78 +1,105 @@
-name: Test and Release
+name: EOS Security and Build Checks
 
-# Run this job on all pushes and pull requests
-# as well as tags with a semantic version
+# This workflow only checks code. It never publishes packages or creates releases.
 on:
   push:
-    branches:
-      - "master"
-    tags:
-      # normal versions
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      # pre-releases
-      - "v[0-9]+.[0-9]+.[0-9]+-**"
+    branches: [master, main]
+    tags: ['v*']
   pull_request: {}
+  workflow_dispatch: {}
+  workflow_call: {}
 
-# Cancel previous PR/branch runs when a new commit is pushed
+permissions:
+  contents: read
+
 concurrency:
-  group: ${{ github.ref }}
+  group: eos-checks-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Performs quick checks before the expensive test runs
-  check-and-lint:
-    if: contains(github.event.head_commit.message, '[skip ci]') == false
-
-    runs-on: ubuntu-latest
-
+  dependency-free-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: ioBroker/testing-action-check@v2.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, primary-source pin
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24.x'
-          lint: true
-          install-command: 'npm ci && cd src-admin && npm ci -f'
+          package-manager-cache: false
+      - name: Dependency-free security regressions
+        run: |
+          npm run test:eos-licensing
+          npm run test:eos-security-boundaries
+          npm run test:eos-security-upgrade
+          npm run test:eos-security-audit
+          node tools/nexowatt-auto-update-selftest.cjs
+          node tools/nexowatt-lock-provenance-selftest.cjs
+          node tools/nexowatt-security-inventory-selftest.cjs
+      - name: Lock inventory and provenance admission
+        run: |
+          npm run security:inventory
+          node tools/nexowatt-lock-provenance-check.cjs > reports/security/ci-lock-provenance.json
+      - name: Preserve evidence, including blocked admission
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: eos-lock-admission-${{ github.run_id }}
+          path: reports/security/*.json
+          retention-days: 30
+          if-no-files-found: error
 
-  adapter-tests:
-    needs: [check-and-lint]
-
-    if: contains(github.event.head_commit.message, '[skip ci]') == false
-
-    runs-on: ${{ matrix.os }}
+  clean-build:
+    needs: dependency-free-security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20.x, 22.x, 24.15.0]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
+        node-version: ['22.x', '24.x']
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     steps:
-      - uses: ioBroker/testing-action-adapter@v1.1.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
-          os: ${{ matrix.os }}
-          build: true
-          screenshots-path: 'tmp/screenshots/**/*.png'
-
-  deploy:
-    needs: [check-and-lint, adapter-tests]
-
-    # Permissions are required to create GitHub releases and npm trusted publishing
-    permissions:
-      contents: write
-      id-token: write
-
-    if: |
-      contains(github.event.head_commit.message, '[skip ci]') == false &&
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/v')
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: ioBroker/testing-action-deploy@v1
+          package-manager-cache: false
+      - name: Install admitted lockfiles without lifecycle scripts
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm --prefix src-admin ci --ignore-scripts --no-audit --no-fund
+      - name: Record actual installed trees and SBOMs
+        run: |
+          mkdir -p reports/security/ci
+          node --version > reports/security/ci/node.txt
+          npm --version > reports/security/ci/npm.txt
+          npm ls --all --json > reports/security/ci/backend-installed-tree.json
+          npm --prefix src-admin ls --all --json > reports/security/ci/frontend-installed-tree.json
+          npm sbom --sbom-format=cyclonedx > reports/security/ci/backend-installed.cdx.json
+          npm --prefix src-admin sbom --sbom-format=cyclonedx > reports/security/ci/frontend-installed.cdx.json
+      - name: Lint and full normal build
+        run: |
+          npm run lint
+          npm run build
+          npm test
+          npm run check:eos-package
+          npm run check:eos-stability
+          npm pack --dry-run --ignore-scripts --json > reports/security/ci/package-dry-run.json
+      - name: Current backend advisory check
+        if: ${{ !cancelled() }}
+        run: npm audit --json > reports/security/ci/backend-advisories.json
+      - name: Current frontend advisory check
+        if: ${{ !cancelled() }}
+        run: npm --prefix src-admin audit --json > reports/security/ci/frontend-advisories.json
+      - name: Preserve build and advisory evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          node-version: '24.x'
-          # npm-token: ${{ secrets.NPM_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-          sentry-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          sentry-project: 'iobroker-admin'
-          sentry-version-prefix: 'iobroker.admin'
+          name: eos-build-${{ matrix.node-version }}-${{ github.run_id }}
+          path: reports/security/
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,1 @@
+{"utc":"2026-10-25T15:02:43.218Z","node":"v24.22.1","sha256":"8a2f4740d295e9a7bcc8e2456e5b99c8a5dbabcebb6c2661fd11593827dd7425","result":"CONFIRMED: actual shipped method executes harmless feed marker","limits":"Isolated original method; DB mocked; no live server, filesystem payload or external request"}

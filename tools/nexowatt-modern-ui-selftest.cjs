@@ -5,7 +5,7 @@ const info=JSON.parse(read('NEXOWATT_EOS_BUILD_INFO.json')),shellTag=String(info
 must(css===sourceCss,'CSS source/build drift');
 for(const marker of ['#app-paper','.MuiDialog-paper','.MuiButton-root',':focus-visible','persistent native overview scrolling','eos-overview-edit-controls'])must(css.includes(marker),`CSS marker missing: ${marker}`);
 for(const marker of ['nexowatt-native-shell.css','eos-role-bootstrap.js','eos-auto-update.js',`nexowatt-stable-v${shellTag}.js`])must(index.includes(marker),`active asset missing: ${marker}`);
-must(!index.includes('eos-account-management.js'),'custom reset asset active');
+must(index.includes('eos-account-management.js'),'unique credential provisioning UI missing');
 must(boot.includes('NEXOWATT_EOS_STANDARD_PASSWORD_MODE')&&!boot.includes('installIntegratedFirstLogin(base);'),'standard login mode missing');
 must(shell.includes('ensureModernOverview'),'modern overview missing');
 must(role.includes('never cover the real Admin Intro')&&role.includes('filterNativeUsersPage'),'role UI contract missing');

@@ -1,0 +1,74 @@
+[
+  {
+    "label": "news-final-patch",
+    "command": [
+      "node",
+      "tools/nexowatt-news-security-patch.cjs"
+    ],
+    "utc": "2026-10-25T15:13:05.313920+00:00",
+    "exit": 0,
+    "seconds": 0.107
+  },
+  {
+    "label": "version-sync",
+    "command": [
+      "node",
+      "tools/nexowatt-sync-release-version.cjs"
+    ],
+    "utc": "2026-10-25T15:13:05.420473+00:00",
+    "exit": 0,
+    "seconds": 0.084
+  },
+  {
+    "label": "release-defaults",
+    "command": [
+      "node",
+      "tools/nexowatt-ensure-release-defaults.cjs"
+    ],
+    "utc": "2026-10-25T15:13:05.504844+00:00",
+    "exit": 0,
+    "seconds": 0.066
+  },
+  {
+    "label": "runtime-cleanup",
+    "command": [
+      "node",
+      "tools/nexowatt-clean-legacy-runtime.cjs"
+    ],
+    "utc": "2026-10-25T15:13:05.570452+00:00",
+    "exit": 0,
+    "seconds": 0.082
+  },
+  {
+    "label": "final-emission",
+    "command": [
+      "node",
+      "tools/nexowatt-transpile-security-backend.cjs",
+      "--write"
+    ],
+    "utc": "2026-10-25T15:13:05.652263+00:00",
+    "exit": 0,
+    "seconds": 0.744
+  },
+  {
+    "label": "inventory",
+    "command": [
+      "node",
+      "tools/nexowatt-security-inventory.cjs"
+    ],
+    "utc": "2026-10-25T15:13:06.396407+00:00",
+    "exit": 0,
+    "seconds": 0.409
+  },
+  {
+    "label": "seal",
+    "command": [
+      "node",
+      "tools/nexowatt-prebuilt-release-selftest.cjs",
+      "--write"
+    ],
+    "utc": "2026-10-25T15:13:06.805708+00:00",
+    "exit": 0,
+    "seconds": 0.277
+  }
+]

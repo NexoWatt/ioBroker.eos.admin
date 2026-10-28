@@ -1,0 +1,33 @@
+{
+  "result": "CONFIRMED_DESIGN_GAP",
+  "scope": "No aggregate quota reservation across instances",
+  "grants": [
+    {
+      "instance": 0,
+      "valid": true,
+      "edition": "home",
+      "limits": {
+        "chargePoints": 3,
+        "batteries": 2
+      }
+    },
+    {
+      "instance": 1,
+      "valid": true,
+      "edition": "home",
+      "limits": {
+        "chargePoints": 3,
+        "batteries": 2
+      }
+    }
+  ],
+  "totalRequested": {
+    "chargePoints": 6,
+    "batteries": 4
+  },
+  "signedSystemLimit": {
+    "chargePoints": 3,
+    "batteries": 2
+  },
+  "limitation": "Simulated object DB, real cryptography/store; no hardware or ioBroker bus"
+}

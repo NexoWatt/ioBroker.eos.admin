@@ -1,0 +1,10 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "check:eos-stability"
+  ],
+  "utc": "2026-10-25T15:13:58.741190+00:00",
+  "exit": 0,
+  "seconds": 21.998
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "name": "surface-repro",
+    "command": [
+      "node",
+      "--test",
+      "/workspace/scratch/c16def314bc5/audit-20261025/surface/surface-repro.cjs"
+    ],
+    "env": {},
+    "utc": "2026-10-25T14:54:11.183817+00:00",
+    "exitCode": 0
+  },
+  {
+    "name": "web-resources-source",
+    "command": [
+      "node",
+      "--test",
+      "test/eos-web-resources.test.cjs"
+    ],
+    "env": {},
+    "utc": "2026-10-25T14:54:11.374939+00:00",
+    "exitCode": 0
+  },
+  {
+    "name": "web-resources-build",
+    "command": [
+      "node",
+      "--test",
+      "test/eos-web-resources.test.cjs"
+    ],
+    "env": {
+      "EOS_TEST_RUNTIME": "build"
+    },
+    "utc": "2026-10-25T14:54:11.953932+00:00",
+    "exitCode": 0
+  }
+]

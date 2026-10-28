@@ -1,0 +1,26 @@
+[
+  {
+    "label": "pack-dry-run",
+    "command": [
+      "npm",
+      "pack",
+      "--dry-run",
+      "--ignore-scripts",
+      "--json"
+    ],
+    "utc": "2026-10-25T15:15:26.836097+00:00",
+    "exit": 0,
+    "seconds": 5.977
+  },
+  {
+    "label": "production-gate",
+    "command": [
+      "npm",
+      "run",
+      "check:eos-production-release"
+    ],
+    "utc": "2026-10-25T15:15:32.813604+00:00",
+    "exit": 1,
+    "seconds": 0.234
+  }
+]

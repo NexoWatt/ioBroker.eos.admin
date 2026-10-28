@@ -1,0 +1,21 @@
+✔ URL parser accepts ordinary files and strips real queries before decoding (3.515199ms)
+✔ URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth (1.628203ms)
+✔ single file read propagates authenticated caller ACL to both operations and ignores attacker MIME (2.153062ms)
+✔ missing or malformed identity and invalid direct-call path perform no database IO (4.837961ms)
+✔ explicit authenticated user names containing @ retain their identity for ACL checks (2.201761ms)
+✔ directory exports are denied without recursive reads or archive allocation (1.063547ms)
+✔ missing metadata, oversized declared files and excessive parent entries fail before reading file bytes (5.314605ms)
+✔ actual oversized response is rejected even if metadata was small (4.541398ms)
+✔ active file types are attachments with isolated restrictive response headers (4.777132ms)
+✔ database errors fail closed and do not expose internal details (1.206665ms)
+✔ concurrent stalled requests reserve both slots even after the five-second deadline (10.312048ms)
+✔ aborted client cannot trigger a late file read and reservation is released after DB settles (1.543566ms)
+✔ slow output keeps both reservations until deadline destroys unfinished responses (2.24252ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.150107

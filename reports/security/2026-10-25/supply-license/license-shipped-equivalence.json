@@ -1,0 +1,23 @@
+[
+  {
+    "source": "src/lib/eosLicenseCore.js",
+    "build": "build/lib/eosLicenseCore.js",
+    "sourceSha256": "8f7913edeba380744aed8fb2131f0b8cf9d5bf9152d25e4441d5f0ff4063246f",
+    "buildSha256": "8f7913edeba380744aed8fb2131f0b8cf9d5bf9152d25e4441d5f0ff4063246f",
+    "identical": true
+  },
+  {
+    "source": "src/lib/eosLicenseService.js",
+    "build": "build/lib/eosLicenseService.js",
+    "sourceSha256": "642361c6f7857cee93c17a75b344afce8c98ea73347bf583521adb39ef55653a",
+    "buildSha256": "642361c6f7857cee93c17a75b344afce8c98ea73347bf583521adb39ef55653a",
+    "identical": true
+  },
+  {
+    "source": "src/lib/eosLicenseHttp.js",
+    "build": "build/lib/eosLicenseHttp.js",
+    "sourceSha256": "03e1861f375087cfa53c519b554103d8d045aa662e7abdd6da3307faa9350b7e",
+    "buildSha256": "03e1861f375087cfa53c519b554103d8d045aa662e7abdd6da3307faa9350b7e",
+    "identical": true
+  }
+]

@@ -8,6 +8,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const json = relative => JSON.parse(read(relative));
+const runtimeEntry = json('NEXOWATT_EOS_BUILD_INFO.json').runtimeEntry;
 
 const index = read('adminWww/index.html');
 const sourceIndex = read('src-admin/index.html');
@@ -22,9 +23,9 @@ const appSource = read('src-admin/src/App.tsx');
 const objectsSource = read('src-admin/src/tabs/Objects.tsx');
 const introSource = read('src-admin/src/tabs/Intro.tsx');
 const drawerSource = read('src-admin/src/components/Drawer.tsx');
-const bootstrapBundle = read('adminWww/assets/bootstrap-COulQZax-v84.js');
-const objectsBundle = read('adminWww/assets/Objects-DPan0bzw-v84.js');
-const introBundle = read('adminWww/assets/Intro-DkwRiz1n-v84.js');
+const bootstrapBundle = read(`adminWww/assets/bootstrap-COulQZax-${runtimeEntry}.js`);
+const objectsBundle = read(`adminWww/assets/Objects-DPan0bzw-${runtimeEntry}.js`);
+const introBundle = read(`adminWww/assets/Intro-DkwRiz1n-${runtimeEntry}.js`);
 const io = json('io-package.json');
 const cleanupSource = read('tools/nexowatt-clean-legacy-runtime.cjs');
 
@@ -147,7 +148,7 @@ assert.match(builtDrawer, /o\.has\(A\)&&d\.enabled!==!0/);
 for (const code of [webSource, webBuilt]) {
     assert.match(code, /nexowatt\/readonly\/system-info/, 'authenticated read-only system-info route is missing');
     assert.match(code, /authenticationRequired/, 'read-only system-info route must require an authenticated session');
-    assert.match(code, /ramMb/, 'read-only system-info payload is incomplete');
+    assert.match(code, /readSystemInfo/, 'bounded cached system-info helper is not used');
 }
 for (const code of [roleUi, sourceRoleUi]) {
     assert.match(code, /state\.role !== 'enduser' \|\| currentRoute\(\) !== 'tab-intro'/, 'system-info hydration is not End User-only');

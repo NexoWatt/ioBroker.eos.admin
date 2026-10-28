@@ -3,18 +3,13 @@ import { checkPublicIP, WebServer, createOAuth2Server, type OAuth2Model } from '
 import * as express from 'express';
 import type { Express, Response, Request, NextFunction } from 'express';
 import type { Server } from 'node:http';
-import { readFileSync, existsSync, createReadStream, readdirSync, lstatSync } from 'node:fs';
+import { readFileSync, existsSync, createReadStream, readdirSync, lstatSync, realpathSync, chmodSync } from 'node:fs';
 import { inherits } from 'node:util';
-import { join, normalize, parse, dirname } from 'node:path';
-import { tmpdir, totalmem } from 'node:os';
+import { join, normalize, parse, dirname, relative, isAbsolute } from 'node:path';
 import { Transform } from 'node:stream';
-import { execFileSync } from 'node:child_process';
 import * as compression from 'compression';
 import { getType } from 'mime';
-import { gunzipSync } from 'node:zlib';
-import { createHash, randomBytes } from 'node:crypto';
-import * as archiver from 'archiver';
-import axios from 'axios';
+import { randomBytes } from 'node:crypto';
 import { Ajv } from 'ajv';
 import { parse as JSON5 } from 'json5';
 import * as fileUpload from 'express-fileupload';
@@ -24,10 +19,14 @@ import * as session from 'express-session';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import type { InternalStorageToken } from '@iobroker/socket-classes';
-import { McpServer, type McpAdapterConfig } from 'iobroker.mcp';
 import type { AdminAdapterConfig } from '../types';
-import { isEosSameOriginRequest } from './eosRequestSecurity';
+import { hasEosUrlCredentials, isEosSameOriginRequest, safeEosLoginPrefix } from './eosRequestSecurity';
 import { NexoWattStableUpdateManager } from './eosAutoUpdate';
+import { registerLicenseRoutes } from './eosLicenseHttp';
+import { requestHttpsJson } from './eosHttpsClient';
+import { safeWebBind, loopbackHttpGuard, inflateLog, readSystemInfo } from './eosWebResources';
+import { createUploadMiddleware, getUploadDirectory, retainUpload, storeRestoreUpload } from './eosUploadGuard';
+import { parseDbFileRequest, serveDbFile } from './eosFileTransferSecurity';
 
 let AdapterStore;
 /** Content of a socket-io file */
@@ -36,18 +35,9 @@ let socketIoFile: false | string;
 let uuid: string;
 const page404 = readFileSync(`${__dirname}/../../public/404.html`).toString('utf8');
 const logTemplate = readFileSync(`${__dirname}/../../public/logTemplate.html`).toString('utf8');
+const EOS_UPLOAD_MAX_BYTES = 200 * 1024 * 1024;
 const EOS_PASSWORD_SERVICE_USER = 'system.user.admin' as ioBroker.ObjectIDs.User;
 type EosAccessRole = 'admin' | 'installer' | 'enduser';
-interface EosPasswordClaim {
-    userId: string;
-    role: 'installer' | 'enduser';
-    expiresAt: number;
-    remoteAddress: string;
-}
-interface EosPasswordClaimRate {
-    count: number;
-    windowStartedAt: number;
-}
 const LEGACY_BACKUP_ADAPTER_NAME = 'backitup';
 const CUSTOMER_BACKUP_ADAPTER_NAMES = ['nexowatt-backup', 'eos-backup'] as const;
 const CORE_PROTECTED_ADAPTER_NAMES = [
@@ -118,40 +108,6 @@ function get404Page(customText?: string): string {
     return page404;
 }
 
-/**
- * Read folder recursive
- *
- * @param adapter the adapter instance
- * @param adapterName name of the adapter or dir
- * @param url url of the specific file or directory
- */
-async function readFolderRecursive(
-    adapter: AdminAdapter,
-    adapterName: string,
-    url: string,
-): Promise<{ name: string; file: Buffer }[]> {
-    const filesOfDir = [];
-    const fileMetas = await adapter.readDirAsync(adapterName, url);
-    for (const fileMeta of fileMetas) {
-        if (!fileMeta.isDir) {
-            const file = await adapter.readFileAsync(adapterName, `${url}/${fileMeta.file}`);
-
-            if (file.file instanceof Buffer) {
-                filesOfDir.push({ name: url ? `${url}/${fileMeta.file}` : fileMeta.file, file: file.file });
-            } else {
-                filesOfDir.push({
-                    name: url ? `${url}/${fileMeta.file}` : fileMeta.file,
-                    file: Buffer.from(file.file.toString(), 'utf-8'),
-                });
-            }
-        } else {
-            filesOfDir.push(...(await readFolderRecursive(adapter, adapterName, `${url}/${fileMeta.file}`)));
-        }
-    }
-
-    return filesOfDir;
-}
-
 function MemoryWriteStream(): void {
     Transform.call(this);
     this._chunks = [];
@@ -173,6 +129,7 @@ interface WebOptions {
 
 interface AdminAdapter extends ioBroker.Adapter {
     secret: string;
+    eosSessionSecurity: { bindOAuthModel(model: unknown): void; revoke(): void };
     setPasswordAsync?: (user: string, password: string, options?: { user?: ioBroker.ObjectIDs.User }) => Promise<void>;
     checkPasswordAsync?: (
         user: string,
@@ -229,13 +186,6 @@ export default class Web {
     private systemLanguage: ioBroker.Languages;
     private checkTimeout: ioBroker.Timeout;
     private oauth2Model: OAuth2Model;
-    private mcpServer: McpServer | null = null;
-
-    /** Short-lived passwordless first-activation claims. Keys are SHA-256 hashes of HttpOnly cookie tokens. */
-    private readonly eosPasswordClaims = new Map<string, EosPasswordClaim>();
-
-    /** Small in-memory rate limiter for unauthenticated first-activation requests. */
-    private readonly eosPasswordClaimRates = new Map<string, EosPasswordClaimRate>();
 
     /**
      * Create a new instance of Web
@@ -267,7 +217,7 @@ export default class Web {
 
     decorateLogFile(fileName: string, text?: string): string {
         const log = text || readFileSync(fileName).toString();
-        return logTemplate.replace('@@title@@', parse(fileName).name).replace('@@body@@', log);
+        return logTemplate.replace('@@title@@', parse(fileName).name).replace('@@body@@', escapeHtml(log));
     }
 
     setLanguage(lang: ioBroker.Languages): void {
@@ -280,7 +230,6 @@ export default class Web {
             this.checkTimeout = null;
         }
 
-        this.mcpServer?.unload();
         this.nexowattStableUpdateManager?.stop();
 
         void this.adapter.setState('info.connection', false, true);
@@ -410,8 +359,9 @@ export default class Web {
 
         try {
             this.adapter.log.debug(`retrieving json schema from ${this.JSON_CONFIG_SCHEMA_URL}`);
-            const schemaRes = await axios.get(this.JSON_CONFIG_SCHEMA_URL);
-            schema = schemaRes.data as Record<string, any>;
+            schema = await requestHttpsJson(this.JSON_CONFIG_SCHEMA_URL, {
+                allowedHosts: ['raw.githubusercontent.com'], maxBytes: 1024 * 1024, budgetMs: 5000,
+            }) as Record<string, any>;
         } catch (e) {
             this.adapter.log.debug(`Could not get jsonConfig schema: ${e.message}`);
             return;
@@ -458,10 +408,10 @@ export default class Web {
         }
     }
 
-    unzipFile(fileName: string, data: string, res: Response): void {
+    async unzipFile(fileName: string, data: string | Buffer, res: Response): Promise<void> {
         // extract the file
         try {
-            const text = gunzipSync(data).toString('utf8');
+            const text = await inflateLog(data);
             if (text.length > 2 * 1024 * 1024) {
                 res.header('Content-Type', 'text/plain');
                 res.send(text);
@@ -472,7 +422,7 @@ export default class Web {
         } catch (e) {
             res.header('Content-Type', 'application/gzip');
             res.send(data);
-            this.adapter.log.error(`Cannot extract file ${fileName}: ${e}`);
+            this.adapter.log.warn('Compressed log preview unavailable; original gzip returned.');
         }
     }
 
@@ -573,9 +523,6 @@ export default class Web {
         if (!token && req.headers.authorization?.startsWith('Bearer ')) {
             token = req.headers.authorization.substring('Bearer '.length);
         }
-        if (!token && req.query?.token) {
-            token = req.query.token as string;
-        }
         if (!token) {
             return null;
         }
@@ -604,32 +551,26 @@ export default class Web {
     }
 
     private async readEosCurrentUser(req: Request): Promise<string | null> {
-        const requestUser = (req as Request & { user?: unknown }).user;
-        const fromRequest = this.normalizeEosUserId(requestUser);
-        if (fromRequest) {
-            return fromRequest;
-        }
-        if (!this.settings.auth) {
-            return this.normalizeEosUserId(this.settings.defaultUser) || 'system.user.admin';
+        if (this.settings.auth !== true) return null;
+        const enabledUser = async (candidate: unknown): Promise<string | null> => {
+            const userId = this.normalizeEosUserId(candidate);
+            if (!userId) return null;
+            const user = await this.adapter.getForeignObjectAsync(userId).catch(() => null) as ioBroker.UserObject | null;
+            return user?.type === 'user' && user.common?.enabled !== false ? userId : null;
+        };
+        // req.user is set only by the upstream authenticated middleware, never by body/query input.
+        if ((req as Request & { user?: unknown }).user) {
+            return enabledUser((req as Request & { user?: unknown }).user);
         }
         const token = this.readAccessTokenFromRequest(req);
-        if (!token) {
-            return null;
-        }
-        const candidates = new Set<string>();
-        candidates.add(token);
-        candidates.add(token.startsWith('a:') ? token : `a:${token}`);
-        if (token.length > 1) {
-            candidates.add(`a:${token[1]}`);
-        }
-        for (const id of candidates) {
-            const session = await this.readSession(id).catch(() => null);
-            const user = this.normalizeEosUserId(session?.user);
-            if (user) {
-                return user;
-            }
-        }
-        return null;
+        if (!token || token.length < 16 || token.length > 4096) return null;
+        // Only the actual access-token namespace is accepted. Refresh sessions and shortened
+        // candidate tokens must never authenticate a protected EOS endpoint.
+        const id = token.startsWith('a:') ? token : `a:${token}`;
+        const session = await this.readSession(id).catch(() => null);
+        if (!session || typeof session.aExp !== 'number' || !Number.isFinite(session.aExp)
+            || session.aExp <= Date.now()) return null;
+        return enabledUser(session.user);
     }
 
     private getEosConfiguredRoleGroups(...keys: string[]): string[] {
@@ -760,17 +701,7 @@ export default class Web {
             return 'enduser';
         }
 
-        const roleText = [...groups, ...groupNames].map(value => this.normalizeEosRoleText(value)).join(' ');
-        if (/(^| )(nexowatt service|eos service|service admin|service administrator)( |$)/i.test(roleText)) {
-            return 'admin';
-        }
-        if (/(^| )(installateur|installateure|installer|installation|inbetriebnahme|techniker|technician|integrator|partner)( |$)/i.test(roleText)) {
-            return 'installer';
-        }
-        if (/(^| )(endkunde|endkunden|kunde|kunden|customer|customers|bediener|operator|viewer|nutzer|benutzer)( |$)/i.test(roleText)) {
-            return 'enduser';
-        }
-
+        // Display names and descriptions are presentation data, never role credentials.
         // Secure default: a normal authenticated, non-admin ioBroker user is an EOS end user.
         return 'enduser';
     }
@@ -844,7 +775,6 @@ export default class Web {
             !this.settings.auth
             || !userId
             || role === 'admin'
-            || (this.settings as Record<string, unknown>).eosRequireFirstLoginPassword === false
         ) {
             return { required: false, initialized: true, minLength, version: 1 };
         }
@@ -918,6 +848,7 @@ export default class Web {
         // The server-side Admin/Service context performs the controller password write, so managed
         // Installer and End User accounts do not need global users.write rights in the browser.
         const options = { user: EOS_PASSWORD_SERVICE_USER };
+        this.adapter.eosSessionSecurity.revoke();
         if (typeof this.adapter.setPasswordAsync === 'function') {
             await this.adapter.setPasswordAsync(userName, password, options);
         } else if (typeof this.adapter.setPassword === 'function') {
@@ -977,16 +908,13 @@ export default class Web {
         // token or by the adapter-session prefix. Remove every supported representation so a
         // password change cannot leave the old authenticated browser session active.
         const sessionIds = new Set<string>([token, token.startsWith('a:') ? token : `a:${token}`]);
-        if (token.length > 1) {
-            sessionIds.add(`a:${token[1]}`);
-        }
         await Promise.all(
             [...sessionIds].map(async id => {
                 try {
                     await this.adapter.destroySession(id);
                 } catch (e) {
                     this.adapter.log.debug(
-                        `Cannot destroy EOS first-login session ${id}: ${e instanceof Error ? e.message : e}`,
+                        'Cannot destroy EOS first-login session',
                     );
                 }
             }),
@@ -1011,7 +939,19 @@ export default class Web {
             return;
         }
 
-        const body = (req.body || {}) as { password?: unknown; passwordRepeat?: unknown };
+        const body = (req.body || {}) as { password?: unknown; passwordRepeat?: unknown; currentPassword?: unknown };
+        if (typeof body.currentPassword !== 'string' || !body.currentPassword || body.currentPassword.length > 128) {
+            res.status(400).json({ error: 'currentPasswordRequired' }); return;
+        }
+        if (typeof this.adapter.checkPasswordAsync !== 'function') {
+            res.status(503).json({ error: 'passwordVerificationUnavailable' }); return;
+        }
+        // A session issued before administrative reset cannot claim the new password without
+        // proving possession of the current random temporary credential.
+        const check = await this.adapter.checkPasswordAsync(this.getEosPasswordUserName(access.userId), body.currentPassword, { user: EOS_PASSWORD_SERVICE_USER });
+        if (!(Array.isArray(check) ? check[0] === true : check === true)) {
+            res.status(403).json({ error: 'currentPasswordInvalid' }); return;
+        }
         const validation = this.validateEosFirstLoginPassword(body.password, body.passwordRepeat, access.userId);
         if (!validation.valid) {
             res.status(400).json({
@@ -1049,268 +989,23 @@ export default class Web {
         res.status(200).json({ success: true, role: access.role, logoutRequired: true, sessionInvalidated: true });
     }
 
-    private isEosPasswordlessFirstLoginEnabled(): boolean {
-        return (this.settings as Record<string, unknown>).eosPasswordlessFirstLogin !== false;
-    }
-
-    private getEosPasswordClaimTtlMs(): number {
-        const configured = Number((this.settings as Record<string, unknown>).eosPasswordClaimTtlMinutes);
-        const minutes = Number.isFinite(configured) ? Math.min(30, Math.max(3, Math.round(configured))) : 10;
-        return minutes * 60_000;
-    }
-
-    private getEosRemoteAddress(req: Request): string {
-        // Do not read X-Forwarded-For directly: an untrusted client could forge that header. Express
-        // already resolves req.ip according to the configured trust-proxy policy, so it is the only
-        // proxy-aware value accepted here. Fall back to the actual socket peer.
-        const raw = req.ip || req.socket.remoteAddress || '';
-        return String(raw).replace(/^::ffff:/i, '').split('%')[0].trim().toLowerCase();
-    }
-
-    private isEosPrivateAddress(address: string): boolean {
-        if (!address) {
-            return false;
-        }
-        if (address === '::1' || address === 'localhost') {
-            return true;
-        }
-        if (/^(?:127\.|10\.|192\.168\.|169\.254\.)/.test(address)) {
-            return true;
-        }
-        const v4 = address.match(/^172\.(\d{1,3})\./);
-        if (v4 && Number(v4[1]) >= 16 && Number(v4[1]) <= 31) {
-            return true;
-        }
-        return /^(?:fc|fd)[0-9a-f]{2}:|^fe80:/i.test(address);
-    }
-
-    private isEosPasswordlessRequestNetworkAllowed(req: Request): boolean {
-        const privateOnly = (this.settings as Record<string, unknown>).eosPasswordlessFirstLoginPrivateNetworkOnly !== false;
-        return !privateOnly || this.isEosPrivateAddress(this.getEosRemoteAddress(req));
-    }
-
-    private hashEosPasswordClaim(token: string): string {
-        return createHash('sha256').update(token).digest('hex');
-    }
-
-    private readEosCookie(req: Request, name: string): string {
-        const row = String(req.headers.cookie || '')
-            .split(';')
-            .map(value => value.trim())
-            .find(value => value.startsWith(`${name}=`));
-        if (!row) {
-            return '';
-        }
-        try {
-            return decodeURIComponent(row.substring(name.length + 1));
-        } catch {
-            return row.substring(name.length + 1);
-        }
-    }
-
-    private cleanEosPasswordClaims(): void {
-        const now = Date.now();
-        for (const [key, claim] of this.eosPasswordClaims.entries()) {
-            if (claim.expiresAt <= now) {
-                this.eosPasswordClaims.delete(key);
-            }
-        }
-        for (const [key, rate] of this.eosPasswordClaimRates.entries()) {
-            if (now - rate.windowStartedAt > 10 * 60_000) {
-                this.eosPasswordClaimRates.delete(key);
-            }
-        }
-    }
-
-    private acceptEosPasswordClaimAttempt(req: Request, userId: string): boolean {
-        this.cleanEosPasswordClaims();
-        const address = this.getEosRemoteAddress(req) || 'unknown';
-        const now = Date.now();
-        const increment = (key: string, limit: number): boolean => {
-            const existing = this.eosPasswordClaimRates.get(key);
-            if (!existing || now - existing.windowStartedAt > 10 * 60_000) {
-                this.eosPasswordClaimRates.set(key, { count: 1, windowStartedAt: now });
-                return true;
-            }
-            existing.count += 1;
-            return existing.count <= limit;
-        };
-        // Limit both individual-account guessing and username rotation from one client.
-        const globalAllowed = increment(`${address}|*`, 20);
-        const accountAllowed = increment(`${address}|${userId}`, 8);
-        return globalAllowed && accountAllowed;
-    }
-
-    private async getEosPasswordlessClaimEligibility(userId: string): Promise<{
-        eligible: boolean;
-        role: EosAccessRole;
-        user: ioBroker.UserObject | null;
-        minLength: number;
-    }> {
-        const access = await this.getEosAccessForUserId(userId);
-        const user = (await this.adapter.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
-        const setup = await this.getEosFirstLoginPasswordState(userId, access.role);
-        const account = ((user?.native || {}) as Record<string, unknown>).nexowattEosAccount as Record<string, unknown> | undefined;
-        const eligible = !!user
-            && user.common?.enabled !== false
-            && access.role !== 'admin'
-            && setup.required
-            && account?.passwordlessFirstLoginAllowed === true;
-        return { eligible, role: access.role, user, minLength: setup.minLength };
-    }
-
-    private async getEosPasswordlessFirstLoginStatus(req: Request, res: Response): Promise<void> {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        if (
-            !this.settings.auth
-            || !this.isEosPasswordlessFirstLoginEnabled()
-            || !this.isEosSameOriginWrite(req)
-            || req.headers['x-nexowatt-eos-passwordless-status'] !== '1'
-        ) {
-            res.status(403).json({ error: 'statusUnavailable' });
-            return;
-        }
-        if (!this.isEosPasswordlessRequestNetworkAllowed(req)) {
-            res.status(403).json({ error: 'privateNetworkRequired' });
-            return;
-        }
-        const requested = String((req.body as { user?: unknown } | undefined)?.user || '')
-            .trim()
-            .toLowerCase()
-            .replace(/^system\.user\./, '');
-        const managed = requested === 'installer' || requested === 'guest' || requested === 'user';
-        const userId = managed ? this.normalizeEosUserId(requested) : '';
-        if (!userId) {
-            res.status(200).json({ success: true, eligible: false, userName: requested });
-            return;
-        }
-        const eligibility = await this.getEosPasswordlessClaimEligibility(userId);
-        const eligible = eligibility.eligible && (eligibility.role === 'installer' || eligibility.role === 'enduser');
-        res.status(200).json({
-            success: true,
-            eligible,
-            role: eligibility.role,
-            userName: requested,
-            minLength: eligibility.minLength,
-        });
-    }
-
-    private invalidateEosPasswordClaimsForUser(userId: string): void {
-        for (const [key, claim] of this.eosPasswordClaims.entries()) {
-            if (claim.userId === userId) {
-                this.eosPasswordClaims.delete(key);
-            }
-        }
-    }
-
-    private async startEosPasswordlessFirstLogin(req: Request, res: Response): Promise<void> {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        if (
-            !this.settings.auth
-            || !this.isEosPasswordlessFirstLoginEnabled()
-            || !this.isEosSameOriginWrite(req)
-            || req.headers['x-nexowatt-eos-passwordless-claim'] !== '1'
-        ) {
-            res.status(403).json({ error: 'claimUnavailable' });
-            return;
-        }
-        if (!this.isEosPasswordlessRequestNetworkAllowed(req)) {
-            res.status(403).json({ error: 'privateNetworkRequired' });
-            return;
-        }
-        const userId = this.normalizeEosUserId((req.body as { user?: unknown } | undefined)?.user);
-        if (!userId) {
-            res.status(403).json({ error: 'claimUnavailable' });
-            return;
-        }
-        if (!this.acceptEosPasswordClaimAttempt(req, userId)) {
-            res.status(429).json({ error: 'claimUnavailable' });
-            return;
-        }
-        const eligibility = await this.getEosPasswordlessClaimEligibility(userId);
-        if (!eligibility.eligible || (eligibility.role !== 'installer' && eligibility.role !== 'enduser')) {
-            // Deliberately do not reveal whether an account exists or which state it is in.
-            res.status(403).json({ error: 'claimUnavailable' });
-            return;
-        }
-        this.invalidateEosPasswordClaimsForUser(userId);
-        const token = randomBytes(32).toString('base64url');
-        const ttl = this.getEosPasswordClaimTtlMs();
-        this.eosPasswordClaims.set(this.hashEosPasswordClaim(token), {
-            userId,
-            role: eligibility.role,
-            expiresAt: Date.now() + ttl,
-            remoteAddress: this.getEosRemoteAddress(req),
-        });
-        res.cookie('nexowatt_eos_first_login', token, {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: !!this.settings.secure,
-            path: '/nexowatt/account',
-            maxAge: ttl,
-        });
-        res.status(200).json({
-            success: true,
-            role: eligibility.role,
-            userName: userId.replace(/^system\.user\./, ''),
-            minLength: eligibility.minLength,
-            expiresInSeconds: Math.round(ttl / 1000),
-        });
-    }
-
-    private async saveEosPasswordlessFirstLogin(req: Request, res: Response): Promise<void> {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        if (
-            !this.isEosSameOriginWrite(req)
-            || req.headers['x-nexowatt-eos-passwordless-password'] !== '1'
-            || !this.isEosPasswordlessRequestNetworkAllowed(req)
-        ) {
-            res.status(403).json({ error: 'claimUnavailable' });
-            return;
-        }
-        this.cleanEosPasswordClaims();
-        const token = this.readEosCookie(req, 'nexowatt_eos_first_login');
-        const claim = token ? this.eosPasswordClaims.get(this.hashEosPasswordClaim(token)) : undefined;
-        if (!claim || claim.expiresAt <= Date.now() || claim.remoteAddress !== this.getEosRemoteAddress(req)) {
-            res.status(403).json({ error: 'claimExpired' });
-            return;
-        }
-        const eligibility = await this.getEosPasswordlessClaimEligibility(claim.userId);
-        if (!eligibility.eligible || eligibility.role !== claim.role) {
-            this.invalidateEosPasswordClaimsForUser(claim.userId);
-            res.status(403).json({ error: 'claimUnavailable' });
-            return;
-        }
-        const body = (req.body || {}) as { password?: unknown; passwordRepeat?: unknown };
-        const validation = this.validateEosFirstLoginPassword(body.password, body.passwordRepeat, claim.userId);
-        if (!validation.valid) {
-            res.status(400).json({ error: validation.error, minLength: eligibility.minLength });
-            return;
-        }
-        await this.setEosUserPassword(claim.userId, validation.password);
-        const now = new Date().toISOString();
-        await this.updateEosAccountMetadata(claim.userId, (native, account) => {
-            account.passwordInitialized = true;
-            account.passwordInitializedAt = Date.now();
-            account.passwordInitializationVersion = 1;
-            account.passwordInitializedBy = 'passwordless-first-activation';
-            account.passwordSetupVersion = 1;
-            account.passwordSetAt = now;
-            account.firstLoginCompletedAt = now;
-            account.forcePasswordChange = false;
-            account.passwordlessFirstLoginAllowed = false;
-            account.passwordlessClaimCompletedAt = now;
-            native.nexowattPasswordChangeRequired = false;
-            native.eosPasswordChangeRequired = false;
-            native.nexowattFirstLoginPending = false;
-            native.eosFirstLoginRequired = false;
-            native.nexowattInitialPasswordApplied = false;
-            native.nexowattPasswordChangedAt = now;
-        });
-        this.invalidateEosPasswordClaimsForUser(claim.userId);
+    private denyEosAnonymousActivation(res: Response): void {
+        // Old configuration flags and previously issued claims cannot reactivate this path.
+        res.setHeader('Cache-Control', 'no-store');
         res.clearCookie('nexowatt_eos_first_login', { path: '/nexowatt/account' });
-        this.adapter.log.info(`EOS passwordless first activation completed for ${claim.userId}`);
-        res.status(200).json({ success: true, role: claim.role, userName: claim.userId.replace(/^system\.user\./, '') });
+        res.status(410).json({ error: 'passwordlessActivationDisabled', eligible: false });
+    }
+
+    private async getEosPasswordlessFirstLoginStatus(_req: Request, res: Response): Promise<void> {
+        this.denyEosAnonymousActivation(res);
+    }
+
+    private async startEosPasswordlessFirstLogin(_req: Request, res: Response): Promise<void> {
+        this.denyEosAnonymousActivation(res);
+    }
+
+    private async saveEosPasswordlessFirstLogin(_req: Request, res: Response): Promise<void> {
+        this.denyEosAnonymousActivation(res);
     }
 
     private async getEosManagedAccounts(requesterRole: EosAccessRole): Promise<Array<Record<string, unknown>>> {
@@ -1346,9 +1041,10 @@ export default class Web {
                 displayName: this.getTranslatedName(user.common?.name),
                 role,
                 enabled: user.common?.enabled !== false,
+                migrationDisabled: account.disabledForCredentialMigration === true,
                 firstLoginRequired: setup.required,
                 passwordInitialized: setup.initialized,
-                passwordlessFirstLoginAllowed: account.passwordlessFirstLoginAllowed === true,
+                passwordlessFirstLoginAllowed: false,
                 passwordSetAt: account.passwordSetAt || account.firstLoginCompletedAt || null,
                 passwordResetAt: account.passwordResetAt || null,
                 passwordResetBy: account.passwordResetBy || null,
@@ -1411,11 +1107,13 @@ export default class Web {
             res.status(404).json({ error: 'accountNotFound' });
             return;
         }
-        if (currentUser.common?.enabled === false) {
+        const migrationDisabled = (currentUser.native as Record<string, any>)?.nexowattEosAccount?.disabledForCredentialMigration === true;
+        if (currentUser.common?.enabled === false && (!migrationDisabled || access.role !== 'admin')) {
             res.status(409).json({ error: 'accountDisabled' });
             return;
         }
-        await this.setEosUserPassword(targetUserId, 'nexowatt');
+        const temporaryPassword = `${randomBytes(24).toString('base64url')}!aA1`;
+        await this.setEosUserPassword(targetUserId, temporaryPassword);
         const now = new Date().toISOString();
         await this.updateEosAccountMetadata(targetUserId, (native, account) => {
             account.passwordInitialized = false;
@@ -1425,7 +1123,8 @@ export default class Web {
             account.passwordlessFirstLoginAllowed = false;
             account.passwordResetAt = now;
             account.passwordResetBy = access.userId;
-            account.passwordResetMode = 'initial-password';
+            account.passwordResetMode = 'unique-temporary-password';
+            account.disabledForCredentialMigration = false;
             account.passwordSetAt = null;
             account.firstLoginCompletedAt = null;
             native.nexowattPasswordChangeRequired = true;
@@ -1436,7 +1135,9 @@ export default class Web {
             native.nexowattInitialPasswordVersion = 1;
             native.nexowattStableInitialCredentialVersion = 1;
         });
-        this.invalidateEosPasswordClaimsForUser(targetUserId);
+        if (migrationDisabled) {
+            await this.adapter.extendForeignObjectAsync(targetUserId, { common: { enabled: true } }, { user: EOS_PASSWORD_SERVICE_USER });
+        }
         this.adapter.log.warn(`EOS account ${targetUserId} was reset to the mandatory initial-password flow by ${access.userId}`);
         res.status(200).json({
             success: true,
@@ -1445,6 +1146,7 @@ export default class Web {
             firstLoginRequired: true,
             passwordlessFirstLoginAllowed: false,
             initialPasswordRequired: true,
+            temporaryPassword,
         });
     }
 
@@ -1535,7 +1237,8 @@ export default class Web {
     }
 
     private isEosSameOriginWrite(req: Request): boolean {
-        return isEosSameOriginRequest(req.headers as Record<string, unknown>);
+        // This profile terminates TLS here; untrusted proxy headers cannot change the scheme.
+        return isEosSameOriginRequest(req.headers as Record<string, unknown>, this.settings.secure === true ? 'https:' : 'http:');
     }
 
     private async saveEosBasicSettings(req: Request, res: Response): Promise<void> {
@@ -1607,21 +1310,8 @@ export default class Web {
     }
 
 
-    private getEosReadonlySystemInfo(): { platform: string; ramMb: number; nodejs: string; npm: string; active: boolean } {
-        let npm = '--';
-        try {
-            const binary = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-            npm = execFileSync(binary, ['-v'], { encoding: 'utf8', timeout: 1500 }).trim() || '--';
-        } catch {
-            // ignore
-        }
-        return {
-            platform: process.platform || '--',
-            ramMb: Math.round(totalmem() / 1024 / 1024),
-            nodejs: process.version || '--',
-            npm,
-            active: true,
-        };
+    private async getEosReadonlySystemInfo(): Promise<{ platform: string; ramMb: number; nodejs: string; npm: string; active: boolean }> {
+        return readSystemInfo();
     }
 
     private async sendEosReadonlySystemInfo(req: Request, res: Response): Promise<void> {
@@ -1633,7 +1323,7 @@ export default class Web {
         }
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.status(200).json(this.getEosReadonlySystemInfo());
+        res.status(200).json(await this.getEosReadonlySystemInfo());
     }
 
     private async sendEosSecuritySession(req: Request, res: Response): Promise<void> {
@@ -1687,8 +1377,6 @@ export default class Web {
         let tokenCookie = cookies?.split('=')[1] || null;
         if (!tokenCookie && req.headers.authorization?.startsWith('Bearer ')) {
             tokenCookie = req.headers.authorization.split(' ')[1];
-        } else if (!tokenCookie && req.query?.token) {
-            tokenCookie = req.query.token as string;
         }
         return tokenCookie || null;
     }
@@ -1739,59 +1427,63 @@ export default class Web {
     }
 
 
+    private eosAuthenticatedRouteGuard() {
+        return (req: Request, res: Response, next: NextFunction): void => {
+            void (async () => {
+                const access = await this.getEosRequestAccess(req);
+                if (!access.userId) { res.status(401).json({ error: 'authenticationRequired' }); return; }
+                if ((await this.getEosFirstLoginPasswordState(access.userId, access.role)).required) {
+                    res.status(403).json({ error: 'passwordChangeRequired' }); return;
+                }
+                res.locals.eosAuthenticatedUser = access.userId;
+                next();
+            })().catch(() => res.status(503).json({ error: 'securityContextUnavailable' }));
+        };
+    }
+
+    private eosTechnicalRouteGuard(adminOnly: boolean, write = false) {
+        return (req: Request, res: Response, next: NextFunction): void => {
+            void (async () => {
+                const access = await this.getEosRequestAccess(req);
+                if (!access.userId || (access.role !== 'admin' && (adminOnly || access.role !== 'installer'))) {
+                    res.status(403).json({ error: 'permissionError' }); return;
+                }
+                if ((await this.getEosFirstLoginPasswordState(access.userId, access.role)).required) {
+                    res.status(403).json({ error: 'passwordChangeRequired' }); return;
+                }
+                if (write && !this.isEosSameOriginWrite(req)) {
+                    res.status(403).json({ error: 'invalidRequestOrigin' }); return;
+                }
+                next();
+            })().catch(() => res.status(503).json({ error: 'securityContextUnavailable' }));
+        };
+    }
+
     private getSafeLoginOrigin(req: Request): string | null {
-        let origin = '';
-        try {
-            const url = new URL(req.url, 'http://127.0.0.1');
-            origin = url.searchParams.get('origin') || '';
-        } catch {
-            const match = req.url.match(/[?&]origin=([^&]*)/);
-            origin = match?.[1] || '';
-        }
-        if (!origin) {
-            return null;
-        }
-        try {
-            origin = decodeURIComponent(origin);
-        } catch {
-            // keep raw value and validate below
-        }
-        origin = String(origin || '').trim();
-        // Reject encoded hashes/login/logout/404 and hard-timeout parameters. The old logic
-        // generated paths such as /%2F%23tab-adapters&hard=1/index.html?login.
-        if (!origin || /(?:%2f|%23|#|login|logout|404|hard=|undefined|null)/i.test(origin)) {
-            return null;
-        }
-        origin = origin.split('?')[0];
-        const pos = origin.lastIndexOf('/');
-        if (pos > 0) {
-            origin = origin.substring(0, pos);
-        } else if (pos === 0) {
-            origin = '';
-        }
-        if (!origin || origin === '.') {
-            return null;
-        }
-        if (/^https?:\/\//i.test(origin)) {
-            try {
-                const parsed = new URL(origin);
-                return parsed.pathname && parsed.pathname !== '/' ? parsed.pathname.replace(/\/+$/, '') : null;
-            } catch {
-                return null;
-            }
-        }
-        if (!origin.startsWith('/')) {
-            return null;
-        }
-        return origin.replace(/\/+$/, '') || null;
+        return safeEosLoginPrefix(req.url);
     }
 
     /**
      * Initialize the server
      */
     async #init(): Promise<void> {
+        const bind = safeWebBind(this.settings);
+        if (bind !== this.settings.bind && !this.settings.secure) {
+            this.adapter.log.warn('Plain HTTP is restricted to loopback. Configure TLS before network access; use a local console or SSH tunnel for setup.');
+        }
+        this.settings = { ...this.settings, bind, auth: true };
         if (this.settings.port) {
             this.server.app = express();
+            this.server.app.use(loopbackHttpGuard(this.settings.secure));
+            // Upstream also accepts query credentials. Reject them before any OAuth or body processing.
+            this.server.app.use((req: Request, res: Response, next: NextFunction): void => {
+                if (hasEosUrlCredentials(req.query as Record<string, unknown>)) {
+                    res.setHeader('Cache-Control', 'no-store');
+                    res.status(400).json({ error: 'credentialsInUrlForbidden' });
+                    return;
+                }
+                next();
+            });
             this.server.app.use(compression());
 
             this.settings.ttl = Math.round(Number(this.settings.ttl)) || 3_600;
@@ -1815,8 +1507,6 @@ export default class Web {
 
 
             void this.getNexoWattStableUpdateManager().start().catch(error => this.adapter.log.warn(`[NexoWatt stable updates] Startup reconciliation failed: ${error instanceof Error ? error.message : error}`));
-            this.server.app.get('/nexowatt/updates/status', (req: Request, res: Response): void => { void this.sendNexoWattStableUpdateStatus(req, res).catch(error => res.status(500).json({ error: String(error) })); });
-            this.server.app.post('/nexowatt/updates/settings', (req: Request, res: Response): void => { void this.saveNexoWattStableUpdateSettings(req, res).catch(error => res.status(500).json({ error: String(error) })); });
 
             this.server.app.get('/version', (_req: Request, res: Response): void => {
                 res.status(200).send(this.adapter.version);
@@ -1883,10 +1573,25 @@ export default class Web {
                 this.store = new AdapterStore({ adapter: this.adapter });
 
                 this.server.app.use(cookieParser());
-                this.server.app.use(bodyParser.urlencoded({ extended: true }));
-                this.server.app.use(bodyParser.json());
+                // License imports must pass authentication, Origin and rate limits
+                // before their small dedicated JSON parser consumes any body.
+                const genericUrlencoded = bodyParser.urlencoded({ extended: true });
+                const genericJson = bodyParser.json();
+                const isLicensePath = (req: Request): boolean => /^\/nexowatt\/license(?:\/|$)/i.test(req.path);
+                this.server.app.use((req: Request, res: Response, next: NextFunction): void => {
+                    if (isLicensePath(req)) { next(); return; }
+                    genericUrlencoded(req, res, next);
+                });
+                this.server.app.use((req: Request, res: Response, next: NextFunction): void => {
+                    if (isLicensePath(req)) { next(); return; }
+                    genericJson(req, res, next);
+                });
 
-                // v36: OAuth/session handling intentionally follows upstream ioBroker Admin.
+                // Hardened local profile: do not allow SSO to perform remote account side effects.
+                this.server.app.all(['/sso', '/sso-callback'], (_req: Request, res: Response): void => {
+                    res.status(403).json({ error: 'ssoUnavailableInLocalSecurityProfile' });
+                });
+                // Bind upstream OAuth issuance and reads to the revocable EOS credential snapshot.
                 this.oauth2Model = createOAuth2Server(this.adapter, {
                     app: this.server.app,
                     secure: this.settings.secure,
@@ -1904,6 +1609,7 @@ export default class Web {
                         return origin ? origin + this.LOGIN_PAGE : this.LOGIN_PAGE;
                     },
                 });
+                this.adapter.eosSessionSecurity.bindOAuthModel(this.oauth2Model);
                 this.server.app.get('/session', (req: Request, res: Response): void => {
                     // v36: Follow upstream admin semantics again. Do not run a second
                     // EOS hard-logout timer here; the official OAuth/session handling
@@ -1913,13 +1619,10 @@ export default class Web {
                         let tokenCookie = cookies?.split('=')[1];
                         if (!tokenCookie && req.headers.authorization?.startsWith('Bearer ')) {
                             tokenCookie = req.headers.authorization.split(' ')[1];
-                        } else if (!tokenCookie && req.query?.token) {
-                            tokenCookie = req.query.token as string;
                         }
                         if (tokenCookie) {
                             const candidates = new Set<string>();
                             candidates.add(tokenCookie.startsWith('a:') ? tokenCookie : `a:${tokenCookie}`);
-                            if (tokenCookie.length > 1) candidates.add(`a:${tokenCookie[1]}`);
                             const ids = Array.from(candidates);
                             const readNext = (index: number): void => {
                                 const id = ids[index];
@@ -1928,7 +1631,7 @@ export default class Web {
                                     return;
                                 }
                                 void this.adapter.getSession(id, (token: InternalStorageToken): void => {
-                                    if (!token?.user) {
+                                    if (!token?.user || typeof token.aExp !== 'number' || token.aExp <= Date.now()) {
                                         readNext(index + 1);
                                     } else {
                                         res.json({ expireInSec: Math.round((token.aExp - Date.now()) / 1000) });
@@ -1996,9 +1699,8 @@ export default class Web {
                     }
                 });
 
-                // Passwordless first activation is not a normal authenticated session. The two
-                // narrow routes below only issue/consume a short-lived HttpOnly claim and are registered
-                // before the general login middleware. They never expose the EOS application itself.
+                // Retired anonymous activation endpoints always return 410. Legacy flags/cookies
+                // cannot grant an account; ordinary credential-based first login remains separate.
                 this.server.app.post('/nexowatt/account/passwordless-status', (req: Request, res: Response): void => {
                     void this.getEosPasswordlessFirstLoginStatus(req, res).catch(e => {
                         this.adapter.log.debug(`Cannot read EOS passwordless activation status: ${e instanceof Error ? e.message : e}`);
@@ -2047,9 +1749,7 @@ export default class Web {
                     if ((req.isAuthenticated && !req.isAuthenticated()) || (!req.isAuthenticated && !req.user)) {
                         const pathName = req.url.split('?')[0];
                         if (
-                            pathName.startsWith('/login/') ||
-                            pathName.endsWith('.ico') ||
-                            pathName.endsWith('manifest.json')
+                            pathName.startsWith('/login/')
                         ) {
                             return next();
                         }
@@ -2079,6 +1779,23 @@ export default class Web {
                 this.server.app.get('/logout', (_req: Request, res: Response): void => res.redirect('/'));
             }
 
+            this.server.app.get('/nexowatt/updates/status', this.eosTechnicalRouteGuard(true), (req: Request, res: Response): void => { void this.sendNexoWattStableUpdateStatus(req, res).catch(() => res.status(500).json({ error: 'updateStatusFailed' })); });
+            this.server.app.post('/nexowatt/updates/settings', this.eosTechnicalRouteGuard(true, true), (req: Request, res: Response): void => { void this.saveNexoWattStableUpdateSettings(req, res).catch(() => res.status(500).json({ error: 'updateSettingsFailed' })); });
+
+            registerLicenseRoutes(this.server.app, {
+                service: (this.adapter as any).eosLicenseService,
+                secure: this.settings.secure === true,
+                authorize: async (req: Request): Promise<boolean> => {
+                    if (!this.settings.auth) return false;
+                    const access = await this.getEosRequestAccess(req);
+                    return !!access.userId && access.role === 'admin'
+                        && !(await this.getEosFirstLoginPasswordState(access.userId, access.role)).required;
+                },
+                jsonParser: bodyParser.json({ limit: '20kb', strict: true }),
+                pagePath: join(__dirname, '../../public/nexowatt-license.html'),
+                scriptPath: join(__dirname, '../../public/nexowatt-license.js'),
+            });
+
             const sendSecuritySession = (req: Request, res: Response): void => {
                 void this.sendEosSecuritySession(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot read EOS security session: ${e instanceof Error ? e.message : e}`);
@@ -2107,7 +1824,7 @@ export default class Web {
                     res.status(500).json({ error: 'basicSettingsReadFailed' });
                 });
             });
-            this.server.app.post('/nexowatt/role-settings/basic', (req: Request, res: Response): void => {
+            this.server.app.post('/nexowatt/role-settings/basic', this.eosTechnicalRouteGuard(false, true), (req: Request, res: Response): void => {
                 void this.saveEosBasicSettings(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot save EOS basic settings: ${e instanceof Error ? e.message : e}`);
                     res.status(500).json({ error: 'basicSettingsSaveFailed' });
@@ -2119,13 +1836,13 @@ export default class Web {
                     res.status(500).json({ error: 'passwordSetupFailed' });
                 });
             });
-            this.server.app.get('/nexowatt/account/manage', (req: Request, res: Response): void => {
+            this.server.app.get('/nexowatt/account/manage', this.eosTechnicalRouteGuard(false), (req: Request, res: Response): void => {
                 void this.sendEosAccountManagement(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot read EOS account management: ${e instanceof Error ? e.message : e}`);
                     res.status(500).json({ error: 'accountManagementFailed' });
                 });
             });
-            this.server.app.post('/nexowatt/account/reset', (req: Request, res: Response): void => {
+            this.server.app.post('/nexowatt/account/reset', this.eosTechnicalRouteGuard(false, true), (req: Request, res: Response): void => {
                 void this.resetEosAccountPassword(req, res).catch(e => {
                     this.adapter.log.warn(`Cannot reset EOS account: ${e instanceof Error ? e.message : e}`);
                     res.status(500).json({ error: 'accountResetFailed' });
@@ -2136,7 +1853,7 @@ export default class Web {
                 res.status(200).send('ioBroker');
             });
 
-            this.server.app.get('/validate_config/*any', async (req: Request, res: Response): Promise<void> => {
+            this.server.app.get('/validate_config/*any', this.eosTechnicalRouteGuard(true), async (req: Request, res: Response): Promise<void> => {
                 const adapterName = req.url.split('/').pop();
 
                 await this.validateJsonConfig(adapterName.toLowerCase());
@@ -2145,7 +1862,7 @@ export default class Web {
             });
 
             // send log files
-            this.server.app.get('/log/*any', (req: Request, res: Response): void => {
+            this.server.app.get('/log/*any', this.eosTechnicalRouteGuard(false), (req: Request, res: Response): void => {
                 let parts = decodeURIComponent(req.url).split('/');
                 if (parts.length === 5) {
                     // remove first "/"
@@ -2169,7 +1886,7 @@ export default class Web {
                         result => {
                             const _result = result as { error?: string; data?: string; size?: number; gz?: boolean };
                             if (!_result || _result.error) {
-                                if (_result.error) {
+                                if (_result?.error) {
                                     this.adapter.log.warn(`Cannot read log file ${fileName}: ${_result.error}`);
                                 }
                                 res.status(404).send(get404Page(`File ${escapeHtml(fileName)} not found`));
@@ -2184,7 +1901,7 @@ export default class Web {
                                         } catch (e) {
                                             res.header('Content-Type', 'application/gzip');
                                             res.send(_result.data);
-                                            this.adapter.log.error(`Cannot extract file ${fileName}: ${e}`);
+                                            this.adapter.log.warn('Compressed log preview unavailable; original gzip returned.');
                                         }
                                     }
                                 } else if (_result.data === undefined || _result.data === null) {
@@ -2232,7 +1949,10 @@ export default class Web {
 
                             fileName = normalize(join(logFolder, fileName).replace(/\\/g, '/')).replace(/\\/g, '/');
 
-                            if (fileName.startsWith(logFolder) && existsSync(fileName)) {
+                            if (existsSync(fileName) && (() => {
+                                const rel = relative(realpathSync(logFolder), realpathSync(fileName));
+                                return !!rel && rel !== '..' && !rel.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`) && !isAbsolute(rel);
+                            })()) {
                                 const stat = lstatSync(fileName);
                                 // if a file is an archive
                                 if (fileName.toLowerCase().endsWith('.gz')) {
@@ -2244,13 +1964,13 @@ export default class Web {
                                         try {
                                             this.unzipFile(
                                                 fileName,
-                                                readFileSync(fileName, { encoding: 'utf-8' }),
+                                                readFileSync(fileName),
                                                 res,
                                             );
                                         } catch (e) {
                                             res.header('Content-Type', 'application/gzip');
                                             res.sendFile(fileName);
-                                            this.adapter.log.error(`Cannot extract file ${fileName}: ${e}`);
+                                            this.adapter.log.warn('Compressed log preview unavailable; original gzip returned.');
                                         }
                                     }
                                 } else if (stat.size > 2 * 1024 * 1024) {
@@ -2276,14 +1996,10 @@ export default class Web {
             }
 
             if (this.settings.tmpPathAllow && this.settings.tmpPath) {
-                this.server.app.use('/tmp/', express.static(this.settings.tmpPath, { maxAge: 0 }));
-                this.server.app.use(
-                    fileUpload({
-                        useTempFiles: true,
-                        tempFileDir: this.settings.tmpPath,
-                    }),
-                );
-                this.server.app.post('/upload', (req: Request, res: Response): void => {
+                this.server.app.use('/tmp/', this.eosTechnicalRouteGuard(true), express.static(this.settings.tmpPath, { maxAge: 0 }));
+                this.server.app.post('/upload', this.eosTechnicalRouteGuard(true, true),
+                    createUploadMiddleware(fileUpload, this.adapter.log) as any,
+                    (req: Request, res: Response): void => {
                     if (!req.files) {
                         res.status(400).send('No files were uploaded.');
                         return;
@@ -2300,19 +2016,17 @@ export default class Web {
                     }
 
                     if (myFile) {
-                        if (myFile.data && myFile.data.length > 600 * 1024 * 1024) {
+                        if (myFile.truncated || myFile.size > EOS_UPLOAD_MAX_BYTES) {
                             res.header('Content-Type', 'text/plain');
-                            res.status(500).send('File is too big. (Max 600MB)');
+                            res.status(413).send('File is too big. (Max 200MB)');
                             return;
                         }
-                        // Use the mv() method to place the file somewhere on your server
-                        myFile.mv(`${this.settings.tmpPath}/restore.iob`, err => {
-                            if (err) {
-                                res.status(500).send(escapeHtml(typeof err === 'string' ? err : JSON.stringify(err)));
-                            } else {
-                                res.header('Content-Type', 'text/plain');
-                                res.status(200).send('File uploaded!');
-                            }
+                        void storeRestoreUpload(req, myFile.tempFilePath, join(this.settings.tmpPath, 'restore.iob')).then(() => {
+                            if (req.aborted || res.destroyed || res.writableEnded) { return; }
+                            res.header('Content-Type', 'text/plain');
+                            res.status(200).send('File uploaded!');
+                        }).catch(() => {
+                            if (!req.aborted && !res.destroyed && !res.writableEnded) res.status(500).json({ error: 'uploadStoreFailed' });
                         });
                     } else {
                         res.header('Content-Type', 'text/plain');
@@ -2322,10 +2036,10 @@ export default class Web {
             }
 
             // Endpoint to upload adapter .tgz files for installation
-            const adapterUploadTmpDir = this.settings.tmpPath || tmpdir();
             this.server.app.post(
                 '/upload-adapter',
-                fileUpload({ useTempFiles: true, tempFileDir: adapterUploadTmpDir }) as any,
+                this.eosTechnicalRouteGuard(true, true),
+                createUploadMiddleware(fileUpload, this.adapter.log) as any,
                 (req: Request, res: Response): void => {
                     if (!req.files) {
                         res.status(400).json({ error: 'No files were uploaded.' });
@@ -2345,8 +2059,8 @@ export default class Web {
                         return;
                     }
 
-                    if (myFile.data && myFile.data.length > 600 * 1024 * 1024) {
-                        res.status(413).json({ error: 'File is too big. (Max 600MB)' });
+                    if (myFile.truncated || myFile.size > EOS_UPLOAD_MAX_BYTES) {
+                        res.status(413).json({ error: 'File is too big. (Max 200MB)' });
                         return;
                     }
 
@@ -2357,15 +2071,18 @@ export default class Web {
                     }
 
                     // Sanitize filename to prevent path traversal
-                    const sanitizedName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
-                    const targetPath = `${adapterUploadTmpDir}/${sanitizedName}`;
+                    const sanitizedName = `eos-${randomBytes(16).toString('hex')}.tgz`;
+                    const targetPath = join(getUploadDirectory(req), sanitizedName);
 
                     myFile.mv(targetPath, err => {
+                        if (req.aborted || res.destroyed || res.writableEnded) { return; }
                         if (err) {
                             res.status(500).json({
-                                error: escapeHtml(typeof err === 'string' ? err : JSON.stringify(err)),
+                                error: 'uploadStoreFailed',
                             });
                         } else {
+                            try { chmodSync(targetPath, 0o600); } catch { res.status(500).json({ error: 'uploadPermissionsFailed' }); return; }
+                            retainUpload(req);
                             res.json({ filePath: targetPath, fileName: sanitizedName });
                         }
                     });
@@ -2418,7 +2135,7 @@ export default class Web {
             }
 
             // reverse proxy with url rewrite for couchdb attachments in <adapter-name>.admin
-            this.server.app.use('/adapter/', (req: Request, res: Response): void => {
+            this.server.app.use('/adapter/', this.eosAuthenticatedRouteGuard(), (req: Request, res: Response): void => {
                 // Example: /example/?0&attr=1
                 let url: string;
                 try {
@@ -2490,7 +2207,7 @@ export default class Web {
                 }
 
                 // this.adapter.readFile is sanitized
-                this.adapter.readFile(id, url, null, (err, buffer, mimeType): void => {
+                this.adapter.readFile(id, url, { user: res.locals.eosAuthenticatedUser }, (err, buffer, mimeType): void => {
                     if (!buffer || err) {
                         res.contentType('text/html');
                         res.status(404).send(get404Page(`File ${escapeHtml(url)} not found`));
@@ -2510,110 +2227,41 @@ export default class Web {
                 });
             });
 
-            // reverse proxy with url rewrite for couchdb attachments in <adapter-name>
-            this.server.app.use('/files/', async (req: Request, res: Response): Promise<void> => {
-                // Example: /vis.0/main/img/image.png
-                let url: string;
+            // File reads have their own identity boundary; public asset suffixes never authorize DB files.
+            this.server.app.use('/files/', this.eosAuthenticatedRouteGuard(), async (req: Request, res: Response): Promise<void> => {
                 try {
-                    url = decodeURIComponent(req.url);
+                    const { namespace, filePath } = parseDbFileRequest(req.url);
+                    if (this.settings.accessLimit) {
+                        const instance = Number((req.url.split('?')[1] || '').match(/^\d+/)?.[0] || 0);
+                        const accessId = /\.\d+$/.test(namespace) ? namespace : `${namespace}.${instance}`;
+                        const configDenied = ['index.html', 'index_m.html'].includes(filePath)
+                            && !this.settings.accessAllowedConfigs.includes(accessId);
+                        const tabDenied = ['tab.html', 'tab_m.html'].includes(filePath)
+                            && !this.settings.accessAllowedTabs.includes(accessId);
+                        if (configDenied || tabDenied) { res.status(403).json({ error: 'permissionError' }); return; }
+                    }
+                    await serveDbFile({ adapter: this.adapter, req, res, namespace, filePath,
+                        user: res.locals.eosAuthenticatedUser });
                 } catch {
-                    // ignore
-                    url = req.url;
-                }
-
-                // add index.html
-                url = url.replace(/\/($|\?|#)/, '/index.html$1');
-
-                const parts = url.split('/');
-                // Skip first /files
-                parts.shift();
-                // Get ID
-                const adapterName = parts.shift();
-                url = parts.join('/');
-                const pos = url.indexOf('?');
-                let _instance = 0;
-                if (pos !== -1) {
-                    _instance = parseInt(url.substring(pos + 1), 10) || 0;
-                    url = url.substring(0, pos);
-                }
-
-                if (this.settings.accessLimit) {
-                    if (url === 'index.html' || url === 'index_m.html') {
-                        const anyConfig = this.settings.accessAllowedConfigs.includes(`${adapterName}.${_instance}`);
-                        if (!anyConfig) {
-                            res.contentType('text/html');
-                            res.status(403).send('You are not allowed to access this page');
-                            return;
-                        }
-                    }
-                    if (url === 'tab.html' || url === 'tab_m.html') {
-                        const anyTabs = this.settings.accessAllowedTabs.includes(`${adapterName}.${_instance}`);
-                        if (!anyTabs) {
-                            res.contentType('text/html');
-                            res.status(403).send('You are not allowed to access this page');
-                            return;
-                        }
-                    }
-                }
-
-                try {
-                    if (await this.adapter.fileExists(adapterName, url)) {
-                        const { mimeType, file } = await this.adapter.readFileAsync(adapterName, url);
-
-                        // special case for svg stored into logo.png
-                        if (url.endsWith('.png') && file.length < 30000) {
-                            const str = file.toString('utf8');
-                            if (str.startsWith('<svg') || str.startsWith('<xml') || str.startsWith('<?xml')) {
-                                // it is svg
-                                res.contentType('image/svg+xml');
-                                res.send(str);
-                                return;
-                            }
-                            res.contentType('image/png');
-                        } else {
-                            res.contentType(mimeType || 'text/javascript');
-                        }
-
-                        if (adapterName === this.adapter.namespace && url.startsWith('zip/')) {
-                            // special files, that can be read-only one time
-                            this.adapter.unlink(adapterName, url, (): void => {});
-                        }
-
-                        res.send(file);
-                    } else {
-                        const filesOfDir = await readFolderRecursive(this.adapter, adapterName, url);
-
-                        const archive = archiver('zip', {
-                            zlib: { level: 9 },
-                        });
-
-                        for (const file of filesOfDir) {
-                            archive.append(file.file, { name: file.name });
-                        }
-
-                        const zip: Buffer[] = [];
-
-                        archive.on('data', chunk => zip.push(chunk));
-
-                        await archive.finalize();
-
-                        res.contentType('application/zip');
-                        res.send(Buffer.concat(zip));
-                    }
-                } catch (e) {
-                    this.adapter.log.warn(`Cannot read file ("${adapterName}"/"${url}"): ${e.message}`);
-                    res.contentType('text/html');
-                    res.status(404).send(get404Page(`File ${escapeHtml(url)} not found`));
+                    if (!res.headersSent) res.status(400).json({ error: 'invalidFileRequest' });
+                    else res.destroy();
                 }
             });
 
             // handler for oauth2 redirects
-            this.server.app.use('/oauth2_callbacks/', (req: Request, res: Response): void => {
+            this.server.app.use('/oauth2_callbacks/', this.eosTechnicalRouteGuard(false), (req: Request, res: Response): void => {
+                res.setHeader('Cache-Control', 'no-store');
+                res.setHeader('X-Content-Type-Options', 'nosniff');
+                res.setHeader('Referrer-Policy', 'no-referrer');
+                res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'");
                 // extract instance from "http://localhost:8081/oauth2_callbacks/netatmo.0/?state=ABC&code=CDE"
                 const [_instance, params] = req.url.split('?');
                 const instance = _instance.replace(/^\//, '').replace(/\/$/, ''); // remove last and first "/" in "/netatmo.0/"
+                if (!/^[a-z0-9][a-z0-9_-]*\.\d+$/i.test(instance)) {
+                    res.status(400).json({ error: 'invalidCallbackTarget' }); return;
+                }
                 const query: Record<string, string | boolean | number> = {};
-                params.split('&').forEach(param => {
+                (params || '').split('&').forEach(param => {
                     const [key, value] = param.split('=');
                     query[key] = value === undefined ? true : value;
                     if (Number.isFinite(query[key])) {
@@ -2625,16 +2273,14 @@ export default class Web {
                     }
                 });
 
-                if ((query.timeout as number) > 30_000) {
-                    query.timeout = 30_000;
-                }
+                query.timeout = Math.max(100, Math.min(5_000, Number(query.timeout) || 5_000));
 
                 let timeout: NodeJS.Timeout = setTimeout(
                     (): void => {
                         if (timeout) {
                             timeout = null;
                             let text = readFileSync(`${this.baseDir}/public/oauthError.html`).toString('utf8');
-                            text = text.replace('%LANGUAGE%', this.systemLanguage);
+                            text = text.replace('%LANGUAGE%', ['en', 'de', 'es', 'fr', 'it', 'pl', 'nl', 'pt', 'ru', 'zh-CN'].includes(this.systemLanguage) ? this.systemLanguage : 'en');
                             text = text.replace('%ERROR%', 'TIMEOUT');
                             res.setHeader('Content-Type', 'text/html');
                             res.status(408).send(text);
@@ -2650,14 +2296,14 @@ export default class Web {
                         timeout = null;
                         if (_result?.error) {
                             let text = readFileSync(`${this.baseDir}/public/oauthError.html`).toString('utf8');
-                            text = text.replace('%LANGUAGE%', this.systemLanguage);
-                            text = text.replace('%ERROR%', _result.error);
+                            text = text.replace('%LANGUAGE%', ['en', 'de', 'es', 'fr', 'it', 'pl', 'nl', 'pt', 'ru', 'zh-CN'].includes(this.systemLanguage) ? this.systemLanguage : 'en');
+                            text = text.replace('%ERROR%', () => escapeHtml(String(_result.error).slice(0, 4096)));
                             res.setHeader('Content-Type', 'text/html');
                             res.status(500).send(text);
                         } else {
                             let text = readFileSync(`${this.baseDir}/public/oauthSuccess.html`).toString('utf8');
-                            text = text.replace('%LANGUAGE%', this.systemLanguage);
-                            text = text.replace('%MESSAGE%', _result?.result || '');
+                            text = text.replace('%LANGUAGE%', ['en', 'de', 'es', 'fr', 'it', 'pl', 'nl', 'pt', 'ru', 'zh-CN'].includes(this.systemLanguage) ? this.systemLanguage : 'en');
+                            text = text.replace('%MESSAGE%', () => escapeHtml(String(_result?.result || '').slice(0, 4096)));
                             res.setHeader('Content-Type', 'text/html');
                             res.status(200).send(text);
                         }
@@ -2689,6 +2335,10 @@ export default class Web {
                 return;
             }
 
+            // Node's deadline protects incomplete headers/body in addition to the per-upload deadline.
+            this.server.server.headersTimeout = 15000;
+            this.server.server.requestTimeout = 60000;
+            this.server.server.maxHeadersCount = 100;
             this.server.server.__server = this.server;
         } else {
             this.adapter.log.error('port missing');
@@ -2737,27 +2387,7 @@ export default class Web {
             serverPort = this.settings.port;
 
             if (!this.settings.disableMcp) {
-                // Start MCP server
-                this.mcpServer = new McpServer(
-                    this.server.server,
-                    {
-                        defaultUser: this.settings.defaultUser,
-                        auth: false,
-                        language: systemConfig.common.language,
-                    },
-                    this.adapter,
-                    // Run as a web extension on admin's own web server: a minimal instance object puts
-                    // the MCP routes under `/mcp/` and feeds the config via `native` (see McpServer).
-                    {
-                        _id: 'system.adapter.mcp',
-                        native: {
-                            defaultUser: this.settings.defaultUser,
-                            auth: false,
-                            language: systemConfig.common.language,
-                        } as McpAdapterConfig,
-                    } as unknown as ioBroker.InstanceObject,
-                    this.server.app,
-                );
+                this.adapter.log.warn('External MCP is disabled by the EOS security profile until its authentication and authorization boundary is verified.');
             }
 
             this.adapter.getPort(

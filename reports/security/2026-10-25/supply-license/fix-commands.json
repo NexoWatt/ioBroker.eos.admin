@@ -1,0 +1,26 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "test/eos-release-admission.test.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T15:03:59.472920+00:00",
+    "finishedUtc": "2026-10-25T15:04:00.153451+00:00",
+    "exitCode": 0,
+    "log": "fixed-release-admission-tests.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check:eos-production-release"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T15:04:00.153503+00:00",
+    "finishedUtc": "2026-10-25T15:04:00.634021+00:00",
+    "exitCode": 1,
+    "log": "fixed-production-admission.log"
+  }
+]

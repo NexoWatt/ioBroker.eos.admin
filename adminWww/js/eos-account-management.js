@@ -19,8 +19,8 @@
             introInstaller: 'Du kannst Endkundenzugänge zurücksetzen. Admin- und Installateurzugänge bleiben NexoWatt Service vorbehalten.',
             loading: 'Zugänge werden geladen …', empty: 'Keine passenden Konten gefunden.', close: 'Schließen', refresh: 'Aktualisieren',
             installer: 'Installateur', enduser: 'Endkunde / Gast', active: 'Passwort aktiv', first: 'Erstanmeldung offen', disabled: 'Deaktiviert',
-            reset: 'Passwort zurücksetzen', resetting: 'Wird zurückgesetzt …', resetConfirm: name => `Soll der Zugang „${name}“ wirklich zurückgesetzt werden? Das bisherige Passwort wird ungültig. Danach gilt einmalig das Startpasswort „nexowatt“ und beim nächsten Login muss sofort ein persönliches Passwort vergeben werden.`,
-            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Einmalig mit dem Startpasswort „nexowatt“ anmelden und anschließend direkt ein persönliches Passwort festlegen.`,
+            reset: 'Passwort zurücksetzen', resetting: 'Wird zurückgesetzt …', resetConfirm: name => `Soll der Zugang „${name}“ wirklich zurückgesetzt werden? Das bisherige Passwort wird ungültig. Es wird ein neues zufälliges Startpasswort erzeugt und einmalig angezeigt. Beim nächsten Login muss ein persönliches Passwort vergeben werden.`,
+            resetDone: name => `Der Zugang „${name}“ ist zurückgesetzt. Dieses zufällige Startpasswort sicher weitergeben; beim nächsten Login muss ein persönliches Passwort festgelegt werden:`,
             resetFailed: 'Der Zugang konnte nicht zurückgesetzt werden.', permissionError: 'Für dieses Konto ist das Zurücksetzen nicht erlaubt.', originError: 'Die Sicherheitsprüfung der Anfrage ist fehlgeschlagen. Seite mit Strg+F5 neu laden.', disabledError: 'Das Konto ist deaktiviert und kann nicht zurückgesetzt werden.', notFoundError: 'Das Konto wurde nicht gefunden.', writeError: 'Das neue Startpasswort konnte nicht in das Benutzerkonto geschrieben werden.', lastSet: 'Letzte Passwortvergabe', lastReset: 'Letzter Reset', by: 'durch',
             security: 'Admin/Service darf Installateur und Endkunde zurücksetzen. Installateure dürfen ausschließlich Endkunden zurücksetzen.',
         },
@@ -30,8 +30,8 @@
             introInstaller: 'You may reset end-user accounts. Admin and installer accounts remain reserved for NexoWatt Service.',
             loading: 'Loading accounts …', empty: 'No matching accounts found.', close: 'Close', refresh: 'Refresh',
             installer: 'Installer', enduser: 'End user / Guest', active: 'Password active', first: 'First activation open', disabled: 'Disabled',
-            reset: 'Reset password', resetting: 'Resetting …', resetConfirm: name => `Reset account “${name}”? The current password becomes invalid. Sign in once with the initial password “nexowatt”, then create a personal password immediately.`,
-            resetDone: name => `Account “${name}” was reset. Sign in once with “nexowatt” and then create a personal password.`,
+            reset: 'Reset password', resetting: 'Resetting …', resetConfirm: name => `Reset account “${name}”? The current password becomes invalid. A random temporary password will be shown once. A personal password is required at the next login.`,
+            resetDone: name => `Account “${name}” was reset. Share this temporary password securely; a personal password is required at the next login:`,
             resetFailed: 'The account could not be reset.', permissionError: 'Reset is not permitted for this account.', originError: 'The request security check failed. Reload the page with Ctrl+F5.', disabledError: 'The account is disabled and cannot be reset.', notFoundError: 'The account was not found.', writeError: 'The initial password could not be written to the user account.', lastSet: 'Last password setup', lastReset: 'Last reset', by: 'by',
             security: 'Admin/Service may reset installer and end-user accounts. Installers may reset end-user accounts only.',
         },
@@ -41,8 +41,8 @@
             introInstaller: 'Je kunt eindgebruikersaccounts resetten. Admin- en installateurstoegang blijft voor NexoWatt Service.',
             loading: 'Toegangen worden geladen …', empty: 'Geen passende accounts gevonden.', close: 'Sluiten', refresh: 'Vernieuwen',
             installer: 'Installateur', enduser: 'Eindgebruiker / Guest', active: 'Wachtwoord actief', first: 'Eerste activering open', disabled: 'Uitgeschakeld',
-            reset: 'Wachtwoord resetten', resetting: 'Wordt gereset …', resetConfirm: name => `Account „${name}“ resetten? Het huidige wachtwoord wordt ongeldig. Meld één keer aan met het startwachtwoord „nexowatt“ en stel daarna direct een persoonlijk wachtwoord in.`,
-            resetDone: name => `Account „${name}“ is gereset. Meld één keer aan met „nexowatt“ en stel daarna een persoonlijk wachtwoord in.`,
+            reset: 'Wachtwoord resetten', resetting: 'Wordt gereset …', resetConfirm: name => `Account „${name}“ resetten? Het huidige wachtwoord wordt ongeldig. Een willekeurig tijdelijk wachtwoord wordt eenmaal getoond. Stel bij de volgende aanmelding een persoonlijk wachtwoord in.`,
+            resetDone: name => `Account „${name}“ is gereset. Deel dit tijdelijke wachtwoord veilig; stel bij de volgende aanmelding een persoonlijk wachtwoord in:`,
             resetFailed: 'Het account kon niet worden gereset.', permissionError: 'Resetten is voor dit account niet toegestaan.', originError: 'De veiligheidscontrole van het verzoek is mislukt. Herlaad de pagina met Ctrl+F5.', disabledError: 'Het account is uitgeschakeld en kan niet worden gereset.', notFoundError: 'Het account werd niet gevonden.', writeError: 'Het startwachtwoord kon niet naar het gebruikersaccount worden geschreven.', lastSet: 'Laatste wachtwoordinstelling', lastReset: 'Laatste reset', by: 'door',
             security: 'Admin/service mag installateur- en eindgebruikersaccounts resetten. Installateurs alleen eindgebruikers.',
         },
@@ -150,7 +150,7 @@
         const reset = document.createElement('button');
         reset.type = 'button'; reset.className = 'eos-account-reset'; reset.textContent = t().reset;
         const mayReset = account.role === 'enduser' || data.canResetInstaller === true;
-        reset.disabled = !mayReset || account.enabled === false;
+        reset.disabled = !mayReset || (account.enabled === false && !(account.migrationDisabled && state.role === 'admin'));
         reset.addEventListener('click', async () => {
             const label = account.displayName || account.userName;
             if (!window.confirm(t().resetConfirm(label))) return;
@@ -163,8 +163,8 @@
                 });
                 const payload = await response.json().catch(() => ({}));
                 if (!response.ok || payload.error) throw new Error(accountErrorText(payload.error));
-                setStatus(t().resetDone(label), 'success');
                 await loadAccounts();
+                setStatus(`${t().resetDone(label)} ${payload.temporaryPassword || ''}`, 'success');
             } catch (error) {
                 reset.disabled = false; reset.textContent = t().reset;
                 setStatus(error?.message || t().resetFailed, 'error');

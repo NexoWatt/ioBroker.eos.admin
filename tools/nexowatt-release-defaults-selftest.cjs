@@ -13,7 +13,7 @@ const unsafe = {
         eosHideLegacyAdminFromNonAdmins: false,
         eosHideLegacyBackupFromNonAdmins: false,
         nexowattHideLegacyBackupFromNonAdmins: false,
-        eosRequireFirstLoginPassword: true,
+        eosRequireFirstLoginPassword: false,
     },
 };
 const repaired = ensureReleaseDefaults(unsafe);

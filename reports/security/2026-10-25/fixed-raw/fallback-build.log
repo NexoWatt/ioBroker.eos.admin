@@ -1,0 +1,5 @@
+fallback-emitted: 13 scoped outputs; CommonJS noInterop; Node v24.22.1
+Full TypeScript check, normal build and live integration remain open.
+
+(node:6) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

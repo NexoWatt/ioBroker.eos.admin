@@ -18,7 +18,15 @@ try {
   fs.mkdirSync(path.join(temp, 'build', 'lib'), { recursive: true });
   fs.mkdirSync(path.join(temp, 'tools'), { recursive: true });
   fs.writeFileSync(path.join(temp, 'NEXOWATT_EOS_BUILD_INFO.json'), JSON.stringify({ runtimeEntry: 'v82', shellCacheVersion: 98 }));
-  fs.writeFileSync(path.join(temp, 'package.json'), JSON.stringify({ name: 'iobroker.eos-admin', version: '7.10.9' }));
+  fs.writeFileSync(path.join(temp, 'package.json'), JSON.stringify({
+    name: 'iobroker.eos-admin', version: '7.10.10',
+    files: ['tools/nexowatt-v7109-clean-core-selftest.cjs'],
+    scripts: {
+      regression: 'node ./tools/nexowatt-v7108-script-kept-selftest.cjs && node "tools/nexowatt-v7107-quoted-kept-selftest.cjs"',
+      windows: 'node .\\tools\\nexowatt-v7106-windows-kept-selftest.cjs',
+      unrelated: 'node tools/nexowatt-v7105-ghost-selftest.cjs.backup',
+    },
+  }));
 
   const keep = [
     'adminWww/assets/bootstrap-current-v82.js',
@@ -29,6 +37,10 @@ try {
     'src-admin/public/static/js/nexowatt-stable-v98.js',
     'adminWww/static/js/nexowatt-stable-login.js',
     'tools/nexowatt-v7109-clean-core-selftest.cjs',
+    'tools/nexowatt-v71010-current-selftest.cjs',
+    'tools/nexowatt-v7108-script-kept-selftest.cjs',
+    'tools/nexowatt-v7107-quoted-kept-selftest.cjs',
+    'tools/nexowatt-v7106-windows-kept-selftest.cjs',
   ];
   const remove = [
     'adminWww/assets/bootstrap-old-v54.js',
@@ -44,6 +56,7 @@ try {
     'src-admin/nexowatt-role-security.js',
     'build/lib/eosRoleSecurity.js',
     'tools/nexowatt-v7108-ui-foundation-selftest.cjs',
+    'tools/nexowatt-v7105-ghost-selftest.cjs',
   ];
   for (const rel of [...keep, ...remove]) {
     const file = path.join(temp, rel);
@@ -54,10 +67,11 @@ try {
   const result = cleanLegacyRuntime({ root: temp, quiet: true, silent: true });
   assert.strictEqual(result.activeRuntime, 82);
   assert.strictEqual(result.activeShell, 98);
-  assert.strictEqual(result.activeRelease, 7109);
+  assert.strictEqual(result.activeRelease, 71010);
   assert.strictEqual(result.removed.length, remove.length);
   for (const rel of keep) assert.ok(fs.existsSync(path.join(temp, rel)), `current runtime removed: ${rel}`);
   for (const rel of remove) assert.ok(!fs.existsSync(path.join(temp, rel)), `legacy file remained: ${rel}`);
+  assert.strictEqual(cleanLegacyRuntime({ root: temp, quiet: true, silent: true }).removed.length, 0, 'cleanup must remain idempotent');
   console.log('[NexoWatt EOS runtime cleanup selftest] OK');
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });

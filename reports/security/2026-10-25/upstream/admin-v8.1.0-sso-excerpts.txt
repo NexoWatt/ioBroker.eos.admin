@@ -1,0 +1,61 @@
+Source: https://github.com/ioBroker/ioBroker.admin/blob/v8.1.0/src/lib/web.ts
+
+314:      *
+315:      * Only a complete configuration is handed over. Without it, the webserver does not register the
+316:      * SSO routes at all, and the login page does not offer the button.
+317:      */
+318:     getOidcConfig(): OidcConfig | undefined {
+319:         if (!this.adapter.config.ssoActive) {
+320:             return undefined;
+321:         }
+322: 
+323:         const issuer = (this.adapter.config.oidcIssuer || '').trim();
+324:         const clientId = (this.adapter.config.oidcClientId || '').trim();
+325: 
+326:         if (!issuer || !clientId) {
+327:             this.adapter.log.warn(
+328:                 'Single sign-on is switched on, but the issuer or the client ID of the identity provider is missing. SSO stays off.',
+329:             );
+330:             return undefined;
+331:         }
+332: 
+333:         return {
+334:             issuer,
+335:             clientId,
+336:             clientSecret: this.adapter.config.oidcClientSecret || undefined,
+337:             scope: (this.adapter.config.oidcScope || '').trim() || undefined,
+338:         };
+339:     }
+
+756:             if (this.settings.auth) {
+757:                 AdapterStore = commonTools.session(session, this.settings.ttl);
+758:                 this.store = new AdapterStore({ adapter: this.adapter });
+759: 
+760:                 this.server.app.use(cookieParser());
+761:                 this.server.app.use(bodyParser.urlencoded({ extended: true }));
+762:                 this.server.app.use(bodyParser.json());
+763: 
+764:                 this.oauth2Model = createOAuth2Server(this.adapter, {
+765:                     app: this.server.app,
+766:                     oidc: this.getOidcConfig(),
+767:                     secure: this.settings.secure,
+768:                     accessLifetime: this.settings.ttl,
+769:                     refreshLifetime: this.settings.refreshTokenTtlDays * 24 * 60 * 60,
+770:                     noBasicAuth: this.settings.noBasicAuth,
+771:                     loginPage: (req: Request): string => {
+772:                         const isDev = req.url.includes('?dev');
+773:                         let origin = req.url.split('origin=')[1];
+774:                         if (origin) {
+775:                             const pos = origin.lastIndexOf('/');
+776:                             if (pos !== -1) {
+777:                                 origin = origin.substring(0, pos);
+778:                             }
+779:                         }
+780: 
+781:                         if (isDev) {
+782:                             return 'http://127.0.0.1:3000/index.html?login';
+783:                         }
+784: 
+785:                         return origin ? `${origin}/index.html?login` : this.loginPage;
+786:                     },
+787:                 });

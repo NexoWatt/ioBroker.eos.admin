@@ -152,6 +152,7 @@
                 <div class="eos-first-login-account"><span></span><strong></strong></div>
                 <form novalidate>
                     <input name="username" type="text" autocomplete="username" hidden />
+                    <label><span class="current-password-label"></span><input name="currentPassword" type="password" autocomplete="current-password" maxlength="128" required /></label>
                     <label><span class="password-label"></span><input name="password" type="password" autocomplete="new-password" maxlength="128" required /></label>
                     <label><span class="repeat-label"></span><input name="passwordRepeat" type="password" autocomplete="new-password" maxlength="128" required /></label>
                     <label class="eos-first-login-show"><input name="show" type="checkbox" /><span></span></label>
@@ -166,6 +167,7 @@
         overlay.querySelector('.eos-first-login-intro').textContent = t.intro;
         overlay.querySelector('.eos-first-login-account span').textContent = `${t.account}:`;
         overlay.querySelector('.eos-first-login-account strong').textContent = userName;
+        overlay.querySelector('.current-password-label').textContent = ({ de: 'Aktuelles / temporäres Passwort', en: 'Current / temporary password', nl: 'Huidig / tijdelijk wachtwoord' })[language()];
         overlay.querySelector('.password-label').textContent = t.password;
         overlay.querySelector('.repeat-label').textContent = t.repeat;
         overlay.querySelector('.eos-first-login-show span').textContent = t.show;
@@ -174,6 +176,7 @@
         overlay.querySelector('.eos-first-login-logout').textContent = t.logout;
         const form = overlay.querySelector('form');
         form.elements.username.value = userName;
+        const currentPassword = form.elements.currentPassword;
         const password = form.elements.password;
         const repeat = form.elements.passwordRepeat;
         const show = form.elements.show;
@@ -186,7 +189,7 @@
         });
         form.addEventListener('submit', async event => {
             event.preventDefault();
-            if (!password.value || !repeat.value) return setStatus(t.required, 'error');
+            if (!currentPassword.value || !password.value || !repeat.value) return setStatus(t.required, 'error');
             if (password.value !== repeat.value) return setStatus(t.mismatch, 'error');
             if (password.value.length < minLength) return setStatus(t.length(minLength), 'error');
             if (!/[a-z]/.test(password.value) || !/[A-Z]/.test(password.value) || !/\d/.test(password.value) || !/[^A-Za-z0-9]/.test(password.value)) return setStatus(t.complexity, 'error');
@@ -195,11 +198,11 @@
                 const response = await fetch(endpoint, {
                     method: 'POST', credentials: 'include', cache: 'no-store',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-NexoWatt-EOS-First-Login': '1' },
-                    body: JSON.stringify({ password: password.value, passwordRepeat: repeat.value }),
+                    body: JSON.stringify({ currentPassword: currentPassword.value, password: password.value, passwordRepeat: repeat.value }),
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || data.error) {
-                    const messages = { passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, passwordSetupNotAllowed: t.generic, invalidRequestOrigin: t.generic, passwordApiUnavailable: t.generic, passwordWriteFailed: t.generic, passwordVerificationFailed: t.generic, userObjectUnavailableAfterPasswordChange: t.generic };
+                    const messages = { currentPasswordRequired: t.required, currentPasswordInvalid: ({ de: 'Das aktuelle / temporäre Passwort ist falsch.', en: 'The current / temporary password is incorrect.', nl: 'Het huidige / tijdelijke wachtwoord is onjuist.' })[language()], passwordRequired: t.required, passwordMismatch: t.mismatch, passwordLength: t.length(minLength), passwordComplexity: t.complexity, passwordTooEasy: t.easy, passwordSetupNotAllowed: t.generic, invalidRequestOrigin: t.generic, passwordApiUnavailable: t.generic, passwordWriteFailed: t.generic, passwordVerificationFailed: t.generic, userObjectUnavailableAfterPasswordChange: t.generic };
                     throw new Error(messages[data.error] || t.generic);
                 }
                 setStatus(t.success, 'success');
@@ -209,7 +212,7 @@
                 setStatus(error?.message || t.generic, 'error');
             }
         });
-        window.setTimeout(() => password.focus(), 0);
+        window.setTimeout(() => currentPassword.focus(), 0);
     };
 
     const showPasswordlessClaimPassword = (claim, base) => {
@@ -649,6 +652,10 @@
             window.NEXOWATT_EOS_BOOTSTRAP_POLICY = resolved;
             window.NEXOWATT_EOS_ACCESS_ROLE = role;
             try { window.sessionStorage.removeItem('NEXOWATT_EOS_SECURITY_RETRY_COUNT'); } catch (_) { /* ignore */ }
+            if (resolved.mustChangePassword === true) {
+                showFirstLoginPassword(resolved, base);
+                return resolved;
+            }
             lockExpertMode(role);
             const route = currentRoute();
             if (!isAllowed(role, route)) navigate(defaultTab(role));

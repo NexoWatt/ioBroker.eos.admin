@@ -1,0 +1,5 @@
+(node:6) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"name":"pinned-v1.4.0-authorize-no-credentials","nextCalled":true,"userSet":false}
+{"name":"pinned-v1.4.0-authorize-user-pass-query","authenticated":true,"noBasicAuthSetting":true,"sessionWrapper":"original shipped EosSessionSecurity"}
+Model fixture + real shipped session wrapper; controller DB/password API simulated, no HTTP server.

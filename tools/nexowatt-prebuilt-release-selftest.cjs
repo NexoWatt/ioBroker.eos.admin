@@ -18,6 +18,8 @@ const trackedRoots = [
     'admin',
     'public',
     'tools',
+    'packages/eos-license-client',
+    'test',
 ];
 const trackedFiles = [
     'tasks.mts',
@@ -25,7 +27,7 @@ const trackedFiles = [
     'tsconfig.build.json',
 ];
 const expectedPrepublishOnly =
-    'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
+    'npm run sync:eos-version && npm run check:eos-production-release && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
 const expectedPrepack =
     'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
 
@@ -218,8 +220,16 @@ function verifyLifecycle(failures) {
     const pkg = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
     const scripts = pkg.scripts || {};
     if (scripts.prepublishOnly !== expectedPrepublishOnly) {
-        failures.push('prepublishOnly is not the canonical dependency-free direct-publish workflow');
+        failures.push('prepublishOnly must run the real production admission before release preparation');
     }
+    if (scripts['check:eos-production-release'] !== 'node tools/nexowatt-lock-provenance-check.cjs') {
+        failures.push('production admission must inspect the actual lockfiles, not only test the checker');
+    }
+    if (scripts['check:eos-release'] !== 'npm run check:eos-production-release && npm run check:eos-package && npm run check:eos-stability && npm pack --dry-run') {
+        failures.push('check:eos-release must stop on blocked production admission');
+    }
+    // Packaging an integration candidate is distinct from authorizing publication.
+    // Keep prepack available while the actual production admission is BLOCKED.
     if (scripts.prepack !== expectedPrepack) {
         failures.push('prepack is not the canonical dependency-free prebuilt-artifact verifier');
     }
@@ -262,6 +272,7 @@ function verifyLifecycle(failures) {
     }
     for (const required of [
         'tools/nexowatt-prebuilt-release-selftest.cjs',
+        'tools/nexowatt-lock-provenance-check.cjs',
         'NEXOWATT_EOS_PREBUILT_MANIFEST.json',
     ]) {
         if (!packageFiles.has(required)) failures.push(`package.json files is missing ${required}`);

@@ -1,0 +1,356 @@
+{
+  "utc": "2026-10-25T15:10:09.697577+00:00",
+  "mode": "scoped frontend runtime cache bust",
+  "runtimeBefore": "v84",
+  "runtimeAfter": "v85",
+  "renamedModules": 21,
+  "baselineNote": "v84 source tree already includes the news evaluator patch; separate news-frontend-patch.json records that change",
+  "constraints": [
+    "No full frontend build claimed",
+    "No web.ts edits",
+    "No package version edits",
+    "No manifest reseal"
+  ],
+  "changes": [
+    {
+      "pathBefore": "adminWww/assets/AdapterUpdateDialog-BMg84Hpf-v84.js",
+      "pathAfter": "adminWww/assets/AdapterUpdateDialog-BMg84Hpf-v85.js",
+      "sha256Before": "ffb2d0e2b3a67090d8d87cafa61fe2c03af3355b1be3d346bb2c2709cebcd263",
+      "sha256After": "22c9fa10ad2bbef2407a1b64127562a68bc1b83e5ea9c10bf07eecc1cb0e25d4",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/AdapterUpdateDialog-BMg84Hpf.js",
+      "pathAfter": "adminWww/assets/AdapterUpdateDialog-BMg84Hpf.js",
+      "sha256Before": "ffb2d0e2b3a67090d8d87cafa61fe2c03af3355b1be3d346bb2c2709cebcd263",
+      "sha256After": "22c9fa10ad2bbef2407a1b64127562a68bc1b83e5ea9c10bf07eecc1cb0e25d4",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Adapters-B5_jQ7DE-v84.js",
+      "pathAfter": "adminWww/assets/Adapters-B5_jQ7DE-v85.js",
+      "sha256Before": "dbd5c17decc51aed79828bb5e063ca0c03c9226690388072adc0268886d43ff4",
+      "sha256After": "a428b4b9601f212d3160ce715481471663afbd89f8d16273f9e2d06017bd7f8b",
+      "references": 3
+    },
+    {
+      "pathBefore": "adminWww/assets/Adapters-B5_jQ7DE.js",
+      "pathAfter": "adminWww/assets/Adapters-B5_jQ7DE.js",
+      "sha256Before": "4d16e2594562e98a43fae9621e0cb4a771bee421166bcf2ceddf91d0ea887f72",
+      "sha256After": "dbb7820c82cdb7f425e8575325484fa6f2efcea0d45a72141b3d2a3e742364f2",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Config-hHK2UzGP-v84.js",
+      "pathAfter": "adminWww/assets/Config-hHK2UzGP-v85.js",
+      "sha256Before": "ffe7277163070afd4837e4d488fc3b3b9eb7ced808e4389edce4c919d0244688",
+      "sha256After": "5c00736a2d1a98d5f95b1ff4c6f2beabb3751ad5dfbf9cec7c3bf4140e644071",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Config-hHK2UzGP.js",
+      "pathAfter": "adminWww/assets/Config-hHK2UzGP.js",
+      "sha256Before": "ffe7277163070afd4837e4d488fc3b3b9eb7ced808e4389edce4c919d0244688",
+      "sha256After": "5c00736a2d1a98d5f95b1ff4c6f2beabb3751ad5dfbf9cec7c3bf4140e644071",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/CustomTab-B0wqoazH-v84.js",
+      "pathAfter": "adminWww/assets/CustomTab-B0wqoazH-v85.js",
+      "sha256Before": "c4191eb3bd686bcb878508e94eea234dfccf9a6ed4cdfdb34d05f44b31dcde4d",
+      "sha256After": "e3a2d1639230823794fbbd5fc49b068e2e17d5a18b510ab57b2df6d587b0e88b",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/CustomTab-B0wqoazH.js",
+      "pathAfter": "adminWww/assets/CustomTab-B0wqoazH.js",
+      "sha256Before": "60d8dadcdc9ee1bc67317a8eda58b58e8aa157665dba43bc5ef994b18c16c0c4",
+      "sha256After": "a4656cf25701ba0d163c52105af296f187e229c88401b2654871385a74606bbd",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/DeviceManager-BFmQeYQ1-v84.js",
+      "pathAfter": "adminWww/assets/DeviceManager-BFmQeYQ1-v85.js",
+      "sha256Before": "869a75dfa305cb3f4f9717ef5210c5a70a7ff13ca6173ca7072b2623bbb54670",
+      "sha256After": "e778c13fa1b597711fb56d6c118c683605acb1831ce3a18985564e3c6d46edf5",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/DeviceManager-BFmQeYQ1.js",
+      "pathAfter": "adminWww/assets/DeviceManager-BFmQeYQ1.js",
+      "sha256Before": "3b20b1c6efaf68c18dfcd7da744fd3a550e6e61a22542647ac4525393c05253a",
+      "sha256After": "897ed94d8092866b1d49c83cca5475250fbbbdba64db720bdda872b2b6535afb",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/EasyMode-B1d9Vdc4-v84.js",
+      "pathAfter": "adminWww/assets/EasyMode-B1d9Vdc4-v85.js",
+      "sha256Before": "71748d295fe9545bf1fc92b45137a5732c4e39d07318f5f2d8953d8f677a304a",
+      "sha256After": "8f44e0c18137fb720d8eccb3d47e669202c8b8ff7fe640f69b5627aca9ab238c",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/assets/EasyMode-B1d9Vdc4.js",
+      "pathAfter": "adminWww/assets/EasyMode-B1d9Vdc4.js",
+      "sha256Before": "d995a022fc81799b03e16c3259c59ce2158f66d094a06ddbc513c2913951c8cf",
+      "sha256After": "6dcfb8e03a5ded03d3010d7febf630b5c38903827c3ff7fec5152b677e54190f",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Enums-DbWYxKOo-v84.js",
+      "pathAfter": "adminWww/assets/Enums-DbWYxKOo-v85.js",
+      "sha256Before": "8a3ac02a111ede6b879b54279e53aef5532cd883da2c2459db6e5da7618892a5",
+      "sha256After": "f30fa0b36b7982dafbd6584dd130a76f14597f7f1850069c9f6954755585a215",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/assets/Enums-DbWYxKOo.js",
+      "pathAfter": "adminWww/assets/Enums-DbWYxKOo.js",
+      "sha256Before": "02d04502b4956df3e6b5eb43c679c723a853f35c39d091e979720ea936f550d8",
+      "sha256After": "a8afad13a56f36f122ca234d33307b8e739aaec10cdffb3eb28811a99b672982",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Fields-CX3rKuWb-v84.js",
+      "pathAfter": "adminWww/assets/Fields-CX3rKuWb-v85.js",
+      "sha256Before": "7322f127e7cb888fa720a8d81f3a63e45b4efd8fea373e3adc6a969a4d4032b4",
+      "sha256After": "9aa915a00ba9a091e0b88571cffee8f16de85009ef3d11534f327ac247dcd7c0",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Fields-CX3rKuWb.js",
+      "pathAfter": "adminWww/assets/Fields-CX3rKuWb.js",
+      "sha256Before": "7322f127e7cb888fa720a8d81f3a63e45b4efd8fea373e3adc6a969a4d4032b4",
+      "sha256After": "9aa915a00ba9a091e0b88571cffee8f16de85009ef3d11534f327ac247dcd7c0",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Files-Cd2HOzIE-v84.js",
+      "pathAfter": "adminWww/assets/Files-Cd2HOzIE-v85.js",
+      "sha256Before": "8f8dfdc9bd539eb5a2784e156406df86d2d45d2e11aa549b86a4e565ae47805d",
+      "sha256After": "d79bf4afbb9c15dae3495849d58d496332e8dd7df559617a745fb38b97db20ac",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Files-Cd2HOzIE.js",
+      "pathAfter": "adminWww/assets/Files-Cd2HOzIE.js",
+      "sha256Before": "64c8b83a5c60c0bb705c810001cc9c537e616b8415e772073b4983aed96e131e",
+      "sha256After": "6a1efd1bfee80be82204278b79efa7da82b22b04329ccf4fc80a9cfad42b39f7",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Hosts-Bg8QzW5i-v84.js",
+      "pathAfter": "adminWww/assets/Hosts-Bg8QzW5i-v85.js",
+      "sha256Before": "432bca21251a4017157ba5bbf2c7767d7eaa3aec189a29165be40e702eb2060e",
+      "sha256After": "6d11813be3118f7c9cf061f48c7b987bbe02fd1791b1feccfcdffbcd51806c70",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/assets/Hosts-Bg8QzW5i.js",
+      "pathAfter": "adminWww/assets/Hosts-Bg8QzW5i.js",
+      "sha256Before": "34bc624a05ad7bc63bfd951869affb990ab94e4caad718f08a45ede63400d6ad",
+      "sha256After": "ea36017bdef50aa4662110868f882dcb3c616548a296d4a57e649df899487d08",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Instances-YdaGnS5a-v84.js",
+      "pathAfter": "adminWww/assets/Instances-YdaGnS5a-v85.js",
+      "sha256Before": "de9672fd123e971461d5ced6cc6172d5df262e3d59419e309c2a780d9a5aa5e6",
+      "sha256After": "72a91d4ffdec25a7d8456a2fc2c2d812ec68488199cb82bcf2b2b832497f9c62",
+      "references": 3
+    },
+    {
+      "pathBefore": "adminWww/assets/Instances-YdaGnS5a.js",
+      "pathAfter": "adminWww/assets/Instances-YdaGnS5a.js",
+      "sha256Before": "fb6664cc29046169ce0a152c74017d4f9b57099f12cf0b96a3653afd03fed888",
+      "sha256After": "2d24d532e6bfab0321c27a614cd41daa97acbf4c1aa50f6d25439c423e794f23",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Intro-DkwRiz1n-v84.js",
+      "pathAfter": "adminWww/assets/Intro-DkwRiz1n-v85.js",
+      "sha256Before": "b35253da6aad0428f8f8aebaba7803e82665f955fcbfe3d0a7a649af24a53cbe",
+      "sha256After": "70ea7ce62558b2bb7fdc45f569851f569003026898823443025f449c8309d660",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Intro-DkwRiz1n.js",
+      "pathAfter": "adminWww/assets/Intro-DkwRiz1n.js",
+      "sha256Before": "b1d3030eef7bc26940993111f6491b64899bd5b795c5172e2d1555f7c414c1e8",
+      "sha256After": "afbfd1df32fb25f0206d08cc23086ee8e1848cb6f607f73d2be08d6e22aa1c05",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Logs-CsVPSLJH-v84.js",
+      "pathAfter": "adminWww/assets/Logs-CsVPSLJH-v85.js",
+      "sha256Before": "e940066f496a487362f702531f2d5486edaf6328c84517aaf189d0601f82164c",
+      "sha256After": "16a6f23f462f39cb117ac961ffd0ac520faea7f9c8607b2b9833e6b507e575c3",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Logs-CsVPSLJH.js",
+      "pathAfter": "adminWww/assets/Logs-CsVPSLJH.js",
+      "sha256Before": "b01da23de08ba88c9a32a896f6c5b15a9fb76ddd606848430b8d89b21d1a58af",
+      "sha256After": "d196515c5b7251197bf8cddb0ae5a27d5d76502a54b50a41b85bbaf93d0a79a1",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Objects-DPan0bzw-v84.js",
+      "pathAfter": "adminWww/assets/Objects-DPan0bzw-v85.js",
+      "sha256Before": "46afe78c843ffa1849f15fd4c92c89ca7bd349c1a6927906a5f38e2178d07ee4",
+      "sha256After": "9dbcbde62c39aa3f7d93666e8e3295580b93d9dc653ca0f5cd9a5647385d3f0d",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Objects-DPan0bzw.js",
+      "pathAfter": "adminWww/assets/Objects-DPan0bzw.js",
+      "sha256Before": "7609b95949b9937d447f1e051b208d2421d1cd3e56c7349e92b9d29118e68c81",
+      "sha256After": "94a9978f645230d1812e437df4b0c3ca5f8e6384ee471b13e22204b919a2a6ac",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/Users-BgnBRgwU-v84.js",
+      "pathAfter": "adminWww/assets/Users-BgnBRgwU-v85.js",
+      "sha256Before": "5ce01e61891a86e3b0d310e3e4ced22b90ad18ec4a0bd421039f145aaebfe6ce",
+      "sha256After": "f208c30268caff5075dd5b3b36778ffe63cc9dc3e6ccb3737c528d7c0c848032",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/assets/Users-BgnBRgwU.js",
+      "pathAfter": "adminWww/assets/Users-BgnBRgwU.js",
+      "sha256Before": "4177f6e4be8f127118c8fcee5d60203848fdb2d7f187c1ada65d6c52d62af84c",
+      "sha256After": "3e652f38c4c7529f2dc6b6e2f3a7fd7a2bb53fb74dde2af5f14aeace6a16563c",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/bootstrap-COulQZax-v84.js",
+      "pathAfter": "adminWww/assets/bootstrap-COulQZax-v85.js",
+      "sha256Before": "712454eabad45194e56fab4731881649b298028ae8d275a633ea01ce30fa6856",
+      "sha256After": "6731500d958f2321771c0681f6aa7988578b692911dec9ed23f1ce802d23f09e",
+      "references": 28
+    },
+    {
+      "pathBefore": "adminWww/assets/bootstrap-COulQZax.js",
+      "pathAfter": "adminWww/assets/bootstrap-COulQZax.js",
+      "sha256Before": "120310000083365306f6ebbd7a46f8937aa7d83639504214c5dabc252fa180b3",
+      "sha256After": "06a9f54e1b3487a23e419eb9a8bfd87bbc4da7322ed2ad4fe9dc3a04cdf9e0e5",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/hostInit-OBG53iVO.js",
+      "pathAfter": "adminWww/assets/hostInit-OBG53iVO.js",
+      "sha256Before": "c8420e0639d094a5d6cf6b7a1f75ebea936b22f0f467330d458c6b3d65a02e92",
+      "sha256After": "de1ed113b04f00974bb5249a60bac90e1f7ab66274bf0668af27530fefdbbe87",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/hostInit-v84.js",
+      "pathAfter": "adminWww/assets/hostInit-v85.js",
+      "sha256Before": "5647488b771664b66651b58609ca810138e1e8b3077d047ffa2c3957b62a6262",
+      "sha256After": "fe510bb1434510fefcca36c45176226817a6d9ea9d4fb391675e293b89b60de5",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/assets/index-CQZugZ1z-v84.js",
+      "pathAfter": "adminWww/assets/index-CQZugZ1z-v85.js",
+      "sha256Before": "31b12ef43241406ca09595d2ff0984cf16e6971e3fd39626183c7308b9ea6a72",
+      "sha256After": "68306a679097e078312d647907c8a42a27e95332fbe9175156859ddf7470ca8b",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/assets/index-CQZugZ1z.js",
+      "pathAfter": "adminWww/assets/index-CQZugZ1z.js",
+      "sha256Before": "1a32b19a853c70ad550ceef4fc4ae621506eef7809c62e2d20f2d059aafecdb2",
+      "sha256After": "42031e6d8957e4c12116883a8aefc1714342524045ed5431ef0a6578c0093cc9",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/index-D2ymscJA-v84.js",
+      "pathAfter": "adminWww/assets/index-D2ymscJA-v85.js",
+      "sha256Before": "83e355fa6f3e673ca4722df779bca7ece52f36393cc6492fa9683436266f501a",
+      "sha256After": "83e355fa6f3e673ca4722df779bca7ece52f36393cc6492fa9683436266f501a",
+      "references": 0
+    },
+    {
+      "pathBefore": "adminWww/assets/index-D2ymscJA.js",
+      "pathAfter": "adminWww/assets/index-D2ymscJA.js",
+      "sha256Before": "89649c59bbd0f6aa2b4bd8d64ef457208f9b729c9fddbb8720c913aa1d210b18",
+      "sha256After": "3324ac8e658a5fc69d9856f3174bc6a11895d9511841e769bfb63796aa971e0e",
+      "references": 1
+    },
+    {
+      "pathBefore": "adminWww/assets/sentry-B7YeoTAx-v84.js",
+      "pathAfter": "adminWww/assets/sentry-B7YeoTAx-v85.js",
+      "sha256Before": "734cd5d90b15f0f1fcd853c867ddd2397e1129a70d8cac6e34ae260ea3acec1b",
+      "sha256After": "734cd5d90b15f0f1fcd853c867ddd2397e1129a70d8cac6e34ae260ea3acec1b",
+      "references": 0
+    },
+    {
+      "pathBefore": "adminWww/index.html",
+      "pathAfter": "adminWww/index.html",
+      "sha256Before": "f9cf6af5c6c77976547a2f1ee11c1fe165b1ed51dd6cf485e692c50adf0a62f4",
+      "sha256After": "4484b4b325e24d1f1fdb844a1fbc9667f06239ad2cd23530e147b5dc46762620",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/mf-manifest.json",
+      "pathAfter": "adminWww/mf-manifest.json",
+      "sha256Before": "737e829bad795bdc781cd820ea513d3e09345e23762e4054e1ece0c003160d3c",
+      "sha256After": "c6bbb773f9a95b4ffe664c2842a803f595e2ef6fbe7f21c6dc08c21585c617bd",
+      "references": 3
+    },
+    {
+      "pathBefore": "adminWww/remoteEntry-v84.js",
+      "pathAfter": "adminWww/remoteEntry-v85.js",
+      "sha256Before": "3836e43036d446c7c549ca1e5b1211a452b50a2206bc197746840cc95e71f95d",
+      "sha256After": "1461f1ec3f9c68879dd368e3b91405899fb8e4e7fd31c5effeb31b313ce4bb6f",
+      "references": 2
+    },
+    {
+      "pathBefore": "adminWww/remoteEntry.js",
+      "pathAfter": "adminWww/remoteEntry.js",
+      "sha256Before": "9e3c715c9adb33c77f0eeefbd80510f97ebe1b18d8f11d43a2332ce89cd35e20",
+      "sha256After": "8a9bc54f6ca8265cb36d8bc9ab4f2f30406167984db2b322e01fefcbd4cc413f",
+      "references": 1
+    },
+    {
+      "pathBefore": "NEXOWATT_EOS_BUILD_INFO.json",
+      "pathAfter": "NEXOWATT_EOS_BUILD_INFO.json",
+      "sha256Before": "f84d0702879b9f051cfe992c2b2370b30505e523a9139baced075457278c0628",
+      "sha256After": "fd6dc5c7c31e1912d4f9d5c0a43938046347230d7df611d73acdd51d75d38719",
+      "fields": [
+        "runtimeEntry",
+        "baseFrontend"
+      ]
+    },
+    {
+      "pathBefore": "tools/nexowatt-stable-v7103-selftest.cjs",
+      "pathAfter": "tools/nexowatt-stable-v7103-selftest.cjs",
+      "sha256Before": "a91a458ff60e0d3653b5aca95538017571726293e0ddf2727af64c14dbd5ba3a",
+      "sha256After": "9452d355bc16acf07040d62e9a5bfe84c94661887ed6590fc9f41de5cfd2cbee",
+      "reason": "active regression follows runtimeEntry"
+    },
+    {
+      "pathBefore": "tools/nexowatt-role-security-selftest.cjs",
+      "pathAfter": "tools/nexowatt-role-security-selftest.cjs",
+      "sha256Before": "36b79d9991a6ae7f53e2e8c547910089cbef468f82f532a54c88cf1d1d3ab6b8",
+      "sha256After": "3b2d7721112c38f0dea5bcecba064e4b3efd8cda5389aa21434cb28eab895e42",
+      "reason": "active regression follows runtimeEntry"
+    },
+    {
+      "pathBefore": "tools/nexowatt-ui-overview-runtime-selftest.cjs",
+      "pathAfter": "tools/nexowatt-ui-overview-runtime-selftest.cjs",
+      "sha256Before": "83255e5d3c9a548013f6e9a74706644d15d98450d0bfa2eb3da83c740d8618ea",
+      "sha256After": "700b1c6913eb2448775c373d546a18d091b5a1c58abaf0f283343d1aad08e445",
+      "reason": "active regression follows runtimeEntry"
+    },
+    {
+      "pathBefore": "tools/nexowatt-clean-legacy-runtime.cjs",
+      "pathAfter": "tools/nexowatt-clean-legacy-runtime.cjs",
+      "sha256Before": "b4efcf5d260c75cca0d0c4f7ddff2fe9c922b90781479fb2cf5bb63cc53152b5",
+      "sha256After": "318f56d764bcecd604e734ea486363980a4c01c803e9bcab16ab572fac32c052",
+      "reason": "remove stale runtime-specific comment"
+    }
+  ],
+  "reviewCorrection": "Initial tool path interpolation was caught by regression execution and corrected before delivery; assertions retained."
+}

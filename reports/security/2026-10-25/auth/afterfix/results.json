@@ -1,0 +1,28 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "test/eos-auth-regressions.test.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T15:09:50.595436+00:00",
+    "finishedUtc": "2026-10-25T15:09:50.786337+00:00",
+    "exitCode": 0,
+    "log": "auth-regressions.log",
+    "sha256": "5c406b4c03472adac513032a178506514019601f9dbe58cb187bbbcd11a0ed88"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-security-boundaries-selftest.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T15:09:50.786384+00:00",
+    "finishedUtc": "2026-10-25T15:09:51.013832+00:00",
+    "exitCode": 0,
+    "log": "existing-boundaries.log",
+    "sha256": "01bbca91409427d5543be2997cb978d0d5015ff9bdf52b923bd3e7756cc910ef"
+  }
+]

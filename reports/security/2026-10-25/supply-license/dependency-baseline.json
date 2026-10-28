@@ -1,0 +1,165 @@
+{
+  "generatedAt": "2026-10-25T14:52:23.155008+00:00",
+  "scopes": {
+    "backend": {
+      "lockSha256": "c9c65ab9860f50950a62df42e12bcc384cf7ad07588bd314b0d6f65b91a0968b",
+      "packages": 788,
+      "directDependencies": {
+        "@iobroker/adapter-core": {
+          "range": "^3.4.1",
+          "lockedVersion": "3.4.1",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "@iobroker/plugin-docker": {
+          "range": "^1.0.3",
+          "lockedVersion": "1.0.3",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "@iobroker/socket-classes": {
+          "range": "^2.3.4",
+          "lockedVersion": "2.3.4",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "@iobroker/webserver": {
+          "range": "^1.4.0",
+          "lockedVersion": "1.4.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "@iobroker/ws-server": {
+          "range": "^4.4.1",
+          "lockedVersion": "4.4.1",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "ajv": {
+          "range": "^8.20.0",
+          "lockedVersion": "8.20.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "archiver": {
+          "range": "^7.0.1",
+          "lockedVersion": "7.0.1",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "axios": {
+          "range": "^1.17.0",
+          "lockedVersion": "1.17.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "body-parser": {
+          "range": "^2.2.2",
+          "lockedVersion": "2.2.2",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "compression": {
+          "range": "^1.8.1",
+          "lockedVersion": "1.8.1",
+          "resolvedPresent": false,
+          "integrityAlgorithm": ""
+        },
+        "cookie-parser": {
+          "range": "^1.4.7",
+          "lockedVersion": "1.4.7",
+          "resolvedPresent": false,
+          "integrityAlgorithm": ""
+        },
+        "express": {
+          "range": "^5.2.1",
+          "lockedVersion": "5.2.1",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "express-fileupload": {
+          "range": "^1.5.2",
+          "lockedVersion": "1.5.2",
+          "resolvedPresent": false,
+          "integrityAlgorithm": ""
+        },
+        "express-session": {
+          "range": "^1.19.0",
+          "lockedVersion": "1.19.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "json5": {
+          "range": "^2.2.3",
+          "lockedVersion": "2.2.3",
+          "resolvedPresent": false,
+          "integrityAlgorithm": ""
+        },
+        "mime": {
+          "range": "^3.0.0",
+          "lockedVersion": "3.0.0",
+          "resolvedPresent": false,
+          "integrityAlgorithm": ""
+        },
+        "semver": {
+          "range": "^7.8.3",
+          "lockedVersion": "7.8.3",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "iobroker.mcp": {
+          "range": "^1.0.0",
+          "lockedVersion": "1.0.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        }
+      },
+      "missingMetadata": 563,
+      "missingNonDev": 216
+    },
+    "src-admin": {
+      "lockSha256": "e6b78a36a19e894abeaf127473355793a5098e0db971e1cdd65508fb41053719",
+      "packages": 768,
+      "directDependencies": {
+        "@iobroker/adapter-react-v5": {
+          "range": "^8.2.9",
+          "lockedVersion": "8.2.9",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "@iobroker/dm-gui-components": {
+          "range": "^9.1.0",
+          "lockedVersion": "9.1.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "@iobroker/json-config": {
+          "range": "^8.4.7",
+          "lockedVersion": "8.4.7",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "ace-builds": {
+          "range": "^1.44.0",
+          "lockedVersion": "1.44.0",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "http-proxy-middleware": {
+          "range": "^3.0.5",
+          "lockedVersion": "3.0.5",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        },
+        "remark-gfm": {
+          "range": "^4.0.1",
+          "lockedVersion": "4.0.1",
+          "resolvedPresent": true,
+          "integrityAlgorithm": "sha512"
+        }
+      },
+      "missingMetadata": 0,
+      "missingNonDev": 0
+    }
+  }
+}

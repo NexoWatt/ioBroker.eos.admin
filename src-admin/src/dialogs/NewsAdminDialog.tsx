@@ -1,5 +1,6 @@
 import React, { useEffect, useState, type JSX } from 'react';
 import semver from 'semver';
+import { matchesObjectCount } from '../helpers/eosNewsSecurity';
 
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, CardMedia, Typography, Box } from '@mui/material';
 
@@ -296,9 +297,8 @@ export const checkMessages = (messages: Message[], lastMessageId: string, contex
                 }
             }
 
-            if (showIt && message['number-of-objects']) {
-                // eslint-disable-next-line no-eval
-                showIt = eval(`${context.noObjects} ${message['number-of-objects']}`);
+            if (showIt && message['number-of-objects'] !== undefined) {
+                showIt = matchesObjectCount(context.noObjects, message['number-of-objects']);
             }
 
             if (showIt && message['objects-db-type']) {

@@ -1,0 +1,52 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "test/eos-session-security.test.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:54:03.554763+00:00",
+    "finishedUtc": "2026-10-25T14:54:09.166297+00:00",
+    "exitCode": 0,
+    "log": "01-eos-session-security.test.cjs.log",
+    "sha256": "8751b7805b2c16d03e361f5a7de42c22614379ba0f4a9ca8e294b40e04d2eb16"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-security-boundaries-selftest.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:54:09.166381+00:00",
+    "finishedUtc": "2026-10-25T14:54:09.445103+00:00",
+    "exitCode": 0,
+    "log": "02-nexowatt-security-boundaries-selftest.cjs.log",
+    "sha256": "01bbca91409427d5543be2997cb978d0d5015ff9bdf52b923bd3e7756cc910ef"
+  },
+  {
+    "command": [
+      "node",
+      "/workspace/scratch/c16def314bc5/audit-20261025/auth/targeted.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:54:09.445143+00:00",
+    "finishedUtc": "2026-10-25T14:54:09.514531+00:00",
+    "exitCode": 0,
+    "log": "03-targeted.cjs.log",
+    "sha256": "9cf61987f50211d8dba4c7f0b483176f046cc792f93df00e75e399060ea1cce6"
+  },
+  {
+    "command": [
+      "node",
+      "/workspace/scratch/c16def314bc5/audit-20261025/auth/oauth-query.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:55:28.637471+00:00",
+    "finishedUtc": "2026-10-25T14:55:28.778931+00:00",
+    "exitCode": 0,
+    "log": "04-oauth-query.cjs.log",
+    "sha256": "81aa52e7e0eb3b57fb2e9e03943606a1c1db062a97ea0d0ed5db0698a43341d5"
+  }
+]

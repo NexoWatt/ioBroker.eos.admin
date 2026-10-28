@@ -1,0 +1,10 @@
+{
+  "command": [
+    "node",
+    "tools/nexowatt-transpile-security-backend.cjs",
+    "--write"
+  ],
+  "utc": "2026-10-25T15:11:54.139444+00:00",
+  "exit": 0,
+  "seconds": 0.748
+}

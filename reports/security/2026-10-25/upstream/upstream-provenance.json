@@ -1,0 +1,57 @@
+{
+  "retrieved_on": "2026-10-25",
+  "method": "Read-only GitHub connector public repository GET; no runtime execution",
+  "sources": [
+    {
+      "filename": "webserver-v3.3.1-oauth2.ts",
+      "url": "https://raw.githubusercontent.com/ioBroker/webserver/v3.3.1/src/lib/oauth2.ts"
+    },
+    {
+      "filename": "webserver-v3.3.2-oauth2.ts",
+      "url": "https://raw.githubusercontent.com/ioBroker/webserver/v3.3.2/src/lib/oauth2.ts"
+    },
+    {
+      "filename": "webserver-v1.4.0-oauth2.ts",
+      "url": "https://raw.githubusercontent.com/ioBroker/webserver/v1.4.0/src/lib/oauth2.ts"
+    },
+    {
+      "filename": "webserver-v3.3.2-oidc.test.js",
+      "url": "https://raw.githubusercontent.com/ioBroker/webserver/v3.3.2/test/oidc.test.js"
+    }
+  ],
+  "fix_commit": "a583a8325ffd4836c31a6097a6436f6b81a0074b",
+  "fix_commit_date": "2026-10-25T09:59:22Z",
+  "webserver_release": {
+    "version": "3.3.2",
+    "published_at": "2026-10-25T10:01:16Z",
+    "tag_object": "6ccaec04dae8793776677f4b454f6e975b0c650d",
+    "tag_commit": "ae055b9480321076903912ad2778ea18672c8928",
+    "url": "https://github.com/ioBroker/webserver/releases/tag/v3.3.2"
+  },
+  "admin_release": {
+    "version": "8.3.4",
+    "published_at": "2026-10-25T11:25:18Z",
+    "webserver_dependency": "^3.3.2",
+    "url": "https://github.com/ioBroker/ioBroker.admin/releases/tag/v8.3.4"
+  },
+  "stable_index": {
+    "repo": "ioBroker/ioBroker.repositories",
+    "commit": "18a3a08fb86e7f22e077e69741fd34846342121d",
+    "commit_date": "2026-10-24T21:53:10Z",
+    "path": "sources-dist-stable.json",
+    "admin_version": "8.2.0",
+    "url": "https://github.com/ioBroker/ioBroker.repositories/blob/18a3a08fb86e7f22e077e69741fd34846342121d/sources-dist-stable.json"
+  },
+  "dependency_ranges": {
+    "admin_v8.1.0": "^3.3.0",
+    "admin_v8.2.0": "^3.3.1",
+    "admin_v8.3.4": "^3.3.2"
+  },
+  "not_verified": [
+    "npm publication/dist-tag",
+    "actual user installation",
+    "runtime exploitation",
+    "upstream tests execution",
+    "comprehensive vulnerability coverage"
+  ]
+}

@@ -1,0 +1,9 @@
+{"name":"redirect-prefix://attacker.invalid/x/index.html","result":"//attacker.invalid/x"}
+{"name":"redirect-prefix:/%5Cattacker.invalid/x/index.html","result":"/\\attacker.invalid/x"}
+{"name":"redirect-prefix:/\\attacker.invalid/x/index.html","result":"/\\attacker.invalid/x"}
+{"name":"production-origin-check-accepts-http-origin-on-https","result":true}
+{"name":"query-token-authenticates","result":{"lookups":["a:audit-placeholder-access-token"]}}
+{"name":"unauthenticated-private-peer-claims-flagged-legacy-account","result":{"claimStatus":200,"passwordWriteInvoked":true,"completionStatus":200,"usesAuthenticatedIdentity":false,"precondition":"enabled non-admin, passwordlessFirstLoginAllowed:true, required password setup"}}
+{"name":"SSO-deny-routes-before-OAuth-registration-source-and-build","result":true}
+{"name":"session-security-source-equals-shipped-helper","result":true}
+{"name":"limits","result":"No real Express router, installed dependencies, controller, browser or socket transport exercised. Password write is a spy, not a real account change."}

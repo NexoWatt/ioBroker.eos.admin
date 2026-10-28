@@ -1,0 +1,4 @@
+backend: 788 lockfile components; 0 manifest mismatches; 9 unresolved references
+frontend: 768 lockfile components; 0 manifest mismatches; 19 unresolved references
+Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.
+

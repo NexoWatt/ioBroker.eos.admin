@@ -1,0 +1,13 @@
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.344371ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (215.817479ms)
+✔ complete fixture metadata admits without fetching or executing any package (75.985027ms)
+✔ missing integrity in one scope rejects the real admission process (85.896144ms)
+✔ missing lockfile fails closed instead of permitting a publish check (92.638768ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 588.362755

@@ -1,0 +1,20 @@
+(node:13) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ backend and frontend compare data and reject executable/malformed conditions (1.690866ms)
+✔ shipped frontend expression has the same outcomes and contains no news eval (45.776676ms)
+✔ actual shipped news method refuses marker and preserves numeric behavior (2.442762ms)
+✔ Node index validates bounded schema and strips unused data (3.008065ms)
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.013073ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (144.780946ms)
+✔ complete fixture metadata admits without fetching or executing any package (73.429984ms)
+✔ missing integrity in one scope rejects the real admission process (80.090522ms)
+✔ missing lockfile fails closed instead of permitting a publish check (73.130213ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 471.45701
+

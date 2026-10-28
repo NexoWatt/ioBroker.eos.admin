@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-25T14:58:44.272846+00:00",
+  "node": "v24.22.1",
+  "platform": "Linux 6.18.55 x86_64",
+  "examinedFileSha256": {
+    "package.json": "b9200ea33f9bcab3c52755cc27641a9380f3fdfd7c29aa30280b242fb88824ad",
+    "package-lock.json": "c9c65ab9860f50950a62df42e12bcc384cf7ad07588bd314b0d6f65b91a0968b",
+    "src/lib/web.ts": "0da148698f8d02801c0f9670a5f956609e9581aae99f31da5bcc92ce75ccbd4e",
+    "build/lib/web.js": "4a210c213cd921170255294c5fac349dc053d2619c9e2a7a972cbdb3e0000171",
+    "src/main.ts": "1fcc9ed3cbcb3ec395828fed18e1b5748d63ba1bf579b0174fa2cee94b0faf39",
+    "build/main.js": "8a2f4740d295e9a7bcc8e2456e5b99c8a5dbabcebb6c2661fd11593827dd7425",
+    "src/lib/eosSessionSecurity.js": "a219a7f04dc6d6f2be6f7e8b8491419f661d659b615980e729ef252d8113c24e",
+    "build/lib/eosSessionSecurity.js": "a219a7f04dc6d6f2be6f7e8b8491419f661d659b615980e729ef252d8113c24e",
+    "src/lib/eosRequestSecurity.ts": "7351002c500716fdff1ba13d4b394ed21742b9928e69e54326d4c3cc02e33816",
+    "build/lib/eosRequestSecurity.js": "527328d7554b14109a0b5b7f86feefa95e9f516cb11719bfb624d123e3736bce",
+    "test/fixtures/oauth2-model-v1.4.0.ts": "e4a3342646700a0cacc5f892babfc5f9bda98e5c938a90330be748fb8e3dff5b"
+  }
+}

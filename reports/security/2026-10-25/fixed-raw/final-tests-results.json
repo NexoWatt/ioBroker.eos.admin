@@ -1,0 +1,51 @@
+[
+  {
+    "label": "package",
+    "command": [
+      "node",
+      "tools/nexowatt-validate-package.cjs"
+    ],
+    "env": {},
+    "utc": "2026-10-25T15:13:25.751774+00:00",
+    "exit": 0,
+    "seconds": 0.134
+  },
+  {
+    "label": "stability",
+    "command": [
+      "npm",
+      "run",
+      "check:eos-stability"
+    ],
+    "env": {},
+    "utc": "2026-10-25T15:13:25.752594+00:00",
+    "exit": 1,
+    "seconds": 0.973
+  },
+  {
+    "label": "build-file-resources",
+    "command": [
+      "node",
+      "--test",
+      "test/eos-file-transfer-security.test.cjs",
+      "test/eos-web-resources.test.cjs"
+    ],
+    "env": {
+      "EOS_TEST_RUNTIME": "build"
+    },
+    "utc": "2026-10-25T15:13:25.753282+00:00",
+    "exit": 0,
+    "seconds": 0.655
+  },
+  {
+    "label": "fallback-selftest",
+    "command": [
+      "node",
+      "tools/nexowatt-transpile-security-backend-selftest.cjs"
+    ],
+    "env": {},
+    "utc": "2026-10-25T15:13:25.886108+00:00",
+    "exit": 0,
+    "seconds": 0.351
+  }
+]

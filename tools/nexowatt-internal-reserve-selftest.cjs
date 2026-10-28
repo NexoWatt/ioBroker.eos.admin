@@ -22,7 +22,7 @@ for (const code of [mainSource, mainBuilt]) {
   for (const marker of [
     "LEGACY_BACKUP_ADAPTER_NAME = 'backitup'", 'shouldHideLegacyBackupFromNonAdmins',
     'getLegacyBackupAclObjectIds', 'ensureLegacyBackupVisibleOnlyToAdmins',
-    'EOS ACL guard restricted internal', '/^system\\.adapter\\.(?:admin|backitup)(?:\\.|$)/',
+    'EOS ACL guard restricted internal', '/^system\\.adapter\\.(?:admin|eos-admin|backitup|xterm)(?:\\.|$)/',
     '/^(?:admin|backitup|xterm)\\.\\d+(?:\\.|$)/', 'internal Service reserve is Admin/Service-only',
   ]) if (!code.includes(marker)) fail(`backend reserve marker missing: ${marker}`);
 }

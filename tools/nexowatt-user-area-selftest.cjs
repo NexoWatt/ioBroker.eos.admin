@@ -13,14 +13,17 @@ const runtimeRole = read('adminWww/js/eos-role-ui.js');
 const sourceMain = read('src/main.ts');
 const builtMain = read('build/main.js');
 
-assert.equal(pkg.version, '7.10.9', 'release must use a new npm version');
+assert.equal(pkg.version, '7.10.12', 'security release must use its new npm version');
 for (const web of [sourceWeb, builtWeb]) {
     assert.match(web, /nexowatt\/readonly\/system-info/, 'read-only system information endpoint missing');
     assert.match(web, /sendEosReadonlySystemInfo/, 'read-only system information handler missing');
-    assert.match(web, /platform/, 'platform value missing');
-    assert.match(web, /ramMb/, 'RAM value missing');
-    assert.match(web, /nodejs/, 'Node.js value missing');
-    assert.match(web, /npm/, 'NPM value missing');
+    assert.match(web, /readSystemInfo/, 'bounded cached system information missing');
+}
+for (const helper of ['src/lib/eosWebResources.js', 'build/lib/eosWebResources.js']) {
+    const code = read(helper);
+    for (const field of ['platform', 'ramMb', 'nodejs', 'npm']) {
+        assert.ok(code.includes(`${field}:`), `system information field missing: ${field}`);
+    }
 }
 for (const role of [sourceRole, runtimeRole]) {
     assert.match(role, /state\.role !== 'enduser' \|\| currentRoute\(\) !== 'tab-intro'/, 'system-card correction must be End User-only');

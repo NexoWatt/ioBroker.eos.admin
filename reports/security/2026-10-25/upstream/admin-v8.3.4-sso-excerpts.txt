@@ -1,0 +1,70 @@
+Source: https://github.com/ioBroker/ioBroker.admin/blob/v8.3.4/src/lib/web.ts
+
+339:      *
+340:      * Only a complete configuration is handed over. Without it, the webserver does not register the
+341:      * SSO routes at all, and the login page does not offer the button.
+342:      */
+343:     getOidcConfig(): OidcConfig | undefined {
+344:         if (!this.adapter.config.ssoActive) {
+345:             return undefined;
+346:         }
+347: 
+348:         const issuer = (this.adapter.config.oidcIssuer || '').trim();
+349:         const clientId = (this.adapter.config.oidcClientId || '').trim();
+350: 
+351:         if (!issuer || !clientId) {
+352:             this.adapter.log.warn(
+353:                 'Single sign-on is switched on, but the issuer or the client ID of the identity provider is missing. SSO stays off.',
+354:             );
+355:             return undefined;
+356:         }
+357: 
+358:         return {
+359:             issuer,
+360:             clientId,
+361:             clientSecret: this.adapter.config.oidcClientSecret || undefined,
+362:             scope: (this.adapter.config.oidcScope || '').trim() || undefined,
+363:         };
+364:     }
+
+798:             if (this.settings.auth) {
+799:                 AdapterStore = commonTools.session(session, this.settings.ttl);
+800:                 this.store = new AdapterStore({ adapter: this.adapter });
+801: 
+802:                 this.server.app.use(cookieParser());
+803:                 // The body of a proxied request belongs to the instance and must reach it unread
+804:                 const urlencodedParser = bodyParser.urlencoded({ extended: true });
+805:                 const jsonParser = bodyParser.json();
+806:                 this.server.app.use((req: Request, res: Response, next: NextFunction): void =>
+807:                     this.instanceProxy.matches(req.url) ? next() : urlencodedParser(req, res, next),
+808:                 );
+809:                 this.server.app.use((req: Request, res: Response, next: NextFunction): void =>
+810:                     this.instanceProxy.matches(req.url) ? next() : jsonParser(req, res, next),
+811:                 );
+812:                 // In front of the OAuth2 routes, which register the login check of admin
+813:                 this.server.app.use(this.instanceProxy.hideAuthorization);
+814: 
+815:                 this.oauth2Model = createOAuth2Server(this.adapter, {
+816:                     app: this.server.app,
+817:                     oidc: this.getOidcConfig(),
+818:                     secure: this.settings.secure,
+819:                     accessLifetime: this.settings.ttl,
+820:                     refreshLifetime: this.settings.refreshTokenTtlDays * 24 * 60 * 60,
+821:                     noBasicAuth: this.settings.noBasicAuth,
+822:                     loginPage: (req: Request): string => {
+823:                         const isDev = req.url.includes('?dev');
+824:                         let origin = req.url.split('origin=')[1];
+825:                         if (origin) {
+826:                             const pos = origin.lastIndexOf('/');
+827:                             if (pos !== -1) {
+828:                                 origin = origin.substring(0, pos);
+829:                             }
+830:                         }
+831: 
+832:                         if (isDev) {
+833:                             return 'http://127.0.0.1:3000/index.html?login';
+834:                         }
+835: 
+836:                         return origin ? `${origin}/index.html?login` : this.loginPage;
+837:                     },
+838:                 });

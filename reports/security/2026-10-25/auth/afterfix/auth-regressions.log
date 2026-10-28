@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins
+ok 1 - login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins
+  ---
+  duration_ms: 1.846249
+  type: 'test'
+  ...
+# Subtest: production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin
+ok 2 - production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin
+  ---
+  duration_ms: 0.355311
+  type: 'test'
+  ...
+# Subtest: all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies
+ok 3 - all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies
+  ---
+  duration_ms: 0.375367
+  type: 'test'
+  ...
+# Subtest: HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state
+ok 4 - HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state
+  ---
+  duration_ms: 1.04704
+  type: 'test'
+  ...
+# Subtest: EOS token readers no longer accept query credentials but preserve cookie and Authorization
+ok 5 - EOS token readers no longer accept query credentials but preserve cookie and Authorization
+  ---
+  duration_ms: 1.011967
+  type: 'test'
+  ...
+# Subtest: file identity guard rejects anonymous and pending-password users and passes normalized caller
+ok 6 - file identity guard rejects anonymous and pending-password users and passes normalized caller
+  ---
+  duration_ms: 0.682924
+  type: 'test'
+  ...
+# Subtest: SSO remains denied before OAuth and DB file routes have their own identity guard
+ok 7 - SSO remains denied before OAuth and DB file routes have their own identity guard
+  ---
+  duration_ms: 1.066799
+  type: 'test'
+  ...
+# Subtest: OAuth callback messages are HTML text, replacement metacharacters cannot restore markup
+ok 8 - OAuth callback messages are HTML text, replacement metacharacters cannot restore markup
+  ---
+  duration_ms: 1.798236
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.914035

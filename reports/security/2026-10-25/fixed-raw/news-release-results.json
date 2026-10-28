@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "test/eos-news-security.test.cjs",
+    "test/eos-release-admission.test.cjs"
+  ],
+  "utc": "2026-10-25T15:09:40.817432+00:00",
+  "exit": 0,
+  "seconds": 0.545
+}

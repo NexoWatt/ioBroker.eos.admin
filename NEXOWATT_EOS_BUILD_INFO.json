@@ -1,28 +1,26 @@
 {
-  "version": "7.10.9",
-  "channel": "stable-latest",
-  "baseFrontend": "validated v84 runtime with clean modern Services, Datapoints and System Logs surfaces",
-  "runtimeEntry": "v84",
-  "releaseType": "stable-clean-ui-foundation",
-  "release": "stable-clean-ui-foundation",
-  "label": "v7-10-9",
+  "version": "7.10.12",
+  "channel": "integration-test",
+  "baseFrontend": "inherited v84 runtime with scoped security patch and cache-busted v85 module graph; no complete frontend rebuild",
+  "runtimeEntry": "v85",
+  "releaseType": "security-licensing-integration-candidate",
+  "release": "security-licensing-integration-candidate",
+  "label": "v7-10-12",
   "notes": [
-    "Administrator, Installer and End User role behavior from 7.10.8 remains unchanged.",
-    "Services, Datapoints and System Logs retain the modern NexoWatt EOS styling.",
-    "Redundant title, description and role information panels were removed from the self-explanatory core tabs.",
-    "Structure remains hidden for every role and Installer service controls remain native and operable."
+    "Input archive was 7.10.9; no Admin 8 rebase performed.",
+    "License authority and consumer SDK implemented; current issuer keygen and other adapters not supplied.",
+    "No IEC certification or CRA conformity asserted. See docs/security and docs/cra."
   ],
   "changes": [
-    "Removed the generated technical information header from Services, Datapoints and System Logs.",
-    "Preserved modern toolbars, rows, state tables and log severity accents.",
-    "Kept all role permissions, navigation protection and native service controls unchanged.",
-    "Raised release and browser cache identity to 7.10.9 / 7109."
+    "Signed NWL2 license verification and AES-256-GCM storage",
+    "Server-side Home/Pro adapter authorization and short-lived leases",
+    "Unique account credentials, session and role boundary hardening"
   ],
   "brandingCacheVersion": 7109,
   "shellCacheVersion": 7109,
   "nativeShellVersion": 7109,
   "shellCacheTag": "7109",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-9.json",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-12.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103"
 }

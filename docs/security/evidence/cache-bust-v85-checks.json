@@ -1,0 +1,72 @@
+{
+  "runtime": "v85",
+  "node": "v24.22.1",
+  "results": [
+    {
+      "command": "node tools/nexowatt-frontend-graph-check.cjs",
+      "chunk_id": "8022c1",
+      "wall_time_seconds": 0.19201742,
+      "exit_code": 0,
+      "original_token_count": 20,
+      "output": "[NexoWatt EOS frontend graph] OK (208 reachable JS files, one HTML5 backend)\n"
+    },
+    {
+      "command": "node tools/nexowatt-import-integrity-selftest.cjs",
+      "chunk_id": "997627",
+      "wall_time_seconds": 0.19211153,
+      "exit_code": 0,
+      "original_token_count": 9,
+      "output": "[NexoWatt EOS import integrity] OK\n"
+    },
+    {
+      "command": "node tools/nexowatt-esm-syntax-selftest.cjs",
+      "chunk_id": "924767",
+      "wall_time_seconds": 0.626143422,
+      "exit_code": 0,
+      "original_token_count": 8,
+      "output": "[NexoWatt EOS ESM syntax] OK\n"
+    },
+    {
+      "command": "node tools/nexowatt-entrypoint-smoke-selftest.cjs",
+      "chunk_id": "b3c9b6",
+      "wall_time_seconds": 1.316787089,
+      "exit_code": 0,
+      "original_token_count": 23,
+      "output": "[NexoWatt EOS entrypoint smoke] OK (16 scripts + role-bootstrapped app entry, runtime v85)\n"
+    },
+    {
+      "command": "node tools/nexowatt-runtime-cleanup-selftest.cjs",
+      "chunk_id": "94797e",
+      "wall_time_seconds": 0.092963242,
+      "exit_code": 0,
+      "original_token_count": 11,
+      "output": "[NexoWatt EOS runtime cleanup selftest] OK\n"
+    },
+    {
+      "command": "node tools/nexowatt-stable-v7103-selftest.cjs",
+      "chunk_id": "3058ff",
+      "wall_time_seconds": 0.00003344,
+      "exit_code": 1,
+      "original_token_count": 11,
+      "output": "[NexoWatt EOS stable v7103] version drift\n"
+    },
+    {
+      "command": "node tools/nexowatt-role-security-selftest.cjs",
+      "chunk_id": "a3f345",
+      "wall_time_seconds": 0.026364095,
+      "exit_code": 0,
+      "original_token_count": 35,
+      "output": "[NexoWatt EOS role security] OK (Admin full rights, Installer EMS App-Center access, End User read-only datapoints, protected Admin tools)\n"
+    },
+    {
+      "command": "node tools/nexowatt-ui-overview-runtime-selftest.cjs",
+      "chunk_id": "e5c717",
+      "wall_time_seconds": 0.026314996,
+      "exit_code": 0,
+      "original_token_count": 10,
+      "output": "[NexoWatt EOS UI overview runtime] OK\n"
+    }
+  ],
+  "limits": "No browser warmed-cache E2E; stable version gate pending concurrent release metadata sync"
+}
+

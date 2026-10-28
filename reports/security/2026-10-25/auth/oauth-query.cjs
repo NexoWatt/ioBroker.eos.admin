@@ -1,0 +1,22 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {stripTypeScriptTypes}=require('node:module');
+const root=path.resolve(__dirname,'../admin');
+const {EosSessionSecurity}=require(path.join(root,'build/lib/eosSessionSecurity'));
+const fixture=fs.readFileSync(path.join(root,'test/fixtures/oauth2-model-v1.4.0.ts'),'utf8');
+const javascript=stripTypeScriptTypes(fixture,{mode:'transform'}).replace("import 'oauth2-server';",'');
+(async()=>{
+ const {OAuth2Model}=await import('data:text/javascript;base64,'+Buffer.from(javascript).toString('base64'));
+ const adapter={config:{},log:{warn(){},info(){},debug(){},error(){}},getSession(id,cb){cb(null);},setSession(id,ttl,val,cb){cb(null);},async getForeignObjectAsync(id){return {type:'user',common:{enabled:true,password:'testhash'},native:{}};},async getObjectViewAsync(){return{rows:[]};},checkPassword(user,password,cb){cb(user==='operator'&&password==='test-only-audit-passphrase','system.user.operator');}};
+ const security=new EosSessionSecurity(adapter);
+ const model=new OAuth2Model(adapter,{noBasicAuth:true});security.bindOAuthModel(model);
+ const noCredentials={query:{},headers:{}};let calls=0;
+ const response={status(){throw new Error('Unexpected error response');}};
+ await model.authorize(noCredentials,response,()=>calls++);assert.equal(calls,1);assert.equal(noCredentials.user,undefined);
+ console.log(JSON.stringify({name:'pinned-v1.4.0-authorize-no-credentials',nextCalled:true,userSet:false}));
+ const withPasswordQuery={query:{user:'operator',pass:'test-only-audit-passphrase'},headers:{}};
+ await model.authorize(withPasswordQuery,response,()=>calls++);assert.equal(calls,2);assert.equal(withPasswordQuery.user,'operator');
+ console.log(JSON.stringify({name:'pinned-v1.4.0-authorize-user-pass-query',authenticated:true,noBasicAuthSetting:true,sessionWrapper:'original shipped EosSessionSecurity'}));
+ security.stop();
+ console.log('Model fixture + real shipped session wrapper; controller DB/password API simulated, no HTTP server.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

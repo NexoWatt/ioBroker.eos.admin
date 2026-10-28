@@ -1,0 +1,26 @@
+✔ HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling (5.99341ms)
+✔ HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport (1.79616ms)
+✔ HTTPS rejects redirects without contacting redirect targets (1.222774ms)
+✔ HTTPS rejects oversized declared and streamed responses and compressed bodies (4.016194ms)
+✔ HTTPS rejects malformed or primitive JSON without exposing body/error text (4.137661ms)
+✔ HTTPS hard deadline destroys a request before response including DNS/connect stalls (22.269891ms)
+✔ HTTPS hard deadline also bounds slow response bodies (20.871577ms)
+✔ HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected (1.467618ms)
+✔ gzip preview returns text but rejects bombs, oversized input, and invalid gzip (39.72075ms)
+✔ gzip preview concurrency is bounded independently of compressed size (31.585602ms)
+✔ system-info calls coalesce and cache npm version; no shell is used (1.359545ms)
+✔ upload budget admits two across routes; third denied and aborted temporary files cleaned (67.712388ms)
+✔ upload parser receives actual total/file/part limits and private temporary directory (33.099684ms)
+✔ restore storage does not follow existing destination symlink and persists restrictive permissions (35.178787ms)
+✔ retained upload data counts against shared quota at the next admission (34.813487ms)
+✔ upload total deadline aborts a still-active parser and removes its partial directory (52.784382ms)
+✔ upload admission rejects low disk space before constructing parser (3.56673ms)
+✔ synchronous parser initialization failure releases reserved capacity (63.393674ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 524.496058

@@ -1,0 +1,12 @@
+✔ built unauth gate accepts encoded-query suffix; file route returns synthetic private file with service context (6.556114ms)
+✔ built file route makes no caller ACL decision for an authenticated low-privilege request (1.468425ms)
+✔ built OAuth callback emits adapter error/success HTML without escaping (2.378277ms)
+✔ shipped frontend news condition evaluates synthetic code in its JavaScript context (10.221361ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114.893003

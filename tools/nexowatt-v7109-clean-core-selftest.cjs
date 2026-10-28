@@ -21,7 +21,7 @@ const runtimeCss = read('adminWww/css/nexowatt-native-shell.css');
 const drawer = read('src-admin/src/components/Drawer.tsx');
 const index = read('adminWww/index.html');
 
-assert.equal(pkg.version, '7.10.9', 'clean core release must use npm version 7.10.9');
+assert.equal(pkg.version, '7.10.12', 'retained 7.10.9 clean-core regression must run on security release 7.10.12');
 assert.equal(sourceRole, runtimeRole, 'role source/runtime drift');
 assert.equal(sourceBoot, runtimeBoot, 'bootstrap source/runtime drift');
 assert.equal(sourceShell, runtimeShell, 'shell source/runtime drift');

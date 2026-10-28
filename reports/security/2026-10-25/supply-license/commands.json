@@ -1,0 +1,106 @@
+[
+  {
+    "command": [
+      "node",
+      "--version"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:57.806096+00:00",
+    "finishedUtc": "2026-10-25T14:51:57.812051+00:00",
+    "exitCode": 0,
+    "log": "00---version.log"
+  },
+  {
+    "command": [
+      "npm",
+      "--version"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:57.812084+00:00",
+    "finishedUtc": "2026-10-25T14:51:58.015483+00:00",
+    "exitCode": 0,
+    "log": "01---version.log"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "test/eos-license-core.test.cjs",
+      "test/eos-license-service.test.cjs",
+      "test/eos-license-client.test.cjs",
+      "test/eos-license-http.test.cjs",
+      "test/eos-license-trust.test.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:58.015521+00:00",
+    "finishedUtc": "2026-10-25T14:51:58.674974+00:00",
+    "exitCode": 0,
+    "log": "02-eos-license-trust.test.log"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-lock-provenance-check.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:58.675023+00:00",
+    "finishedUtc": "2026-10-25T14:51:58.777062+00:00",
+    "exitCode": 1,
+    "log": "03-nexowatt-lock-provenance-check.log"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-lock-provenance-selftest.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:58.777099+00:00",
+    "finishedUtc": "2026-10-25T14:51:58.852097+00:00",
+    "exitCode": 0,
+    "log": "04-nexowatt-lock-provenance-selftest.log"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-auto-update-selftest.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:58.852134+00:00",
+    "finishedUtc": "2026-10-25T14:51:58.924065+00:00",
+    "exitCode": 0,
+    "log": "05-nexowatt-auto-update-selftest.log"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-prebuilt-release-selftest.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:51:58.924096+00:00",
+    "finishedUtc": "2026-10-25T14:52:00.575355+00:00",
+    "exitCode": 0,
+    "log": "06-nexowatt-prebuilt-release-selftest.log"
+  },
+  {
+    "command": [
+      "node",
+      "/workspace/scratch/c16def314bc5/audit-20261025/supply-license/quota-boundary-check.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:53:41.413781+00:00",
+    "finishedUtc": "2026-10-25T14:53:41.503559+00:00",
+    "exitCode": 0,
+    "log": "07-quota-boundary-check.log"
+  },
+  {
+    "command": [
+      "node",
+      "tools/nexowatt-publish-channel-guard.cjs"
+    ],
+    "cwd": "/workspace/scratch/c16def314bc5/audit-20261025/admin",
+    "startedUtc": "2026-10-25T14:53:41.503602+00:00",
+    "finishedUtc": "2026-10-25T14:53:41.573126+00:00",
+    "exitCode": 0,
+    "log": "08-publish-channel-guard.log"
+  }
+]

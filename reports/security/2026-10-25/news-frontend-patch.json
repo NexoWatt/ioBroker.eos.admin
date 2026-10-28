@@ -1,0 +1,19 @@
+{
+  "utc": "2026-10-25T15:03:59.390Z",
+  "mode": "scoped inherited-bundle patch",
+  "helperSha256": "0e8822c9e145a5e4ef5b425002d4b1d6f74dad51a4b056f95063bba9cc6bcf0f",
+  "files": [
+    {
+      "path": "adminWww/assets/bootstrap-COulQZax-v84.js",
+      "beforeSha256": "74e59fbdc557f5cab2b43a3d400cb121f685f8fc673be9449c45961d9be7ebc0",
+      "afterSha256": "712454eabad45194e56fab4731881649b298028ae8d275a633ea01ce30fa6856",
+      "replacements": 1
+    },
+    {
+      "path": "adminWww/assets/bootstrap-COulQZax.js",
+      "beforeSha256": "120310000083365306f6ebbd7a46f8937aa7d83639504214c5dabc252fa180b3",
+      "afterSha256": "120310000083365306f6ebbd7a46f8937aa7d83639504214c5dabc252fa180b3",
+      "replacements": 0
+    }
+  ]
+}

@@ -11,7 +11,7 @@ const fail = msg => {
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const readJson = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
-const canonicalPrepublishOnly = 'npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
+const canonicalPrepublishOnly = 'npm run sync:eos-version && npm run check:eos-production-release && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
 const canonicalPrepack = 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
 
 const pkg = readJson('package.json');
@@ -48,7 +48,9 @@ if (pkg.scripts['test:eos-auto-update-placement'] !== 'node tools/nexowatt-auto-
 if (pkg.scripts['test:eos-installer-ems'] !== 'node tools/nexowatt-installer-ems-selftest.cjs') fail('Installer EMS selftest script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-installer-ems-selftest.cjs')) fail('Installer EMS selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-auto-update-placement-selftest.cjs')) fail('auto-update placement selftest is not part of check:eos-stability');
-if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must use the dependency-free direct-publish workflow');
+if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must run the real production admission before release preparation');
+if (pkg.scripts['check:eos-production-release'] !== 'node tools/nexowatt-lock-provenance-check.cjs') fail('production admission must inspect the actual lockfiles');
+if (pkg.scripts['check:eos-release'] !== 'npm run check:eos-production-release && npm run check:eos-package && npm run check:eos-stability && npm pack --dry-run') fail('release check must stop on blocked production admission');
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) fail('prepublishOnly must not require local development dependencies');
 if (pkg.scripts['check:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs') fail('prebuilt release selftest script is missing or incorrect');
 if (pkg.scripts['seal:eos-prebuilt-release'] !== 'node tools/nexowatt-prebuilt-release-selftest.cjs --write') fail('prebuilt release sealing script is missing or incorrect');
@@ -216,7 +218,9 @@ for (const marker of [
 if (!index.includes(`eos-role-bootstrap.js?v=${shellTag}`)) fail('role bootstrap cache key mismatch');
 if (!index.includes(`eos-branding-sanitizer.js?v=${shellTag}`)) fail('branding sanitizer cache key mismatch');
 if (!index.includes(`eos-role-ui.js?v=${shellTag}`)) fail('role UI cache key mismatch');
-if (index.includes('eos-account-management.js')) fail('custom account-management runtime must not be loaded in standard password mode');
+// Security migration disables inherited shared-password accounts. The secured
+// Admin account UI is required to provision individual temporary passwords.
+if (!/eos-account-management\.js\?[^"']*security=20260930/.test(index)) fail('secured account-management runtime for credential migration must be loaded');
 if (!index.includes(`eos-auto-update.js?v=${autoUpdateTag}`)) fail('auto-update JavaScript cache key mismatch');
 if (!index.includes(`eos-auto-update.css?v=${autoUpdateTag}`)) fail('auto-update CSS cache key mismatch');
 if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache key mismatch');
@@ -267,11 +271,15 @@ if (!shellCss.includes('.nexowatt-native-nav-item') || !shellCss.includes('.eos-
 if (!nativeSecurity.includes('shouldBlockInstanceDelete')) fail('minimal native security API missing instance protection');
 if (/addEventListener\(['"]click['"]/.test(nativeSecurity)) fail('native security must not globally intercept clicks');
 if (!accountManagement.includes('NEXOWATT_EOS_ACCOUNT_MANAGEMENT') || !accountManagement.includes('X-NexoWatt-EOS-Account-Reset') || !accountManagement.includes('ensureEntrySurface')) fail('account-management runtime is incomplete');
+for (const marker of ['payload.temporaryPassword', "account.migrationDisabled && state.role === 'admin'", 'accountErrorText(payload.error)']) {
+  if (!accountManagement.includes(marker)) fail(`secured account-management runtime missing ${marker}`);
+}
 if (accountManagement.includes("launcher.className = 'eos-account-management-launcher'")) fail('account management must not create a separate launcher');
 if (accountManagement.includes('new MutationObserver')) fail('account-management runtime adds a second broad DOM observer');
 if (read('src-admin/public/js/eos-account-management.js') !== accountManagement) fail('account-management source/build drift');
 const roleBootstrap = read('adminWww/js/eos-role-bootstrap.js');
-if (roleBootstrap.includes('installIntegratedFirstLogin(base);') || roleBootstrap.includes('showFirstLoginPassword(resolved, base);')) fail('forced first-login UI must be disabled');
+if (roleBootstrap.includes('installIntegratedFirstLogin(base);')) fail('passwordless first-login claim must remain disabled');
+if (!/if\s*\(resolved\.mustChangePassword === true\)\s*\{\s*showFirstLoginPassword\(resolved, base\);\s*return resolved;/.test(roleBootstrap)) fail('authenticated temporary-password setup must block normal application launch');
 if (/data-eos-account=|selector\.innerHTML/.test(roleBootstrap)) fail('login role buttons must not enlarge the normal login card');
 if (!roleBootstrap.includes('nexowatt/account/passwordless-status') || !roleBootstrap.includes('eligibility.allowed')) fail('server-checked first-login eligibility is incomplete');
 if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old first-login launcher remains active');
@@ -303,7 +311,7 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-entrypoint-smoke-sel
 if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
 if (pkg.scripts.prepack !== canonicalPrepack) fail('prepack must verify the sealed prebuilt artifact without tsc/tsx');
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepack || '')) fail('prepack must not require local development dependencies');
-if (pkg.scripts.build !== 'npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run seal:eos-prebuilt-release') fail('build must clean and seal the prebuilt release after compilation');
+if (pkg.scripts.build !== 'npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run security:inventory && npm run seal:eos-prebuilt-release') fail('build must clean runtime, generate the reference inventory and seal after compilation');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest.cjs')) fail('role access selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password flow selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password management selftest is not part of check:eos-stability');

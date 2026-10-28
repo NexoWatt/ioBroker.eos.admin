@@ -1,0 +1,40 @@
+✔ URL parser accepts ordinary files and strips real queries before decoding (3.983411ms)
+✔ URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth (1.555359ms)
+✔ single file read propagates authenticated caller ACL to both operations and ignores attacker MIME (2.705524ms)
+✔ missing or malformed identity and invalid direct-call path perform no database IO (4.71697ms)
+✔ explicit authenticated user names containing @ retain their identity for ACL checks (6.030391ms)
+✔ directory exports are denied without recursive reads or archive allocation (1.259629ms)
+✔ missing metadata, oversized declared files and excessive parent entries fail before reading file bytes (4.362135ms)
+✔ actual oversized response is rejected even if metadata was small (1.290634ms)
+✔ active file types are attachments with isolated restrictive response headers (6.135176ms)
+✔ database errors fail closed and do not expose internal details (1.461817ms)
+✔ concurrent stalled requests reserve both slots even after the five-second deadline (9.806152ms)
+✔ aborted client cannot trigger a late file read and reservation is released after DB settles (1.845314ms)
+✔ slow output keeps both reservations until deadline destroys unfinished responses (1.808933ms)
+✔ HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling (6.442443ms)
+✔ HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport (1.605862ms)
+✔ HTTPS rejects redirects without contacting redirect targets (1.100116ms)
+✔ HTTPS rejects oversized declared and streamed responses and compressed bodies (4.09722ms)
+✔ HTTPS rejects malformed or primitive JSON without exposing body/error text (5.211164ms)
+✔ HTTPS hard deadline destroys a request before response including DNS/connect stalls (21.786604ms)
+✔ HTTPS hard deadline also bounds slow response bodies (21.285699ms)
+✔ HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected (1.590024ms)
+✔ gzip preview returns text but rejects bombs, oversized input, and invalid gzip (43.251522ms)
+✔ gzip preview concurrency is bounded independently of compressed size (37.982641ms)
+✔ system-info calls coalesce and cache npm version; no shell is used (1.530582ms)
+✔ upload budget admits two across routes; third denied and aborted temporary files cleaned (71.357084ms)
+✔ upload parser receives actual total/file/part limits and private temporary directory (33.966574ms)
+✔ restore storage does not follow existing destination symlink and persists restrictive permissions (38.818001ms)
+✔ retained upload data counts against shared quota at the next admission (35.991426ms)
+✔ upload total deadline aborts a still-active parser and removes its partial directory (53.674465ms)
+✔ upload admission rejects low disk space before constructing parser (3.760251ms)
+✔ synchronous parser initialization failure releases reserved capacity (64.473017ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 555.83746
+

@@ -73,12 +73,17 @@
         const root = ensureRoot();
         if (!root) return;
 
-        const enabled = latestStatus?.enabled !== false;
+        const enabled = latestStatus?.enabled === true && latestStatus?.blocked !== true;
+        const blocked = latestStatus?.blocked !== false;
         const managed = Array.isArray(latestStatus?.managedAdapters) ? latestStatus.managedAdapters : [];
-        const error = String(latestStatus?.error || '');
+        const rawError = String(latestStatus?.error || '');
+        const error = rawError === 'UNATTENDED_UPDATES_BLOCKED_UNVERIFIED_RELEASE'
+            ? 'Automatische Installation bleibt bis zur Sicherheitsfreigabe gesperrt.'
+            : rawError === 'UNATTENDED_UPDATE_MIGRATION_FAILED'
+                ? 'Die bisherigen Update-Einstellungen konnten nicht sicher umgestellt werden. Bitte die Administrator-Diagnose prüfen.' : rawError;
 
         root.dataset.enabled = String(enabled);
-        root.innerHTML = `<div class="eos-nau-copy"><span class="eos-nau-eyebrow">NexoWatt Stable</span><h2>Automatische Adapter-Updates</h2><p>${enabled ? 'Installierte NexoWatt-Adapter werden automatisch aktualisiert, sobald im erkannten Stable-Repository eine neuere stabile Version verfügbar ist.' : 'Automatische NexoWatt-Updates sind deaktiviert. Vorherige ioBroker-Update-Richtlinien wurden wiederhergestellt.'}</p><div class="eos-nau-meta"><span>Repository: <strong>${esc(latestStatus?.repository || 'wird erkannt')}</strong></span><span>Letzter Abgleich: <strong>${esc(formatTime(latestStatus?.lastSync))}</strong></span><span>Richtlinie: <strong>alle neueren Stable-Versionen</strong></span></div>${managed.length ? `<div class="eos-nau-adapters">${managed.map(name => `<span>${esc(name)}</span>`).join('')}</div>` : ''}${error ? `<div class="eos-nau-error">${esc(error)}</div>` : ''}</div><label class="eos-nau-switch"><input type="checkbox" ${enabled ? 'checked' : ''} ${busy ? 'disabled' : ''}><span class="eos-nau-track"><span class="eos-nau-thumb"></span></span><strong>${enabled ? 'Aktiv' : 'Deaktiviert'}</strong><small>jederzeit änderbar</small></label>`;
+        root.innerHTML = `<div class="eos-nau-copy"><span class="eos-nau-eyebrow">NexoWatt Stable</span><h2>Automatische Adapter-Updates</h2><p>${enabled ? 'Installierte NexoWatt-Adapter werden automatisch aktualisiert, sobald im erkannten Stable-Repository eine neuere stabile Version verfügbar ist.' : 'Unbeaufsichtigte Adapter-Installation ist gesperrt, bis die Herkunft und Integrität freigegebener Versionen nachgewiesen sind. Manuelle, geprüfte Updates durch den Administrator bleiben möglich.'}</p><div class="eos-nau-meta"><span>Repository: <strong>${esc(latestStatus?.repository || 'wird erkannt')}</strong></span><span>Letzter Abgleich: <strong>${esc(formatTime(latestStatus?.lastSync))}</strong></span><span>Richtlinie: <strong>manuelle geprüfte Freigabe</strong></span></div>${managed.length ? `<div class="eos-nau-adapters">${managed.map(name => `<span>${esc(name)}</span>`).join('')}</div>` : ''}${error ? `<div class="eos-nau-error">${esc(error)}</div>` : ''}</div><label class="eos-nau-switch"><input type="checkbox" ${enabled ? 'checked' : ''} ${busy || blocked ? 'disabled' : ''}><span class="eos-nau-track"><span class="eos-nau-thumb"></span></span><strong>${enabled ? 'Aktiv' : 'Deaktiviert'}</strong><small>${blocked ? 'Sicherheitsfreigabe erforderlich' : 'durch Administrator änderbar'}</small></label>`;
         root.querySelector('input')?.addEventListener('change', event => void save(Boolean(event.currentTarget.checked)));
     };
 
@@ -104,12 +109,12 @@
         try {
             render(await request('status'));
         } catch (error) {
-            render({ enabled: latestStatus?.enabled !== false, error: error?.message || error });
+            render({ enabled: false, blocked: true, error: error?.message || error });
         }
     };
 
     const save = async enabled => {
-        if (busy) return;
+        if (busy || latestStatus?.blocked !== false) return;
         busy = true;
         render({ enabled, error: '' });
 

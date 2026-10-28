@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "eos-admin",
-    "version": "7.10.9",
+    "version": "7.10.12",
     "titleLang": {
       "en": "NexoWatt EOS Admin",
       "de": "NexoWatt EOS Admin",
@@ -18,6 +18,14 @@
     "connectionType": "local",
     "dataSource": "push",
     "news": {
+      "7.10.11": {
+        "en": "Offline issuer interoperability, stricter trust provisioning, session revocation and local transport/resource hardening. Integration test candidate; manual security release gates remain required.",
+        "de": "Offline-Keygen-Anbindung, strengere Vertrauensanker, Sitzungswiderruf sowie Transport- und Ressourcenhärtung. Integrations-Teststand mit offenen Freigabeprüfungen."
+      },
+      "7.10.10": {
+        "de": "Teststand: lokale signierte Home-/Pro-Lizenzen, verschlüsselte Speicherung, Adapter-SDK und Härtung von Konten, Sitzungen und privilegierten Schnittstellen. Keygen- und Geräteintegration noch zu prüfen.",
+        "en": "Integration candidate: local signed Home/Pro licenses, encrypted storage, adapter SDK and hardened accounts, sessions and privileged interfaces. Keygen and hardware integration pending."
+      },
       "7.10.7": {
         "de": "Stable 7.10.7 gibt dem Installateur den Zugriff auf „EMS Apps öffnen“ und das EMS App-Center frei. Simulation und Lizenzverwaltung bleiben ausschließlich dem Administrator vorbehalten. Endkundenbereich, Nur-Lese-Datenpunkte und Adminrechte bleiben unverändert.",
         "en": "Stable 7.10.7 grants the Installer access to “Open EMS Apps” and the EMS App-Center. Simulation and license administration remain Administrator-only. End User read-only datapoints and all Administrator rights remain unchanged.",
@@ -327,6 +335,10 @@
         "de": "Stabile Verkaufsfassung mit wieder ordentlich proportionierter, nur moderat vergrößerter Anmeldung ohne innere Scrollleisten und zuverlässig verbundener read-only EMS-Live-Diagnose.",
         "en": "Stable sales release with an orderly, moderately enlarged login without inner scrollbars and a reliably connected read-only EMS live diagnosis.",
         "nl": "Stabiele verkoopversie met een nette, slechts matig vergrote aanmelding zonder interne schuifbalken en een betrouwbaar verbonden read-only EMS-live diagnose."
+      },
+      "7.10.12": {
+        "en": "Security audit fixes: strict authentication, file ACL enforcement, data-only news conditions, safe OAuth output and bounded requests. Integration candidate; see bundled audit report.",
+        "de": "Sicherheitskorrekturen: strikte Anmeldung, Datei-ACLs, reine Datenprüfung für News, sichere OAuth-Ausgabe und begrenzte Abrufe. Integrationsstand; Prüfbericht beachten."
       }
     },
     "desc": {
@@ -364,7 +376,7 @@
     "icon": "admin.svg",
     "messagebox": true,
     "enabled": true,
-    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.9/admin/admin.svg",
+    "extIcon": "https://unpkg.com/iobroker.eos-admin@7.10.12/admin/admin.svg",
     "keywords": [
       "NexoWatt",
       "EOS",
@@ -375,7 +387,7 @@
       "licensed"
     ],
     "compact": true,
-    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.9/README.md",
+    "readme": "https://unpkg.com/iobroker.eos-admin@7.10.12/README.md",
     "authors": [
       "NexoWatt"
     ],
@@ -443,7 +455,7 @@
     "nondeletable": false,
     "allowAdapterUpdate": true,
     "allowAdapterDelete": false,
-    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.9/io-package.json",
+    "meta": "https://unpkg.com/iobroker.eos-admin@7.10.12/io-package.json",
     "npmPackage": "iobroker.eos-admin",
     "packetName": "iobroker.eos-admin",
     "publisher": "NexoWatt"
@@ -573,7 +585,7 @@
         "enabled": true
       }
     ],
-    "eosRequireFirstLoginPassword": false,
+    "eosRequireFirstLoginPassword": true,
     "eosFirstLoginPasswordMinLength": 10,
     "eosAutoAssignDefaultRoleUsers": true,
     "eosPasswordlessFirstLogin": false,
@@ -585,7 +597,7 @@
     "eosRequireFirstLoginPasswordChange": false,
     "eosAutoAssignStandardAccounts": true,
     "eosAssistEnabled": false,
-    "eosNexoWattAutoUpdate": true
+    "eosNexoWattAutoUpdate": false
   },
   "notifications": [
     {
@@ -1220,5 +1232,5 @@
       }
     }
   },
-  "version": "7.10.9"
+  "version": "7.10.12"
 }

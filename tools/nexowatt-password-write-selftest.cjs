@@ -7,8 +7,8 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const built = fs.readFileSync(path.join(root, 'build/lib/web.js'), 'utf8');
 const source = fs.readFileSync(path.join(root, 'src/lib/web.ts'), 'utf8');
-const begin = built.indexOf('    getEosPasswordUserName(userId) {');
-const end = built.indexOf('    async destroyEosRequestSessions', begin);
+const begin = built.search(/^[ \t]+getEosPasswordUserName\(userId\) \{/m);
+const end = built.indexOf('async destroyEosRequestSessions', begin);
 assert(begin >= 0 && end > begin, 'password methods not found in built backend');
 const methods = built.slice(begin, end);
 const sandbox = { module: { exports: null }, EOS_PASSWORD_SERVICE_USER: 'system.user.admin' };
@@ -18,6 +18,7 @@ const Harness = sandbox.module.exports;
   const calls = [];
   const userObject = { _id: 'system.user.user', common: { password: '$2b$hash' }, native: { keep: true } };
   const adapter = {
+    eosSessionSecurity: { revoke() { calls.push(['revoke']); } },
     setPasswordAsync: async (user, password, options) => calls.push(['set', user, password, options]),
     checkPasswordAsync: async (user, password, options) => { calls.push(['check', user, password, options]); return [true, `system.user.${user}`]; },
     getForeignObjectAsync: async id => { calls.push(['get', id]); return JSON.parse(JSON.stringify(userObject)); },
@@ -26,8 +27,9 @@ const Harness = sandbox.module.exports;
   };
   const harness = new Harness(adapter);
   await harness.setEosUserPassword('system.user.user', 'NexoWatt2025!');
-  assert.deepEqual(calls[0].slice(0, 3), ['set', 'user', 'NexoWatt2025!']);
-  assert.deepEqual(calls[1].slice(0, 3), ['check', 'user', 'NexoWatt2025!']);
+  assert.deepEqual(calls[0], ['revoke'], 'Existing sessions must be revoked before the password write');
+  assert.deepEqual(calls[1].slice(0, 3), ['set', 'user', 'NexoWatt2025!']);
+  assert.deepEqual(calls[2].slice(0, 3), ['check', 'user', 'NexoWatt2025!']);
   await harness.updateEosAccountMetadata('system.user.user', (native, account) => {
     account.passwordInitialized = true;
     native.nexowattPasswordChangeRequired = false;

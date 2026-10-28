@@ -82,6 +82,24 @@ function isLegacyVersionedTool(file, activeRelease) {
   return !!match && Number(match[1]) !== activeRelease;
 }
 
+function referencedVersionedTools(root) {
+  const pkg = readJson(path.join(root, 'package.json'));
+  const references = new Set();
+  // A retained regression may intentionally keep the version where a bug was
+  // introduced. Release-number changes do not make that test obsolete.
+  for (const item of pkg.files || []) {
+    const relative = String(item).replace(/\\/g, '/').replace(/^\.\//, '');
+    if (/^tools\/nexowatt-v\d+-.+-selftest\.cjs$/i.test(relative)) references.add(relative);
+  }
+  for (const command of Object.values(pkg.scripts || {})) {
+    const normalized = String(command).replace(/\\/g, '/');
+    const pattern = /(?:^|[\s"'=])(?:\.\/)?(tools\/nexowatt-v\d+-[A-Za-z0-9_-]+-selftest\.cjs)(?=$|[\s"';&|)])/gi;
+    let match;
+    while ((match = pattern.exec(normalized))) references.add(match[1]);
+  }
+  return references;
+}
+
 function walkFiles(dir) {
   if (!fs.existsSync(dir)) return [];
   const result = [];
@@ -100,7 +118,7 @@ function walkFiles(dir) {
 function isLegacyVersionedRuntime(file, activeRuntime, activeShell) {
   const name = path.basename(file);
   // Stable product overlays use the product release number in their filename,
-  // while the compiled React runtime can intentionally remain on v84. Keep
+  // while the compiled React runtime has its own cache version. Keep
   // only the active stable overlay and remove stale release assets left behind
   // by a flat ZIP update (for example v96 when installing v97).
   const stableMatch = name.match(/^nexowatt-stable-v(\d+)\.js$/i);
@@ -119,6 +137,7 @@ function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
   const activeRuntime = runtimeNumber(root);
   const activeShell = shellNumber(root);
   const activeRelease = releaseNumber(root);
+  const referencedTools = referencedVersionedTools(root);
   const scanRoots = [
     path.join(root, 'adminWww', 'assets'),
     path.join(root, 'adminWww'),
@@ -133,7 +152,8 @@ function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
     }
   }
   for (const file of walkFiles(path.join(root, 'tools'))) {
-    if (isLegacyVersionedTool(file, activeRelease)) files.add(file);
+    const relative = path.relative(root, file).replace(/\\/g, '/');
+    if (isLegacyVersionedTool(file, activeRelease) && !referencedTools.has(relative)) files.add(file);
   }
   for (const rel of LEGACY_OVERLAYS) {
     const file = path.join(root, rel);
@@ -204,5 +224,6 @@ module.exports = {
   isLegacyVersionedRuntime,
   isLegacyVersionedTool,
   releaseNumber,
+  referencedVersionedTools,
   shellNumber,
 };

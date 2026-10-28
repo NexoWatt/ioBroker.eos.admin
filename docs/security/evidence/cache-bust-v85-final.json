@@ -1,0 +1,6 @@
+{
+  "utc": "2026-10-25T15:15:59.819152+00:00",
+  "result": "PASS: complete check:eos-stability passed after 7.10.12 sync, including stable-v7103",
+  "raw": "../../../reports/security/2026-10-25/fixed-raw/stability-final.log",
+  "priorCheck": "cache-bust-v85-checks.json retains the earlier metadata-drift failure for audit trail"
+}

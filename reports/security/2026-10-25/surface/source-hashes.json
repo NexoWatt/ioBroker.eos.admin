@@ -1,0 +1,16 @@
+{
+  "utc": "2026-10-25T14:57:33.623781+00:00",
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "node": "v24.22.1",
+  "files": {
+    "src/lib/web.ts": "0da148698f8d02801c0f9670a5f956609e9581aae99f31da5bcc92ce75ccbd4e",
+    "build/lib/web.js": "4a210c213cd921170255294c5fac349dc053d2619c9e2a7a972cbdb3e0000171",
+    "src/main.ts": "1fcc9ed3cbcb3ec395828fed18e1b5748d63ba1bf579b0174fa2cee94b0faf39",
+    "build/main.js": "8a2f4740d295e9a7bcc8e2456e5b99c8a5dbabcebb6c2661fd11593827dd7425",
+    "src-admin/src/dialogs/NewsAdminDialog.tsx": "3d466539df9454291703ac8a3d7a10cbb0cf239825613718dfe1e6810d5ceec9",
+    "adminWww/assets/bootstrap-COulQZax-v84.js": "74e59fbdc557f5cab2b43a3d400cb121f685f8fc673be9449c45961d9be7ebc0",
+    "src/lib/eosUploadGuard.js": "ac1bf6fd9a3ff1acce6463b9d2f1c208005ee88d9669794e11bfc3919a15be92",
+    "build/lib/eosUploadGuard.js": "ac1bf6fd9a3ff1acce6463b9d2f1c208005ee88d9669794e11bfc3919a15be92",
+    "test/eos-web-resources.test.cjs": "780e466fc64c9d8a6a2972f24a355fed1a1dcf1cf6d31bbbe8bc390845060f42"
+  }
+}
