@@ -2,7 +2,7 @@ import React, { Component, type JSX } from 'react';
 import { LinearProgress } from '@mui/material';
 import JSON5 from 'json5';
 
-import { I18n, Router, type AdminConnection, type IobTheme, type ThemeName } from '@iobroker/adapter-react-v5';
+import { I18n, Router, type AdminConnection, type IobTheme, type ThemeName } from '@iobroker/gui-components';
 import DeviceManager from '@iobroker/dm-gui-components';
 import {
     type ConfigItemPanel,
@@ -13,7 +13,9 @@ import {
 
 import type { InstancesWorker } from '@/Workers/InstancesWorker';
 import AdminUtils from '@/helpers/AdminUtils';
+import { adminHref } from '@/helpers/utils';
 import type { CompactHost } from '@/types';
+import AceEditor from '@/components/AceEditor';
 
 const styles: Record<string, React.CSSProperties> = {
     root: {
@@ -59,6 +61,8 @@ interface CustomTabState {
     jsonData: Record<string, any>;
     loadingKey: number;
     loading: boolean;
+    /** The tab lives on an own server of the adapter that the remote access does not publish */
+    unreachable: boolean;
 }
 
 export default class CustomTab extends Component<CustomTabProps, CustomTabState> {
@@ -78,6 +82,7 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
             jsonData: {},
             loadingKey: 0,
             loading: true,
+            unreachable: false,
         };
     }
 
@@ -86,11 +91,7 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
             this.registered = true;
             this.props.onRegisterIframeRef(this.refIframe);
         }
-        (window.addEventListener || window.attachEvent)(
-            window.addEventListener ? 'message' : 'onmessage',
-            this.onMessage,
-            false,
-        );
+        window.addEventListener('message', this.onMessage as unknown as EventListener, false);
 
         const hosts: Record<string, CompactHost> = {};
         for (const host of this.props.hosts) {
@@ -111,8 +112,13 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
 
         // Check if jsonTab.json(5) exists
         if (fileName.endsWith('.json') || fileName.endsWith('.json5')) {
+            // Let the back-end validate the tab definition against the JSON config schema and warn in the log
+            fetch(adminHref(`validate_tab/${result.adapterName}`)).catch(e =>
+                console.warn(`Cannot validate jsonTab of ${result.adapterName}: ${e}`),
+            );
+
             try {
-                let jsonText: string;
+                let jsonText = '';
                 const json: {
                     file: string;
                     mimeType: string;
@@ -158,11 +164,12 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
         }
 
         this.setState({
-            href: result.href,
+            href: adminHref(result.href),
             adapterName: result.adapterName,
             instanceNumber: result.instanceNumber,
             schema,
             jsonData,
+            unreachable: !!result.unreachable,
         });
         // check if href exists
         // fetch(href)
@@ -176,14 +183,10 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
             this.loadingTimer = null;
         }
         if (this.registered) {
-            this.props.onUnregisterIframeRef(this.refIframe);
+            this.props.onUnregisterIframeRef(this.refIframe as HTMLIFrameElement);
             this.registered = false;
         }
-        (window.removeEventListener || window.detachEvent)(
-            window.removeEventListener ? 'message' : 'onmessage',
-            this.onMessage,
-            false,
-        );
+        window.removeEventListener('message', this.onMessage as unknown as EventListener, false);
     }
 
     componentDidUpdate(/* prevProps, prevState, snapshot */): void {
@@ -251,7 +254,32 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
                     withoutSaveButtons
                     expertMode={this.props.expertMode}
                     DeviceManager={DeviceManager as unknown as React.FC<DeviceManagerPropsProps>}
+                    AceEditor={AceEditor}
                 />
+            );
+        }
+
+        if (this.state.unreachable) {
+            // This tab does not live in the admin but on an own server of the adapter, and the remote
+            // access does not publish it. Loading it into the iframe would only give an empty page.
+            return (
+                <div
+                    style={{
+                        padding: 10,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        flexDirection: 'column',
+                        fontSize: 18,
+                        gap: 20,
+                        textAlign: 'center',
+                    }}
+                >
+                    <div>{I18n.t('Only reachable in the local network')}</div>
+                    <div>{I18n.t('This page is not provided by the remote access of ioBroker Cloud/Pro.')}</div>
+                    <div style={{ opacity: 0.7, fontSize: 16 }}>{this.state.href}</div>
+                </div>
             );
         }
 
@@ -321,7 +349,9 @@ export default class CustomTab extends Component<CustomTabProps, CustomTabState>
                     </div>
                 ) : null}
                 <iframe
-                    ref={el => (this.refIframe = el)}
+                    ref={el => {
+                        this.refIframe = el;
+                    }}
                     title={this.props.tab}
                     style={{
                         display: 'block',

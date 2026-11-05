@@ -1,0 +1,34 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 lint
+> npm run lint-backend && cd src-admin && npm run lint
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 lint-backend
+> eslint -c eslint.config.mjs src
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> src-rx@8.0.0 lint
+> eslint -c eslint.config.mjs src
+
+
+/workspace/scratch/c16def314bc5/admin8-migration/admin/src-admin/src/components/Adapters/AdaptersList.tsx
+  426:5  warning  Expected 'this' to be used by class method 'shouldShowRepositoryWarning'  class-methods-use-this
+
+/workspace/scratch/c16def314bc5/admin8-migration/admin/src-admin/src/components/Enums/EnumDetails.tsx
+  558:11  warning  The 'memberIds' logical expression could make the dependencies of useMemo Hook (at line 576) change on every render. To fix this, wrap the initialization of 'memberIds' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/workspace/scratch/c16def314bc5/admin8-migration/admin/src-admin/src/components/Intro/NexoWattEmsOverview.tsx
+  298:11  warning  The 'summary' logical expression could make the dependencies of useMemo Hook (at line 318) change on every render. To fix this, wrap the initialization of 'summary' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/workspace/scratch/c16def314bc5/admin8-migration/admin/src-admin/src/components/UsedResources.tsx
+  110:1  warning  Missing @param "props.socket"    jsdoc/check-param-names
+  110:1  warning  Missing @param "props.instance"  jsdoc/check-param-names
+
+/workspace/scratch/c16def314bc5/admin8-migration/admin/src-admin/src/tabs/Intro.tsx
+  1905:5  warning  Expected 'this' to be used by class method 'getOverviewRoleConfig'  class-methods-use-this
+
+✖ 6 problems (0 errors, 6 warnings)
+

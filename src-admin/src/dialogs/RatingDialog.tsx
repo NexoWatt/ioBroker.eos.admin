@@ -24,7 +24,7 @@ import {
 
 import { HowToVote as VoteIcon, Close as CloseIcon, Info as InfoIcon } from '@mui/icons-material';
 
-import type { IobTheme, Translate } from '@iobroker/adapter-react-v5';
+import type { IobTheme, Translate } from '@iobroker/gui-components';
 
 const styles: Record<string, any> = {
     rating: {
@@ -41,8 +41,9 @@ const styles: Record<string, any> = {
         // maxHeight: 200,
     },
     listOwn: (theme: IobTheme) => ({
-        backgroundColor:
-            theme.name === 'colored' || theme.name === 'light' ? '#16516e2e' : theme.palette.secondary.dark,
+        // decided by the type, not by the name - otherwise every new light theme (modernLight)
+        // would get the dark colour of the else branch
+        backgroundColor: theme.palette.mode === 'light' ? '#16516e2e' : theme.palette.secondary.dark,
     }),
     listTitle: (theme: IobTheme) => ({
         backgroundColor: theme.palette.primary.dark,
@@ -164,15 +165,15 @@ interface RatingDialogProps {
     lang: string;
     uuid: string;
     version: string;
-    currentRating: { rating?: { r: number; c: number }; title: string };
+    currentRating: { rating?: { r: number; c: number }; title: string } | undefined;
     adapter: string;
-    onClose: (update?: RatingDialogRepository) => void;
+    onClose: (update?: RatingDialogRepository | null) => void;
 }
 
 interface RatingDialogState {
-    ratingNumber: number;
+    ratingNumber: number | null;
     ratingComment: string;
-    votings: RatingDialogVotings;
+    votings: RatingDialogVotings | null;
     ratingLang: string;
     filterLang: string;
     commentsByLanguage: Record<string, number>;
@@ -202,9 +203,9 @@ class RatingDialog extends Component<RatingDialogProps, RatingDialogState> {
                 votings.rating ||= {};
                 const versions = Object.keys(votings.rating);
                 versions.sort((a, b) =>
-                    votings.rating[a].ts > votings.rating[b].ts
+                    votings.rating![a].ts > votings.rating![b].ts
                         ? -1
-                        : votings.rating[a].ts < votings.rating[b].ts
+                        : votings.rating![a].ts < votings.rating![b].ts
                           ? 1
                           : 0,
                 );
@@ -249,7 +250,7 @@ class RatingDialog extends Component<RatingDialogProps, RatingDialogState> {
             }),
         })
             .then(res => res.json())
-            .then((update: RatingDialogRepository & { adapter: string }) => {
+            .then((update: RatingDialogRepository & { adapter?: string }) => {
                 window.alert(`${this.props.t('Vote:')} ${adapter}@${version}=${rating}`);
                 delete update.adapter;
                 return update;
@@ -272,7 +273,7 @@ class RatingDialog extends Component<RatingDialogProps, RatingDialogState> {
         );
     }
 
-    renderComments(): JSX.Element {
+    renderComments(): JSX.Element | null {
         if (this.state.votings?.comments && this.state.votings.comments.length) {
             const found = this.state.votings.comments.find(
                 comment =>
@@ -369,10 +370,10 @@ class RatingDialog extends Component<RatingDialogProps, RatingDialogState> {
     }
 
     render(): JSX.Element {
-        let item: { r: number; ts: number };
-        let versions: string[];
+        let item: { r: number; ts: number } | undefined;
+        let versions: string[] | undefined;
         if (this.state.votings) {
-            const votings = this.state.votings.rating;
+            const votings = this.state.votings.rating || {};
             versions = Object.keys(votings);
             versions.sort((a, b) => (votings[a].ts > votings[b].ts ? -1 : votings[a].ts < votings[b].ts ? 1 : 0));
             if (versions.length) {
@@ -480,7 +481,7 @@ class RatingDialog extends Component<RatingDialogProps, RatingDialogState> {
                                     void this.setAdapterRating(
                                         this.props.adapter,
                                         this.props.version,
-                                        this.state.ratingNumber,
+                                        this.state.ratingNumber || 5,
                                         this.state.ratingComment,
                                         this.state.ratingLang,
                                     ).then(update => this.props.onClose(update));

@@ -1,0 +1,65 @@
+{
+  "fileCount": 2230,
+  "classicMaxPathVisibleBudget": 259,
+  "oldUserTargetMaxCharacters": 288,
+  "oldUserTargetOver259": 3,
+  "new": {
+    "userTarget": {
+      "root": "C:\\Users\\User\\Desktop\\ioBroker\\ioBroker.eos.admin\\",
+      "maxCharacters": 248,
+      "over259": [],
+      "longestFiles": [
+        {
+          "characters": 248,
+          "file": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js"
+        },
+        {
+          "characters": 245,
+          "file": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js"
+        },
+        {
+          "characters": 235,
+          "file": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js"
+        },
+        {
+          "characters": 218,
+          "file": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js"
+        },
+        {
+          "characters": 215,
+          "file": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js"
+        }
+      ]
+    },
+    "shortExtract": {
+      "root": "C:\\nw\\ioBroker.eos-admin\\",
+      "maxCharacters": 223,
+      "over259": [],
+      "longestFiles": [
+        {
+          "characters": 223,
+          "file": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js"
+        },
+        {
+          "characters": 220,
+          "file": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js"
+        },
+        {
+          "characters": 210,
+          "file": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js"
+        },
+        {
+          "characters": 193,
+          "file": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js"
+        },
+        {
+          "characters": 190,
+          "file": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js"
+        }
+      ]
+    }
+  },
+  "caseInsensitiveCollisions": 0,
+  "invalidWindowsComponents": 0,
+  "nativeExplorerTest": false
+}

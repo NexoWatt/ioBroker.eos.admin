@@ -1,0 +1,1152 @@
+{
+  "schemaVersion": 1,
+  "noLicenseTextsInvented": true,
+  "sources": "Unchanged license files from the exact installed upstream lock packages. OXC helper reference separately marked. Absence remains explicit.",
+  "components": [
+    {
+      "name": "@babel/runtime",
+      "version": "7.29.7",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@babel/runtime",
+      "integrity": "sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_babel_runtime-7.29.7/LICENSE",
+          "originalPath": "node_modules/@babel/runtime/LICENSE",
+          "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76",
+          "bytes": 1106
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/cache",
+      "version": "11.14.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/cache",
+      "integrity": "sha512-L/B1lc/TViYk4DcpGxtAVbx0ZyiKM5ktoIyafGkH6zg/tj+mA+NE//aPYKG0k8kCHSHVJrpLpcAlOBEXQ3SavA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_cache-11.14.0/LICENSE",
+          "originalPath": "node_modules/@emotion/cache/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/hash",
+      "version": "0.9.2",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/hash",
+      "integrity": "sha512-MyqliTZGuOm3+5ZRSaaBGP3USLw6+EGykkwZns2EPC5g8jJ4z9OrdZY9apkl3+UP9+sdz76YYkwCKP5gh8iY3g==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_hash-0.9.2/LICENSE",
+          "originalPath": "node_modules/@emotion/hash/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/is-prop-valid",
+      "version": "1.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/is-prop-valid",
+      "integrity": "sha512-QgD4fyscGcbbKwJmqNvUMSE02OsHUa+lAWKdEUIJKgqe5IwRSKd7+KhibEWdaKwgjLj0DRSHA9biAIqGBk05lw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_is-prop-valid-1.4.0/LICENSE",
+          "originalPath": "node_modules/@emotion/is-prop-valid/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/memoize",
+      "version": "0.9.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/memoize",
+      "integrity": "sha512-30FAj7/EoJ5mwVPOWhAyCX+FPfMDrVecJAM+Iw9NRoSl4BBAQeqj4cApHHUXOVvIPgLVDsCFoz/hGD+5QQD1GQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_memoize-0.9.0/LICENSE",
+          "originalPath": "node_modules/@emotion/memoize/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/react",
+      "version": "11.14.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/react",
+      "integrity": "sha512-O000MLDBDdk/EohJPFUqvnp4qnHeYkVP5B0xEG0D/L7cOKP9kefu2DXn8dj74cQfsEzUqh+sr1RzFqiL1o+PpA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_react-11.14.0/LICENSE",
+          "originalPath": "node_modules/@emotion/react/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/serialize",
+      "version": "1.3.3",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/serialize",
+      "integrity": "sha512-EISGqt7sSNWHGI76hC7x1CksiXPahbxEOrC5RjmFRJTqLyEK9/9hZvBbiYn70dw4wuwMKiEMCUlR6ZXTSWQqxA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_serialize-1.3.3/LICENSE",
+          "originalPath": "node_modules/@emotion/serialize/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/sheet",
+      "version": "1.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/sheet",
+      "integrity": "sha512-fTBW9/8r2w3dXWYM4HCB1Rdp8NLibOw2+XELH5m5+AkWiL/KqYX6dc0kKYlaYyKjrQ6ds33MCdMPEwgs2z1rqg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_sheet-1.4.0/LICENSE",
+          "originalPath": "node_modules/@emotion/sheet/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/styled",
+      "version": "11.14.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/styled",
+      "integrity": "sha512-qEEJt42DuToa3gurlH4Qqc1kVpNq8wO8cJtDzU46TjlzWjDlsVyevtYCRijVq3SrHsROS+gVQ8Fnea108GnKzw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_styled-11.14.1/LICENSE",
+          "originalPath": "node_modules/@emotion/styled/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/unitless",
+      "version": "0.10.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/unitless",
+      "integrity": "sha512-dFoMUuQA20zvtVTuxZww6OHoJYgrzfKM1t52mVySDJnMSEa08ruEvdYQbhvyu6soU+NeLVd3yKfTfT0NeV6qGg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_unitless-0.10.0/LICENSE",
+          "originalPath": "node_modules/@emotion/unitless/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/use-insertion-effect-with-fallbacks",
+      "version": "1.2.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/use-insertion-effect-with-fallbacks",
+      "integrity": "sha512-yJMtVdH59sxi/aVJBpk9FQq+OR8ll5GT8oWd57UpeaKEVGab41JWaCFA7FRLoMLloOZF/c/wsPoe+bfGmRKgDg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_use-insertion-effect-with-fallbacks-1.2.0/LICENSE",
+          "originalPath": "node_modules/@emotion/use-insertion-effect-with-fallbacks/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@emotion/utils",
+      "version": "1.4.2",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@emotion/utils",
+      "integrity": "sha512-3vLclRofFziIa3J2wDh9jjbkUz9qk5Vi3IZ/FSTKViB0k+ef0fPV7dYrUIugbgupYDx7v9ud/SjrtEP8Y4xLoA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_emotion_utils-1.4.2/LICENSE",
+          "originalPath": "node_modules/@emotion/utils/LICENSE",
+          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
+          "bytes": 1087
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@iobroker/gui-components",
+      "version": "10.2.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@iobroker/gui-components",
+      "integrity": "sha512-fSyL5/uduUFDWjPdVhxYMdKrDz71L5ufXY/qlx2Qi628hcQawyuTqVZZw50RVtptPk2kQvg+xFUCxxg4izfqgg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_iobroker_gui-components-10.2.1/LICENSE",
+          "originalPath": "node_modules/@iobroker/gui-components/LICENSE",
+          "sha256": "67009a9a953441eb82a5ff073f5e338b830ca96d89db55ddd8e60618d14c7e7c",
+          "bytes": 1100
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@iobroker/json-config",
+      "version": "9.1.2",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@iobroker/json-config",
+      "integrity": "sha512-MCPdJu+ZVdeh6JzX4603z2pinwroXNkfImglwaL8FTlQ8a1suPP+LzQEw8sxSk7yU29Lk3+qs5GIKAQ30dGTOw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_iobroker_json-config-9.1.2/LICENSE",
+          "originalPath": "node_modules/@iobroker/json-config/LICENSE",
+          "sha256": "4f1d8e2a6ad41e799b296288cf457da642ba75e1f2f04853b2e06fb2547236f9",
+          "bytes": 1099
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@iobroker/socket-client",
+      "version": "5.2.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@iobroker/socket-client",
+      "integrity": "sha512-M5OZWu1JKjC4prb2GJagzwLk5ny6sS7Z6D4bw76wMjr8DqdLR3+EvXImH0chMM/1PqtzdFZoyUBB+38GB5fadg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_iobroker_socket-client-5.2.1/LICENSE",
+          "originalPath": "node_modules/@iobroker/socket-client/LICENSE",
+          "sha256": "bf555de7f8d4b2f646a96e02e7ced1ff04c293492ad04b66395de2bcf223d6b3",
+          "bytes": 1076
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@iobroker/type-detector",
+      "version": "6.0.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@iobroker/type-detector",
+      "integrity": "sha512-/vuOX/RA35NMJIiyMW6mTfmj5tpukdUB7B5RsqdRY/AltyPFGk9rZWudRfr6DF0UfWE2xi+OkNMnE0zNS/N7ig==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_iobroker_type-detector-6.0.1/LICENSE",
+          "originalPath": "node_modules/@iobroker/type-detector/LICENSE",
+          "sha256": "c77a0f79ff86443806d4e647221c94a382a3e53f4526a744ac3db15fe0999788",
+          "bytes": 1092
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@module-federation/error-codes",
+      "version": "2.9.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@module-federation/error-codes",
+      "integrity": "sha512-IGpd+VRlji3NyGOGGTsk7YEmPRKcDoBK4YHqIuP+OQwyb2YhHCUHO2vW9RXeQxCuKwi+c6xkTweRYG+Umy+0Zw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_module-federation_error-codes-2.9.0/LICENSE",
+          "originalPath": "node_modules/@module-federation/error-codes/LICENSE",
+          "sha256": "8385c252568609183ceb9aead4ebac3b3bd8678c627739aee7aad29116409332",
+          "bytes": 1112
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@module-federation/runtime",
+      "version": "2.9.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@module-federation/runtime",
+      "integrity": "sha512-3cyAav0hWP+dNvB7qrcK9CKxQn+JvkbRvLtZz3zS2g0EyxtDFDjgbHY0Afcf7oHf8IHhKeEdzb/3Kjr1Pjmr7A==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_module-federation_runtime-2.9.0/LICENSE",
+          "originalPath": "node_modules/@module-federation/runtime/LICENSE",
+          "sha256": "74aeeff0b0117761910083b03d18a64a5a654917e794a841406410f909b427cf",
+          "bytes": 1083
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@module-federation/runtime-core",
+      "version": "2.9.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@module-federation/runtime-core",
+      "integrity": "sha512-dLykRYfpbEJBTdk2NlbNoVVTB196O3qujawTBguLABJkPCWETJNk60NR1yZO34eI+DTH+eGwHU3m7FddAWnbnw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_module-federation_runtime-core-2.9.0/LICENSE",
+          "originalPath": "node_modules/@module-federation/runtime-core/LICENSE",
+          "sha256": "74aeeff0b0117761910083b03d18a64a5a654917e794a841406410f909b427cf",
+          "bytes": 1083
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@module-federation/sdk",
+      "version": "2.9.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@module-federation/sdk",
+      "integrity": "sha512-IMjObgBGQTXd33jTTCYcxvz8iOQGLsZ2QIPOj90rDxuBtJsN4WJwYyXqligrhY/e5p/BipUPdbIgKmWL7zFhTw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_module-federation_sdk-2.9.0/LICENSE",
+          "originalPath": "node_modules/@module-federation/sdk/LICENSE",
+          "sha256": "62431fbe2f17fc691be95ed8302aa042c03200d2a7cdee7aab4bb0d2d3e16098",
+          "bytes": 1082
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/icons-material",
+      "version": "9.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/icons-material",
+      "integrity": "sha512-5PVgBYtLOXTk6u0YUAjoV9GoTUQDbeZ8g+pus2h0GphLT/rpmftRnB5D/Kw6QCAovB7EyBX7UxKdZqPBBAHUKw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_icons-material-9.4.0/LICENSE",
+          "originalPath": "node_modules/@mui/icons-material/LICENSE",
+          "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/material",
+      "version": "9.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/material",
+      "integrity": "sha512-6KKUIvkQ2r/s48s9VZV9JEZ1W2dRa7RndVsF+Ipx4CYxDOQeozeRsS5r9NiheFf8A5hpbqJJIGoX7hjg5X4XUw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_material-9.4.0/LICENSE",
+          "originalPath": "node_modules/@mui/material/LICENSE",
+          "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/private-theming",
+      "version": "9.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/private-theming",
+      "integrity": "sha512-qQpX/2XPGDz5F2OIWzo4kkorURlDeXGKytRQudXCdLS5TuwKsMKaZyx77LZEVSB73c7o3UrLWwQ/goRuHBdtjw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_private-theming-9.4.0/LICENSE",
+          "originalPath": "node_modules/@mui/private-theming/LICENSE",
+          "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/styled-engine",
+      "version": "9.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/styled-engine",
+      "integrity": "sha512-SlqVEYqnyEgXMFW4JuIDMelyhKzoWBJ85v2mNCQd0XtU0uk7U9E1zaJZ06XqodhA8oJrb+4Q+3E/JlwBe4jWkw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_styled-engine-9.4.0/LICENSE",
+          "originalPath": "node_modules/@mui/styled-engine/LICENSE",
+          "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/system",
+      "version": "9.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/system",
+      "integrity": "sha512-AZz9z13oGS1J0BYeAFHTbV7PegCtPiE/uMEIi7TJ1kTx3Vkt+jUpLyXF/2uV8B6Y79iTh98kVeOH9fX3x3zXXg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_system-9.4.0/LICENSE",
+          "originalPath": "node_modules/@mui/system/LICENSE",
+          "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/utils",
+      "version": "9.4.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/utils",
+      "integrity": "sha512-WkzY8uYtqUDyGKPShrRQRBomfMQHddlsyKu/gRRESYO24tDPD2z0xRE8CBoUsWqpBa+YrFs9KixiS7kQRjsPAQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_utils-9.4.0/LICENSE",
+          "originalPath": "node_modules/@mui/utils/LICENSE",
+          "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/x-date-pickers",
+      "version": "9.12.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/x-date-pickers",
+      "integrity": "sha512-8buJZhsDQmq2mfG4ID7JPI8RmbBW8FZkF5GfgGkH0Bi/Y9UkpCeEuOFF/Tbg8TxL5gKAOkXRZTK/pFlNZYqdhg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_x-date-pickers-9.12.0/LICENSE",
+          "originalPath": "node_modules/@mui/x-date-pickers/LICENSE",
+          "sha256": "8d50b8b560cbbe79ad8946ecc209c884eac77406a577248442a149618b7ae72a",
+          "bytes": 1083
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@mui/x-internals",
+      "version": "9.12.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@mui/x-internals",
+      "integrity": "sha512-rpG9EgJhH3JeOK2Q/tKaUWk5vP8C1NfL8DaXMKR1XCA7RhpZUI/xT67WKY80QtogNWu7U/BRezKyQGtiZ8soYg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_mui_x-internals-9.12.0/LICENSE",
+          "originalPath": "node_modules/@mui/x-internals/LICENSE",
+          "sha256": "8d50b8b560cbbe79ad8946ecc209c884eac77406a577248442a149618b7ae72a",
+          "bytes": 1083
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@popperjs/core",
+      "version": "2.11.8",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@popperjs/core",
+      "integrity": "sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_popperjs_core-2.11.8/LICENSE.md",
+          "originalPath": "node_modules/@popperjs/core/LICENSE.md",
+          "sha256": "bf67e2c9b7974543bb18ced3a0b37f53729aaff953b442dd89a3adaf90fd93e8",
+          "bytes": 1082
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@sentry/browser",
+      "version": "10.73.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@sentry/browser",
+      "integrity": "sha512-HqTe1S5RrWLufhX2LaFP3yNoMxfNDroh120bq1zdGHZfFDBMJQ0CDXxHO+L4UJfQ5dWdCCzWbXIAiZuWGa/DFQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_sentry_browser-10.73.0/LICENSE",
+          "originalPath": "node_modules/@sentry/browser/LICENSE",
+          "sha256": "f3df0b92efcd9d8cc0de5a36c151569a12a647d65b851abbb696ef7b13dee10b",
+          "bytes": 1093
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@sentry/browser-utils",
+      "version": "10.73.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@sentry/browser-utils",
+      "integrity": "sha512-qQygxJZ+RV779+iL1+lrJ4f4sZLgbgW0/JWPNp0YlcEAE62yCsdKbqoTEjB/EugdS4mSjBMX0chZC6rblu2Ycw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_sentry_browser-utils-10.73.0/LICENSE",
+          "originalPath": "node_modules/@sentry/browser-utils/LICENSE",
+          "sha256": "9d45329f27eee77d23ab9b4a62cea6247e3e7402cf5bb04d77b9279f2c1e1be3",
+          "bytes": 1093
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@sentry/conventions",
+      "version": "0.16.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@sentry/conventions",
+      "integrity": "sha512-fO9PLmHdVURcSPUpWCItWAtgKiMwGdJHbovoSEyLplX5sxs2ugvI4CBPTrkkgqhObnZOD0CnWBKDzSVQYBKEyQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_sentry_conventions-0.16.0/LICENSE",
+          "originalPath": "node_modules/@sentry/conventions/LICENSE",
+          "sha256": "6c459083310e285797954222cc75bb33a56c04512d4f07c8b1b80258f99b0278",
+          "bytes": 1098
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@sentry/core",
+      "version": "10.73.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/@sentry/core",
+      "integrity": "sha512-FLO1UgH19RyasVpofu612WCOgb2nEH0dZy+R72d7p65XU9i0wxlMKm3+sgfwKmiSJp1Qhilaaxs4Jg6BbiM5HA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_sentry_core-10.73.0/LICENSE",
+          "originalPath": "node_modules/@sentry/core/LICENSE",
+          "sha256": "f3df0b92efcd9d8cc0de5a36c151569a12a647d65b851abbb696ef7b13dee10b",
+          "bytes": 1093
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "ace-builds",
+      "version": "1.44.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/ace-builds",
+      "integrity": "sha512-PFNMSYqFdEUkul2Ntud0HvA09AgY+F1ag0UYdpMH60wNI/qOA8cB8tlTgoALMEwIdUPJK2CjrIQ7OnbiSS/ugQ==",
+      "declaredLicense": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "file": "third-party/ace-builds-1.44.0/LICENSE",
+          "originalPath": "node_modules/ace-builds/LICENSE",
+          "sha256": "850f545c5254e8c08204edb2a6d50bbb72727c38a82982c17a84bebf6064cdf8",
+          "bytes": 1490
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "attr-accept",
+      "version": "4.0.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/attr-accept",
+      "integrity": "sha512-hmCnJClmeKNKlsBHgbM8yLZRiQZ4/20UXbLJb6OUT16eWcM5/xNZerr80a/zCYob768KIGq++aLrQNTuwPsIOQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/attr-accept-4.0.0/LICENSE",
+          "originalPath": "node_modules/attr-accept/LICENSE",
+          "sha256": "d75a1dcd7216692931683668052a2801767bdd0ca19711633098ce87ebade863",
+          "bytes": 1088
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "clsx",
+      "version": "2.1.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/clsx",
+      "integrity": "sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/clsx-2.1.1/license",
+          "originalPath": "node_modules/clsx/license",
+          "sha256": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97",
+          "bytes": 1104
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "cronstrue",
+      "version": "3.24.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/cronstrue",
+      "integrity": "sha512-t/Ji3Ur2c/pzhIAWNwC0ftl3JAE4dLfCjAdZoTZXmPDZwcispnS1PaMcMS4OmIIXyIVouAz+yw+mfQiE3hz5OQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/cronstrue-3.24.0/LICENSE",
+          "originalPath": "node_modules/cronstrue/LICENSE",
+          "sha256": "80b0695c69ed300a023a560fe3d342e82d7015d0dde6a05c709bfdc072edfab2",
+          "bytes": 1077
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "cropperjs",
+      "version": "1.6.2",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/cropperjs",
+      "integrity": "sha512-nhymn9GdnV3CqiEHJVai54TULFAE3VshJTXSqSJKa8yXAKyBKDWdhHarnlIPrshJ0WMFTGuFvG02YjLXfPiuOA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/cropperjs-1.6.2/LICENSE",
+          "originalPath": "node_modules/cropperjs/LICENSE",
+          "sha256": "eb917650781dcf06a60b97cba9b05bf583931ec2d311d8a5548a8dca90a57e0f",
+          "bytes": 1084
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "crypto-js",
+      "version": "4.2.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/crypto-js",
+      "integrity": "sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/crypto-js-4.2.0/LICENSE",
+          "originalPath": "node_modules/crypto-js/LICENSE",
+          "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396",
+          "bytes": 1169
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "diff-match-patch",
+      "version": "1.0.5",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/diff-match-patch",
+      "integrity": "sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==",
+      "declaredLicense": "Apache-2.0",
+      "licenseFiles": [
+        {
+          "file": "third-party/diff-match-patch-1.0.5/LICENSE",
+          "originalPath": "node_modules/diff-match-patch/LICENSE",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "bytes": 11357
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "dom-helpers",
+      "version": "5.2.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/dom-helpers",
+      "integrity": "sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/dom-helpers-5.2.1/LICENSE",
+          "originalPath": "node_modules/dom-helpers/LICENSE",
+          "sha256": "1b0a9ba95a67bc484e028b13c61b83fc5aa1ca7957d1e2d43c2b0f70d9e9dd45",
+          "bytes": 1078
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "fast-equals",
+      "version": "5.4.2",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/fast-equals",
+      "integrity": "sha512-Ywe6jodPTWOTL9/k0bV7gdfP8twKL5Y8I8CZ933fAY5gBekICZSUQTbyH6ut2NZCNyB05mSUwAuEqdEIaOOlDQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/fast-equals-5.4.2/LICENSE",
+          "originalPath": "node_modules/fast-equals/LICENSE",
+          "sha256": "c0af1c3e74a891b408dc4365897482cc8c284365808e3837c56ea3c337ed7a2c",
+          "bytes": 1069
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "file-selector",
+      "version": "5.0.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/file-selector",
+      "integrity": "sha512-v0g/PTeuQgvKCBrVRsfVudvwXlRHSWHEQkVgKawgCGHkEpKA1clp3Om5jvEVhz8G9W/mOYjJH9FhkH4C888PgQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/file-selector-5.0.1/LICENSE",
+          "originalPath": "node_modules/file-selector/LICENSE",
+          "sha256": "01949dbb7502b2f1a424c53a043892db5e842bf6bb9201efab5d96ffeac15f1e",
+          "bytes": 1069
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "hoist-non-react-statics",
+      "version": "3.3.2",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/hoist-non-react-statics",
+      "integrity": "sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==",
+      "declaredLicense": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "file": "third-party/hoist-non-react-statics-3.3.2/LICENSE.md",
+          "originalPath": "node_modules/hoist-non-react-statics/LICENSE.md",
+          "sha256": "eb32ff0ec52b6ea86e3d3e06c6ad1b68ee03798b6729af13919f6d5c14b368f3",
+          "bytes": 1662
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "json5",
+      "version": "2.2.3",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/json5",
+      "integrity": "sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/json5-2.2.3/LICENSE.md",
+          "originalPath": "node_modules/json5/LICENSE.md",
+          "sha256": "53e59feb13058722d977c699eb0407c7bce2f93c949b681bbd2ff31698535927",
+          "bytes": 1145
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "prop-types",
+      "version": "15.8.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/prop-types",
+      "integrity": "sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/prop-types-15.8.1/LICENSE",
+          "originalPath": "node_modules/prop-types/LICENSE",
+          "sha256": "f657f99d3fb9647db92628e96007aabb46e5f04f33e49999075aab8e250ca7ce",
+          "bytes": 1080
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "qrcode-generator",
+      "version": "2.0.4",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/qrcode-generator",
+      "integrity": "sha512-mZSiP6RnbHl4xL2Ap5HfkjLnmxfKcPWpWe/c+5XxCuetEenqmNFf1FH/ftXPCtFG5/TDobjsjz6sSNL0Sr8Z9g==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [],
+      "fullLicenseFilePresent": false
+    },
+    {
+      "name": "react",
+      "version": "19.2.8",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react",
+      "integrity": "sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-19.2.8/LICENSE",
+          "originalPath": "node_modules/react/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+          "bytes": 1088
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-ace",
+      "version": "15.0.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-ace",
+      "integrity": "sha512-gdmS5ftF0hsbkcrAjZQqYbXwFg5JrHuxjki8mP6Bn9kfa6lHKfZk9sU9EfS0ifQ1CpGCmRxF/VC7GRvlJMBuZw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-ace-15.0.0/LICENSE",
+          "originalPath": "node_modules/react-ace/LICENSE",
+          "sha256": "9b405b329c112e57ad7c9a668f85bbb7a1346d09c6c94b25a7aa6677056c7871",
+          "bytes": 1080
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-colorful",
+      "version": "5.8.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-colorful",
+      "integrity": "sha512-Wy9OzPfjSN9bF12OB8N7UQvlsZ0I+7wHxpN+bV5BjNQGxOj6IiwkRjevJK9yOBjJWGQvAaf1OXtn8rUeEatAng==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-colorful-5.8.0/LICENSE",
+          "originalPath": "node_modules/react-colorful/LICENSE",
+          "sha256": "c779efe5dfb04b7b7cac35c4898725e4d22e98b86bc81c9556311d067bf97af5",
+          "bytes": 1093
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-cropper",
+      "version": "2.3.3",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-cropper",
+      "integrity": "sha512-zghiEYkUb41kqtu+2jpX2Ntigf+Jj1dF9ew4lAobPzI2adaPE31z0p+5TcWngK6TvmWQUwK3lj4G+NDh1PDQ1w==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-cropper-2.3.3/LICENSE",
+          "originalPath": "node_modules/react-cropper/LICENSE",
+          "sha256": "13dbd0e02b80ff23fb6fb0df6bd0dad3ee646c25d8076c527305d3e0bec41cf6",
+          "bytes": 1080
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-dom",
+      "version": "19.2.8",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-dom",
+      "integrity": "sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-dom-19.2.8/LICENSE",
+          "originalPath": "node_modules/react-dom/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+          "bytes": 1088
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-dropzone",
+      "version": "20.1.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-dropzone",
+      "integrity": "sha512-2cilRFP8bsjDOHpV0sJ6XY8pzJhmz4/cQ6s9yeckOACWYDR+n4MGGtnJh3Rycq/9SLhDWugqDx1z5mtfmOOZhw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-dropzone-20.1.1/LICENSE",
+          "originalPath": "node_modules/react-dropzone/LICENSE",
+          "sha256": "7b93b62069ec28d00cc7cf3696b5d243ad9887517f8e709dce4811747f0e2dc2",
+          "bytes": 1082
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-from-dom",
+      "version": "0.7.5",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-from-dom",
+      "integrity": "sha512-CO92PmMKo/23uYPm6OFvh5CtZbMgHs/Xn+o095Lz/TZj9t8DSDhGdSOMLxBxwWI4sr0MF17KUn9yJWc5Q00R/w==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-from-dom-0.7.5/LICENSE",
+          "originalPath": "node_modules/react-from-dom/LICENSE",
+          "sha256": "24879ab8523e8c769aae46bf08db25090638d78da2c061987f147ad167fc4788",
+          "bytes": 1069
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-icons",
+      "version": "5.7.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-icons",
+      "integrity": "sha512-LBLy340Rzqy6+/yVhZKT3B/QpP1BZaesGqasf09HPOBzRarcDIFH0WwXlXQfE7q7ipxK4MSiC5DIBWURCny6fw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-icons-5.7.0/LICENSE",
+          "originalPath": "node_modules/react-icons/LICENSE",
+          "sha256": "a0c1e5484fb4c79e2a683834253864e640e1ca57cb57b807bd5bddb72bbbf74f",
+          "bytes": 4807
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-inlinesvg",
+      "version": "4.5.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-inlinesvg",
+      "integrity": "sha512-J/ZWLCmYdhOu5a+dWBNKXaQb/YFvTjqTZnoaprOUKD2geu+JcO1sZ2AcrXvzYurgQIuI3Y4+Ji2dUjsO86nhgw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-inlinesvg-4.5.0/LICENSE",
+          "originalPath": "node_modules/react-inlinesvg/LICENSE",
+          "sha256": "20b6c0b618880f2b2ad86417141e0993190462df4f0bb983ee4b6000a3ac001e",
+          "bytes": 1094
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-is",
+      "version": "16.13.1",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/hoist-non-react-statics/node_modules/react-is",
+      "integrity": "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-is-16.13.1/LICENSE",
+          "originalPath": "node_modules/hoist-non-react-statics/node_modules/react-is/LICENSE",
+          "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85",
+          "bytes": 1086
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-is",
+      "version": "19.2.8",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-is",
+      "integrity": "sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-is-19.2.8/LICENSE",
+          "originalPath": "node_modules/react-is/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+          "bytes": 1088
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-qr-code",
+      "version": "2.2.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-qr-code",
+      "integrity": "sha512-e5nS0UUN22K3Nf8KBRUzemfdJ6OmnN5w+kbnj1lvJaol9RyVRFeGl05bCkxSN2ZegbLxjjYjX1+mmAoX9+fAhw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-qr-code-2.2.0/LICENSE",
+          "originalPath": "node_modules/react-qr-code/LICENSE",
+          "sha256": "59ed3467c4626a81f5408114cff30346c9d82dca67b0b60805747eabc70490ff",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "react-transition-group",
+      "version": "4.4.5",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/react-transition-group",
+      "integrity": "sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==",
+      "declaredLicense": "BSD-3-Clause",
+      "licenseFiles": [
+        {
+          "file": "third-party/react-transition-group-4.4.5/LICENSE",
+          "originalPath": "node_modules/react-transition-group/LICENSE",
+          "sha256": "b9adc17ad75a847d8743be2843935f0842a0ea4f45e7b0c7e17ed0be98614b9b",
+          "bytes": 1608
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "scheduler",
+      "version": "0.27.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/scheduler",
+      "integrity": "sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/scheduler-0.27.0/LICENSE",
+          "originalPath": "node_modules/scheduler/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+          "bytes": 1088
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "stylis",
+      "version": "4.2.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/stylis",
+      "integrity": "sha512-Orov6g6BB1sDfYgzWfTHDOxamtX1bE/zo104Dh9e6fqJ3PooipYyfJ0pUmrZO2wAvO8YbEyeFrkV91XTsGMSrw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/stylis-4.2.0/LICENSE",
+          "originalPath": "node_modules/stylis/LICENSE",
+          "sha256": "88c579c6ee44b41137a21321190d177982e5b17d4fa1b83a4a2e3ea325a8fc9a",
+          "bytes": 1078
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "yaml",
+      "version": "2.9.0",
+      "role": "observed bundled dependency",
+      "packageLocation": "node_modules/yaml",
+      "integrity": "sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==",
+      "declaredLicense": "ISC",
+      "licenseFiles": [
+        {
+          "file": "third-party/yaml-2.9.0/LICENSE",
+          "originalPath": "node_modules/yaml/LICENSE",
+          "sha256": "5bba27375d93e9119f76c1015f7672cf9ad5f70952296e0842fb2243d6376869",
+          "bytes": 738
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "vite",
+      "version": "8.2.2",
+      "role": "build generator or bundled helper provider",
+      "packageLocation": "node_modules/vite",
+      "integrity": "sha512-cFKLV/PRgAUlIRm5WjMjJ86jrftzpqcgH+Us+DS8mI3CDNiH30Whrz8uHL3+MOLPAgqbMBAqWdAHAphOAM+z/Q==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/vite-8.2.2/LICENSE.md",
+          "originalPath": "node_modules/vite/LICENSE.md",
+          "sha256": "387dd7baa307083401a27c58c362c30832f5ba1dba84f10cc22c33401523f45c",
+          "bytes": 112425
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "rolldown",
+      "version": "1.2.7",
+      "role": "build generator or bundled helper provider",
+      "packageLocation": "node_modules/rolldown",
+      "integrity": "sha512-g0EtLvBjTUB7jhyV0S/TCup3v/XSVl45vUIGbOGU4QPiyjTenCe4mKuFvW9fEgYmS2Fo42AUssRmNuMziXdrig==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/rolldown-1.2.7/LICENSE",
+          "originalPath": "node_modules/rolldown/LICENSE",
+          "sha256": "23ecfff35a5a2e80d92142f75228912c3b1abc4b5a8337a821ff4397e2f9f734",
+          "bytes": 1302
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@rolldown/binding-linux-x64-gnu",
+      "version": "1.2.7",
+      "role": "build generator or bundled helper provider",
+      "packageLocation": "node_modules/@rolldown/binding-linux-x64-gnu",
+      "integrity": "sha512-r8/z8n7GFaYRln3xmP1Cxy0HH/HLM0uBUPkEuSVEfKGDA89M0FsZRZJRSwe/tJjRx+fpH/gjorfhB8tmEbSFLA==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [],
+      "fullLicenseFilePresent": false
+    },
+    {
+      "name": "@module-federation/vite",
+      "version": "1.21.2",
+      "role": "build generator or bundled helper provider",
+      "packageLocation": "node_modules/@module-federation/vite",
+      "integrity": "sha512-JXsx+bx2qwEeHnv35IStscFSDvQuwD9KJ1EmDxmzJv4P1snovVULAHAM8Bs9KldNhhniOlu6E7DBM7soGs2NXw==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_module-federation_vite-1.21.2/LICENSE",
+          "originalPath": "node_modules/@module-federation/vite/LICENSE",
+          "sha256": "0ec4954b495a967b9bf3f4dc927f3005d5c2c403716adcbe609274834b590a5d",
+          "bytes": 1068
+        }
+      ],
+      "fullLicenseFilePresent": true
+    },
+    {
+      "name": "@oxc-project/runtime",
+      "version": "0.148.0",
+      "role": "reference for compiler-reported virtual helper identity; not an upstream lock entry",
+      "integrity": "sha512-0ExYgJZv8+nFuoV0T/xzX5ZyXFXwkHJFJg9LWTwhqgRLpe+IzBLirvyYKSdS8mPofTBKAjDYIA2o84xh5BHXew==",
+      "declaredLicense": "MIT",
+      "licenseFiles": [
+        {
+          "file": "third-party/_oxc-project_runtime-0.148.0/LICENSE",
+          "originalPath": "npm @oxc-project/runtime@0.148.0/LICENSE",
+          "sha256": "95ced5ecf1133fbf41d409b5555c86c344f83f3b019926057ddbc07cfdcc27b3",
+          "bytes": 1119
+        }
+      ],
+      "fullLicenseFilePresent": true
+    }
+  ],
+  "missingFullLicenseTexts": [
+    "qrcode-generator@2.0.4",
+    "@rolldown/binding-linux-x64-gnu@1.2.7"
+  ]
+}

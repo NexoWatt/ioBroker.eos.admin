@@ -7,7 +7,7 @@ import {
     DialogContent,
     DialogTitle,
     TextField,
-    Grid2,
+    Grid,
     IconButton,
     Typography,
     FormControlLabel,
@@ -23,7 +23,7 @@ import {
 // icons
 import { Add as AddIcon, Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
 
-import { UploadImage, type AdminConnection, type IobTheme, type Translate } from '@iobroker/adapter-react-v5';
+import { UploadImage, type AdminConnection, type IobTheme, type Translate } from '@iobroker/gui-components';
 
 import IntroCardCamera from '@/components/Intro/IntroCardCamera';
 import IntroCard from './IntroCard';
@@ -132,6 +132,9 @@ interface EditIntroLinkDialogState {
 }
 
 class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroLinkDialogState> {
+    /** Serialized link as it was when the dialog opened, to detect unsaved changes */
+    private readonly originalData: string;
+
     constructor(props: EditIntroLinkDialogProps) {
         super(props);
 
@@ -147,6 +150,26 @@ class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroL
             camera: 'text',
             cameraList: [],
             ...props.link,
+        };
+
+        this.originalData = JSON.stringify(this.getData());
+    }
+
+    /**
+     * The fields that are actually saved. `cameraList` is deliberately left out: it is filled
+     * asynchronously from the cameras adapter and is not user input.
+     */
+    getData(): Record<string, any> {
+        return {
+            link: this.state.link,
+            name: this.state.name,
+            desc: this.state.desc,
+            linkName: this.state.linkName,
+            color: this.state.color,
+            image: this.state.image,
+            addTs: this.state.addTs,
+            camera: this.state.camera,
+            interval: this.state.interval,
         };
     }
 
@@ -218,12 +241,12 @@ class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroL
                     </Typography>
                 </DialogTitle>
                 <DialogContent dividers>
-                    <Grid2
+                    <Grid
                         style={styles.rootGrid}
                         container
                         direction="row"
                     >
-                        <Grid2
+                        <Grid
                             size={{
                                 xs: 12,
                                 sm: 6,
@@ -231,9 +254,9 @@ class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroL
                                 lg: 9,
                             }}
                         >
-                            <Grid2
+                            <Grid
                                 container
-                                direction="column"
+                                sx={{ flexDirection: 'column' }}
                             >
                                 <FormControl
                                     variant="standard"
@@ -408,7 +431,7 @@ class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroL
                                         style={styles.editItemSlider}
                                         value={this.state.interval}
                                         getAriaValueText={() => `${this.state.interval}ms`}
-                                        onChange={(e, interval) => this.setState({ interval: interval as number })}
+                                        onChange={(e, interval) => this.setState({ interval: interval })}
                                         step={100}
                                         min={500}
                                         max={60000}
@@ -436,9 +459,9 @@ class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroL
                                     onChange={base64 => this.setState({ image: base64 })}
                                     // t={this.props.t}
                                 />
-                            </Grid2>
-                        </Grid2>
-                        <Grid2
+                            </Grid>
+                        </Grid>
+                        <Grid
                             size={{
                                 xs: 12,
                                 sm: 6,
@@ -478,26 +501,16 @@ class EditIntroLinkDialog extends Component<EditIntroLinkDialogProps, EditIntroL
                                     theme={this.props.theme}
                                 />
                             )}
-                        </Grid2>
-                    </Grid2>
+                        </Grid>
+                    </Grid>
                 </DialogContent>
                 <DialogActions>
                     <Button
                         variant="contained"
                         autoFocus
-                        onClick={() => {
-                            this.props.onClose({
-                                link: this.state.link,
-                                name: this.state.name,
-                                desc: this.state.desc,
-                                linkName: this.state.linkName,
-                                color: this.state.color,
-                                image: this.state.image,
-                                addTs: this.state.addTs,
-                                camera: this.state.camera,
-                                interval: this.state.interval,
-                            });
-                        }}
+                        onClick={() => this.props.onClose(this.getData())}
+                        // a new link is always saveable, an existing one only after an edit
+                        disabled={!this.props.isNew && JSON.stringify(this.getData()) === this.originalData}
                         color="primary"
                         startIcon={this.props.isNew ? <AddIcon /> : <CheckIcon />}
                     >

@@ -1,18 +1,28 @@
 export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
+    /** Answer ACME HTTP-01 challenges published by the acme adapter. Enabled if not set */
+    acmeChallenge: boolean;
     accessAllowedConfigs: string[];
     accessAllowedTabs: string[];
     accessApplyRights: boolean;
     accessLimit: boolean;
     allowInternalAccess?: { [adapterName: string]: string }; // adapterName: UserName (without system.user)
     auth: boolean;
+    nexowattHideLegacyAdminForNonAdmins?: boolean;
+    eosHideLegacyBackupFromNonAdmins?: boolean;
+    nexowattHideLegacyBackupFromNonAdmins?: boolean;
+    eosNexoWattServiceGroups?: Array<
+        string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }
+    >;
+
     autoUpdate: number;
     bind: string;
-    cache: boolean;
     certChained: string;
     certPrivate: string;
     certPublic: string;
-    defaultUser: string;
+    defaultUser: ioBroker.ObjectIDs.User;
     doNotCheckPublicIP: boolean;
+    /** Speak HTTP/2 (with HTTP/1.1 fallback) if `secure` is set. Enabled if not set */
+    http2?: boolean;
     language: ioBroker.Languages;
     leCollection: boolean;
     loadingBackgroundColor: string;
@@ -29,6 +39,8 @@ export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
     tmpPath: string;
     tmpPathAllow: boolean;
     ttl: number;
+    /** Admin 8 refresh-token lifetime; normalized by the web boundary. */
+    refreshTokenTtlDays?: number;
     reverseProxy: {
         globalPath: string;
         paths: { path: string; instance: string }[];
@@ -47,13 +59,19 @@ export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
     /** Backward-compatible single group that may see and change legacy/protected admin components. */
     eosAdminOnlyGroup?: string;
     /** Groups that may see and change legacy/protected admin components. */
-    eosAdminOnlyGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    eosAdminOnlyGroups?: Array<
+        string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }
+    >;
     /** Alternative UI key for the same admin-only group list. */
-    eosSecurityAdminGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    eosSecurityAdminGroups?: Array<
+        string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }
+    >;
     /** NexoWatt/EOS service groups with the same unrestricted rights as administrators. */
     eosServiceGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
     /** Installer groups for commissioning and troubleshooting without security/expert administration. */
-    eosInstallerGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
+    eosInstallerGroups?: Array<
+        string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }
+    >;
     /** End-user groups for Smart Home and explicitly released EOS/NexoWatt UI areas. */
     eosEndUserGroups?: Array<string | { group?: string; id?: string; name?: string; enabled?: boolean; note?: string }>;
     /** Require installer/end-user accounts to choose a personal password after their first authenticated login. */
@@ -77,6 +95,7 @@ export interface AdminAdapterConfig extends ioBroker.AdapterConfig {
     /** Hide protected adapter delete controls for non-admin groups. */
     eosRestrictProtectedAdapterControls?: boolean;
     /** Adapter names configured by the EOS administrator as protected system components. */
-    eosProtectedAdapters?: Array<string | { adapter?: string; name?: string; enabled?: boolean; note?: string; reason?: string }>;
+    eosProtectedAdapters?: Array<
+        string | { adapter?: string; name?: string; enabled?: boolean; note?: string; reason?: string }
+    >;
 }
-

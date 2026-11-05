@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "timeUtc": "2026-11-04T21:28:22.279054+00:00",
+  "node": "24.22.1",
+  "platform": "Linux x64 local fixture environment",
+  "scope": "Proxy component/local transport integration plus emitted frontend validation, no hardware/full-controller assertion",
+  "sourceSha256": {
+    "src/lib/instanceProxy.ts": "ecd01a7815e364ef701dc5dee0b58ec29d72ba1efea4ba5976a274b561cb90dc",
+    "test/eos-instance-proxy.test.cjs": "7404804c144795333fe6bea369586eb94b4ede28fba99d2a31ebf9f34dec3523",
+    "test/eos-admin8-frontend-receipt.test.cjs": "3817b27e79715c18f4b8981facee111c604435f708d3a77d18769df698919123",
+    "tools/nexowatt-frontend-artifacts.cjs": "6a705ba001cd2cd38f9c0f95318741ec2c1902f8cfc43d9da1b64d8ce7eae8ed",
+    "tools/nexowatt-entrypoint-smoke-selftest.cjs": "f32e1d34fc8d5febabc00ce033bb9700124ee44e9f806ee7d41678238cd462c7",
+    "tools/nexowatt-frontend-graph-check.cjs": "67b5ef2f4aa547a746c6a0714ea18afbade61a80f9c20b96c42d8f59dcd5aadf",
+    "tools/nexowatt-import-integrity-selftest.cjs": "738ba3f58fc0c73439e1f07ec06ec7f2619a8a38d553c588f3a2c29614f49861",
+    "tools/nexowatt-esm-syntax-selftest.cjs": "f37becac04c723cd2ac489fc0bcbfe57282b84a0e4cd0914a61323d2a01f0bb7",
+    "tools/nexowatt-clean-legacy-runtime.cjs": "90bb4d03d7dd83be0c72b07cfbab345a8a4edc123b60dd5dce20d08ee8b9bc5f",
+    "tools/vendor/acorn/acorn.cjs": "b373ccd10e9deb63654289f73216eeefcaf0405d9ee24289aabf596b91b4c318",
+    "tools/vendor/acorn/LICENSE": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
+    "tools/vendor/acorn/PROVENANCE.json": "8594c20bb6eb76c92878efecb1829a5114c3b8eb315f46e019645fa836d06ca7",
+    "docs/security/ADMIN8_INSTANCE_PROXY_2026-11-04.md": "c2ab998dd105a96aa0282b01f840723d3846afc586b1cdf40ecec5fc46cb0dab",
+    "docs/security/admin8-2026-11-04/PROXY_AND_FRONTEND_VALIDATORS.md": "5f2a61ac34961edf27037c169b9cdbb85c46d15e7c3655cc8ed1d96e27826e19"
+  },
+  "frontendReceiptSha256": "8127e38be9522be9efa7f1849b958fd1ee2e745c9e06bcae1708bcf37b97426f",
+  "runs": [
+    {
+      "command": "node --test --test-timeout=15000 test/eos-instance-proxy.test.cjs",
+      "log": "proxy-tests.log",
+      "exitCode": 0,
+      "logSha256": "ad15230d474167645820624aa0f85ad6165307752af78f4f1fb5a4543ebe5dcc",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "./node_modules/.bin/tsc --noEmit --ignoreConfig --strict --esModuleInterop --target ES2022 --module node16 --moduleResolution node16 --skipLibCheck src/lib/instanceProxy.ts",
+      "log": "proxy-typecheck.log",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "node --test test/eos-admin8-frontend-receipt.test.cjs",
+      "log": "frontend-receipt-tests.log",
+      "exitCode": 0,
+      "logSha256": "0f2a2d346cc6a02be8d195120fc1071a7f91caf59889176cc773c94197231fcf",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tools/nexowatt-entrypoint-smoke-selftest.cjs",
+      "log": "entrypoint-final.log",
+      "exitCode": 0,
+      "logSha256": "47c842a9149864809691dceb004952ee0b8b34c0551d08871c19e07803db380a"
+    },
+    {
+      "command": "node tools/nexowatt-frontend-graph-check.cjs",
+      "log": "frontend-graph-final.log",
+      "exitCode": 0,
+      "logSha256": "8564107837f5600129d650fec83770ef06554aa803580907df65430d7e736aa2"
+    },
+    {
+      "command": "node tools/nexowatt-import-integrity-selftest.cjs",
+      "log": "import-integrity-final.log",
+      "exitCode": 0,
+      "logSha256": "eec80132843e6b26cb32017ef2de138fc0a01c411fd2b02a271d1e9cb97d3041"
+    },
+    {
+      "command": "node tools/nexowatt-esm-syntax-selftest.cjs",
+      "log": "esm-syntax-final.log",
+      "exitCode": 0,
+      "logSha256": "cc5519fc16b2fe9bdc9992ce5aa9dd71bf2e32d95aaff328c8b85151878b617b"
+    },
+    {
+      "command": "node tools/nexowatt-clean-legacy-runtime.cjs --dry-run",
+      "log": "cleanup-final.log",
+      "exitCode": 0,
+      "logSha256": "71ebbc2205b3541e225d5829dda06691e9b9fb4f8b2204e5b726310d2eb9a233"
+    },
+    {
+      "command": "node -e \"require('./tools/nexowatt-frontend-artifacts.cjs').verifyFrontendManifest()\"",
+      "log": "frontend-provenance-final.log",
+      "exitCode": 1,
+      "logSha256": "7907b6178e723d8deb6ce7e4acd19a244bb14bda23a97c74adda5906de7da473",
+      "reason": "Detected concurrent src-admin/src/version.json source/build drift; final rebuild and successful provenance run pending parent integration."
+    },
+    {
+      "command": "./node_modules/.bin/eslint src/lib/instanceProxy.ts",
+      "exitCode": 0,
+      "log": "proxy-lint.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "productionRelease": "not asserted; final source provenance and whole-project gates remain parent integration responsibility"
+}

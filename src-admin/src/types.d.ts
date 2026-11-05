@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { I18n, AdminConnection, ThemeType, ThemeName } from '@iobroker/adapter-react-v5';
+import type { I18n, AdminConnection, ThemeType, ThemeName } from '@iobroker/gui-components';
 
 declare module '*.png';
 declare module '*.svg';
@@ -73,9 +73,11 @@ export interface AdminGuiConfig {
             tabRepositories?: false; // Repositories tab
             tabCertificates?: false; // Certificates tab
             tabCredentials?: false; // Credentials tab
+            tabAi?: false; // AI tab
             tabLetsEncrypt?: false; // Let's Encrypt tab
             tabDefaultACL?: false; // Default ACL tab
             tabStatistics?: false; // Statistics tab
+            tabLicenses?: false; // Licenses tab (only shown if a license manager is present anyway)
 
             language?: false;
             tempUnit?: false;
@@ -86,6 +88,8 @@ export interface AdminGuiConfig {
             activeRepo?: false;
             expertMode?: false;
             defaultLogLevel?: false;
+            firstDayOfWeek?: false;
+            tipsDisabled?: false;
         };
         adapters?: {
             gitHubInstall?: false; // hide button install from GitHub/npm

@@ -36,7 +36,15 @@ function run(root = path.resolve(__dirname, '..')) {
     return report;
 }
 if (require.main === module) {
-    try { const report = run(); console.log(JSON.stringify(report, null, 2)); if (report.status !== 'PASS') process.exitCode = 1; }
+    try {
+        const report = run(); console.log(JSON.stringify(report, null, 2));
+        if (report.status !== 'PASS') {
+            const summary = report.scopes.filter(scope => scope.issues.length).map(scope => `${scope.name}: ${new Set(scope.issues.map(issue => issue.location || issue.item || issue.code)).size} affected entries`).join('; ');
+            console.error(`EOS dependency admission BLOCKED (${summary}).`);
+            console.error('For absent registry metadata, run npm run repair:eos-lock in the complete repository, then retry publish. Existing conflicting metadata requires review.');
+            process.exitCode = 1;
+        }
+    }
     catch { console.error('Lock provenance gate could not inspect required manifests.'); process.exitCode = 1; }
 }
 module.exports = { inspect, run };

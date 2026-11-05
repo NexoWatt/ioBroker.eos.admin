@@ -9,7 +9,7 @@ import {
     type ThemeName,
     type ThemeType,
     Utils,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 import {
     type BackEndCommand,
     type BackEndCommandOpenLink,
@@ -17,6 +17,8 @@ import {
     type ConfigItemTabs,
     JsonConfigComponent,
 } from '@iobroker/json-config';
+
+import AceEditor from './AceEditor';
 
 const styles: Record<string, any> = {
     message: {
@@ -72,6 +74,40 @@ export interface InstanceMessage {
 }
 /** Possible message severities */
 export type Severity = 'notify' | 'info' | 'alert';
+
+/**
+ * Order of the severities by importance (most important first).
+ * Used to sort the notification categories, so the most important warnings are shown first.
+ */
+export const SEVERITY_ORDER: Record<Severity, number> = {
+    alert: 0,
+    notify: 1,
+    info: 2,
+};
+
+/**
+ * Reduce a severity to one of the three known values.
+ *
+ * The type says the field is mandatory, but the notifications come from any adapter and at runtime
+ * it can be missing or carry an unknown value. Everything that is not `notify` or `info` is drawn as
+ * a warning, so it also has to *sort* like a warning - otherwise a category shows a warning triangle
+ * and still stands at the very end. That was exactly the case with the backup errors.
+ *
+ * @param severity severity as it came from the notification
+ */
+export function normalizeSeverity(severity: Severity | undefined): Severity {
+    return severity === 'notify' || severity === 'info' ? severity : 'alert';
+}
+
+/**
+ * Compare two severities by importance, most important (`alert`) first.
+ *
+ * @param a first severity
+ * @param b second severity
+ */
+export function compareSeverity(a: Severity | undefined, b: Severity | undefined): number {
+    return SEVERITY_ORDER[normalizeSeverity(a)] - SEVERITY_ORDER[normalizeSeverity(b)];
+}
 
 export interface Message {
     name: ioBroker.Translated;
@@ -184,7 +220,7 @@ class NotificationMessage extends Component<NotificationMessageProps, Notificati
         }
     }
 
-    onAliveChanged = (id: string, state: ioBroker.State): void => {
+    onAliveChanged = (id: string, state: ioBroker.State | null | undefined): void => {
         if (id === `${this.props.instanceId}.alive` && state && this.state.alive !== !!state.val) {
             if (state.val) {
                 if (this.lastAlive && Date.now() - this.lastAlive < 500) {
@@ -233,8 +269,11 @@ class NotificationMessage extends Component<NotificationMessageProps, Notificati
                     schema={this.state.schema}
                     data={this.state.data}
                     onError={(error?: boolean) => this.setState({ error })}
-                    onChange={(data: Record<string, any>) => this.setState({ data })}
+                    onChange={(data: Record<string, any> | null) => this.setState({ data: data || {} })}
                     onBackEndCommand={(command?: BackEndCommand) => {
+                        if (!command) {
+                            return;
+                        }
                         if (command.schema) {
                             this.setState({
                                 schema: command.schema,
@@ -255,6 +294,7 @@ class NotificationMessage extends Component<NotificationMessageProps, Notificati
                     theme={this.props.theme}
                     isFloatComma={this.props.isFloatComma}
                     dateFormat={this.props.dateFormat}
+                    AceEditor={AceEditor}
                 />
             </>
         );

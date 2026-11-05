@@ -1,0 +1,24 @@
+{
+  "licenses": [
+    {
+      "repository": "ioBroker/ioBroker.js-controller",
+      "commit": "0a3c2037105cba5a322024b866877983a0397cae",
+      "sourceUrl": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/0a3c2037105cba5a322024b866877983a0397cae/LICENSE",
+      "file": "io-package-schema.LICENSE",
+      "gitBlobSha": "2cd82c8dd96762e2a3c4050fc0183a4f7771f6b3",
+      "size": 1135,
+      "sha256": "315fb419f7d7f93e32f19e78fb84dabe20e39a5e5b9fa1ed7f5abd2c30204780",
+      "verification": "full bytes match immutable GitHub blob SHA-1 and size"
+    },
+    {
+      "repository": "ioBroker/json-config",
+      "commit": "64c04436b4055714288f198d1eeb0ddb173bb24d",
+      "sourceUrl": "https://raw.githubusercontent.com/ioBroker/json-config/64c04436b4055714288f198d1eeb0ddb173bb24d/LICENSE",
+      "file": "jsonConfig-schema.LICENSE",
+      "gitBlobSha": "22d8d7254deef1035b90425f2e76adf7b9590b8e",
+      "size": 1099,
+      "sha256": "4f1d8e2a6ad41e799b296288cf457da642ba75e1f2f04853b2e06fb2547236f9",
+      "verification": "full bytes match immutable GitHub blob SHA-1 and size"
+    }
+  ]
+}

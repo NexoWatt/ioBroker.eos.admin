@@ -1,0 +1,33 @@
+{
+  "executedAt": "2026-11-05T04:48:26.428Z",
+  "node": "v24.22.1",
+  "scope": "Actual compiled EasyAccess business class with import bindings replaced by explicit framework/socket stubs. This is not React rendering, not full ConfigGeneric, and not a browser/server authorization test.",
+  "artifact": "admin/custom/assets/Components-I39zZDnw.js",
+  "sha256": "82b39adfb8b7f889b49442844aa321a38484eb81a8caf0e4c4ff414e79aea628",
+  "normalBehaviorAssertionsPassed": 8,
+  "findings": {
+    "disabledArgumentIgnored": {
+      "reproduced": true,
+      "checkboxes": 3,
+      "disabledTrueCount": 0,
+      "onChangeInvoked": true,
+      "securityMeaning": "UI disabled contract violation; no backend ACL bypass demonstrated."
+    },
+    "malformedAllowlist": {
+      "throws": true,
+      "error": {
+        "name": "TypeError",
+        "message": "h.includes is not a function"
+      },
+      "securityMeaning": "Robustness gap for malformed stored configuration; not evidence that an unprivileged remote user can inject it."
+    },
+    "instanceLoadRejection": {
+      "propagates": true,
+      "error": {
+        "name": "Error",
+        "message": "synthetic read failure"
+      },
+      "securityMeaning": "Own component has no local error/loading fallback; parent runtime error handling not exercised."
+    }
+  }
+}

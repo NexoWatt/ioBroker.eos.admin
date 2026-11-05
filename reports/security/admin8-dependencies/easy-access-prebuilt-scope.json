@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-04T22:02:24.073Z",
+  "findingId": "EOS-ADMIN8-CUSTOM-BUNDLE-001",
+  "securityReviewStatus": "CLOSED_FOR_REVIEWED_ARTIFACT",
+  "priority": "Original provenance/composition evidence gap closed; see separate P2 findings and target acceptance",
+  "scope": "Separate prebuilt EasyAccess admin/custom artifact; official provenance, byte-identical source reproduction, observed module attribution and current advisory triage now documented. No complete manual review or absence-of-unknown-vulnerabilities claim.",
+  "package": {
+    "name": "@iobroker/admin-component-easy-access",
+    "version": "3.0.8",
+    "resolved": "https://registry.npmjs.org/@iobroker/admin-component-easy-access/-/admin-component-easy-access-3.0.8.tgz",
+    "integrity": "sha512-o4YD74pwz+pnk/AZivRgS7MNXjhRIVgoBgz+qn07p1XZf+9F14SUg4NdOfZYZSyIVW9wtJtnyNovRflIpYa8+Q==",
+    "packageManifestSha256": "12130d8a1450ce0cda437654cd351b3df481bef373c60b4d2e215208651b994c",
+    "backendLockSha256": "a499ca75ecf16ad9f9864e2092a8da56a6d85373eda9455414912c8b7eff130f",
+    "licenseSha256": "715848a653cc57e46c9a08f374438783199209b1514ce43edae585c7b43f2fca",
+    "deliveredLicense": "docs/third-party/admin8/_iobroker_admin-component-easy-access-3.0.8/LICENSE"
+  },
+  "comparison": {
+    "sourceDirectory": "node_modules/@iobroker/admin-component-easy-access/admin/custom",
+    "targetDirectory": "admin/custom",
+    "sourceFileCount": 26,
+    "targetFileCount": 26,
+    "allFilesByteIdentical": true,
+    "extraTargetFiles": [],
+    "files": [
+      {
+        "relative": "assets/Components-I39zZDnw.js",
+        "bytes": 1967,
+        "sha256": "82b39adfb8b7f889b49442844aa321a38484eb81a8caf0e4c4ff414e79aea628",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+        "bytes": 5471,
+        "sha256": "8b5ef78fb4f78c974ebb225c7e6d616e5c7526bf040a117acbb7ddc2c5a4f6e5",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+        "bytes": 6962279,
+        "sha256": "88250b4e7bb827f5af3677ce71458dade4f926469cc04c46adcb6ab4a70b57d4",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+        "bytes": 1392095,
+        "sha256": "b29f27375ee78ed2129c77541f5f2c3cdf09cd535d2c460db1ee75b0179749eb",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+        "bytes": 181321,
+        "sha256": "fb3d3f6e8c58b5e1919356b6a0661539d636538b3e5911acc30891f975a4d319",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/hostInit-CExI67Q9.js",
+        "bytes": 2572,
+        "sha256": "d66a11dbb405d52caabc3750ed3868802f60e00086c2a86b5ad075f8c94ed95d",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/index-PfxLVs-2.js",
+        "bytes": 1354,
+        "sha256": "50213d401c65bc2fd93480d58b36fe1283131d0bd0e0bc653cabd95130d92111",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/lib-BR4qb34w.js",
+        "bytes": 23338,
+        "sha256": "59ed209e0d629204e03b9630b881667cef0578c5cf34c735137c0ca14215e5da",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/mf-entry-bootstrap-0-5d5a409e.js",
+        "bytes": 1566,
+        "sha256": "5d5a409e533ee0879843d37da6902e1c1ab929dcaf3524fe8ce3876bb3057251",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/rolldown-runtime-C0FnF6B9.js",
+        "bytes": 1291,
+        "sha256": "e0a79ad36c6ca1ffbc796c80aa5661803a9d1bc684e29d1587f48b4ba9a82714",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/virtualExposes-31pkFC9v.js",
+        "bytes": 139,
+        "sha256": "f3ec3e049d5172531fa56690147e5ea0ad22e4f270c44eb12b9dbe0e277cbd6c",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+        "bytes": 18108,
+        "sha256": "56431d32d2bd71cf837916ca660a7cc08b1e82e78f97b55e0d4a3ff05fb1e4b6",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+        "bytes": 1140,
+        "sha256": "0c4370aaa3cd19f5ed0f817f5f6fbb45bce5f753d11c77d2c5df352d9f253c24",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "assets/vite-preload-helper-B7qeedMF.js",
+        "bytes": 1243,
+        "sha256": "4a3f3b6380d67b01347265072f4958e9242589aae6a42d7bfdc4ec27222de54a",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "customComponents.js",
+        "bytes": 978,
+        "sha256": "3473e9d623e145c9fd94238133783e5014945cfd13c6ce28665a798ea84fde46",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/de.json",
+        "bytes": 111,
+        "sha256": "1eed7ad30ced852faf5b8962727ad1e664ceeaa34047151e8013207ba73008b0",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/en.json",
+        "bytes": 106,
+        "sha256": "d74eec75cdc12002775b1cca9491e1e6d35687e8740416795cc07297bacd5dcd",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/es.json",
+        "bytes": 120,
+        "sha256": "87e6f3926d44fe50444c4e3672a91a7aa3186d2608bff5283ee598ebae40900c",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/fr.json",
+        "bytes": 118,
+        "sha256": "24183898c75b3d9cfe0a0d58b9a6a33bfadc5ecdd7af77b37c8dbcdc48c5498f",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/it.json",
+        "bytes": 105,
+        "sha256": "4a5d999e22739c6dc9ddecdaecc24ce6c1f56e89ff6292e896c0b4409ec98631",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/nl.json",
+        "bytes": 113,
+        "sha256": "3814940418066f4ebeff6b759fcf6a77930ec5ca0041b86f217b316ea33e68c9",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/pl.json",
+        "bytes": 115,
+        "sha256": "856e1383af6d2771b99abda4f700a5216c056ff0ffb6f1f92328b472adba06fe",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/pt.json",
+        "bytes": 116,
+        "sha256": "8fb7b060e0c6c441d164fae24e8f67618d39658306788683c3d2acbee065feaa",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/ru.json",
+        "bytes": 162,
+        "sha256": "006c1dd21b165a321649a3e87241ee3ce3ae48cdcad0cfc7aabe3d2c86ab6da1",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "i18n/zh-cn.json",
+        "bytes": 107,
+        "sha256": "3c019e42a5c3aed2c6a036f0549d8e12497c1ee12b0a6768d25a7d8c5024401b",
+        "targetByteIdentical": true
+      },
+      {
+        "relative": "mf-manifest.json",
+        "bytes": 4433,
+        "sha256": "9663909905b837985eed4c4e17ebff85f347cadb00be2bede3d0b4d2220b7541",
+        "targetByteIdentical": true
+      }
+    ]
+  },
+  "upstreamFederationManifest": {
+    "file": "admin/custom/mf-manifest.json",
+    "sha256": "9663909905b837985eed4c4e17ebff85f347cadb00be2bede3d0b4d2220b7541",
+    "declaredSharedLibraries": [
+      {
+        "name": "@iobroker/gui-components",
+        "version": "10.2.1",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "@iobroker/json-config",
+        "version": "9.1.2",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "@mui/icons-material",
+        "version": "9.4.0",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "@mui/material",
+        "version": "9.4.0",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "react",
+        "version": "19.2.8",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.8",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "react/jsx-runtime",
+        "version": "19.2.8",
+        "requiredVersion": "*",
+        "singleton": true
+      },
+      {
+        "name": "react-dom/client",
+        "version": "19.2.8",
+        "requiredVersion": "*",
+        "singleton": true
+      }
+    ],
+    "interpretation": "Upstream author declarations of build/federation sharing, not independent complete bundle composition or proof of the version actually selected at runtime."
+  },
+  "auditBoundary": {
+    "auditedInputs": [
+      "package-lock.json production dependencies",
+      "src-admin/package-lock.json all dependencies"
+    ],
+    "currentFrontendComposition": "adminWww/NEXOWATT_EOS_FRONTEND_MANIFEST.json from current Vite build plus explicitly checked vendored Acorn",
+    "excludedFromZeroFindingClaim": [
+      "prebuilt admin/custom bundled or transitively embedded library code"
+    ],
+    "independentCustomBundleCveAssessmentExecuted": true,
+    "completeCustomBundlePackageAttributionExecuted": true,
+    "customConfigurationDialogBrowserIntegrationExecuted": false,
+    "assessmentIndependenceMeaning": "Separate from the two EOS lock audits; internal technical assessment, not independent certification",
+    "customComponentBrowserHostIntegrationExecuted": true
+  },
+  "cleanup": {
+    "evidence": "easy-access-packaging-cleanup.json",
+    "evidenceSha256": "29c7d5c22e455d38f1b0a6b15dffc2561fb14ca5d13fbfc7680204b09096bb01",
+    "priorFileCount": 172,
+    "removedLegacyExtraFiles": 146,
+    "independentPostCleanupByteComparison": true
+  },
+  "limitations": [
+    "Current npm lock audits do not certify separately prebuilt nested bundles.",
+    "Package integrity and byte equality do not establish absence of vulnerabilities or complete embedded dependency composition.",
+    "No IEC/CRA/security certification is asserted."
+  ],
+  "originalPriority": "P1 before complete security approval",
+  "followup": {
+    "date": "2026-11-05",
+    "report": "docs/security/admin8-2026-11-05/EASYACCESS_FOLLOWUP_DE.md",
+    "productCodeChanged": false,
+    "sourceCommit": "ae303bdabc73c2588b1194d2f0c4951ac0d8b00e",
+    "rebuiltFilesByteIdentical": 26,
+    "physicalPackageInstallations": 63,
+    "generatedHelpersSeparatelyAttributed": true,
+    "realBrowserStandalonePassed": true,
+    "realBrowserWithEosHostPassed": true,
+    "fullControllerConfigurationSaveTestExecuted": false
+  }
+}

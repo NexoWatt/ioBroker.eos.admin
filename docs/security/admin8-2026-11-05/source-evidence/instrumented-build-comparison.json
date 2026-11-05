@@ -1,0 +1,190 @@
+{
+  "fileCount": 26,
+  "allByteIdentical": true,
+  "sourceTrackedFilesUnchanged": true,
+  "sourceLockUnchanged": true,
+  "files": [
+    {
+      "file": "assets/Components-I39zZDnw.js",
+      "expectedSha256": "82b39adfb8b7f889b49442844aa321a38484eb81a8caf0e4c4ff414e79aea628",
+      "rebuiltSha256": "82b39adfb8b7f889b49442844aa321a38484eb81a8caf0e4c4ff414e79aea628",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+      "expectedSha256": "8b5ef78fb4f78c974ebb225c7e6d616e5c7526bf040a117acbb7ddc2c5a4f6e5",
+      "rebuiltSha256": "8b5ef78fb4f78c974ebb225c7e6d616e5c7526bf040a117acbb7ddc2c5a4f6e5",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+      "expectedSha256": "88250b4e7bb827f5af3677ce71458dade4f926469cc04c46adcb6ab4a70b57d4",
+      "rebuiltSha256": "88250b4e7bb827f5af3677ce71458dade4f926469cc04c46adcb6ab4a70b57d4",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "expectedSha256": "b29f27375ee78ed2129c77541f5f2c3cdf09cd535d2c460db1ee75b0179749eb",
+      "rebuiltSha256": "b29f27375ee78ed2129c77541f5f2c3cdf09cd535d2c460db1ee75b0179749eb",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+      "expectedSha256": "fb3d3f6e8c58b5e1919356b6a0661539d636538b3e5911acc30891f975a4d319",
+      "rebuiltSha256": "fb3d3f6e8c58b5e1919356b6a0661539d636538b3e5911acc30891f975a4d319",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/hostInit-CExI67Q9.js",
+      "expectedSha256": "d66a11dbb405d52caabc3750ed3868802f60e00086c2a86b5ad075f8c94ed95d",
+      "rebuiltSha256": "d66a11dbb405d52caabc3750ed3868802f60e00086c2a86b5ad075f8c94ed95d",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/index-PfxLVs-2.js",
+      "expectedSha256": "50213d401c65bc2fd93480d58b36fe1283131d0bd0e0bc653cabd95130d92111",
+      "rebuiltSha256": "50213d401c65bc2fd93480d58b36fe1283131d0bd0e0bc653cabd95130d92111",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/lib-BR4qb34w.js",
+      "expectedSha256": "59ed209e0d629204e03b9630b881667cef0578c5cf34c735137c0ca14215e5da",
+      "rebuiltSha256": "59ed209e0d629204e03b9630b881667cef0578c5cf34c735137c0ca14215e5da",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/mf-entry-bootstrap-0-5d5a409e.js",
+      "expectedSha256": "5d5a409e533ee0879843d37da6902e1c1ab929dcaf3524fe8ce3876bb3057251",
+      "rebuiltSha256": "5d5a409e533ee0879843d37da6902e1c1ab929dcaf3524fe8ce3876bb3057251",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/rolldown-runtime-C0FnF6B9.js",
+      "expectedSha256": "e0a79ad36c6ca1ffbc796c80aa5661803a9d1bc684e29d1587f48b4ba9a82714",
+      "rebuiltSha256": "e0a79ad36c6ca1ffbc796c80aa5661803a9d1bc684e29d1587f48b4ba9a82714",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/virtualExposes-31pkFC9v.js",
+      "expectedSha256": "f3ec3e049d5172531fa56690147e5ea0ad22e4f270c44eb12b9dbe0e277cbd6c",
+      "rebuiltSha256": "f3ec3e049d5172531fa56690147e5ea0ad22e4f270c44eb12b9dbe0e277cbd6c",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+      "expectedSha256": "56431d32d2bd71cf837916ca660a7cc08b1e82e78f97b55e0d4a3ff05fb1e4b6",
+      "rebuiltSha256": "56431d32d2bd71cf837916ca660a7cc08b1e82e78f97b55e0d4a3ff05fb1e4b6",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+      "expectedSha256": "0c4370aaa3cd19f5ed0f817f5f6fbb45bce5f753d11c77d2c5df352d9f253c24",
+      "rebuiltSha256": "0c4370aaa3cd19f5ed0f817f5f6fbb45bce5f753d11c77d2c5df352d9f253c24",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "assets/vite-preload-helper-B7qeedMF.js",
+      "expectedSha256": "4a3f3b6380d67b01347265072f4958e9242589aae6a42d7bfdc4ec27222de54a",
+      "rebuiltSha256": "4a3f3b6380d67b01347265072f4958e9242589aae6a42d7bfdc4ec27222de54a",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "customComponents.js",
+      "expectedSha256": "3473e9d623e145c9fd94238133783e5014945cfd13c6ce28665a798ea84fde46",
+      "rebuiltSha256": "3473e9d623e145c9fd94238133783e5014945cfd13c6ce28665a798ea84fde46",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    },
+    {
+      "file": "i18n/de.json",
+      "expectedSha256": "1eed7ad30ced852faf5b8962727ad1e664ceeaa34047151e8013207ba73008b0",
+      "rebuiltSha256": "1eed7ad30ced852faf5b8962727ad1e664ceeaa34047151e8013207ba73008b0",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/en.json",
+      "expectedSha256": "d74eec75cdc12002775b1cca9491e1e6d35687e8740416795cc07297bacd5dcd",
+      "rebuiltSha256": "d74eec75cdc12002775b1cca9491e1e6d35687e8740416795cc07297bacd5dcd",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/es.json",
+      "expectedSha256": "87e6f3926d44fe50444c4e3672a91a7aa3186d2608bff5283ee598ebae40900c",
+      "rebuiltSha256": "87e6f3926d44fe50444c4e3672a91a7aa3186d2608bff5283ee598ebae40900c",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/fr.json",
+      "expectedSha256": "24183898c75b3d9cfe0a0d58b9a6a33bfadc5ecdd7af77b37c8dbcdc48c5498f",
+      "rebuiltSha256": "24183898c75b3d9cfe0a0d58b9a6a33bfadc5ecdd7af77b37c8dbcdc48c5498f",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/it.json",
+      "expectedSha256": "4a5d999e22739c6dc9ddecdaecc24ce6c1f56e89ff6292e896c0b4409ec98631",
+      "rebuiltSha256": "4a5d999e22739c6dc9ddecdaecc24ce6c1f56e89ff6292e896c0b4409ec98631",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/nl.json",
+      "expectedSha256": "3814940418066f4ebeff6b759fcf6a77930ec5ca0041b86f217b316ea33e68c9",
+      "rebuiltSha256": "3814940418066f4ebeff6b759fcf6a77930ec5ca0041b86f217b316ea33e68c9",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/pl.json",
+      "expectedSha256": "856e1383af6d2771b99abda4f700a5216c056ff0ffb6f1f92328b472adba06fe",
+      "rebuiltSha256": "856e1383af6d2771b99abda4f700a5216c056ff0ffb6f1f92328b472adba06fe",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/pt.json",
+      "expectedSha256": "8fb7b060e0c6c441d164fae24e8f67618d39658306788683c3d2acbee065feaa",
+      "rebuiltSha256": "8fb7b060e0c6c441d164fae24e8f67618d39658306788683c3d2acbee065feaa",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/ru.json",
+      "expectedSha256": "006c1dd21b165a321649a3e87241ee3ce3ae48cdcad0cfc7aabe3d2c86ab6da1",
+      "rebuiltSha256": "006c1dd21b165a321649a3e87241ee3ce3ae48cdcad0cfc7aabe3d2c86ab6da1",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "i18n/zh-cn.json",
+      "expectedSha256": "3c019e42a5c3aed2c6a036f0549d8e12497c1ee12b0a6768d25a7d8c5024401b",
+      "rebuiltSha256": "3c019e42a5c3aed2c6a036f0549d8e12497c1ee12b0a6768d25a7d8c5024401b",
+      "identical": true,
+      "source": "original source i18n copy"
+    },
+    {
+      "file": "mf-manifest.json",
+      "expectedSha256": "9663909905b837985eed4c4e17ebff85f347cadb00be2bede3d0b4d2220b7541",
+      "rebuiltSha256": "9663909905b837985eed4c4e17ebff85f347cadb00be2bede3d0b4d2220b7541",
+      "identical": true,
+      "source": "instrumented build without output mutation"
+    }
+  ]
+}

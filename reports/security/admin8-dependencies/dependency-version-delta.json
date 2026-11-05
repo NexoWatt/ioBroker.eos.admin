@@ -1,0 +1,1630 @@
+{
+  "schemaVersion": 1,
+  "utc": "2026-11-04T21:18:16.230Z",
+  "referenceCommit": "6f77eedf525813a7a61d79188d1ff05dffd05086",
+  "scope": "Package version additions/removals/changes against official Admin8.3.5 lockfiles; metadata-only repairs do not change these identities.",
+  "scopes": [
+    {
+      "name": "backend",
+      "referenceLockSha256": "ad4a69cd55e8a80b4925b2b790db469ccc026368ec4879445181fd6e03fce621",
+      "changes": [
+        {
+          "location": "node_modules/@esbuild/aix-ppc64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/android-arm",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/android-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/android-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/darwin-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/darwin-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/freebsd-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/freebsd-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-arm",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-ia32",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-loong64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-mips64el",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-ppc64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-riscv64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-s390x",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/linux-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/netbsd-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/netbsd-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/openbsd-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/openbsd-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/openharmony-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/sunos-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/win32-arm64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/win32-ia32",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@esbuild/win32-x64",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/@grpc/grpc-js",
+          "before": {
+            "version": "1.14.4"
+          },
+          "after": {
+            "version": "1.14.5"
+          }
+        },
+        {
+          "location": "node_modules/@hono/node-server",
+          "before": {
+            "version": "2.1.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@humanfs/core",
+          "before": {
+            "version": "0.19.1"
+          },
+          "after": {
+            "version": "0.19.2"
+          }
+        },
+        {
+          "location": "node_modules/@humanfs/node",
+          "before": {
+            "version": "0.16.7"
+          },
+          "after": {
+            "version": "0.16.8"
+          }
+        },
+        {
+          "location": "node_modules/@humanfs/types",
+          "before": null,
+          "after": {
+            "version": "0.15.0"
+          }
+        },
+        {
+          "location": "node_modules/@iobroker/ai-core",
+          "before": {
+            "version": "0.0.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@iobroker/mcp-server",
+          "before": {
+            "version": "1.8.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@iobroker/plugin-docker/node_modules/js-yaml",
+          "before": {
+            "version": "5.3.0"
+          },
+          "after": {
+            "version": "5.4.2"
+          }
+        },
+        {
+          "location": "node_modules/@iobroker/type-detector",
+          "before": {
+            "version": "6.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@iobroker/types",
+          "before": {
+            "version": "8.0.0-alpha.5-20261004-d0887094b"
+          },
+          "after": {
+            "version": "7.2.5"
+          }
+        },
+        {
+          "location": "node_modules/@iobroker/webserver/node_modules/oauth2-server",
+          "before": null,
+          "after": {
+            "name": "@node-oauth/oauth2-server",
+            "version": "5.3.1"
+          }
+        },
+        {
+          "location": "node_modules/@modelcontextprotocol/sdk",
+          "before": {
+            "version": "1.32.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@node-oauth/formats",
+          "before": null,
+          "after": {
+            "version": "1.0.0"
+          }
+        },
+        {
+          "location": "node_modules/@types/archiver",
+          "before": {
+            "version": "8.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@types/readdir-glob",
+          "before": {
+            "version": "1.1.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@typescript-eslint/eslint-plugin/node_modules/brace-expansion",
+          "before": {
+            "version": "5.0.9"
+          },
+          "after": {
+            "version": "5.0.12"
+          }
+        },
+        {
+          "location": "node_modules/@typescript-eslint/parser/node_modules/brace-expansion",
+          "before": {
+            "version": "5.0.9"
+          },
+          "after": {
+            "version": "5.0.12"
+          }
+        },
+        {
+          "location": "node_modules/abort-controller",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/ajv-formats",
+          "before": {
+            "version": "3.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/archiver",
+          "before": {
+            "version": "8.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/archiver/node_modules/is-stream",
+          "before": {
+            "version": "4.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/b4a",
+          "before": {
+            "version": "1.6.7"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/bare-events",
+          "before": {
+            "version": "2.8.2"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/bluebird",
+          "before": {
+            "version": "3.7.2"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/brace-expansion",
+          "before": {
+            "version": "1.1.13"
+          },
+          "after": {
+            "version": "1.1.21"
+          }
+        },
+        {
+          "location": "node_modules/buffer-crc32",
+          "before": {
+            "version": "1.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/co-bluebird",
+          "before": {
+            "version": "1.1.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/co-bluebird/node_modules/bluebird",
+          "before": {
+            "version": "2.11.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/co-use",
+          "before": {
+            "version": "1.1.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/compress-commons",
+          "before": {
+            "version": "7.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/compress-commons/node_modules/is-stream",
+          "before": {
+            "version": "4.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/content-type",
+          "before": {
+            "version": "1.0.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/core-util-is",
+          "before": {
+            "version": "1.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/cors",
+          "before": {
+            "version": "2.8.6"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/crc-32",
+          "before": {
+            "version": "1.2.2"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/crc32-stream",
+          "before": {
+            "version": "7.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/eslint/node_modules/ajv",
+          "before": {
+            "version": "6.12.6"
+          },
+          "after": {
+            "version": "6.15.0"
+          }
+        },
+        {
+          "location": "node_modules/event-target-shim",
+          "before": {
+            "version": "5.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/events",
+          "before": {
+            "version": "3.3.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/events-universal",
+          "before": {
+            "version": "1.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/eventsource",
+          "before": {
+            "version": "3.0.7"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/eventsource-parser",
+          "before": {
+            "version": "3.1.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/express-rate-limit",
+          "before": {
+            "version": "8.7.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/fast-fifo",
+          "before": {
+            "version": "1.3.2"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/fast-uri",
+          "before": {
+            "version": "3.0.6"
+          },
+          "after": {
+            "version": "3.1.9"
+          }
+        },
+        {
+          "location": "node_modules/follow-redirects",
+          "before": {
+            "version": "1.16.1"
+          },
+          "after": {
+            "version": "1.16.2"
+          }
+        },
+        {
+          "location": "node_modules/hono",
+          "before": {
+            "version": "4.13.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/ip-address",
+          "before": {
+            "version": "10.7.4"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/is-generator",
+          "before": {
+            "version": "1.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/js-yaml",
+          "before": {
+            "version": "4.3.0"
+          },
+          "after": {
+            "version": "4.3.2"
+          }
+        },
+        {
+          "location": "node_modules/json-schema-typed",
+          "before": {
+            "version": "8.0.2"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/lazystream",
+          "before": {
+            "version": "1.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/lazystream/node_modules/isarray",
+          "before": {
+            "version": "1.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/lazystream/node_modules/readable-stream",
+          "before": {
+            "version": "2.3.8"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/lazystream/node_modules/safe-buffer",
+          "before": {
+            "version": "5.1.2"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/lazystream/node_modules/string_decoder",
+          "before": {
+            "version": "1.1.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/lodash",
+          "before": {
+            "version": "4.17.19"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/node-forge",
+          "before": {
+            "version": "1.4.0"
+          },
+          "after": {
+            "version": "1.4.3"
+          }
+        },
+        {
+          "location": "node_modules/normalize-path",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/oauth2-server",
+          "before": {
+            "version": "3.1.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/oauth2-server/node_modules/statuses",
+          "before": {
+            "version": "1.5.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/oauth2-server/node_modules/type-is",
+          "before": {
+            "version": "2.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/pkce-challenge",
+          "before": {
+            "version": "5.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/probe-image-size",
+          "before": {
+            "version": "7.3.0"
+          },
+          "after": {
+            "version": "7.5.0"
+          }
+        },
+        {
+          "location": "node_modules/process",
+          "before": {
+            "version": "0.11.10"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/process-nextick-args",
+          "before": {
+            "version": "2.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/promisify-any",
+          "before": {
+            "version": "2.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/promisify-any/node_modules/bluebird",
+          "before": {
+            "version": "2.11.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/readable-stream",
+          "before": {
+            "version": "4.7.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/readable-stream/node_modules/buffer",
+          "before": {
+            "version": "6.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/readdir-glob",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/readdir-glob/node_modules/balanced-match",
+          "before": {
+            "version": "4.0.4"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/readdir-glob/node_modules/brace-expansion",
+          "before": {
+            "version": "5.0.8"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/readdir-glob/node_modules/minimatch",
+          "before": {
+            "version": "10.2.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/serialize-javascript",
+          "before": {
+            "version": "7.1.2"
+          },
+          "after": {
+            "version": "7.1.3"
+          }
+        },
+        {
+          "location": "node_modules/stream-parser",
+          "before": {
+            "version": "0.3.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/stream-parser/node_modules/debug",
+          "before": {
+            "version": "2.6.9"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/stream-parser/node_modules/ms",
+          "before": {
+            "version": "2.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/streamx",
+          "before": {
+            "version": "2.25.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/tar-stream",
+          "before": {
+            "version": "3.1.7"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/text-decoder",
+          "before": {
+            "version": "1.2.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/tsx/node_modules/esbuild",
+          "before": {
+            "version": "0.28.0"
+          },
+          "after": {
+            "version": "0.28.1"
+          }
+        },
+        {
+          "location": "node_modules/typescript-eslint/node_modules/brace-expansion",
+          "before": {
+            "version": "5.0.9"
+          },
+          "after": {
+            "version": "5.0.12"
+          }
+        },
+        {
+          "location": "node_modules/zip-stream",
+          "before": {
+            "version": "7.0.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/zod-to-json-schema",
+          "before": {
+            "version": "3.25.2"
+          },
+          "after": null
+        }
+      ]
+    },
+    {
+      "name": "frontend",
+      "referenceLockSha256": "ed475e6efc8ea5fcb47cf6cda141a86eb1b93f7497084ecc2015d2c75811e477",
+      "changes": [
+        {
+          "location": "node_modules/@babel/compat-data",
+          "before": {
+            "version": "7.29.0"
+          },
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/core",
+          "before": {
+            "version": "7.29.0"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/core/node_modules/@babel/code-frame",
+          "before": null,
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/generator",
+          "before": {
+            "version": "7.29.1"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-compilation-targets",
+          "before": {
+            "version": "7.28.6"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-compilation-targets/node_modules/semver",
+          "before": {
+            "version": "6.3.1"
+          },
+          "after": {
+            "version": "6.3.2"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-globals",
+          "before": {
+            "version": "7.28.0"
+          },
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-module-imports",
+          "before": {
+            "version": "7.28.6"
+          },
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-module-transforms",
+          "before": {
+            "version": "7.28.6"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-string-parser",
+          "before": {
+            "version": "7.27.1"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-validator-identifier",
+          "before": {
+            "version": "7.28.5"
+          },
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helper-validator-option",
+          "before": {
+            "version": "7.27.1"
+          },
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/helpers",
+          "before": {
+            "version": "7.28.6"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/parser",
+          "before": {
+            "version": "7.29.0"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/template",
+          "before": {
+            "version": "7.28.6"
+          },
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/template/node_modules/@babel/code-frame",
+          "before": null,
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/traverse",
+          "before": {
+            "version": "7.29.0"
+          },
+          "after": {
+            "version": "7.29.13"
+          }
+        },
+        {
+          "location": "node_modules/@babel/traverse/node_modules/@babel/code-frame",
+          "before": null,
+          "after": {
+            "version": "7.29.7"
+          }
+        },
+        {
+          "location": "node_modules/@babel/types",
+          "before": {
+            "version": "7.29.0"
+          },
+          "after": {
+            "version": "7.29.11"
+          }
+        },
+        {
+          "location": "node_modules/@originjs/vite-plugin-commonjs",
+          "before": {
+            "version": "1.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@originjs/vite-plugin-commonjs/node_modules/@esbuild/linux-loong64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@originjs/vite-plugin-commonjs/node_modules/esbuild",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/@types/trusted-types",
+          "before": {
+            "version": "2.0.7"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/ansi-regex",
+          "before": {
+            "version": "4.1.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/axios",
+          "before": {
+            "version": "1.18.1"
+          },
+          "after": {
+            "version": "1.20.0"
+          }
+        },
+        {
+          "location": "node_modules/baseline-browser-mapping",
+          "before": {
+            "version": "2.9.19"
+          },
+          "after": {
+            "version": "2.11.3"
+          }
+        },
+        {
+          "location": "node_modules/browserslist",
+          "before": {
+            "version": "4.28.1"
+          },
+          "after": {
+            "version": "4.28.7"
+          }
+        },
+        {
+          "location": "node_modules/caniuse-lite",
+          "before": {
+            "version": "1.0.30001769"
+          },
+          "after": {
+            "version": "1.0.30001820"
+          }
+        },
+        {
+          "location": "node_modules/cliui",
+          "before": {
+            "version": "5.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/cosmiconfig/node_modules/yaml",
+          "before": {
+            "version": "1.10.2"
+          },
+          "after": {
+            "version": "1.10.3"
+          }
+        },
+        {
+          "location": "node_modules/decamelize",
+          "before": {
+            "version": "1.2.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/dom-serializer",
+          "before": {
+            "version": "1.4.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/domelementtype",
+          "before": {
+            "version": "2.3.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/domhandler",
+          "before": {
+            "version": "4.3.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/dompurify",
+          "before": {
+            "version": "3.4.15"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/domutils",
+          "before": {
+            "version": "2.8.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/electron-to-chromium",
+          "before": {
+            "version": "1.5.286"
+          },
+          "after": {
+            "version": "1.5.476"
+          }
+        },
+        {
+          "location": "node_modules/emoji-regex",
+          "before": {
+            "version": "7.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/entities",
+          "before": {
+            "version": "2.2.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-android-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-android-arm64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-darwin-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-darwin-arm64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-freebsd-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-freebsd-arm64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-32",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-arm",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-arm64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-mips64le",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-ppc64le",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-riscv64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-linux-s390x",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-netbsd-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-openbsd-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-sunos-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-windows-32",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-windows-64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/esbuild-windows-arm64",
+          "before": {
+            "version": "0.14.54"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/find-up",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/follow-redirects",
+          "before": {
+            "version": "1.16.0"
+          },
+          "after": {
+            "version": "1.16.2"
+          }
+        },
+        {
+          "location": "node_modules/get-caller-file",
+          "before": {
+            "version": "2.0.5"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/htmlparser2",
+          "before": {
+            "version": "6.1.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/is-fullwidth-code-point",
+          "before": {
+            "version": "2.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/js-yaml",
+          "before": {
+            "version": "4.1.1"
+          },
+          "after": {
+            "version": "4.3.2"
+          }
+        },
+        {
+          "location": "node_modules/locate-path",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/marked",
+          "before": {
+            "version": "14.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/micromatch/node_modules/picomatch",
+          "before": {
+            "version": "2.3.1"
+          },
+          "after": {
+            "version": "2.3.2"
+          }
+        },
+        {
+          "location": "node_modules/monaco-editor",
+          "before": {
+            "version": "0.57.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/node-forge",
+          "before": {
+            "version": "1.4.0"
+          },
+          "after": {
+            "version": "1.4.3"
+          }
+        },
+        {
+          "location": "node_modules/node-releases",
+          "before": {
+            "version": "2.0.27"
+          },
+          "after": {
+            "version": "2.0.63"
+          }
+        },
+        {
+          "location": "node_modules/p-limit",
+          "before": {
+            "version": "2.3.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/p-locate",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/p-try",
+          "before": {
+            "version": "2.2.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/path-exists",
+          "before": {
+            "version": "3.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/probe-image-size",
+          "before": {
+            "version": "7.3.0"
+          },
+          "after": {
+            "version": "7.5.0"
+          }
+        },
+        {
+          "location": "node_modules/react-monaco-editor",
+          "before": {
+            "version": "0.59.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/react-showdown",
+          "before": {
+            "version": "2.3.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/require-directory",
+          "before": {
+            "version": "2.1.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/require-main-filename",
+          "before": {
+            "version": "2.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/set-blocking",
+          "before": {
+            "version": "2.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/showdown",
+          "before": {
+            "version": "1.9.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/stream-parser",
+          "before": {
+            "version": "0.3.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/stream-parser/node_modules/debug",
+          "before": {
+            "version": "2.6.9"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/stream-parser/node_modules/ms",
+          "before": {
+            "version": "2.0.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/string-width",
+          "before": {
+            "version": "3.1.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/strip-ansi",
+          "before": {
+            "version": "5.2.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/undici",
+          "before": {
+            "version": "7.29.1"
+          },
+          "after": {
+            "version": "7.30.1"
+          }
+        },
+        {
+          "location": "node_modules/update-browserslist-db",
+          "before": {
+            "version": "1.2.3"
+          },
+          "after": {
+            "version": "1.3.4"
+          }
+        },
+        {
+          "location": "node_modules/which-module",
+          "before": {
+            "version": "2.0.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/wrap-ansi",
+          "before": {
+            "version": "5.1.0"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/wrap-ansi/node_modules/ansi-styles",
+          "before": {
+            "version": "3.2.1"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/wrap-ansi/node_modules/color-convert",
+          "before": {
+            "version": "1.9.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/wrap-ansi/node_modules/color-name",
+          "before": {
+            "version": "1.1.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/y18n",
+          "before": {
+            "version": "4.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/yargs",
+          "before": {
+            "version": "14.2.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/yargs-parser",
+          "before": {
+            "version": "15.0.3"
+          },
+          "after": null
+        },
+        {
+          "location": "node_modules/yargs-parser/node_modules/camelcase",
+          "before": {
+            "version": "5.3.1"
+          },
+          "after": null
+        }
+      ]
+    }
+  ]
+}

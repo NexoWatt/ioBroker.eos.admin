@@ -1,11 +1,11 @@
 import React, { useEffect, useState, type JSX } from 'react';
 import Markdown from 'react-markdown';
 
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Link } from '@mui/material';
 
 import { Close as IconClose, Check as IconCheck, ArrowDownward as IconArrowDownward } from '@mui/icons-material';
 
-import { I18n } from '@iobroker/adapter-react-v5';
+import { I18n } from '@iobroker/gui-components';
 
 const styles: Record<string, any> = {
     root: {
@@ -56,30 +56,62 @@ const styles: Record<string, any> = {
 interface LicenseDialogProps {
     /** URL to show license text from */
     url: string;
+    /** Page with more information about the license (`licenseInformation.link`): prices, where to buy */
+    link?: string;
     /** License type: MIT, Apache, ... */
     licenseType: string;
     /** function called when dialog is closed */
     onClose: (accepted?: boolean) => void;
 }
 
-function LicenseDialog({ url, onClose, licenseType }: LicenseDialogProps): JSX.Element {
+function LicenseDialog({ url, link, onClose, licenseType }: LicenseDialogProps): JSX.Element {
     const [text, setText] = useState('');
     const [loading, setLoading] = useState(true);
+    const [failed, setFailed] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const preRef = React.useRef<HTMLPreElement>(null);
     const divRef = React.useRef<HTMLDivElement>(null);
     const installTimer = React.useRef<ReturnType<typeof setInterval> | null | undefined>(undefined);
 
-    useEffect(() => {
+    // Show the spinner again as soon as a different license is requested. Adjusting during render
+    // avoids one frame of the previous license text before the fetch effect runs.
+    const [loadedUrl, setLoadedUrl] = useState(url);
+    if (loadedUrl !== url) {
+        setLoadedUrl(url);
         setLoading(true);
+        setFailed(false);
+        setScrolled(false);
         setText('');
+    }
+
+    useEffect(() => {
         let _url = url;
         if (_url.startsWith('https://github.com/')) {
             _url = _url.replace('https://github.com/', 'https://raw.githubusercontent.com/').replace('/blob/', '/');
         }
 
-        fetch(_url)
-            .then(el => el.text())
+        // Without a text there is nothing to scroll through: show where to read the license and let it be accepted,
+        // instead of a dialog that can only be closed
+        const onFailed = (): void => {
+            setFailed(true);
+            setScrolled(true);
+            setLoading(false);
+        };
+
+        if (!_url) {
+            onFailed();
+            return;
+        }
+
+        const load = (): Promise<string> =>
+            fetch(_url).then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                return res.text();
+            });
+
+        load()
             .then((txt: string): void => {
                 setText(txt);
                 setLoading(false);
@@ -87,26 +119,25 @@ function LicenseDialog({ url, onClose, licenseType }: LicenseDialogProps): JSX.E
             .catch((e: any): void => {
                 console.error(`Cannot read license 1 from "${_url}": ${e}`);
                 // Try one more time
-                fetch(_url)
-                    .then(el => el.text())
+                load()
                     .then((txt: string): void => {
                         setText(txt);
                         setLoading(false);
                     })
                     .catch((e: any): void => {
-                        // Try one more time
                         console.error(`Cannot read license 2 "${_url}": ${e}`);
-                        setLoading(false);
+                        onFailed();
                     });
             });
     }, [url]);
 
     useEffect(() => {
         const installOnscroll = (): boolean => {
-            const divMarkdown: HTMLDivElement | null = divRef.current?.querySelector('.markdown');
+            const divMarkdown: HTMLDivElement | null = divRef.current?.querySelector('.markdown') || null;
             if (divMarkdown) {
-                // install on scroll only if the scrollbar is visible
+                // install on scroll only if the scrollbar is visible, a text without one is read already
                 if (divMarkdown.scrollHeight <= divMarkdown.clientHeight) {
+                    setScrolled(true);
                     return true;
                 }
 
@@ -170,33 +201,35 @@ function LicenseDialog({ url, onClose, licenseType }: LicenseDialogProps): JSX.E
         };
     }, [loading, scrolled, text]);
 
-    let content: JSX.Element;
+    let content: JSX.Element | null = null;
     if (!loading && text) {
         if (text.startsWith('#')) {
+            // react-markdown dropped the `className` prop, so the CSS hook moves to a wrapper
             content = (
-                <Markdown
-                    className="markdown"
-                    components={{
-                        h1: h1Props => (
-                            <Box
-                                component="h1"
-                                sx={styles.header1}
-                            >
-                                {h1Props.children}
-                            </Box>
-                        ),
-                        h2: h2Props => (
-                            <Box
-                                component="h2"
-                                sx={styles.header2}
-                            >
-                                {h2Props.children}
-                            </Box>
-                        ),
-                    }}
-                >
-                    {text}
-                </Markdown>
+                <div className="markdown">
+                    <Markdown
+                        components={{
+                            h1: h1Props => (
+                                <Box
+                                    component="h1"
+                                    sx={styles.header1}
+                                >
+                                    {h1Props.children}
+                                </Box>
+                            ),
+                            h2: h2Props => (
+                                <Box
+                                    component="h2"
+                                    sx={styles.header2}
+                                >
+                                    {h2Props.children}
+                                </Box>
+                            ),
+                        }}
+                    >
+                        {text}
+                    </Markdown>
+                </div>
             );
         } else {
             content = (
@@ -219,6 +252,23 @@ function LicenseDialog({ url, onClose, licenseType }: LicenseDialogProps): JSX.E
                 </pre>
             );
         }
+    } else if (!loading && failed) {
+        content = (
+            <Box sx={{ p: '10px' }}>
+                {I18n.t('The license text could not be loaded.')}
+                {url ? (
+                    <div>
+                        <Link
+                            href={url}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            {url}
+                        </Link>
+                    </div>
+                ) : null}
+            </Box>
+        );
     }
 
     return (
@@ -245,6 +295,16 @@ function LicenseDialog({ url, onClose, licenseType }: LicenseDialogProps): JSX.E
                 </Box>
             </DialogContent>
             <DialogActions>
+                {link && link !== url ? (
+                    <Link
+                        href={link}
+                        target="_blank"
+                        rel="noopener"
+                        sx={{ ml: 1, mr: 'auto' }}
+                    >
+                        {I18n.t('More about this license')}
+                    </Link>
+                ) : null}
                 <Button
                     id="license-dialog-accept"
                     variant="contained"

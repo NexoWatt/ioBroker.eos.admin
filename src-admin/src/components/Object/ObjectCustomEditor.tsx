@@ -15,11 +15,13 @@ import {
 // Icons
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
-import { DialogError, DialogConfirm, type IobTheme } from '@iobroker/adapter-react-v5';
+import { DialogConfirm, type IobTheme } from '@iobroker/gui-components';
 
 import { ConfigGeneric, JsonConfigComponent, type ConfigItemPanel } from '@iobroker/json-config';
 import AdminUtils from '@/helpers/AdminUtils';
 import type { BasicComponentProps } from '@/types';
+import AceEditor from '@/components/AceEditor';
+import { validateStaticCustomSchema } from '@/helpers/configExpressionSafety';
 
 const styles: Record<string, React.CSSProperties> = {
     paper: {
@@ -34,7 +36,7 @@ const styles: Record<string, React.CSSProperties> = {
         height: 32,
     },
     titleEnabled: {
-        float: 'right',
+        // no `float` here: the summary content is a flex box, which centers the label vertically
         fontSize: 16,
         color: '#7ff57f',
         textTransform: 'uppercase',
@@ -118,7 +120,6 @@ interface ObjectCustomEditorState {
     maxOids: number;
     confirmed: boolean;
     showConfirmation: boolean;
-    error?: boolean;
     systemConfig?: ioBroker.SystemConfigObject;
 }
 
@@ -130,14 +131,18 @@ interface JsonConfigStorage {
 
 export default class ObjectCustomEditor extends Component<ObjectCustomEditorProps, ObjectCustomEditorState> {
     private readonly changedIds: string[];
-    private readonly scrollDivRef: React.RefObject<HTMLDivElement>;
+    private readonly scrollDivRef: React.RefObject<HTMLDivElement | null>;
     private readonly jsonConfigs: Record<string, null | JsonConfigStorage>;
-    private readonly refTemplate: Record<string, RefObject<HTMLDivElement>>;
+    private readonly refTemplate: Record<string, RefObject<HTMLDivElement | null>>;
     private readonly customObj: ioBroker.AnyObject;
     private commonConfig: Record<string, any> = {};
 
     /** Cached per-instance filter functions: returns true if objectId is allowed */
     private statesFilterFunctions: Record<string, (objectId: string) => boolean> = {};
+
+    /** Instances that currently have at least one invalid field. Every instance has its own JSON config */
+    private readonly validationErrors = new Set<string>();
+    private readonly schemaErrors = new Map<string, string>();
     private cb?: () => void;
     private cachedNewValues?: Record<string, any>;
 
@@ -198,6 +203,28 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
     componentWillUnmount(): void {
         if (this.props.registerSaveFunc) {
             this.props.registerSaveFunc();
+        }
+        // The editor is gone (e.g., tab switch), so no validation error can be shown anymore
+        this.validationErrors.clear();
+        this.props.onError?.(false);
+    }
+
+    /**
+     * Remember the validation state of one instance and inform the parent only if the aggregated state changed
+     *
+     * @param instance instance ID, like `history.0`
+     * @param error true if at least one field of this instance is invalid
+     */
+    private setValidationError(instance: string, error: boolean): void {
+        const hadErrors = !!this.validationErrors.size;
+        if (error) {
+            this.validationErrors.add(instance);
+        } else {
+            this.validationErrors.delete(instance);
+        }
+        const hasErrors = !!this.validationErrors.size;
+        if (hadErrors !== hasErrors) {
+            this.props.onError?.(hasErrors);
         }
     }
 
@@ -300,111 +327,49 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                     // @ts-expect-error deprecated, but still possible
                     jsonText = json;
                 }
-                let jsonSchema: ConfigItemPanel;
+                let jsonSchema: ConfigItemPanel | undefined;
                 try {
+                    if (typeof jsonText !== 'string' || jsonText.length > 1024 * 1024) {
+                        throw new Error('Custom settings schema exceeds the size limit');
+                    }
                     jsonSchema = JSON5.parse(jsonText);
+                    const safety = validateStaticCustomSchema(jsonSchema);
+                    if (!safety.ok) {
+                        this.schemaErrors.set(adapter, safety.reason);
+                        this.jsonConfigs[adapter] = { disabled: true };
+                        return;
+                    }
+                    this.schemaErrors.delete(adapter);
                     this.jsonConfigs[adapter] = this.jsonConfigs[adapter] || {};
                     this.jsonConfigs[adapter].json = jsonSchema;
-                } catch (e) {
-                    console.error(`Cannot parse jsonConfig of ${adapter}: ${e}`);
-                    window.alert(`Cannot parse jsonConfig of ${adapter}: ${e}`);
+                } catch {
+                    this.schemaErrors.set(
+                        adapter,
+                        'Custom settings schema is invalid or exceeds safe limits; existing values are unchanged',
+                    );
+                    this.jsonConfigs[adapter] = { disabled: true };
+                    return;
                 }
 
-                await JsonConfigComponent.loadI18n(this.props.socket, jsonSchema.i18n, adapter);
+                await JsonConfigComponent.loadI18n(this.props.socket, jsonSchema?.i18n, adapter);
                 return;
-            } catch (e1) {
-                console.error(`Cannot load jsonConfig of ${adapter}: ${e1}`);
-                window.alert(`Cannot load jsonConfig of ${adapter}: ${e1}`);
+            } catch {
+                this.schemaErrors.set(
+                    adapter,
+                    'Custom settings schema could not be loaded; existing values are unchanged',
+                );
+                this.jsonConfigs[adapter] = { disabled: true };
+                return;
             }
         }
         console.error(`Adapter ${adapter} is not yet supported by this version of admin`);
         window.alert(`Adapter ${adapter} is not yet supported by this version of admin`);
     }
 
-    // See configGeneric _executeCustom
-    _executeCustom(
-        func: string | { func: string; alsoDependsOn: string[] },
-        data: Record<string, any>,
-        customObj: Record<string, any>,
-        instanceObj: ioBroker.InstanceObject,
-        items: Record<string, any>,
-        attr: string,
-        processed: string[],
-    ): boolean | undefined {
-        if (processed.includes(attr)) {
-            return undefined;
-        }
-        processed.push(attr);
-
-        let alsoDependsOn: string[] = [];
-        let strFunc: string;
-
-        if (func && typeof func === 'object') {
-            alsoDependsOn = func.alsoDependsOn || [];
-            if (typeof alsoDependsOn === 'string') {
-                alsoDependsOn = [alsoDependsOn];
-            }
-            strFunc = func.func;
-        } else {
-            strFunc = func as string;
-        }
-
-        alsoDependsOn.forEach(_attr => {
-            if (!items[_attr]) {
-                console.error(`[JsonConfigComponent] attribute "${_attr}" does not exist!`);
-            } else if (!items[_attr].defaultFunc) {
-                console.error(
-                    `[JsonConfigComponent] attribute "${_attr}" is not required to be includes in "alsoDependsOn" while has static value!`,
-                );
-            } else {
-                const result = this._executeCustom(
-                    items[_attr].defaultFunc,
-                    data,
-                    customObj,
-                    instanceObj,
-                    items,
-                    _attr,
-                    processed,
-                );
-                if (result !== undefined) {
-                    data[_attr] = result;
-                }
-            }
-        });
-
-        if (!strFunc) {
-            data[attr] = items[attr].default === undefined ? null : items[attr].default;
-        } else {
-            try {
-                // eslint-disable-next-line no-new-func
-                const f = new Function(
-                    'data',
-                    'originalData',
-                    '_system',
-                    'instanceObj',
-                    'customObj',
-                    '_socket',
-                    strFunc.includes('return') ? strFunc : `return ${strFunc}`,
-                );
-                data[attr] = f(
-                    data || this.props.data,
-                    this.props.originalData,
-                    this.props.systemConfig,
-                    instanceObj,
-                    customObj,
-                    this.props.socket,
-                );
-            } catch (e) {
-                // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                console.error(`Cannot execute ${func}: ${e}`);
-                data[attr] = !items[attr] || items[attr].default === undefined ? null : items[attr].default;
-            }
-        }
-
-        return data[attr];
-    }
-
-    static flattenItems(items: Record<string, any>, _result: Record<string, any> = {}): Record<string, any> {
+    static flattenItems(
+        items: Record<string, any> | undefined,
+        _result: Record<string, any> = {},
+    ): Record<string, any> {
         if (items) {
             Object.keys(items).forEach(attr => {
                 if (items[attr].items) {
@@ -418,35 +383,21 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
         return _result;
     }
 
-    getDefaultValues(instance: string, obj: Record<string, any>): Record<string, any> {
+    getDefaultValues(instance: string, _obj: Record<string, any>): Record<string, any> {
         const defaultValues: Record<string, any> = { enabled: false };
         const adapter = instance.split('.')[0];
 
         if (this.jsonConfigs[adapter] && !this.jsonConfigs[adapter].disabled) {
-            const items = ObjectCustomEditor.flattenItems(this.jsonConfigs[adapter].json.items);
+            const items = ObjectCustomEditor.flattenItems(this.jsonConfigs[adapter]?.json?.items);
 
             if (items) {
-                const processed: string[] = [];
                 const attrs = Object.keys(items).filter(attr => items[attr]);
                 // first init simple defaults
                 attrs.forEach(attr => {
-                    if (!items[attr].defaultFunc && items[attr].default !== undefined) {
+                    if (items[attr].defaultFunc !== undefined) {
+                        defaultValues[attr] = items[attr].defaultFunc;
+                    } else if (items[attr].default !== undefined) {
                         defaultValues[attr] = items[attr].default;
-                    }
-                });
-
-                // now init default that must be calculated
-                attrs.forEach((attr): void => {
-                    if (items[attr].defaultFunc) {
-                        this._executeCustom(
-                            items[attr].defaultFunc,
-                            defaultValues,
-                            obj,
-                            this.jsonConfigs[adapter].instanceObjs[instance],
-                            items,
-                            attr,
-                            processed,
-                        );
                     }
                 });
             }
@@ -562,6 +513,21 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
         i: number,
     ): JSX.Element | null {
         const adapter = instance.split('.')[0];
+        const schemaError = this.schemaErrors.get(adapter);
+        if (schemaError) {
+            // Do not mount ConfigGeneric: it would evaluate the rejected strings again.
+            return (
+                <Paper
+                    key={instance}
+                    role="alert"
+                    data-eos-custom-schema-blocked={instance}
+                    style={{ padding: 16 }}
+                >
+                    <Typography>{this.props.t('Settings %s', instance)}</Typography>
+                    <Typography>{this.props.t(schemaError)}</Typography>
+                </Paper>
+            );
+        }
 
         // Check if any of the selected objects match the statesFilter
         if (this.getFilteredObjectIDs(instance).length === 0) {
@@ -584,31 +550,14 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
         const disabled = this.jsonConfigs[adapter]?.json?.disabled;
 
         const data = this.combineNewAndOld(instance);
-        const hidden = this.jsonConfigs[adapter].json.hidden;
+        const hidden = this.jsonConfigs[adapter]?.json?.hidden;
 
         if (disabled && hidden === true) {
             return null;
         }
 
-        if (typeof hidden === 'string') {
-            // evaluate function
-            if (
-                this._executeCustom(
-                    hidden,
-                    data,
-                    customObj,
-                    instanceObj,
-                    this.jsonConfigs[adapter].json.items,
-                    'enabled',
-                    [],
-                )
-            ) {
-                return null;
-            }
-        }
-
         let help = null;
-        const helpObject = this.jsonConfigs[adapter].json.help;
+        const helpObject = this.jsonConfigs[adapter]?.json?.help;
         if (disabled && helpObject) {
             if (typeof helpObject === 'object') {
                 help = helpObject[this.props.lang] || helpObject.en;
@@ -648,6 +597,8 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                 <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                     data-id={instance}
+                    // align icon, title and the "enabled" label on one middle line
+                    sx={{ '& .MuiAccordionSummary-content': { alignItems: 'center' } }}
                     style={
                         i % 2
                             ? enabled
@@ -686,9 +637,10 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                                     onChange={e => {
                                         this.cachedNewValues = this.cachedNewValues || this.state.newValues;
                                         const newValues = AdminUtils.deepClone(this.cachedNewValues);
+                                        const willBeEnabled = isIndeterminate || e.target.checked;
 
                                         newValues[instance] = newValues[instance] || {};
-                                        if (isIndeterminate || e.target.checked) {
+                                        if (willBeEnabled) {
                                             newValues[instance].enabled = true;
                                         } else if (enabled) {
                                             if (this.commonConfig[instance].enabled) {
@@ -698,6 +650,11 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                                             }
                                         } else {
                                             delete newValues[instance];
+                                        }
+                                        if (!willBeEnabled) {
+                                            // The JSON config of this instance will be unmounted and cannot report
+                                            // that its fields are valid again
+                                            this.setValidationError(instance, false);
                                         }
                                         this.cachedNewValues = newValues;
                                         this.setState({ newValues, hasChanges: this.isChanged(newValues) }, () => {
@@ -725,13 +682,11 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                                 themeType={this.props.themeType}
                                 theme={this.props.theme}
                                 multiEdit={this.props.objectIDs.length > 1}
-                                schema={this.jsonConfigs[adapter].json}
+                                schema={this.jsonConfigs[adapter]?.json as ConfigItemPanel}
                                 data={data}
-                                isFloatComma={this.props.systemConfig.common.isFloatComma}
-                                dateFormat={this.props.systemConfig.common.dateFormat}
-                                onError={(error: boolean) =>
-                                    this.setState({ error }, () => this.props.onError?.(error))
-                                }
+                                isFloatComma={!!this.props.systemConfig?.common.isFloatComma}
+                                dateFormat={this.props.systemConfig?.common.dateFormat || ''}
+                                onError={(error: boolean) => this.setValidationError(instance, error)}
                                 onValueChange={(attr: string, value: any) => {
                                     this.cachedNewValues = this.cachedNewValues || this.state.newValues;
                                     console.log(`${attr} => ${value}`);
@@ -756,6 +711,7 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                                         }
                                     });
                                 }}
+                                AceEditor={AceEditor}
                             />
                         ) : null}
 
@@ -766,34 +722,27 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
         );
     }
 
-    renderErrorMessage(): JSX.Element {
-        return (
-            !!this.state.error && (
-                <DialogError
-                    title={this.props.t('Error')}
-                    text={this.state.error ? 'Error' : ''}
-                    onClose={() => this.setState({ error: false })}
-                />
-            )
-        );
-    }
-
     getObject(
         objects: Record<string, ioBroker.AnyObject>,
         oldObjects: Record<string, ioBroker.AnyObject>,
         id: string,
-    ): Record<string, any> {
+    ): Promise<Record<string, any>> {
         if (objects[id]) {
             return Promise.resolve(objects[id]);
         }
-        return this.props.socket.getObject(id).then((obj: ioBroker.AnyObject) => {
-            oldObjects[id] = AdminUtils.deepClone(obj);
-            objects[id] = obj;
-            return obj;
+        return this.props.socket.getObject(id).then(obj => {
+            const anyObj = obj as ioBroker.AnyObject;
+            oldObjects[id] = AdminUtils.deepClone(anyObj);
+            objects[id] = anyObj;
+            return anyObj as Record<string, any>;
         });
     }
 
     saveOneState(ids: string[], cb: () => void, _objects?: any, _oldObjects?: any): void {
+        if (this.hasBlockedCustomChanges()) {
+            this.props.onError?.(true);
+            return;
+        }
         _objects = _objects || {};
         _oldObjects = _oldObjects || {};
 
@@ -809,7 +758,7 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                 this.setState({
                     progress: Math.round(((this.state.maxOids - keys.length) / this.state.maxOids) * 50) + 50,
                 });
-                const id = keys.shift();
+                const id = keys.shift() as string;
                 if (JSON.stringify(_objects[id].common) !== JSON.stringify(_oldObjects[id].common)) {
                     if (!this.changedIds.includes(id)) {
                         this.changedIds.push(id);
@@ -818,7 +767,7 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                     void this.props.socket.setObject(id, _objects[id]).then(async () => {
                         delete _objects[id];
                         delete _oldObjects[id];
-                        this.props.objects[id] = await this.props.socket.getObject(id);
+                        this.props.objects[id] = (await this.props.socket.getObject(id)) as ioBroker.Object;
                         setTimeout(() => this.saveOneState(ids, cb, _objects, _oldObjects), 0);
                     });
                     return;
@@ -837,89 +786,97 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
             // 0 - 50
             this.setState({ progress: Math.round(((maxOids - ids.length) / maxOids) * 50) });
 
-            const id = ids.shift();
-            this.getObject(_objects, _oldObjects, id).then((obj: Record<string, any>) => {
-                if (!obj) {
-                    window.alert(`Invalid object ${id}`);
-                    return;
-                }
-
-                // remove all disabled commons
-                if (obj.common?.custom) {
-                    Object.keys(obj.common.custom).forEach(ins => {
-                        if (!obj.common.custom[ins] || !obj.common.custom[ins].enabled) {
-                            obj.common.custom[ins] = null;
-                        }
-                    });
-                }
-
-                const instances = Object.keys(this.state.newValues);
-
-                for (let i = 0; i < instances.length; i++) {
-                    const instance = instances[i];
-
-                    // skip if this object doesn't match the statesFilter
-                    if (!this.getStatesFilterFunction(instance)(id)) {
-                        continue;
+            const id = ids.shift() as string;
+            this.getObject(_objects, _oldObjects, id)
+                .then((obj: Record<string, any>) => {
+                    if (!obj) {
+                        window.alert(`Invalid object ${id}`);
+                        return;
                     }
 
-                    // const adapter = instance.split('.')[0];
-                    const newValues = this.combineNewAndOld(instance, true);
-
-                    if (newValues.enabled === false) {
-                        if (obj.common?.custom?.[instance]) {
-                            obj.common.custom[instance] = null; // here must be null and not deleted, so controller can remove it
-                        }
-                    } else if (newValues.enabled) {
-                        obj.common = obj.common || {};
-                        if (Array.isArray(newValues.enabled)) {
-                            if (
-                                !obj.common.custom ||
-                                !obj.common.custom[instance] ||
-                                !obj.common.custom[instance].enabled
-                            ) {
-                                // leave this object disabled
-                                if (obj.common.custom && obj.common.custom[instance]) {
-                                    obj.common.custom[instance] = null;
-                                }
-                                continue; // instance disabled
+                    // remove all disabled commons
+                    if (obj.common?.custom) {
+                        Object.keys(obj.common.custom).forEach(ins => {
+                            if (this.schemaErrors.has(ins.split('.')[0])) {
+                                return;
                             }
-                        }
-
-                        obj.common.custom = obj.common.custom || {};
-
-                        if (!obj.common.custom[instance] || !obj.common.custom[instance].enabled) {
-                            // provide defaults
-                            const _default = this.getDefaultValues(instance, obj);
-                            obj.common.custom[instance] = JSON.parse(JSON.stringify(_default || {}));
-                            // remove all temporary values
-                            Object.keys(obj.common.custom[instance]).forEach(attr => {
-                                if (attr.startsWith('_')) {
-                                    delete obj.common.custom[instance][attr];
-                                }
-                            });
-                        }
-
-                        const isMultiEdit = this.props.objectIDs.length > 1;
-
-                        obj.common.custom[instance].enabled = true;
-
-                        Object.keys(newValues).forEach(attr => {
-                            // if not different
-                            if (!attr.startsWith('_')) {
-                                // if we have an array, it is still the data of multiple different fields (multiEdit) do not override issue#2359
-                                if (Array.isArray(newValues[attr]) && isMultiEdit) {
-                                    return;
-                                }
-
-                                obj.common.custom[instance][attr] = newValues[attr];
+                            if (!obj.common.custom[ins] || !obj.common.custom[ins].enabled) {
+                                obj.common.custom[ins] = null;
                             }
                         });
                     }
-                }
 
-                setTimeout(() => this.saveOneState(ids, cb, _objects, _oldObjects), 0);
-            });
+                    const instances = Object.keys(this.state.newValues);
+
+                    for (let i = 0; i < instances.length; i++) {
+                        const instance = instances[i];
+
+                        // skip if this object doesn't match the statesFilter
+                        if (!this.getStatesFilterFunction(instance)(id)) {
+                            continue;
+                        }
+
+                        // const adapter = instance.split('.')[0];
+                        const newValues = this.combineNewAndOld(instance, true);
+
+                        if (newValues.enabled === false) {
+                            if (obj.common?.custom?.[instance]) {
+                                obj.common.custom[instance] = null; // here must be null and not deleted, so controller can remove it
+                            }
+                        } else if (newValues.enabled) {
+                            obj.common = obj.common || {};
+                            if (Array.isArray(newValues.enabled)) {
+                                if (
+                                    !obj.common.custom ||
+                                    !obj.common.custom[instance] ||
+                                    !obj.common.custom[instance].enabled
+                                ) {
+                                    // leave this object disabled
+                                    if (obj.common.custom && obj.common.custom[instance]) {
+                                        obj.common.custom[instance] = null;
+                                    }
+                                    continue; // instance disabled
+                                }
+                            }
+
+                            obj.common.custom = obj.common.custom || {};
+
+                            if (!obj.common.custom[instance] || !obj.common.custom[instance].enabled) {
+                                // provide defaults
+                                const _default = this.getDefaultValues(instance, obj);
+                                obj.common.custom[instance] = JSON.parse(JSON.stringify(_default || {}));
+                                // remove all temporary values
+                                Object.keys(obj.common.custom[instance]).forEach(attr => {
+                                    if (attr.startsWith('_')) {
+                                        delete obj.common.custom[instance][attr];
+                                    }
+                                });
+                            }
+
+                            const isMultiEdit = this.props.objectIDs.length > 1;
+
+                            obj.common.custom[instance].enabled = true;
+
+                            Object.keys(newValues).forEach(attr => {
+                                // if not different
+                                if (!attr.startsWith('_')) {
+                                    // if we have an array, it is still the data of multiple different fields (multiEdit) do not override issue#2359
+                                    if (Array.isArray(newValues[attr]) && isMultiEdit) {
+                                        return;
+                                    }
+
+                                    obj.common.custom[instance][attr] = newValues[attr];
+                                }
+                            });
+                        }
+                    }
+
+                    setTimeout(() => this.saveOneState(ids, cb, _objects, _oldObjects), 0);
+                })
+                .catch(e => {
+                    console.error(`Cannot get object ${id}: ${e}`);
+                    window.alert(`Cannot get object ${id}: ${e}`);
+                });
         }
     }
 
@@ -950,7 +907,15 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
         );
     }
 
+    private hasBlockedCustomChanges(): boolean {
+        return Object.keys(this.state.newValues).some(instance => this.schemaErrors.has(instance.split('.')[0] || ''));
+    }
+
     onSave = (cb?: () => void): void => {
+        if (this.hasBlockedCustomChanges()) {
+            this.props.onError?.(true);
+            return;
+        }
         if (this.props.objectIDs.length > 10 && !this.state.confirmed) {
             this.cb = cb;
             this.setState({ showConfirmation: true });
@@ -994,10 +959,10 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                     {this.state.maxOids === 0 &&
                         Object.values(this.jsonConfigs).map(jsonConfig => {
                             if (jsonConfig) {
-                                return Object.keys(jsonConfig.instanceObjs).map(instance =>
+                                return Object.keys(jsonConfig.instanceObjs || {}).map(instance =>
                                     this.renderOneCustom(
                                         instance,
-                                        jsonConfig.instanceObjs[instance],
+                                        jsonConfig.instanceObjs?.[instance] as ioBroker.InstanceObject,
                                         this.customObj,
                                         index++,
                                     ),
@@ -1006,7 +971,6 @@ export default class ObjectCustomEditor extends Component<ObjectCustomEditorProp
                             return null;
                         })}
                 </div>
-                {this.renderErrorMessage()}
                 {this.renderConfirmationDialog()}
             </Paper>
         );

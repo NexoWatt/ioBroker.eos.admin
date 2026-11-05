@@ -1,12 +1,17 @@
 import React from 'react';
 
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
-import MonacoEditor from 'react-monaco-editor';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Tooltip } from '@mui/material';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-clouds_midnight';
+import 'ace-builds/src-noconflict/theme-chrome';
 
 // Icons
 import { Close, ContentPaste } from '@mui/icons-material';
 
-import { type IobTheme, type ThemeType, type Translate } from '@iobroker/adapter-react-v5';
+import { type IobTheme, type ThemeType, type Translate } from '@iobroker/gui-components';
+
+import { onCtrlEnter, CTRL_ENTER_KEY } from '@/helpers/ctrlEnter';
 
 const styles: Record<string, any> = {
     dialog: {
@@ -48,6 +53,8 @@ interface ObjectImportFromTextDialogProps {
 
 export function ObjectImportFromTextDialog(props: ObjectImportFromTextDialogProps): React.JSX.Element {
     const [text, setText] = React.useState<string>('');
+    // the command is registered once, so it has to reach the current state over a reference
+    const onImportRef = React.useRef<() => void>(() => {});
 
     let error = false;
     try {
@@ -56,37 +63,58 @@ export function ObjectImportFromTextDialog(props: ObjectImportFromTextDialogProp
         error = true;
     }
 
+    /** CTRL+ENTER triggers the same action as the "Import objects" button */
+    const onImport = (): void => {
+        if (!error && text.trim()) {
+            props.onClose(text);
+        }
+    };
+
+    onImportRef.current = onImport;
+
     return (
         <Dialog
             style={styles.dialog}
             open={!0}
             maxWidth="lg"
             onClose={() => props.onClose()}
+            onKeyDown={e => onCtrlEnter(e, onImport)}
             fullWidth
         >
             <DialogTitle>{props.t('Insert JSON with objects here')}</DialogTitle>
             <DialogContent style={{ minHeight: 500 }}>
-                <MonacoEditor
+                <AceEditor
                     width="100%"
                     height={'500px'}
-                    language="json"
-                    theme={props.themeType === 'dark' ? 'vs-dark' : 'vs-light'}
+                    mode="json"
+                    theme={props.themeType === 'dark' ? 'clouds_midnight' : 'chrome'}
                     value={text}
-                    options={{ selectOnLineNumbers: true }}
                     onChange={newValue => setText(newValue)}
-                    editorDidMount={(editor /* , monaco */) => editor.focus()}
+                    name="eos-object-import-json"
+                    onLoad={editor => editor.focus()}
+                    commands={[
+                        {
+                            name: 'eosImportObjects',
+                            bindKey: CTRL_ENTER_KEY,
+                            exec: () => onImportRef.current(),
+                        },
+                    ]}
                 />
             </DialogContent>
             <DialogActions>
-                <Button
-                    variant="contained"
-                    disabled={error || !text.trim()}
-                    onClick={() => props.onClose(text)}
-                    startIcon={<ContentPaste />}
-                    color="primary"
-                >
-                    {props.t('Import objects')}
-                </Button>
+                <Tooltip title={props.t('Press CTRL+ENTER to confirm')}>
+                    <span>
+                        <Button
+                            variant="contained"
+                            disabled={error || !text.trim()}
+                            onClick={() => props.onClose(text)}
+                            startIcon={<ContentPaste />}
+                            color="primary"
+                        >
+                            {props.t('Import objects')}
+                        </Button>
+                    </span>
+                </Tooltip>
                 <Button
                     variant="contained"
                     onClick={() => props.onClose()}

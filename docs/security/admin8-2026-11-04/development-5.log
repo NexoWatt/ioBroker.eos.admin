@@ -1,0 +1,2 @@
+PASS Markdown security renderer (URL policy, real React SSR, XSS payloads, links/images/headings/GFM)
+PASS Markdown request lifecycle (new request cancels old, stale results ignored, timeout shown, unmount cancels)

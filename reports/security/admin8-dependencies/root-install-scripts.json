@@ -1,0 +1,38 @@
+[
+  {
+    "path": "node_modules/cpu-features",
+    "version": "0.0.10"
+  },
+  {
+    "path": "node_modules/diskusage",
+    "version": "1.2.0"
+  },
+  {
+    "path": "node_modules/esbuild",
+    "version": "0.11.23"
+  },
+  {
+    "path": "node_modules/fsevents",
+    "version": "2.3.3"
+  },
+  {
+    "path": "node_modules/protobufjs",
+    "version": "7.6.5"
+  },
+  {
+    "path": "node_modules/puppeteer",
+    "version": "25.16.0"
+  },
+  {
+    "path": "node_modules/ssh2",
+    "version": "1.17.0"
+  },
+  {
+    "path": "node_modules/tsx/node_modules/esbuild",
+    "version": "0.28.1"
+  },
+  {
+    "path": "node_modules/unix-dgram",
+    "version": "2.0.6"
+  }
+]

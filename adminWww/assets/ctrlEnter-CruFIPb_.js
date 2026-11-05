@@ -1,0 +1,1 @@
+function e(e,t){(e.ctrlKey||e.metaKey)&&e.key===`Enter`&&(e.preventDefault(),e.stopPropagation(),t())}var t={win:`Ctrl-Enter`,mac:`Ctrl-Enter|Command-Enter`};export{e as n,t};

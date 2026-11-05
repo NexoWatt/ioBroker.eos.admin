@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type JSX } from 'react';
 
 import {
     DialogActions,
@@ -47,7 +47,7 @@ import {
     type AdminConnection,
     type ThemeType,
     type ThemeName,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 import type { CompactHost } from '@/types';
 
 import Command from '../components/Command';
@@ -58,6 +58,7 @@ import GenerateInputsModal, {
     type DiscoveryObject,
 } from './GenerateInputsModal';
 import useStateLocal from '../helpers/hooks/useStateLocal';
+import { countUnhandledProposals } from '../helpers/discovery';
 
 const styles: Record<string, any> = {
     root: {
@@ -184,13 +185,14 @@ type CompactRepository = Record<
 >;
 
 interface TabPanelProps {
-    children: JSX.Element | JSX.Element[];
+    children: React.ReactNode;
     value: number;
     index: number;
     title: string;
     custom?: boolean;
     boxHeight?: boolean;
     black?: boolean;
+    style?: React.CSSProperties;
     [other: string]: unknown;
 }
 
@@ -222,7 +224,7 @@ function TabPanel({
                 </AppBar>
                 <Box
                     style={boxHeight ? { height: 'calc(100% - 45px)' } : undefined}
-                    p={3}
+                    sx={{ p: 3 }}
                 >
                     <Typography
                         style={boxHeight ? { height: '100%' } : undefined}
@@ -281,7 +283,7 @@ function EnhancedTableHead(props: EnhancedTableHeadProps): JSX.Element {
                         indeterminate={numSelected > 0 && numSelected < rowCount}
                         checked={rowCount > 0 && numSelected === rowCount}
                         onChange={(event: React.ChangeEvent) => onSelectAllClick(event)}
-                        inputProps={{ 'aria-label': 'select all desserts' }}
+                        slotProps={{ input: { 'aria-label': 'select all desserts' } }}
                     />
                 </TableCell>
                 {headCells.map(headCell => (
@@ -431,9 +433,18 @@ function DiscoveryDialog({
 
     useEffect(() => {
         async function readOldData(): Promise<void> {
-            const dataDiscovery = await socket.getObject('system.discovery');
+            const dataDiscovery = (await socket.getObject('system.discovery')) as unknown as DiscoveryObject | null;
             if (dataDiscovery !== undefined) {
-                setDiscoveryData(dataDiscovery as unknown as DiscoveryObject);
+                setDiscoveryData(dataDiscovery);
+
+                // A scan that ran on its own - the discovery adapter can do that on a timer -
+                // has already written everything the second page shows. Opening on "press
+                // Discover" would ask for a scan that finds the same things again, so start
+                // where the results are. Only done here, on the first read: the subscription
+                // below must not pull the user off the page they are working on.
+                if (countUnhandledProposals(dataDiscovery)) {
+                    setStep(1);
+                }
             }
         }
 
@@ -441,23 +452,21 @@ function DiscoveryDialog({
     }, [socket]);
 
     const [aliveHosts, setAliveHosts] = useState<Record<string, boolean>>({});
-    const [checkSelectHosts, setCheckSelectHosts] = useState(false);
     const [hostInstances, setHostInstances] = useState<Record<string, string>>({});
 
     useEffect(() => {
         hosts.forEach(async ({ _id }: { _id: string }) => {
             const aliveValue = await socket.getState(`${_id}.alive`);
+            const alive = !aliveValue || aliveValue.val === null ? false : !!aliveValue.val;
 
-            setAliveHosts(prev => ({
-                ...prev,
-                [_id]: !aliveValue || aliveValue.val === null ? false : !!aliveValue.val,
-            }));
+            // Keep the previous object when nothing changed: `aliveHosts` must not get a new identity
+            // on every run, otherwise this effect would re-trigger itself endlessly.
+            setAliveHosts(prev => (prev[_id] === alive ? prev : { ...prev, [_id]: alive }));
         });
+    }, [hosts, socket]);
 
-        if (Object.keys(aliveHosts).filter(key => aliveHosts[key]).length > 1) {
-            setCheckSelectHosts(true);
-        }
-    }, [hosts, socket, aliveHosts]);
+    // Offer the host selection as soon as more than one host is alive - a plain derivation of `aliveHosts`.
+    const checkSelectHosts = Object.keys(aliveHosts).filter(key => aliveHosts[key]).length > 1;
 
     const [devicesFound, setDevicesFound] = useState(0);
     const [devicesProgress, setDevicesProgress] = useState(0);
@@ -553,7 +562,7 @@ function DiscoveryDialog({
 
     const handleSelectAllClick = (event: any): void => {
         if (event.target.checked) {
-            const newSelected = discoveryData?.native?.newInstances?.map(n => n._id);
+            const newSelected = discoveryData?.native?.newInstances?.map(n => n._id) || [];
             setSelected(newSelected);
             return;
         }
@@ -580,10 +589,13 @@ function DiscoveryDialog({
     };
 
     const checkLicenseAndInputs = (objName: string, cb: () => void): void => {
-        const instanceObj: DiscoveryInstance | null = discoveryData?.native?.newInstances.find(
+        const instanceObj: DiscoveryInstance | undefined = discoveryData?.native?.newInstances.find(
             ob => ob._id === objName,
         );
         const obj: DiscoveryInstance | null = instanceObj ? JSON.parse(JSON.stringify(instanceObj)) : null;
+        if (!obj) {
+            return;
+        }
         let license = true;
         if (obj?.comment?.license && obj.comment.license !== 'MIT') {
             license = false;
@@ -593,8 +605,8 @@ function DiscoveryDialog({
             if (obj.common.licenseUrl && typeof obj.common.licenseUrl === 'object') {
                 obj.common.licenseUrl = obj.common.licenseUrl[I18n.getLanguage()] || obj.common.licenseUrl.en;
             }
-            if ((obj.common.licenseUrl as string).includes('github.com')) {
-                obj.common.licenseUrl = (obj.common.licenseUrl as string)
+            if (typeof obj.common.licenseUrl === 'string' && obj.common.licenseUrl.includes('github.com')) {
+                obj.common.licenseUrl = obj.common.licenseUrl
                     .replace('github.com', 'raw.githubusercontent.com')
                     .replace('/blob/', '/');
             }
@@ -675,7 +687,7 @@ function DiscoveryDialog({
 
     const licenseDialog = showLicenseDialog ? (
         <LicenseDialog
-            licenseType={showLicenseDialog.obj.comment.license}
+            licenseType={showLicenseDialog.obj.comment?.license || ''}
             url={showLicenseDialog.obj.common.licenseUrl as string}
             onClose={result => {
                 const { cb, obj } = showLicenseDialog;
@@ -1024,7 +1036,8 @@ function DiscoveryDialog({
                                                 let adapterId = data._id.split('.');
                                                 adapterId.pop();
                                                 adapterId = adapterId.join('.');
-                                                void socket.getObject(adapterId).then((obj: ioBroker.AdapterObject) => {
+                                                void socket.getObject(adapterId).then(_obj => {
+                                                    const obj = _obj as ioBroker.AdapterObject;
                                                     data = { ...obj, ...data };
                                                     data.common = Object.assign(obj.common, data.common);
                                                     data.native = Object.assign(obj.native, data.native);

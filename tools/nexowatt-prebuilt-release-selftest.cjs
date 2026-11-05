@@ -14,6 +14,7 @@ const trackedRoots = [
     'build',
     'src-admin/src',
     'src-admin/public',
+    'src-admin/build-tools',
     'adminWww',
     'admin',
     'public',
@@ -25,9 +26,13 @@ const trackedFiles = [
     'tasks.mts',
     'tsconfig.json',
     'tsconfig.build.json',
+    'src-admin/vite.config.ts',
+    'src-admin/tsconfig.json',
+    'src-admin/index.html',
+    'release-manifests/admin8-development-validation.json',
 ];
 const expectedPrepublishOnly =
-    'npm run sync:eos-version && npm run check:eos-production-release && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
+    'npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
 const expectedPrepack =
     'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
 
@@ -220,7 +225,13 @@ function verifyLifecycle(failures) {
     const pkg = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
     const scripts = pkg.scripts || {};
     if (scripts.prepublishOnly !== expectedPrepublishOnly) {
-        failures.push('prepublishOnly must run the real production admission before release preparation');
+        failures.push('prepublishOnly must repair absent lock metadata and run real admission before release preparation');
+    }
+    if (scripts['repair:eos-lock'] !== 'node tools/nexowatt-repair-lock-metadata.cjs --write && npm run security:inventory && npm run check:eos-production-release') {
+        failures.push('lock repair must refresh inventory and then inspect the actual lockfiles');
+    }
+    if (scripts['security:inventory'] !== 'node tools/nexowatt-security-inventory.cjs') {
+        failures.push('lock repair must use the actual inventory generator');
     }
     if (scripts['check:eos-production-release'] !== 'node tools/nexowatt-lock-provenance-check.cjs') {
         failures.push('production admission must inspect the actual lockfiles, not only test the checker');

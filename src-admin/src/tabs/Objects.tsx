@@ -25,7 +25,7 @@ import {
     type ObjectBrowserClass,
     type ObjectBrowserFilter,
     type TreeItemData,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import type { ObjectsWorker } from '@/Workers/ObjectsWorker';
 
@@ -56,6 +56,13 @@ const styles: Record<string, React.CSSProperties> = {
     },
 };
 
+/** Modes of the object browser in the URL (`#tab-objects/<mode>/<id>`). Other names there, e.g. "system", are dialogs of the App */
+const OBJECT_BROWSER_MODES = ['select', 'edit', 'settings', 'view'];
+
+type BrowserProps = React.ComponentProps<typeof ObjectBrowser>;
+
+type ObjectsNavigation = { mode: 'select' | 'edit' | 'settings' | 'viewFile'; id: string };
+
 interface ObjectsProps {
     t: Translate;
     lang: ioBroker.Languages;
@@ -75,15 +82,104 @@ interface ObjectsState {
     selected: string;
     name: string;
     toast: string;
-    deleteObjectShow: any;
-    // suppressDeleteConfirm: boolean;
+    deleteObjectShow: { id: string; hasChildren: boolean; exists: boolean; childrenCount: number } | null;
 }
 
 export default class Objects extends Component<ObjectsProps, ObjectsState> {
     private readonly dialogName: string;
-    private filters: Record<string, any>;
+    private filters: ObjectBrowserFilter;
     private readonly t: Translate;
     private readonly wordCache: Record<string, string>;
+    /** The last navigation target from the URL, it is kept while a dialog of the App is open */
+    private navigateTo: ObjectsNavigation | null = null;
+
+    // GUI's public extension contract accepts a generic Connection. These
+    // dialogs intentionally use the AdminConnection already owned by this tab.
+    // Stable adapters preserve component identity and make each contract checked.
+    private readonly customDialog: NonNullable<BrowserProps['objectCustomDialog']> = props => (
+        <ObjectCustomDialog
+            {...props}
+            socket={this.props.socket}
+        />
+    );
+
+    private readonly valueDialog: NonNullable<BrowserProps['objectBrowserValue']> = props => (
+        <ObjectBrowserValue
+            {...props}
+            socket={this.props.socket}
+            width={props.width ?? 'md'}
+        />
+    );
+
+    private readonly editObjectDialog: NonNullable<BrowserProps['objectBrowserEditObject']> = props => (
+        <ObjectBrowserEditObject
+            {...props}
+            socket={this.props.socket}
+            width={props.width ?? 'md'}
+        />
+    );
+
+    private readonly editRoleDialog: NonNullable<BrowserProps['objectBrowserEditRole']> = props => (
+        <ObjectBrowserEditRole
+            {...props}
+            socket={this.props.socket}
+        />
+    );
+
+    private readonly viewFileDialog: NonNullable<BrowserProps['objectBrowserViewFile']> = props => (
+        <ObjectViewFileDialog
+            {...props}
+            socket={this.props.socket}
+        />
+    );
+
+    private readonly aliasEditor: NonNullable<BrowserProps['objectBrowserAliasEditor']> = props => {
+        if (props.obj.type !== 'state') {
+            return (
+                <Dialog
+                    open
+                    onClose={props.onClose}
+                >
+                    <DialogTitle>{this.t('Alias')}</DialogTitle>
+                    <DialogContent>{this.t('Object is not a state')}</DialogContent>
+                    <DialogActions>
+                        <Button onClick={props.onClose}>{this.t('Close')}</Button>
+                    </DialogActions>
+                </Dialog>
+            );
+        }
+        return (
+            <ObjectAliasEditor
+                {...props}
+                obj={props.obj}
+                socket={this.props.socket}
+            />
+        );
+    };
+
+    private static parseFilters(value: unknown): ObjectBrowserFilter {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+            return {};
+        }
+        const result: ObjectBrowserFilter = {};
+        const entries: [string, unknown][] = Object.entries(value);
+        for (const [key, field] of entries) {
+            if ((key === 'id' || key === 'name') && typeof field === 'string') {
+                result[key] = field;
+            }
+            if (
+                (key === 'room' || key === 'func' || key === 'role' || key === 'type' || key === 'custom') &&
+                Array.isArray(field) &&
+                field.every((item: unknown): item is string => typeof item === 'string')
+            ) {
+                result[key] = field;
+            }
+            if (key === 'expertMode' && typeof field === 'boolean') {
+                result.expertMode = field;
+            }
+        }
+        return result;
+    }
 
     constructor(props: ObjectsProps) {
         super(props);
@@ -91,20 +187,16 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
         this.dialogName = 'AdminObjects';
 
         const filtersStr: string =
-            (((window as any)._localStorage as Storage) || window.localStorage).getItem(
-                `${this.dialogName || 'App'}.filters`,
-            ) || '{}';
+            (window._localStorage || window.localStorage).getItem(`${this.dialogName || 'App'}.filters`) || '{}';
 
         try {
-            this.filters = JSON.parse(filtersStr);
+            this.filters = Objects.parseFilters(JSON.parse(filtersStr));
         } catch {
             this.filters = {};
         }
 
         const selected =
-            (((window as any)._localStorage as Storage) || window.localStorage).getItem(
-                `${this.dialogName || 'App'}.selected`,
-            ) || '';
+            (window._localStorage || window.localStorage).getItem(`${this.dialogName || 'App'}.selected`) || '';
 
         this.state = {
             selected,
@@ -117,9 +209,15 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
         this.wordCache = {};
     }
 
-    translate = (word: string, arg1: any, arg2: any): string => {
-        if (arg1 !== undefined) {
-            return this.props.t(word, arg1, arg2);
+    /** The URL shows a dialog of the App (e.g., the system settings) and not a route of the object browser */
+    private static isAppDialogOpen(): boolean {
+        const dialog = Router.getLocation().dialog;
+        return !!dialog && !OBJECT_BROWSER_MODES.includes(dialog);
+    }
+
+    translate: Translate = (word, ...args): string => {
+        if (args.length) {
+            return this.props.t(word, ...args);
         }
 
         if (!this.wordCache[word]) {
@@ -130,7 +228,10 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
     };
 
     onDelete(withChildren?: boolean): void {
-        const id = this.state.deleteObjectShow.id;
+        const id = this.state.deleteObjectShow?.id;
+        if (!id) {
+            return;
+        }
         if (withChildren) {
             this.props.socket
                 .delObjects(id, true)
@@ -240,31 +341,40 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
         );
     }
 
-    render(): JSX.Element[] {
-        const eosRole = String((window as Window & { NEXOWATT_EOS_ACCESS_ROLE?: string }).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
-        const readOnly = eosRole === 'enduser';
+    render(): (JSX.Element | null)[] {
+        const eosRole = String(
+            (window as Window & { NEXOWATT_EOS_ACCESS_ROLE?: string }).NEXOWATT_EOS_ACCESS_ROLE || 'unknown',
+        ).toLowerCase();
+        const readOnly = !['admin', 'service', 'installer'].includes(eosRole);
 
         // Derive the browser's navigation target from the URL hash `#tab-objects/<mode>/<id>`.
         // The ObjectBrowser stays URL-agnostic; we translate the route here and back (onNavigateTo).
-        const location = Router.getLocation();
-        const navigateTo =
-            location.tab === 'tab-objects' && location.id
-                ? {
-                      mode: (location.dialog === 'view' ? 'viewFile' : location.dialog || 'select') as
-                          | 'select'
-                          | 'edit'
-                          | 'settings'
-                          | 'viewFile',
-                      id: location.id,
-                  }
-                : null;
+        // A dialog of the App (e.g., the system settings) replaces the route of the browser in the URL.
+        // Meanwhile, the last target is kept and nothing is reported, otherwise the browser would write
+        // its selection back into the URL and close the dialog immediately.
+        if (!Objects.isAppDialogOpen()) {
+            const location = Router.getLocation();
+            this.navigateTo =
+                location.tab === 'tab-objects' && location.id
+                    ? {
+                          mode: (location.dialog === 'view'
+                              ? 'viewFile'
+                              : location.dialog || 'select') as ObjectsNavigation['mode'],
+                          id: location.id,
+                      }
+                    : null;
+        }
+        const navigateTo = this.navigateTo;
 
         return [
             this.renderToast(),
             <ObjectBrowser
                 key="browser"
                 navigateTo={navigateTo}
-                onNavigateTo={(nav: { mode: 'select' | 'edit' | 'settings' | 'viewFile'; id: string } | null) => {
+                onNavigateTo={(nav: ObjectsNavigation | null) => {
+                    if (Objects.isAppDialogOpen()) {
+                        return;
+                    }
                     if (!nav?.id) {
                         Router.doNavigate('tab-objects');
                     } else {
@@ -273,13 +383,10 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                 }}
                 dialogName="admin"
                 objectsWorker={this.props.objectsWorker}
-                prefix={this.props.prefix}
                 defaultFilters={this.filters}
-                statesOnly={this.props.statesOnly}
                 style={{ width: '100%', height: '100%' }}
                 socket={this.props.socket}
                 selected={navigateTo?.id || this.state.selected}
-                name={this.state.name}
                 expertMode={this.props.expertMode}
                 isFloatComma={this.props.isFloatComma}
                 dateFormat={this.props.dateFormat}
@@ -288,38 +395,39 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                 themeName={this.props.themeName}
                 themeType={this.props.themeType}
                 theme={this.props.theme}
-                objectCustomDialog={ObjectCustomDialog}
-                objectBrowserValue={ObjectBrowserValue}
-                objectBrowserEditObject={ObjectBrowserEditObject}
-                objectBrowserEditRole={ObjectBrowserEditRole}
-                objectBrowserViewFile={ObjectViewFileDialog}
-                objectBrowserAliasEditor={ObjectAliasEditor}
+                objectCustomDialog={this.customDialog}
+                objectBrowserValue={this.valueDialog}
+                objectBrowserEditObject={this.editObjectDialog}
+                objectBrowserEditRole={this.editRoleDialog}
+                objectBrowserViewFile={this.viewFileDialog}
+                objectBrowserAliasEditor={this.aliasEditor}
                 objectMoveRenameDialog={ObjectMoveRenameDialog}
                 objectBrowserInsertJsonObjects={ObjectImportFromTextDialog}
                 router={Router}
-                enableStateValueEdit={!readOnly}
-                onObjectDelete={readOnly
-                    ? undefined
-                    : (id: string, hasChildren: boolean, objectExists: boolean, childrenCount: number) =>
-                          this.setState({
-                              deleteObjectShow: { id, hasChildren, exists: objectExists, childrenCount },
-                          })
+                notEditable={readOnly}
+                onObjectDelete={
+                    readOnly
+                        ? undefined
+                        : (id: string, hasChildren: boolean, objectExists: boolean, childrenCount: number) =>
+                              this.setState({
+                                  deleteObjectShow: { id, hasChildren, exists: objectExists, childrenCount },
+                              })
                 }
                 onFilterChanged={(filterConfig: ObjectBrowserFilter) => {
                     this.filters = filterConfig;
-                    (((window as any)._localStorage as Storage) || window.localStorage).setItem(
+                    (window._localStorage || window.localStorage).setItem(
                         `${this.dialogName || 'App'}.filters`,
                         JSON.stringify(filterConfig),
                     );
                 }}
                 onSelect={(selected: string | string[]) => {
                     if (Array.isArray(selected)) {
-                        (((window as any)._localStorage as Storage) || window.localStorage).setItem(
+                        (window._localStorage || window.localStorage).setItem(
                             `${this.dialogName || 'App'}.selected`,
                             selected[0] || '',
                         );
                     } else {
-                        (((window as any)._localStorage as Storage) || window.localStorage).setItem(
+                        (window._localStorage || window.localStorage).setItem(
                             `${this.dialogName || 'App'}.selected`,
                             selected || '',
                         );
@@ -337,9 +445,9 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                         setObject={(id, data) =>
                             this.props.socket.setObject(id, data).catch(error => window.alert(error))
                         }
-                        selected={context.state.modalNewObj.id}
-                        initialType={context.state.modalNewObj.initialType}
-                        initialStateType={context.state.modalNewObj.initialStateType}
+                        selected={context.state.modalNewObj?.id || ''}
+                        initialType={context.state.modalNewObj?.initialType}
+                        initialStateType={context.state.modalNewObj?.initialStateType}
                         onClose={() => context.setState({ modalNewObj: null })}
                         onApply={() => context.setState({ modalNewObj: null })}
                     />
@@ -351,15 +459,19 @@ export default class Objects extends Component<ObjectsProps, ObjectsState> {
                         extendObject={(id: string, data: Partial<ioBroker.Object>): void => {
                             this.props.socket.extendObject(id, data).catch(error => window.alert(error));
 
-                            objData.aclTooltip = null;
+                            objData.aclTooltip = undefined;
                         }}
                         selected={context.state.selected[0]}
                         // If an object is virtual, it has no obj attribute
                         modalEmptyId={objData.obj ? '' : objData.id}
                         objects={context.objects}
                         t={this.t}
-                        onClose={() => context.setState({ modalEditOfAccess: false, modalEditOfAccessObjData: null })}
-                        onApply={() => context.setState({ modalEditOfAccess: false, modalEditOfAccessObjData: null })}
+                        onClose={() =>
+                            context.setState({ modalEditOfAccess: false, modalEditOfAccessObjData: undefined })
+                        }
+                        onApply={() =>
+                            context.setState({ modalEditOfAccess: false, modalEditOfAccessObjData: undefined })
+                        }
                     />
                 )}
             />,

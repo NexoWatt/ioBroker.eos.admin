@@ -1,0 +1,381 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@alcalzone/esbuild-register": {
+      "name": "@alcalzone/esbuild-register",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "esbuild"
+      ],
+      "effects": [
+        "@iobroker/testing"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/@alcalzone/esbuild-register"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/testing",
+        "version": "5.0.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@iobroker/build-tools": {
+      "name": "@iobroker/build-tools",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "glob"
+      ],
+      "effects": [],
+      "range": ">=2.0.1",
+      "nodes": [
+        "node_modules/@iobroker/build-tools"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/build-tools",
+        "version": "2.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "@iobroker/eslint-config": {
+      "name": "@iobroker/eslint-config",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser",
+        "typescript-eslint"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/@iobroker/eslint-config"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/eslint-config",
+        "version": "2.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "@iobroker/legacy-testing": {
+      "name": "@iobroker/legacy-testing",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "mocha"
+      ],
+      "effects": [],
+      "range": ">=2.1.1",
+      "nodes": [
+        "node_modules/@iobroker/legacy-testing"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/legacy-testing",
+        "version": "2.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "@iobroker/testing": {
+      "name": "@iobroker/testing",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@alcalzone/esbuild-register",
+        "mocha"
+      ],
+      "effects": [],
+      "range": ">=5.1.0",
+      "nodes": [
+        "node_modules/@iobroker/testing"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/testing",
+        "version": "5.0.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@typescript-eslint/eslint-plugin": {
+      "name": "@typescript-eslint/eslint-plugin",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/parser",
+        "@typescript-eslint/type-utils",
+        "@typescript-eslint/utils"
+      ],
+      "effects": [],
+      "range": ">=6.16.0",
+      "nodes": [
+        "node_modules/@typescript-eslint/eslint-plugin",
+        "node_modules/typescript-eslint/node_modules/@typescript-eslint/eslint-plugin"
+      ],
+      "fixAvailable": true
+    },
+    "@typescript-eslint/parser": {
+      "name": "@typescript-eslint/parser",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/typescript-estree"
+      ],
+      "effects": [
+        "@iobroker/eslint-config",
+        "@typescript-eslint/eslint-plugin",
+        "typescript-eslint"
+      ],
+      "range": ">=6.16.0",
+      "nodes": [
+        "node_modules/@typescript-eslint/parser",
+        "node_modules/typescript-eslint/node_modules/@typescript-eslint/parser"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/eslint-config",
+        "version": "2.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "@typescript-eslint/type-utils": {
+      "name": "@typescript-eslint/type-utils",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/typescript-estree",
+        "@typescript-eslint/utils"
+      ],
+      "effects": [
+        "@typescript-eslint/eslint-plugin"
+      ],
+      "range": ">=6.16.0",
+      "nodes": [
+        "node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/type-utils",
+        "node_modules/typescript-eslint/node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/type-utils"
+      ],
+      "fixAvailable": true
+    },
+    "@typescript-eslint/typescript-estree": {
+      "name": "@typescript-eslint/typescript-estree",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "minimatch"
+      ],
+      "effects": [
+        "@typescript-eslint/parser",
+        "@typescript-eslint/type-utils",
+        "@typescript-eslint/utils",
+        "typescript-eslint"
+      ],
+      "range": ">=6.16.0",
+      "nodes": [
+        "node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/type-utils/node_modules/@typescript-eslint/typescript-estree",
+        "node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/utils/node_modules/@typescript-eslint/typescript-estree",
+        "node_modules/@typescript-eslint/parser/node_modules/@typescript-eslint/typescript-estree",
+        "node_modules/typescript-eslint/node_modules/@typescript-eslint/typescript-estree"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/eslint-config",
+        "version": "2.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "@typescript-eslint/utils": {
+      "name": "@typescript-eslint/utils",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/typescript-estree"
+      ],
+      "effects": [
+        "typescript-eslint"
+      ],
+      "range": ">=6.16.0",
+      "nodes": [
+        "node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/utils",
+        "node_modules/typescript-eslint/node_modules/@typescript-eslint/utils"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/eslint-config",
+        "version": "2.0.2",
+        "isSemVerMajor": true
+      }
+    },
+    "esbuild": {
+      "name": "esbuild",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1102341,
+          "name": "esbuild",
+          "dependency": "esbuild",
+          "title": "esbuild enables any website to send any requests to the development server and read the response",
+          "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=0.24.2"
+        }
+      ],
+      "effects": [
+        "@alcalzone/esbuild-register"
+      ],
+      "range": "<=0.24.2",
+      "nodes": [
+        "node_modules/esbuild"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/testing",
+        "version": "5.0.4",
+        "isSemVerMajor": true
+      }
+    },
+    "glob": {
+      "name": "glob",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1244013,
+          "name": "glob",
+          "dependency": "glob",
+          "title": "Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal",
+          "url": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=9.0.0 <=14.0.1"
+        },
+        "minimatch"
+      ],
+      "effects": [
+        "@iobroker/build-tools",
+        "mocha"
+      ],
+      "range": "9.0.0 - 14.0.1",
+      "nodes": [
+        "node_modules/glob"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/build-tools",
+        "version": "2.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "minimatch": {
+      "name": "minimatch",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1244623,
+          "name": "minimatch",
+          "dependency": "minimatch",
+          "title": "minimatch has potential denial of service via globparts amplification",
+          "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-405"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <11.0.1"
+        }
+      ],
+      "effects": [
+        "@typescript-eslint/typescript-estree",
+        "glob",
+        "mocha"
+      ],
+      "range": "7.0.0 - 11.0.0",
+      "nodes": [
+        "node_modules/@typescript-eslint/eslint-plugin/node_modules/minimatch",
+        "node_modules/@typescript-eslint/parser/node_modules/minimatch",
+        "node_modules/glob/node_modules/minimatch",
+        "node_modules/mocha/node_modules/minimatch",
+        "node_modules/typescript-eslint/node_modules/minimatch"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/build-tools",
+        "version": "2.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "mocha": {
+      "name": "mocha",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "glob",
+        "minimatch"
+      ],
+      "effects": [
+        "@iobroker/legacy-testing",
+        "@iobroker/testing"
+      ],
+      "range": "11.0.0-beta || >=11.0.1",
+      "nodes": [
+        "node_modules/mocha"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/testing",
+        "version": "5.0.4",
+        "isSemVerMajor": true
+      }
+    },
+    "typescript-eslint": {
+      "name": "typescript-eslint",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser",
+        "@typescript-eslint/typescript-estree",
+        "@typescript-eslint/utils"
+      ],
+      "effects": [
+        "@iobroker/eslint-config"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/typescript-eslint"
+      ],
+      "fixAvailable": {
+        "name": "@iobroker/eslint-config",
+        "version": "2.0.2",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 15,
+      "high": 0,
+      "critical": 0,
+      "total": 15
+    },
+    "dependencies": {
+      "prod": 234,
+      "dev": 480,
+      "optional": 50,
+      "peer": 365,
+      "peerOptional": 0,
+      "total": 773
+    }
+  }
+}

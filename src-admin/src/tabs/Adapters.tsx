@@ -1,8 +1,7 @@
 import React, { createRef, type JSX } from 'react';
-import semver from 'semver';
 
 import {
-    Grid2,
+    Grid,
     Button,
     IconButton,
     LinearProgress,
@@ -26,6 +25,7 @@ import {
     Update as UpdateIcon,
     Star as StarIcon,
     Close as CloseIcon,
+    Sort as SortIcon,
 } from '@mui/icons-material';
 import { FaGithub as GithubIcon } from 'react-icons/fa';
 
@@ -35,6 +35,7 @@ import AdaptersUpdaterDialog from '@/components/Adapters/AdaptersUpdaterDialog';
 import SlowConnectionWarningDialog, { SlowConnectionWarningDialogClass } from '@/dialogs/SlowConnectionWarningDialog';
 import IsVisible from '@/components/IsVisible';
 import AdminUtils from '@/helpers/AdminUtils';
+import IconUpdateAll from '@/icons/IconUpdateAll';
 import {
     TabHeader,
     type AdminConnection,
@@ -43,7 +44,7 @@ import {
     type Translate,
     TabContainer,
     Utils,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import type { AdaptersWorker, AdapterEvent } from '@/Workers/AdaptersWorker';
 import type { InstancesWorker, InstanceEvent } from '@/Workers/InstancesWorker';
@@ -57,6 +58,7 @@ import GitHubInstallDialog from '@/components/Adapters/GitHubInstallDialog';
 import AdapterInstallDialog, {
     type AdapterRatingInfo,
     type InstalledInfo,
+    type InstalledHostsInfo,
     type AdaptersContext,
     type AdapterInstallDialogState,
     type AdapterInstallDialogProps,
@@ -65,6 +67,12 @@ import AdaptersList, { SUM } from '@/components/Adapters/AdaptersList';
 import type { AdminGuiConfig, CommandFile } from '@/types';
 import type { RatingDialogRepository } from '@/dialogs/RatingDialog';
 import AdminUpdater from '@/dialogs/AdminUpdater';
+import { addMissingNews, readRepository } from '@/helpers/repository';
+
+const ONE_DAY_MS = 3_600_000 * 24; // 1 day in milliseconds
+/** How long the list waits for the installed adapters of the hosts, after the repository was read */
+const INSTALLED_WAIT_MS = 5_000;
+const ONE_DAY_BY_10 = ONE_DAY_MS / 10; // 1 day in milliseconds * 10
 
 export type CompactSystemRepository = {
     _id: string;
@@ -81,16 +89,6 @@ const styles: Record<string, any> = {
     grow: {
         flexGrow: 1,
     },
-    updateAllButton: (theme: IobTheme) => ({
-        position: 'relative',
-        '& .admin-update-second-icon': {
-            position: 'absolute',
-            top: 15,
-            left: 15,
-            opacity: 0.4,
-            color: theme.palette.mode === 'dark' ? '#aad5ff' : '#007fff',
-        },
-    }),
     counters: {
         mr: '10px',
         minWidth: 120,
@@ -112,11 +110,18 @@ const styles: Record<string, any> = {
     },
 };
 
+const FILTER_DESCRIPTION = 'Description A-Z';
+const FILTER_NAME = 'Name A-Z';
+const FILTER_POPULAR = 'Popular first';
+const FILTER_UPDATED = 'Recently updated';
+const FILTER_CREATED = 'Recently created';
+
 const FILTERS: { name: string; notByList?: boolean }[] = [
-    { name: 'Description A-Z' },
-    { name: 'Name A-Z' },
-    { name: 'Popular first', notByList: true },
-    { name: 'Recently updated', notByList: true },
+    { name: FILTER_DESCRIPTION },
+    { name: FILTER_NAME },
+    { name: FILTER_POPULAR, notByList: true },
+    { name: FILTER_UPDATED, notByList: true },
+    { name: FILTER_CREATED, notByList: true },
 ];
 
 interface AdaptersProps extends AdapterInstallDialogProps {
@@ -131,6 +136,10 @@ interface AdaptersProps extends AdapterInstallDialogProps {
     theme: IobTheme;
     /** Called when admin updates itself */
     onUpdating: (isUpdating: boolean) => void;
+    /** Host selector, built by the app - sits at the right end of the header on every host tab */
+    hostSelector?: JSX.Element | null;
+    /** Keep the upper left corner of the toolbar free for the floating menu button */
+    menuButtonSpace?: boolean;
     ready: boolean;
     /** Current selected host */
     currentHost: string;
@@ -142,7 +151,7 @@ interface AdaptersProps extends AdapterInstallDialogProps {
     instancesWorker: InstancesWorker;
     hostsWorker: HostsWorker;
     expertMode: boolean;
-    executeCommand: (cmd: string, host?: string, callback?: (exitCode: number) => void, files?: CommandFile[]) => void;
+    executeCommand: (cmd: string, host?: string, callback?: (exitCode?: number) => void, files?: CommandFile[]) => void;
     commandRunning: boolean;
     onSetCommandRunning: (commandRunning: boolean) => void;
     toggleTranslation: () => void;
@@ -156,6 +165,8 @@ interface AdaptersState extends AdapterInstallDialogState {
     repository: Record<string, RepoAdapterObject & { rating?: AdapterRatingInfo }>;
     installed: InstalledInfo;
     installedGlobal: InstalledInfo;
+    /** Installed version of every adapter per host (adapter name => host name => version) */
+    installedGlobalHosts: InstalledHostsInfo;
     adapters: Record<string, ioBroker.AdapterObject>;
     compactInstances: Record<string, CompactInstanceInfo> | null;
     categories: {
@@ -198,9 +209,9 @@ interface AdaptersState extends AdapterInstallDialogState {
 }
 
 export default class Adapters extends AdapterInstallDialog<AdaptersProps, AdaptersState> {
-    private readonly inputRef: React.RefObject<HTMLInputElement>;
+    private readonly inputRef: React.RefObject<HTMLInputElement | null>;
 
-    private readonly countRef: React.RefObject<HTMLDivElement>;
+    private readonly countRef: React.RefObject<HTMLDivElement | null>;
 
     private readonly t: Translate;
 
@@ -218,6 +229,8 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
     private installedAdapters: number = 0;
 
     private recentUpdatedAdapters: number = 0;
+
+    private recentCreatedAdapters: number = 0;
 
     private uuid: string = '';
 
@@ -253,7 +266,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
     private static isTransientConnectionError(error: unknown): boolean {
         return /notconnected|not connected|connectionerror|close_abnormal|closed_no_status|websocket|timeout|networkerror/i.test(
-            String(error || ''),
+            error instanceof Error ? error.message : typeof error === 'string' ? error : '',
         );
     }
 
@@ -314,16 +327,31 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         }
     }
 
+    /** Installed adapters of every host (host ID => answer of the host), as the hosts answered the last time */
+    private installedOfHosts: Record<string, InstalledInfo> = {};
+
+    /** Number of the last read of the installed adapters: the answers of an older read are dropped */
+    private installedReadId: number = 0;
+
+    /** Number of the read of the installed adapters, whose list is shown while hosts still have to answer */
+    private installedShownId: number = 0;
+
+    /** If hosts still have to answer which adapters they have installed */
+    private installedPending: boolean = false;
+
     constructor(props: AdaptersProps) {
         super(props);
 
-        Object.assign(this.state, {
+        this.state = {
+            ...((this.state || {}) as AdaptersState),
             lastUpdate: 0,
             repository: {},
             /** Adapters installed on the same host, without object changes installed just contains io-package information, not enriched information like installedFrom */
             installed: {},
             /** This contains the adapters installed on same and other hosts */
             installedGlobal: {},
+            /** Installed version of every adapter per host */
+            installedGlobalHosts: {},
             adapters: {},
             compactInstances: {},
             categories: [],
@@ -340,7 +368,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             updateList: false,
             installedList: 0,
             categoriesTiles: 'All',
-            filterTiles: 'Description A-Z',
+            filterTiles: FILTER_DESCRIPTION,
             gitHubInstallDialog: false,
             updateAvailable: [],
             filteredList: null,
@@ -355,7 +383,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             ratings: null,
             categoriesExpanded: {},
             adminUpgradeTo: '',
-        } as AdaptersState);
+        };
 
         this.inputRef = createRef();
         this.countRef = createRef();
@@ -365,12 +393,13 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
     translate = (word: string, arg1?: string | boolean | number, arg2?: string | boolean | number): string => {
         if (arg1 !== undefined) {
-            return this.props.t(word, arg1, arg2);
+            if (arg2 !== undefined) {
+                return this.props.t(word, arg1, arg2);
+            }
+            return this.props.t(word, arg1);
         }
 
-        if (!this.wordCache[word]) {
-            this.wordCache[word] = this.props.t(word);
-        }
+        this.wordCache[word] ||= this.props.t(word);
 
         return this.wordCache[word];
     };
@@ -400,8 +429,30 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
     }
 
     async updateAll(update?: boolean, bigUpdate?: boolean, indicateUpdate?: boolean): Promise<void> {
-        await this.getAdapters(update, bigUpdate, indicateUpdate);
-        await this.getAdaptersInfo(update, indicateUpdate);
+        // None of the information depends on the repository: it is read while the repository is loading
+        const info = this.state.currentHost ? this.readAdaptersInfo(update) : null;
+        // Neither do the installed adapters, but the list does not wait for a slow host, see `readInstalled`
+        const readId = ++this.installedReadId;
+        const installedRead = this.readInstalled(update, readId);
+        const { repository, allInstalled } = await this.getAdapters(installedRead, update, bigUpdate, indicateUpdate);
+        if (info) {
+            await this.getAdaptersInfo(info, indicateUpdate);
+        }
+        if (!allInstalled && readId === this.installedReadId) {
+            // The list is shown: the hosts that did not answer yet follow, each one when it answers
+            this.installedShownId = readId;
+            void installedRead.then(async () => {
+                if (readId === this.installedReadId) {
+                    await this.readMissingNews(repository);
+                    this.showInstalled(repository);
+                }
+            });
+        }
+        // An adapter changed (e.g. was updated) while reading: the installed versions were read before and are old.
+        // The list kept offering the update that was just installed
+        if (readId === this.installedReadId && this.props.adaptersWorker.isForceUpdate()) {
+            await this.updateAll(true);
+        }
     }
 
     componentDidUpdate(prevProps: AdaptersProps): void {
@@ -449,6 +500,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             this.onHostAdapterTimer = null;
         }
 
+        this.installedReadId++;
         if (this.workerHandlersRegistered) {
             this.props.adaptersWorker.unregisterHandler(this.onAdaptersChanged);
             this.props.instancesWorker.unregisterHandler(this.onAdaptersChanged);
@@ -463,14 +515,18 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         this.tempInstalled ||= JSON.parse(JSON.stringify(this.state.installed || {}));
         this.tempInstances ||= JSON.parse(JSON.stringify(this.state.compactInstances || {}));
 
+        const tempAdapters = this.tempAdapters as Record<string, any>;
+        const tempInstalled = this.tempInstalled as Record<string, any>;
+        const tempInstances = this.tempInstances as Record<string, any>;
+
         events.forEach(event => {
             // detect if adapter or instance
             const isInstance = !!event.id.match(/\.\d+$/);
             if (isInstance) {
                 if (event.type === 'deleted' || !event.obj) {
-                    delete this.tempInstances[event.id];
+                    delete tempInstances[event.id];
                 } else {
-                    this.tempInstances[event.id] = {
+                    tempInstances[event.id] = {
                         enabled: event.obj.common.enabled,
                         icon: event.obj.common.icon,
                         name: event.obj.common.name,
@@ -483,24 +539,27 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 const p = event.id.split('.');
 
                 // remove from installed
-                delete this.tempInstalled[p[2]];
-                delete this.tempAdapters[event.id];
+                delete tempInstalled[p[2]];
+                delete tempAdapters[event.id];
             } else {
                 const name = event.obj.common.name;
-                if (this.tempInstalled[name]) {
+                if (tempInstalled[name]) {
                     // Update attributes
-                    Object.keys(this.tempInstalled[name]).forEach(attr => {
-                        if ((event.obj.common as Record<string, any>)[attr] !== undefined && attr !== 'installedFrom') {
-                            (this.tempInstalled[name] as Record<string, any>)[attr] = (
-                                event.obj.common as Record<string, any>
+                    Object.keys(tempInstalled[name]).forEach(attr => {
+                        if (
+                            (event.obj!.common as Record<string, any>)[attr] !== undefined &&
+                            attr !== 'installedFrom'
+                        ) {
+                            (tempInstalled[name] as Record<string, any>)[attr] = (
+                                event.obj!.common as Record<string, any>
                             )[attr];
                         }
                     });
                 } else {
                     // new
-                    this.tempInstalled[event.id.split('.').pop()] = JSON.parse(JSON.stringify(event.obj.common));
+                    tempInstalled[event.id.split('.').pop() || ''] = JSON.parse(JSON.stringify(event.obj.common));
                 }
-                this.tempAdapters[event.id] = event.obj;
+                tempAdapters[event.id] = event.obj!;
             }
         });
 
@@ -517,9 +576,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             this.tempInstances = null;
 
             this.analyseInstalled({
-                adapters,
-                installedLocal: installed,
-                cb: () => this.calculateInfo(compactInstances),
+                adapters: adapters || {},
+                installedLocal: installed || {},
+                cb: () => this.calculateInfo(compactInstances || {}),
             });
         }, 300);
     };
@@ -531,17 +590,19 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         adapters: Record<string, ioBroker.AdapterObject>;
         installedLocal: InstalledInfo;
         installedGlobal?: InstalledInfo;
+        installedGlobalHosts?: InstalledHostsInfo;
         repository?: Record<string, RepoAdapterObject>;
         cb?: () => void;
     }): void {
         let { adapters, repository } = options;
 
         const { cb, installedLocal } = options;
-        let { installedGlobal } = options;
+        let { installedGlobal, installedGlobalHosts } = options;
 
         adapters ||= this.state.adapters;
         const installed = installedLocal || this.state.installed;
         installedGlobal ||= this.state.installedGlobal;
+        installedGlobalHosts ||= this.state.installedGlobalHosts;
         repository ||= this.state.repository;
 
         const updateAvailable: string[] = [];
@@ -554,7 +615,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 if (
                     repositoryEntry &&
                     repositoryEntry.version !== version &&
-                    AdminUtils.updateAvailable(version, repositoryEntry.version) &&
+                    AdminUtils.updateAvailable(version, repositoryEntry.version, `adapter "${adapterName}"`) &&
                     !updateAvailable.includes(adapterName)
                 ) {
                     updateAvailable.push(adapterName);
@@ -571,49 +632,167 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 installed,
                 repository,
                 installedGlobal,
+                installedGlobalHosts,
             },
             () => cb && cb(),
         );
     }
 
     /**
-     * Get the installed adapters, for current host and other hosts
+     * Asks every host which adapters it has installed and keeps the answers in `installedOfHosts`.
+     *
+     * Every host reads its `node_modules` for the answer, and one slow or hanging host held the whole list
+     * back till the timeout. So the list does not wait for them: it shows the hosts that answered till the
+     * repository was read, and a host that answers after the list was shown is taken over at once.
+     *
+     * @param update force update
+     * @param readId number of this read, a newer read drops the answers of this one
      */
-    async getInstalled(update?: boolean): Promise<{
-        installedLocal: InstalledInfo;
-        installedGlobal: InstalledInfo;
-    }> {
-        /** Installed adapters on the same host */
-        let installedLocal: InstalledInfo;
-        /** Installed adapters on any hosts */
-        let installedGlobal: InstalledInfo = {};
+    async readInstalled(update: boolean | undefined, readId: number): Promise<void> {
+        this.installedPending = true;
 
-        const hosts = await this.props.socket.getHosts(update);
-
-        for (const host of hosts) {
-            try {
-                const alive = await this.props.socket.getState(`${host._id}.alive`);
-                if (alive?.val) {
-                    const res = await this.props.socket.getInstalled(host._id, update, this.state.readTimeoutMs);
-
-                    if (host._id === this.state.currentHost) {
-                        installedLocal = res;
-                    }
-                    // TODO: handle cases where different versions of adapters are installed on different hosts
-                    installedGlobal = { ...installedGlobal, ...res };
+        let hosts: ioBroker.HostObject[] = [];
+        try {
+            hosts = await this.props.socket.getHosts(update);
+            // a deleted host has nothing installed anymore
+            Object.keys(this.installedOfHosts).forEach(hostId => {
+                if (!hosts.find(host => host._id === hostId)) {
+                    delete this.installedOfHosts[hostId];
                 }
-            } catch (e) {
-                window.alert(`Cannot getInstalled from "${host._id}" (timeout ${this.state.readTimeoutMs}ms): ${e}`);
-                if (e.toString().includes('timeout')) {
-                    this.setState({ showSlowConnectionWarning: true });
-                }
-            }
+            });
+        } catch (e) {
+            window.alert(`Cannot read hosts: ${e as Error}`);
         }
 
-        return { installedLocal, installedGlobal };
+        let pending = hosts.length;
+
+        // ask them all at once instead of one after another
+        await Promise.all(
+            hosts.map(async host => {
+                let installed: InstalledInfo | null = null;
+                try {
+                    const alive = await this.props.socket.getState(`${host._id}.alive`);
+                    if (alive?.val) {
+                        installed = await this.props.socket.getInstalled(host._id, update, this.state.readTimeoutMs);
+                    }
+                } catch (e) {
+                    window.alert(
+                        `Cannot getInstalled from "${host._id}" (timeout ${this.state.readTimeoutMs}ms): ${e as Error}`,
+                    );
+                    if ((e as Error).toString().includes('timeout')) {
+                        this.setState({ showSlowConnectionWarning: true });
+                    }
+                }
+                if (readId !== this.installedReadId) {
+                    return;
+                }
+                if (installed) {
+                    this.installedOfHosts[host._id] = installed;
+                } else {
+                    delete this.installedOfHosts[host._id];
+                }
+                pending--;
+                // The last host is shown together with the news, when all hosts answered
+                if (pending && this.installedShownId === readId) {
+                    this.showInstalled();
+                }
+            }),
+        );
+
+        if (readId === this.installedReadId) {
+            this.installedPending = false;
+        }
     }
 
-    async getAdapters(update?: boolean, bigUpdate?: boolean, indicateUpdate?: boolean): Promise<void> {
+    /**
+     * Merges the installed adapters of all hosts, as they answered till now
+     */
+    mergeInstalled(): {
+        installedLocal: InstalledInfo;
+        installedGlobal: InstalledInfo;
+        installedGlobalHosts: InstalledHostsInfo;
+    } {
+        /** Installed adapters on the same host */
+        let installedLocal: InstalledInfo = {};
+        /** Installed adapters on any hosts */
+        let installedGlobal: InstalledInfo = {};
+        /** Installed version of every adapter per host (adapter name => host name => version) */
+        const installedGlobalHosts: InstalledHostsInfo = {};
+
+        // merged in the order of the hosts (as they are read, sorted by ID), as a later host overwrites the entries of an earlier one
+        Object.keys(this.installedOfHosts)
+            .sort()
+            .forEach(hostId => {
+                const res = this.installedOfHosts[hostId];
+                if (hostId === this.state.currentHost) {
+                    installedLocal = res;
+                }
+                // Remember the installed version of every adapter on every host, so we can tell
+                // exactly which host does not fulfill a global dependency in a multihost setup.
+                const hostName = hostId.replace(/^system\.host\./, '');
+                for (const adapterName of Object.keys(res)) {
+                    if (adapterName === 'hosts' || !res[adapterName]?.version) {
+                        continue;
+                    }
+                    installedGlobalHosts[adapterName] ||= {};
+                    installedGlobalHosts[adapterName][hostName] = res[adapterName].version;
+                }
+                installedGlobal = { ...installedGlobal, ...res };
+            });
+
+        return { installedLocal, installedGlobal, installedGlobalHosts };
+    }
+
+    /**
+     * Shows the installed adapters of the hosts that answered till now, in the list that is shown already
+     *
+     * @param repository the repository as read, if the news of the installed adapters were added to it
+     */
+    showInstalled(repository?: Record<string, RepoAdapterObject>): void {
+        this.analyseInstalled({
+            adapters: this.state.adapters,
+            repository,
+            ...this.mergeInstalled(),
+            cb: () => void this.calculateInfo(this.state.compactInstances || {}),
+        });
+    }
+
+    /**
+     * Adds the news of the installed adapters, that the reduced repository came without
+     *
+     * @param repository the repository as read, completed in place
+     */
+    async readMissingNews(repository: Record<string, RepoAdapterObject>): Promise<void> {
+        try {
+            await addMissingNews(
+                this.props.socket,
+                this.state.currentHost,
+                repository,
+                Object.keys(this.mergeInstalled().installedGlobal),
+                { repo: this.props.systemConfig.common.activeRepo, lang: this.props.lang },
+                this.state.readTimeoutMs,
+            );
+        } catch (e) {
+            console.warn(`Cannot read the news of the installed adapters: ${e as Error}`);
+        }
+    }
+
+    /**
+     * Reads the adapters and the repository and shows them with the installed adapters of the hosts that
+     * answered till then, see `readInstalled`
+     *
+     * @param installedRead resolves when all hosts answered which adapters they have installed
+     * @param update force update
+     * @param bigUpdate let the host read the repository anew
+     * @param indicateUpdate show the progress
+     * @returns the repository as read, and if all hosts answered which adapters they have installed
+     */
+    async getAdapters(
+        installedRead: Promise<void>,
+        update?: boolean,
+        bigUpdate?: boolean,
+        indicateUpdate?: boolean,
+    ): Promise<{ repository: Record<string, RepoAdapterObject>; allInstalled: boolean }> {
         console.log('[ADAPTERS] getAdapters');
 
         const currentHost = this.state.currentHost;
@@ -623,37 +802,65 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             this.setState({ update: true });
         }
 
-        let adapters: Record<string, ioBroker.AdapterObject>;
-
-        try {
-            adapters = (await this.props.adaptersWorker.getObjects(update)) || {};
-        } catch (e) {
-            window.alert(`Cannot getAdapters: ${e}`);
-        }
-
-        const { installedLocal, installedGlobal } = await this.getInstalled(update);
-
-        let repository: Record<string, RepoAdapterObject>;
-        try {
-            repository = (await this.props.socket.getRepository(
+        // The reads do not depend on each other: the adapters are read while the repository is loading
+        const [adapters, repository] = await Promise.all([
+            this.props.adaptersWorker
+                .getObjects(update)
+                .then(objects => objects || {})
+                .catch((e: unknown): Record<string, ioBroker.AdapterObject> => {
+                    window.alert(`Cannot getAdapters: ${e as Error}`);
+                    return {};
+                }),
+            readRepository(
+                this.props.socket,
                 currentHost,
-                { repo: this.props.systemConfig.common.activeRepo, update: bigUpdate || indicateUpdate },
+                {
+                    repo: this.props.systemConfig.common.activeRepo,
+                    update: bigUpdate || indicateUpdate,
+                    lang: this.props.lang,
+                },
                 update,
                 this.state.readTimeoutMs,
-            )) as unknown as Record<string, RepoAdapterObject & { rating?: AdapterRatingInfo }>;
-        } catch (e) {
-            window.alert(`Cannot getRepository: ${e}`);
-            if (e.toString().includes('timeout')) {
-                this.setState({ showSlowConnectionWarning: true });
-            }
+            )
+                .then(repo => repo as unknown as Record<string, RepoAdapterObject & { rating?: AdapterRatingInfo }>)
+                .catch((e: unknown): Record<string, RepoAdapterObject> => {
+                    window.alert(`Cannot getRepository: ${e as Error}`);
+                    if ((e as Error).toString().includes('timeout')) {
+                        this.setState({ showSlowConnectionWarning: true });
+                    }
+                    return {};
+                }),
+        ]);
+
+        // The list is sorted by the installed adapters: it waits a bit for the hosts, as they mostly answer
+        // shortly after the repository was read, but not till the timeout of a slow or hanging host
+        if (this.installedPending) {
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            await Promise.race([
+                installedRead,
+                new Promise<void>(resolve => (timer = setTimeout(resolve, INSTALLED_WAIT_MS))),
+            ]);
+            clearTimeout(timer);
         }
 
-        return this.analyseInstalled({
-            adapters,
-            installedLocal,
-            repository,
-            installedGlobal,
-        });
+        // The news follow with the hosts, that did not answer yet
+        const allInstalled = !this.installedPending;
+        if (allInstalled) {
+            await this.readMissingNews(repository);
+        }
+
+        // `calculateInfo` reads the adapters and the repository from the state: it must wait till they are there.
+        // Else it took the empty ones of a freshly opened tab and wrote them back (#3695)
+        await new Promise<void>(resolve =>
+            this.analyseInstalled({
+                adapters,
+                repository,
+                ...this.mergeInstalled(),
+                cb: resolve,
+            }),
+        );
+
+        return { repository, allInstalled };
     }
 
     getWordVotes(votes: number): string {
@@ -686,7 +893,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             return adapterName;
         }
         const titleObj: ioBroker.StringOrTranslated =
-            (adapters[adapterName] as ioBroker.AdapterCommon).titleLang || adapters[adapterName].title;
+            (adapters[adapterName] as ioBroker.AdapterCommon).titleLang || adapters[adapterName].title || '';
         let title: string;
         if (typeof titleObj === 'object') {
             title = titleObj[lang] || titleObj.en;
@@ -705,6 +912,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         sortByName: boolean,
         sortPopularFirst?: boolean,
         sortRecentlyUpdated?: boolean,
+        sortRecentlyCreated?: boolean,
         filteredList?: {
             [adapterName: string]: { exact: boolean; type: 'name' | 'desc' | 'title' | 'keywords'; start?: boolean };
         } | null,
@@ -712,13 +920,13 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         const titles: { [adapterName: string]: string } = {};
         list.sort((a, b) => {
             if (sortPopularFirst) {
-                if (adapters[b].stat === adapters[a].stat) {
+                if (adapters[b]?.stat === adapters[a]?.stat) {
                     titles[a] ||= Adapters.getAdapterTitle(a, adapters, lang);
                     titles[b] ||= Adapters.getAdapterTitle(b, adapters, lang);
 
                     return titles[a] > titles[b] ? 1 : titles[a] < titles[b] ? -1 : 0;
                 }
-                return adapters[b].stat - adapters[a].stat;
+                return (adapters[b]?.stat ?? 0) - (adapters[a]?.stat ?? 0);
             }
             if (sortRecentlyUpdated) {
                 if (!adapters[a]) {
@@ -727,13 +935,45 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 if (!adapters[b]) {
                     return 1;
                 }
-                if ((adapters[a] as AdapterCacheEntry).daysAgo === (adapters[b] as AdapterCacheEntry).daysAgo) {
+                // Same NaN guard as sortRecentlyCreated: a missing "versionDate" yields NaN — push those
+                // to the end instead of returning NaN from the comparator.
+                const updatedA = (adapters[a] as AdapterCacheEntry).daysAgo;
+                const updatedB = (adapters[b] as AdapterCacheEntry).daysAgo;
+                const ua = Number.isFinite(updatedA) ? updatedA : Infinity;
+                const ub = Number.isFinite(updatedB) ? updatedB : Infinity;
+
+                if (ua === ub) {
                     titles[a] ||= Adapters.getAdapterTitle(a, adapters, lang);
                     titles[b] ||= Adapters.getAdapterTitle(b, adapters, lang);
 
                     return titles[a] > titles[b] ? 1 : titles[a] < titles[b] ? -1 : 0;
                 }
-                return (adapters[a] as AdapterCacheEntry).daysAgo - (adapters[b] as AdapterCacheEntry).daysAgo;
+                return ua - ub;
+            }
+
+            if (sortRecentlyCreated) {
+                if (!adapters[a]) {
+                    return -1;
+                }
+                if (!adapters[b]) {
+                    return 1;
+                }
+
+                // Adapters without a (valid) "published" date have no creation info: `createdDaysAgo` is
+                // NaN. Treat that as "infinitely old" so they sort to the very end — and, just as
+                // importantly, never let the comparator return NaN (which corrupts the whole sort order).
+                const createdA = (adapters[a] as AdapterCacheEntry).createdDaysAgo;
+                const createdB = (adapters[b] as AdapterCacheEntry).createdDaysAgo;
+                const ca = Number.isFinite(createdA) ? createdA : Infinity;
+                const cb = Number.isFinite(createdB) ? createdB : Infinity;
+
+                if (ca === cb) {
+                    titles[a] ||= Adapters.getAdapterTitle(a, adapters, lang);
+                    titles[b] ||= Adapters.getAdapterTitle(b, adapters, lang);
+
+                    return titles[a] > titles[b] ? 1 : titles[a] < titles[b] ? -1 : 0;
+                }
+                return ca - cb;
             }
 
             if (filteredList) {
@@ -775,7 +1015,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
     calculateInfo(
         compactInstances: Record<string, CompactInstanceInfo>,
         ratings?: Ratings | null,
-        hostData?: HostInfo,
+        hostData?: (HostInfo & { 'Active instances': number; location: string; Uptime: number }) | null,
         compactRepositories?: CompactSystemRepository | null,
     ): Promise<void> {
         hostData ||= this.state.hostData;
@@ -815,7 +1055,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 JSON.parse(
                     (((window as any)._localStorage as Storage) || window.localStorage).getItem(
                         'Adapters.expandedCategories',
-                    ),
+                    ) || 'null',
                 ) || {};
         } catch {
             // ignore
@@ -873,9 +1113,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                         adapter.rating.rating.c
                     } ${this.getWordVotes(adapter.rating.rating.c)})`,
                     _installed?.version && adapter.rating[_installed.version]
-                        ? `${this.t('Rating for')} v${_installed.version}: ${adapter.rating[_installed.version].r} (${
-                              adapter.rating[_installed.version].c
-                          } ${this.getWordVotes(adapter.rating.rating.c)})`
+                        ? `${this.t('Rating for')} v${_installed.version}: ${adapter.rating[_installed.version]?.r} (${
+                              adapter.rating[_installed.version]?.c
+                          } ${this.getWordVotes(adapter.rating.rating?.c ?? 0)})`
                         : '',
                 ]
                     .filter(i => i)
@@ -885,13 +1125,17 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             }
 
             if (!adapter.controller) {
-                const type: string = adapter.type;
+                const type: string = adapter.type || '';
                 const installedInGroup = installed[adapterName];
 
-                const daysAgo = Math.round((now - new Date(adapter.versionDate).getTime()) / 86400000);
+                const daysAgo = Math.round((now - new Date(adapter.versionDate || 0).getTime()) / ONE_DAY_MS);
+                const createdDaysAgo = Math.round((now - new Date(adapter.published || 0).getTime()) / ONE_DAY_MS);
 
                 if (daysAgo <= 31) {
                     this.recentUpdatedAdapters++;
+                }
+                if (createdDaysAgo <= 31) {
+                    this.recentCreatedAdapters++;
                 }
                 if (installed[adapterName]) {
                     this.installedAdapters++;
@@ -934,7 +1178,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             .forEach(categoryType => categoriesSorted.push(categories[categoryType]));
 
         // const _titles = {};
-        const sortByName = this.state.filterTiles === 'Name A-Z';
+        const sortByName = this.state.filterTiles === FILTER_NAME;
 
         Object.keys(categories).forEach(type =>
             Adapters.sortAdapters(categories[type].adapters, this.props.lang, installed, repository, sortByName),
@@ -943,7 +1187,8 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         let installedList = 0;
         try {
             installedList = JSON.parse(
-                (((window as any)._localStorage as Storage) || window.localStorage).getItem('Adapters.installedList'),
+                (((window as any)._localStorage as Storage) || window.localStorage).getItem('Adapters.installedList') ||
+                    '0',
             );
             // @ts-expect-error back compatibility
             if (installedList === false) {
@@ -964,9 +1209,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             'All';
         let filterTiles =
             (((window as any)._localStorage as Storage) || window.localStorage).getItem('Adapters.filterTiles') ||
-            'Description A-Z';
+            FILTER_DESCRIPTION;
         if (filterTiles === 'A-Z') {
-            filterTiles = 'Description A-Z';
+            filterTiles = FILTER_DESCRIPTION;
         }
         this.allAdapters = Object.keys(repository).length - 1;
 
@@ -993,14 +1238,70 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     categories: categoriesSorted,
                     categoriesExpanded,
                     init: true,
-                    update: false,
+                    // the progress stays, while hosts still have to answer which adapters they have installed
+                    update: this.installedPending,
                 },
                 () => resolve(),
             );
         });
     }
 
-    async getAdaptersInfo(update?: boolean, indicateUpdate?: boolean): Promise<void> {
+    /**
+     * Reads what the list needs besides the adapters, the installed versions and the repository.
+     *
+     * All reads run at once, and errors are reported here: the promise always resolves.
+     */
+    readAdaptersInfo(update?: boolean): Promise<{
+        hostData: HostInfo | undefined;
+        ratings: Ratings | null;
+        compactInstances: Record<string, CompactInstanceInfo>;
+        compactRepositories: CompactSystemRepository;
+    }> {
+        const currentHost = this.state.currentHost;
+        const ratingAllowed = this.props.adminGuiConfig.admin?.adapters?.allowAdapterRating !== false;
+
+        return Promise.all([
+            // Only `os` and `Node.js` of the host are used. The short info has them at once, while the full
+            // one collects disks, network and more first and took up to 2 s
+            this.props.socket
+                .getHostInfoShort(currentHost, update, this.state.readTimeoutMs)
+                .catch((e: unknown): undefined => {
+                    window.alert(`Cannot getHostInfo for "${currentHost}": ${e as Error}`);
+                    if ((e as Error).toString().includes('timeout')) {
+                        this.setState({ showSlowConnectionWarning: true });
+                    }
+                    return undefined;
+                }),
+            ratingAllowed
+                ? this.props.socket.getRatings(update).catch((e: unknown): null => {
+                      window.alert(`Cannot read ratings: ${e as Error}`);
+                      return null;
+                  })
+                : Promise.resolve(null),
+            this.props.socket.getCompactInstances(update).catch((e: unknown): Record<string, CompactInstanceInfo> => {
+                window.alert(`Cannot read countsOfInstances: ${e as Error}`);
+                return {};
+            }),
+            this.props.socket
+                .getCompactSystemRepositories(update)
+                .catch((e: unknown): Record<string, CompactSystemRepository> => {
+                    window.alert(`Cannot read getCompactSystemRepositories: ${e as Error}`);
+                    return {};
+                }),
+        ]).then(([hostData, ratings, compactInstances, compactRepositories]) => {
+            if (ratingAllowed) {
+                this.uuid = ratings?.uuid || '';
+            }
+            return {
+                hostData,
+                ratings: ratings as Ratings | null,
+                compactInstances: compactInstances || {},
+                compactRepositories: compactRepositories as CompactSystemRepository,
+            };
+        });
+    }
+
+    async getAdaptersInfo(info: ReturnType<Adapters['readAdaptersInfo']>, indicateUpdate?: boolean): Promise<void> {
         if (!this.state.currentHost) {
             return;
         }
@@ -1009,52 +1310,15 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         if (Date.now() - this.state.lastUpdate > 1_000) {
             console.log('[ADAPTERS] getAdaptersInfo');
 
-            const currentHost = this.state.currentHost;
-
-            let ratings: Ratings | null;
             try {
                 if (!this.state.update || indicateUpdate) {
                     await new Promise<void>(resolve => {
                         this.setState({ update: true }, () => resolve());
                     });
                 }
-                const hostData: HostInfo | undefined = await this.props.socket
-                    .getHostInfo(currentHost, update, this.state.readTimeoutMs)
-                    .catch((e: unknown): undefined => {
-                        window.alert(`Cannot getHostInfo for "${currentHost}": ${e as Error}`);
-                        if ((e as Error).toString().includes('timeout')) {
-                            this.setState({ showSlowConnectionWarning: true });
-                        }
-                        return undefined;
-                    });
+                const { hostData, ratings, compactInstances, compactRepositories } = await info;
 
-                if (this.props.adminGuiConfig.admin.adapters?.allowAdapterRating !== false) {
-                    try {
-                        ratings = await this.props.socket.getRatings(update);
-                    } catch (e) {
-                        window.alert(`Cannot read ratings: ${e}`);
-                    }
-                    this.uuid = ratings?.uuid || null;
-                } else {
-                    ratings = null;
-                }
-
-                const compactInstances = await this.props.socket
-                    .getCompactInstances(update)
-                    .catch((e: unknown): Record<string, CompactInstanceInfo> => {
-                        window.alert(`Cannot read countsOfInstances: ${e as Error}`);
-                        return {};
-                    });
-
-                const compactRepositoriesEx = await this.props.socket
-                    .getCompactSystemRepositories(update)
-                    .catch((e: unknown): Record<string, CompactSystemRepository> => {
-                        window.alert(`Cannot read getCompactSystemRepositories: ${e as Error}`);
-                        return {};
-                    });
-                const compactRepositories: CompactSystemRepository = compactRepositoriesEx as CompactSystemRepository;
-
-                await this.calculateInfo(compactInstances || {}, ratings, hostData, compactRepositories);
+                await this.calculateInfo(compactInstances, ratings, hostData, compactRepositories);
             } catch (error) {
                 window.alert(`Cannot get adapters info: ${error}`);
             }
@@ -1075,97 +1339,17 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         });
     }
 
-    rightDependencies = (adapterName: string): boolean => {
-        const adapter = this.state.repository[adapterName];
-        let result = true;
-
-        if (adapter) {
-            const dependencies = adapter.dependencies;
-            const nodeVersion = adapter.node;
-
-            if (dependencies) {
-                if (dependencies instanceof Array) {
-                    dependencies.forEach(dependency => {
-                        const checkVersion = typeof dependency !== 'string';
-                        const keys = Object.keys(dependency);
-                        const name = !checkVersion ? dependency : keys ? keys[0] : null;
-
-                        if (result && name) {
-                            const installed = this.state.installed[name];
-
-                            try {
-                                result = installed
-                                    ? checkVersion
-                                        ? semver.satisfies(installed.version, dependency[name], {
-                                              includePrerelease: true,
-                                          })
-                                        : true
-                                    : false;
-                            } catch {
-                                result = true;
-                            }
-                        }
-                    });
-                } else if (typeof dependencies === 'object') {
-                    // back compatibility
-                    const _deps: { [_adapterName: string]: string } = dependencies;
-                    Object.keys(_deps).forEach(_adapterName => {
-                        if (_adapterName && _deps[_adapterName] !== undefined && result) {
-                            const installed = this.state.installed[_adapterName];
-                            const checkVersion = typeof _deps[_adapterName] === 'string';
-                            try {
-                                result = installed
-                                    ? checkVersion
-                                        ? semver.satisfies(installed.version, _deps[_adapterName], {
-                                              includePrerelease: true,
-                                          })
-                                        : true
-                                    : false;
-                            } catch {
-                                result = true;
-                            }
-                        }
-                    });
-                } else {
-                    console.error(
-                        `[ADAPTERS] Invalid dependencies for ${adapterName}: ${JSON.stringify(dependencies)}`,
-                    );
-                }
-            }
-
-            const ifDependencies: Record<string, string> = adapter.ifInstalledDependencies;
-
-            if (ifDependencies && typeof ifDependencies === 'object' && !Array.isArray(ifDependencies)) {
-                const adapters = Object.keys(ifDependencies);
-
-                adapters.forEach(name => {
-                    if (result && name) {
-                        const installed = this.state.installed[name];
-
-                        try {
-                            result = installed
-                                ? semver.satisfies(installed.version, ifDependencies[name], {
-                                      includePrerelease: true,
-                                  })
-                                : true;
-                        } catch {
-                            result = true;
-                        }
-                    }
-                });
-            }
-
-            if (result && nodeVersion) {
-                try {
-                    result = semver.satisfies(this.state.nodeJsVersion, nodeVersion);
-                } catch {
-                    result = true;
-                }
-            }
-        }
-
-        return result;
-    };
+    /**
+     * Whether every dependency of the adapter is fulfilled.
+     *
+     * The answer comes from the same function that builds the dependency list of the update dialog,
+     * so the list and the enabled state of the update button can never disagree. The check of its
+     * own that stood here knew neither `globalDependencies` (where an adapter declares which admin
+     * version it needs) nor the other hosts of a multihost setup, so an update was offered although
+     * the dialog showed the dependency in red.
+     */
+    rightDependencies = (adapterName: string): boolean =>
+        AdapterInstallDialog.getDependencies(adapterName, this.state).every(dependency => dependency.rightVersion);
 
     rightOs(adapterName: string): boolean {
         const adapter = this.state.repository[adapterName];
@@ -1248,8 +1432,8 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
         // By the list view, the filterTiles can be only 'Description A-Z' or 'Name A-Z'
         let filterTiles = this.state.filterTiles;
-        if (tableViewMode && filterTiles !== 'Description A-Z' && filterTiles !== 'Name A-Z') {
-            filterTiles = 'Description A-Z';
+        if (tableViewMode && filterTiles !== FILTER_DESCRIPTION && filterTiles !== FILTER_NAME) {
+            filterTiles = FILTER_DESCRIPTION;
             (((window as any)._localStorage as Storage) || window.localStorage).setItem(
                 'Adapters.filterTiles',
                 filterTiles,
@@ -1307,10 +1491,18 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
     filterAdapters(search?: string): void {
         search = search === undefined ? this.state.search : search;
         search = (search || '').toLowerCase().trim();
+        // No search text => no filter (null). An empty object would hide all adapters
         let filteredList: {
             [adapterName: string]: { exact: boolean; type: 'name' | 'desc' | 'title' | 'keywords'; start?: boolean };
-        } = {};
+        } | null = null;
         if (search) {
+            const foundList: {
+                [adapterName: string]: {
+                    exact: boolean;
+                    type: 'name' | 'desc' | 'title' | 'keywords';
+                    start?: boolean;
+                };
+            } = {};
             this.state.categories.forEach(category =>
                 category.adapters.forEach(name => {
                     const adapter = this.state.repository[name];
@@ -1337,18 +1529,17 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     }
 
                     if (name.includes(search)) {
-                        filteredList[name] = { exact: name === search, type: 'name', start: name.startsWith(search) };
+                        foundList[name] = { exact: name === search, type: 'name', start: name.startsWith(search) };
                     } else if (title && typeof title === 'string' && title.toLowerCase().includes(search)) {
-                        filteredList[name] = { exact: false, type: 'title' };
+                        foundList[name] = { exact: false, type: 'title' };
                     } else if (desc && typeof desc === 'string' && desc.toLowerCase().includes(search)) {
-                        filteredList[name] = { exact: false, type: 'desc' };
+                        foundList[name] = { exact: false, type: 'desc' };
                     } else if (adapter.keywords?.find(value => value.includes(search))) {
-                        filteredList[name] = { exact: false, type: 'keywords' };
+                        foundList[name] = { exact: false, type: 'keywords' };
                     }
                 }),
             );
-        } else {
-            filteredList = null;
+            filteredList = foundList;
         }
 
         this.setState({ filteredList, search }, () => {
@@ -1422,6 +1613,8 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             installed: this.state.installed,
             /** Information about all installed adapters on all hosts */
             installedGlobal: this.state.installedGlobal,
+            /** Installed version of every adapter per host */
+            installedGlobalHosts: this.state.installedGlobalHosts,
             /** very compact information about instances */
             compactInstances: this.state.compactInstances || {},
             /** Information about installed adapters */
@@ -1434,22 +1627,23 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             /** Current selected host */
             instancesWorker: this.props.instancesWorker,
             hostsWorker: this.props.hostsWorker,
-            executeCommand: this.props.executeCommand,
+            executeCommand: this.props.executeCommand as AdaptersContext['executeCommand'],
             /** node.js version of current host */
             categories: this.state.categories,
             descHidden,
-            sortPopularFirst: !this.state.tableViewMode && this.state.filterTiles === 'Popular first',
-            sortRecentlyUpdated: !this.state.tableViewMode && this.state.filterTiles === 'Recently updated',
+            sortPopularFirst: !this.state.tableViewMode && this.state.filterTiles === FILTER_POPULAR,
+            sortRecentlyUpdated: !this.state.tableViewMode && this.state.filterTiles === FILTER_UPDATED,
+            sortRecentlyCreated: !this.state.tableViewMode && this.state.filterTiles === FILTER_CREATED,
             isTileView: !this.state.tableViewMode,
             updateRating: (adapter: string, rating: RatingDialogRepository) => {
                 const repository: Record<string, RepoAdapterObject & { rating?: AdapterRatingInfo }> = JSON.parse(
                     JSON.stringify(this.state.repository),
                 );
-                Object.assign(repository[adapter].rating, rating);
+                Object.assign(repository[adapter].rating || {}, rating);
                 this.setState({ repository });
             },
             setAdminUpgradeTo: this.setAdminUpgradeTo,
-            hostAdapterWorker: this.hostAdapterWorker,
+            hostAdapterWorker: this.hostAdapterWorker as HostAdapterWorker,
         };
     }
 
@@ -1496,9 +1690,16 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                                     : !!(installed && installed.version && !installed.count);
                         }
                         if (show) {
-                            this.cache.listOfVisibleAdapter.push(adapterName);
-                            const daysAgo10 = Math.round((now - new Date(adapter.versionDate).getTime()) / 8640000);
+                            this.cache.listOfVisibleAdapter?.push(adapterName);
+                            const daysAgo10 = Math.round(
+                                (now - new Date(adapter.versionDate || 0).getTime()) / ONE_DAY_BY_10,
+                            );
                             const daysAgo = Math.round(daysAgo10 / 10);
+
+                            const createdDaysAgo10 = Math.round(
+                                (now - new Date(adapter.published || 0).getTime()) / ONE_DAY_BY_10,
+                            );
+                            const createdDaysAgo = Math.round(createdDaysAgo10 / 10);
 
                             const titleObj = adapter.titleLang || adapter.title;
                             let title: string;
@@ -1521,20 +1722,24 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                             }
 
                             const _daysAgo10 = daysAgo % 100 <= 10 || daysAgo % 100 >= 20 ? daysAgo % 10 : 5;
+                            const _createdDaysAgo10 =
+                                createdDaysAgo % 100 <= 10 || createdDaysAgo % 100 >= 20 ? createdDaysAgo % 10 : 5;
 
-                            this.cache.adapters[adapterName] = {
+                            this.cache.adapters![adapterName] = {
                                 title,
                                 desc,
+                                // an adapter without an icon has no `localIcon`, which gave `./.undefined` (#3679)
                                 image:
-                                    installed && this.state.adapters[`system.adapter.${adapterName}`]
+                                    installed?.localIcon && this.state.adapters[`system.adapter.${adapterName}`]
                                         ? `.${installed.localIcon}`
-                                        : adapter.extIcon,
+                                        : adapter.extIcon || '',
                                 connectionType: adapter.connectionType ? adapter.connectionType : '-',
                                 updateAvailable: this.state.updateAvailable.includes(adapterName),
                                 rightDependencies: this.rightDependencies(adapterName),
                                 rightOs: this.rightOs(adapterName),
                                 sentry: !!adapter.plugins?.sentry,
                                 daysAgo: daysAgo10,
+                                createdDaysAgo: createdDaysAgo10,
                                 stat: adapter.stat || 0,
                                 daysAgoText:
                                     daysAgo || daysAgo === 0
@@ -1546,6 +1751,18 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                                                 ? textDaysAgo2.replace('%d', daysAgo.toString())
                                                 : textDaysAgo.replace('%d', daysAgo.toString())
                                         : '',
+                                createdDaysAgoText:
+                                    createdDaysAgo || createdDaysAgo === 0
+                                        ? createdDaysAgo === 0
+                                            ? textDaysAgo0
+                                            : _createdDaysAgo10 === 1
+                                              ? textDaysAgo1.replace('%d', createdDaysAgo.toString())
+                                              : _createdDaysAgo10 === 2 ||
+                                                  _createdDaysAgo10 === 3 ||
+                                                  _createdDaysAgo10 === 4
+                                                ? textDaysAgo2.replace('%d', createdDaysAgo.toString())
+                                                : textDaysAgo.replace('%d', createdDaysAgo.toString())
+                                        : '',
                             };
                         }
                     }
@@ -1554,7 +1771,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
         this.listOfVisibleAdapterLength = this.cache.listOfVisibleAdapter.length;
 
-        const sortByName = this.state.filterTiles === 'Name A-Z';
+        const sortByName = this.state.filterTiles === FILTER_NAME;
 
         if (this.state.tableViewMode) {
             this.state.categories.forEach(category =>
@@ -1562,7 +1779,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     category.adapters,
                     this.props.lang,
                     this.state.installed,
-                    this.cache.adapters,
+                    this.cache.adapters || {},
                     sortByName,
                 ),
             );
@@ -1576,10 +1793,10 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             sortByName,
             context.sortPopularFirst,
             context.sortRecentlyUpdated,
+            context.sortRecentlyCreated,
             this.state.filteredList,
         );
 
-        console.log(`[ADAPTERS] ${new Date().toISOString()} Update cache!`);
         this.forceUpdate();
     }
 
@@ -1647,6 +1864,13 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                             {this.t('Last month updated adapters')}:{' '}
                             <span style={{ paddingLeft: 6, fontWeight: 'bold' }}>{this.recentUpdatedAdapters}</span>
                         </Box>
+                        <Box
+                            component="div"
+                            sx={styles.counters}
+                        >
+                            {this.t('Last month created adapters')}:{' '}
+                            <span style={{ paddingLeft: 6, fontWeight: 'bold' }}>{this.recentCreatedAdapters}</span>
+                        </Box>
                     </DialogContent>
                     <DialogActions>
                         <Button
@@ -1682,7 +1906,16 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                 themeType={context.themeType}
                 commandRunning={this.props.commandRunning}
                 upload={adapterName =>
-                    this.props.executeCommand(`upload ${adapterName}${this.props.expertMode ? ' --debug' : ''}`)
+                    new Promise<void>(resolve =>
+                        this.props.executeCommand(
+                            `upload ${adapterName}${this.props.expertMode ? ' --debug' : ''}`,
+                            undefined,
+                            () => resolve(),
+                        ),
+                    )
+                }
+                createInstance={(adapterName, host) =>
+                    AdapterInstallDialog.createInstanceIfNotExists({ adapterName, context, host })
                 }
                 installFromUrl={(adapterName, debug, customUrl, options) =>
                     this.addInstance({
@@ -1850,6 +2083,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
         return (
             <TabHeader>
+                {this.props.menuButtonSpace ? <Box sx={{ width: 40, flexShrink: 0 }} /> : null}
                 <Tooltip
                     title={this.t('Change view mode')}
                     slotProps={{ popper: { sx: styles.tooltip } }}
@@ -1944,7 +2178,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                             onClick={() => this.changeInstalledList()}
                         >
                             <StarIcon
-                                style={this.state.installedList === 2 ? { color: 'red' } : null}
+                                style={this.state.installedList === 2 ? { color: 'red' } : undefined}
                                 color={this.state.installedList === 1 ? 'primary' : 'inherit'}
                             />
                         </IconButton>
@@ -1974,15 +2208,13 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                         <IconButton
                             size="large"
                             onClick={() => this.setState({ showUpdater: true })}
-                            sx={styles.updateAllButton}
                         >
-                            <UpdateIcon />
-                            <UpdateIcon className="admin-update-second-icon" />
+                            <IconUpdateAll />
                         </IconButton>
                     </Tooltip>
                 )}
 
-                {this.props.expertMode && this.props.adminGuiConfig.admin?.adapters.gitHubInstall !== false && (
+                {this.props.expertMode && this.props.adminGuiConfig.admin?.adapters?.gitHubInstall !== false && (
                     <Tooltip
                         title={this.t('Install from custom URL')}
                         slotProps={{ popper: { sx: styles.tooltip } }}
@@ -2013,7 +2245,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                                             (
                                                 ((window as any)._localStorage as Storage) || window.localStorage
                                             ).removeItem('Adapter.search');
-                                            this.inputRef.current.value = '';
+                                            if (this.inputRef.current) {
+                                                this.inputRef.current.value = '';
+                                            }
                                             this.setState({ search: '' }, () => this.filterAdapters());
                                         }}
                                     >
@@ -2037,7 +2271,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     />
                 )}
                 <CustomSelectButton
+                    title={this.t('Sort by')}
                     t={this.t}
+                    buttonIcon={<SortIcon style={{ marginRight: 4 }} />}
                     arrayItem={this.state.tableViewMode ? FILTERS.filter(item => !item.notByList) : FILTERS}
                     onClick={value => this.changeFilterTiles(value as string)}
                     value={this.state.filterTiles}
@@ -2050,7 +2286,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     <Box
                         component="div"
                         sx={Utils.getStyle(this.props.theme, styles.infoAdapters, {
-                            display: { sm: 'none', md: 'inline-block' },
+                            // `xs`, not `sm`: MUI breakpoints are min-width, so without an `xs` entry
+                            // the counters stayed visible on the narrowest screens
+                            display: { xs: 'none', md: 'inline-block' },
                         })}
                         onClick={() => this.setState({ showStatistics: true })}
                     >
@@ -2081,6 +2319,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                         </Box>
                     </Box>
                 </IsVisible>
+                <Box sx={{ ml: 'auto', pl: 1 }}>{this.props.hostSelector}</Box>
             </TabHeader>
         );
     }
@@ -2140,13 +2379,14 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                             forceUpdateAdapters: this.props.forceUpdateAdapters,
                         },
                         async () => {
-                            if (!this.hostAdapterWorker || this.hostAdapterWorker.getHost() !== this.props.currentHost) {
+                            if (this.hostAdapterWorker?.getHost() !== this.props.currentHost) {
                                 this.hostAdapterWorker?.destroy();
                                 this.hostAdapterWorker = new HostAdapterWorker(
                                     this.props.socket,
                                     this.props.currentHost,
                                 );
-                                this.hostAdapterWorker.registerHandler(this.onHostAdapterChanged);
+                                // the read below follows the subscription, see componentDidMount
+                                this.hostAdapterWorker.registerHandler(this.onHostAdapterChanged, true);
                                 await this.hostAdapterWorker.getObjects();
                             }
                             await this.updateAll(false, false, true);
@@ -2160,7 +2400,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
 
         // if repositories are available
         const repositories: Record<string, ioBroker.RepositoryInformation> =
-            this.state.compactRepositories?.native?.repositories;
+            this.state.compactRepositories?.native?.repositories || {};
         if (repositories) {
             // new style with multiple active repositories
             if (this.props.systemConfig.common.activeRepo) {
@@ -2179,7 +2419,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
             }
         }
 
-        let repoName: string;
+        let repoName = '';
         if (!stableRepo) {
             repoName = Array.isArray(this.props.systemConfig.common.activeRepo)
                 ? this.props.systemConfig.common.activeRepo.join(', ')
@@ -2194,8 +2434,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     if (repoInfo.name && typeof repoInfo.name === 'object') {
                         repoName = repoInfo.name[this.props.lang] || repoInfo.name.en;
                     } else {
-                        // @ts-expect-error deprecated
-                        repoName = repoInfo.name as string;
+                        repoName = repoInfo.name;
                     }
                 }
             } else if (
@@ -2210,8 +2449,7 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                             if (repoInfo.name && typeof repoInfo.name === 'object') {
                                 return repoInfo.name[this.props.lang] || repoInfo.name.en;
                             }
-                            // @ts-expect-error deprecated
-                            return repoInfo.name as string;
+                            return repoInfo.name;
                         }
                         return repo;
                     })
@@ -2233,9 +2471,9 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
         return (
             <TabContainer>
                 {this.state.update && (
-                    <Grid2>
+                    <Grid>
                         <LinearProgress />
-                    </Grid2>
+                    </Grid>
                 )}
 
                 {this.renderHeader()}
@@ -2259,9 +2497,10 @@ export default class Adapters extends AdapterInstallDialog<AdaptersProps, Adapte
                     toggleCategory={category => this.toggleCategory(category)}
                     clearAllFilters={(onlyUpdate?: boolean) => this.clearAllFilters(onlyUpdate)}
                     descWidth={this.state.descWidth}
-                    sortByName={this.state.filterTiles === 'Name A-Z'}
+                    sortByName={this.state.filterTiles === FILTER_NAME}
                     sortPopularFirst={context.sortPopularFirst}
                     sortRecentlyUpdated={context.sortRecentlyUpdated}
+                    sortRecentlyCreated={context.sortRecentlyCreated}
                     commandRunning={this.props.commandRunning}
                 />
 

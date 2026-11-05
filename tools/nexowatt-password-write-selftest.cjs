@@ -12,13 +12,14 @@ const end = built.indexOf('async destroyEosRequestSessions', begin);
 assert(begin >= 0 && end > begin, 'password methods not found in built backend');
 const methods = built.slice(begin, end);
 const sandbox = { module: { exports: null }, EOS_PASSWORD_SERVICE_USER: 'system.user.admin' };
-vm.runInNewContext(`module.exports = class Harness {\nconstructor(adapter){this.adapter=adapter;}\n${methods}\n}`, sandbox);
+vm.runInNewContext(`module.exports = class Harness {\nconstructor(adapter){this.adapter=adapter;}\ninvalidateProxySessions(){this.adapter.invalidateProxySessions();}\n${methods}\n}`, sandbox);
 const Harness = sandbox.module.exports;
 (async () => {
   const calls = [];
   const userObject = { _id: 'system.user.user', common: { password: '$2b$hash' }, native: { keep: true } };
   const adapter = {
     eosSessionSecurity: { revoke() { calls.push(['revoke']); } },
+    invalidateProxySessions() { calls.push(['proxy-revoke']); },
     setPasswordAsync: async (user, password, options) => calls.push(['set', user, password, options]),
     checkPasswordAsync: async (user, password, options) => { calls.push(['check', user, password, options]); return [true, `system.user.${user}`]; },
     getForeignObjectAsync: async id => { calls.push(['get', id]); return JSON.parse(JSON.stringify(userObject)); },
@@ -28,8 +29,13 @@ const Harness = sandbox.module.exports;
   const harness = new Harness(adapter);
   await harness.setEosUserPassword('system.user.user', 'NexoWatt2025!');
   assert.deepEqual(calls[0], ['revoke'], 'Existing sessions must be revoked before the password write');
-  assert.deepEqual(calls[1].slice(0, 3), ['set', 'user', 'NexoWatt2025!']);
-  assert.deepEqual(calls[2].slice(0, 3), ['check', 'user', 'NexoWatt2025!']);
+  assert.deepEqual(calls[1], ['proxy-revoke'], 'Active proxied HTTP/WS sessions must close before the password write');
+  assert.deepEqual(calls[2].slice(0, 3), ['set', 'user', 'NexoWatt2025!']);
+  assert.deepEqual(calls[3].slice(0, 3), ['check', 'user', 'NexoWatt2025!']);
+  const beforeDeniedWrite = calls.length;
+  const uninitialized = new Harness({ ...adapter, eosSessionSecurity: undefined });
+  await assert.rejects(uninitialized.setEosUserPassword('system.user.user', 'NexoWatt2025!'), /sessionSecurityUnavailable/);
+  assert.equal(calls.length, beforeDeniedWrite, 'Missing session boundary must prevent all credential writes');
   await harness.updateEosAccountMetadata('system.user.user', (native, account) => {
     account.passwordInitialized = true;
     native.nexowattPasswordChangeRequired = false;

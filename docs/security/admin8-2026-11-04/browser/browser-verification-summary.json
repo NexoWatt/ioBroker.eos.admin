@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "scope": "Unveränderte Produktionsoberfläche mit synthetischen lokalen HTTP-/WebSocket-Antworten; kein produktives ioBroker-System.",
+  "browser": "Chromium 153.0.8010.0",
+  "productVersion": "8.0.0",
+  "upstream": {
+    "version": "8.3.5",
+    "commit": "6f77eedf525813a7a61d79188d1ff05dffd05086"
+  },
+  "artifactManifestSha256": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9",
+  "sourceHash": "2723fbf3f7fa97d6312b1fde4c9d9a3d9a17e7d0312d4854be149849aaf6da2c",
+  "entry": "assets/mf-entry-bootstrap-0-a6a54377.js",
+  "results": [
+    {
+      "view": "login",
+      "status": "PASS",
+      "pageErrors": 0,
+      "consoleWarningsOrErrors": 0,
+      "missingResources": 0,
+      "externalRequests": 0,
+      "versionedPublicAssetRequests": 15,
+      "actualFederationEntry": "remoteEntry-eos-8.0.0.js",
+      "uiChecks": {
+        "expertControls": 0,
+        "userTab": 0,
+        "userTabVisible": false,
+        "objectTab": 0,
+        "nativeHero": 0,
+        "legacyHero": 0
+      },
+      "rawEvidence": "browser-login-result.json",
+      "screenshot": "admin8-login-preview.png",
+      "screenshotSha256": "389b4909dbad2df027db9d06035c4a89651635ec115454e003c4b1d5e904f04c"
+    },
+    {
+      "view": "overview",
+      "status": "PASS",
+      "pageErrors": 0,
+      "consoleWarningsOrErrors": 0,
+      "missingResources": 0,
+      "externalRequests": 0,
+      "versionedPublicAssetRequests": 15,
+      "actualFederationEntry": "remoteEntry-eos-8.0.0.js",
+      "uiChecks": {
+        "expertControls": 1,
+        "userTab": 1,
+        "userTabVisible": true,
+        "objectTab": 1,
+        "nativeHero": 1,
+        "legacyHero": 0
+      },
+      "emsReadsDuringSettled1200ms": 1,
+      "rawEvidence": "browser-overview-result.json",
+      "screenshot": "admin8-overview-preview.png",
+      "screenshotSha256": "1383af0421f375ce4ba8bdfe31811f301cc51b8c6bedcab9d99134109be9f020"
+    },
+    {
+      "view": "enduser",
+      "status": "PASS",
+      "pageErrors": 0,
+      "consoleWarningsOrErrors": 0,
+      "missingResources": 0,
+      "externalRequests": 0,
+      "versionedPublicAssetRequests": 15,
+      "actualFederationEntry": "remoteEntry-eos-8.0.0.js",
+      "uiChecks": {
+        "expertControls": 0,
+        "userTab": 1,
+        "userTabVisible": false,
+        "objectTab": 1,
+        "nativeHero": 1,
+        "legacyHero": 0
+      },
+      "emsReadsDuringSettled1200ms": 0,
+      "rawEvidence": "browser-enduser-result.json",
+      "screenshot": "admin8-enduser-preview.png",
+      "screenshotSha256": "a2f68522637ec0c85d146c207f398f93aecd0bea881300d1e7987e7c86f30a10"
+    }
+  ]
+}

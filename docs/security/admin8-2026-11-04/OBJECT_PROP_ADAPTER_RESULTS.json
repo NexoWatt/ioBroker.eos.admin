@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "timeUtc": "2026-11-04T21:28:22.279545+00:00",
+  "node": "24.22.1",
+  "sourceSha256": {
+    "src-admin/src/tabs/Objects.tsx": "10cfe84b436e874ce542a89c093a113aa4dca53c9cfb95f7ba90e9d2bb41aefd",
+    "src-admin/src/components/Object/ObjectViewFileDialog.tsx": "173a161e4c3fa0a86b4e3831c75a8dc130348e324de3b9e6849c8ce8e62c203f",
+    "src-admin/src/components/Object/ObjectAliasEditor.tsx": "21fc5c59fa6902b83fe636f36ee95ada2b02fabf73bb587d641f15f9204c77f6",
+    "docs/security/admin8-2026-11-04/OBJECT_PROP_ADAPTERS.md": "cd7922da0d86dfc97fc1980d60559c1e400c50c41120cfb91a40c3646a9f8a1b"
+  },
+  "runs": [
+    {
+      "command": "npm run check-ts (cwd src-admin)",
+      "exitCode": 0,
+      "log": "object-props-ts-final.log",
+      "logSha256": "59cc4d36407de18893c287281935073b7d741be5c1b5dad11d256aad23f5bce1"
+    },
+    {
+      "command": "../node_modules/.bin/eslint -c eslint.config.mjs src/tabs/Objects.tsx src/components/Object/ObjectViewFileDialog.tsx src/components/Object/ObjectAliasEditor.tsx (cwd src-admin)",
+      "exitCode": 0,
+      "log": "object-props-lint.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "node tools/nexowatt-admin8-objectbrowser-selftest.mjs",
+      "exitCode": 0,
+      "log": "object-props-regression.log",
+      "logSha256": "26e3f4b230bc54eb9043a9fa40606e810c27da58042c59a57c152ed28dc1a3af"
+    }
+  ],
+  "assertions": 55,
+  "frontendRebuild": "required and delegated to frontend owner after this source freeze",
+  "scope": "Typed GUI extension contracts plus existing ObjectBrowser source/behavior fixture regression; no new hardware assertion"
+}

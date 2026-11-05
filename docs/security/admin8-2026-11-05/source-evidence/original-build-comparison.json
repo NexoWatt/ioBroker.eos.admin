@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "ae303bdabc73c2588b1194d2f0c4951ac0d8b00e",
+  "node": "v24.22.1",
+  "npm": "11.9.0",
+  "lockUnchanged": true,
+  "expectedFiles": 26,
+  "rebuiltFiles": 26,
+  "byteIdentical": true,
+  "sameNameHashDifferences": [],
+  "expectedOnly": [],
+  "rebuiltOnly": []
+}

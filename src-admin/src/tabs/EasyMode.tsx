@@ -11,7 +11,7 @@ import {
     type ThemeType,
     type ThemeName,
     type Translate,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import Config from './Config';
 import EasyModeCard from '../components/EasyModeCard';
@@ -138,7 +138,7 @@ class EasyMode extends Component<EasyModeProps, EasyModeState> {
     constructor(props: EasyModeProps) {
         super(props);
         this.state = {
-            configs: this.props.configs,
+            configs: this.props.configs || [],
             strictMode: !this.props.configs,
         };
     }
@@ -189,7 +189,7 @@ class EasyMode extends Component<EasyModeProps, EasyModeState> {
                                 onClick={
                                     (strictMode && !getLocation().dialog) || currentInstance?.tab
                                         ? () => navigate(currentInstance?.tab ? 'easy' : 'tab-intro')
-                                        : null
+                                        : undefined
                                 }
                                 style={{
                                     ...styles.img,
@@ -215,7 +215,7 @@ class EasyMode extends Component<EasyModeProps, EasyModeState> {
                             <ToggleThemeMenu
                                 t={t}
                                 toggleTheme={toggleTheme}
-                                themeName={themeName as 'dark' | 'blue' | 'colored' | 'light'}
+                                themeName={themeName}
                                 size="large"
                             />
                         </div>

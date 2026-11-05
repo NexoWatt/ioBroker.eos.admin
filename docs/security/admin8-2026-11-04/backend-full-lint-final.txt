@@ -1,0 +1,5 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 lint-backend
+> eslint -c eslint.config.mjs src
+

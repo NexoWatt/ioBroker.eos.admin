@@ -1,0 +1,46 @@
+
+> nexowatt-local-audit-do-not-publish@0.0.0 prepublishOnly
+> node marker.cjs
+
+
+> nexowatt-local-audit-do-not-publish@0.0.0 prepack
+> node marker.cjs
+
+
+> nexowatt-local-audit-do-not-publish@0.0.0 prepare
+> node marker.cjs
+
+
+> nexowatt-local-audit-do-not-publish@0.0.0 postpack
+> node marker.cjs
+
+
+> nexowatt-local-audit-do-not-publish@0.0.0 publish
+> node marker.cjs
+
+
+> nexowatt-local-audit-do-not-publish@0.0.0 postpublish
+> node marker.cjs
+
++ nexowatt-local-audit-do-not-publish@0.0.0
+
+npm notice
+npm notice 📦  nexowatt-local-audit-do-not-publish@0.0.0
+npm notice Tarball Contents
+npm notice 31B events.txt
+npm notice 0B global.npmrc
+npm notice 89B marker.cjs
+npm notice 398B package.json
+npm notice 0B user.npmrc
+npm notice Tarball Details
+npm notice name: nexowatt-local-audit-do-not-publish
+npm notice version: 0.0.0
+npm notice filename: nexowatt-local-audit-do-not-publish-0.0.0.tgz
+npm notice package size: 441 B
+npm notice unpacked size: 518 B
+npm notice shasum: d4f87232d9b409f8be04d9a4c41a95046be0ca03
+npm notice integrity: sha512-Ml8hlBi+cxDsI[...]EJ/9Ybm6YKMHw==
+npm notice total files: 5
+npm notice
+npm warn This command requires you to be logged in to http://127.0.0.1:9/ (dry-run)
+npm notice Publishing to http://127.0.0.1:9/ with tag latest and default access (dry-run)

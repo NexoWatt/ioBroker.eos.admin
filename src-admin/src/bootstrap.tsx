@@ -1,11 +1,6 @@
 import 'ace-builds/src-noconflict/ace';
 import '@emotion/react';
 import '@emotion/styled';
-import '@iobroker/adapter-react-v5';
-import '@iobroker/json-config';
-import '@iobroker/dm-gui-components';
-import 'date-fns';
-import 'date-fns/locale';
 import 'leaflet';
 import 'leaflet-geosearch';
 import 'react-ace';
@@ -14,10 +9,16 @@ import 'semver';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/browser';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+
+import '@iobroker/gui-components';
+import '@iobroker/json-config';
+import '@iobroker/dm-gui-components';
 
 import './index.css';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { LocalizationProvider } from '@mui/x-date-pickers';
+
+import { registerLazyShared } from './helpers/lazyShared';
 
 import version from './version.json';
 import { ContextWrapperProvider } from './components/ContextWrapper';
@@ -25,11 +26,13 @@ import App from './App';
 
 declare global {
     interface Window {
-        adapterName: string;
+        adapterName: string | undefined;
         disableDataReporting: boolean | string;
         USE_OAUTH2: boolean;
     }
 }
+
+registerLazyShared();
 
 window.adapterName = 'eos-admin';
 window.USE_OAUTH2 = true;
@@ -73,14 +76,15 @@ if (
         integrations: [Sentry.dedupeIntegration()],
         beforeSend(event: Sentry.ErrorEvent) {
             const text = event?.exception?.values?.map(e => e.value).join(' ');
+            const message = event?.message;
             // Modify the event here
             if (text && versionChanged.find(error => text.includes(error))) {
                 window.location.reload();
             } else if (text && ignoreErrors.find(error => text.includes(error))) {
                 return null;
-            } else if (event?.message && versionChanged.find(error => event.message.includes(error))) {
+            } else if (message && versionChanged.find(error => message.includes(error))) {
                 window.location.reload();
-            } else if (event?.message && ignoreErrors.find(error => event.message.includes(error))) {
+            } else if (message && ignoreErrors.find(error => message.includes(error))) {
                 return null;
             }
             return event;
@@ -91,7 +95,7 @@ if (
         if (!error && event) {
             error = event as unknown as Error;
         }
-        const errText = error.toString();
+        const errText = error?.toString();
         if (typeof error === 'object' && errText && versionChanged.find(e => errText.includes(e))) {
             const message = error.message;
             const stack = error.stack;
@@ -108,7 +112,7 @@ if (
             }
             throw new Error(error);
         }
-        throw error;
+        throw error instanceof Error ? error : new Error(String(error));
     };
     window.onunhandledrejection = (event: PromiseRejectionEvent) => {
         const errText = event.reason?.toString() ?? String(event.reason);

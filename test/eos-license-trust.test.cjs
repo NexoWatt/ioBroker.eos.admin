@@ -42,9 +42,13 @@ function fixture(options = {}) {
     const module = { exports: {} };
     const sourcePath = path.resolve(__dirname, '../src/lib/eosLicenseService.js');
     const realRequire = require('node:module').createRequire(sourcePath);
+    // The fixture models a POSIX trust store even when npm checks run on Windows.
+    // Keep the mocked platform and its path semantics consistent. The actual
+    // sourcePath above still uses the host path API to load the production code.
+    const pathApi = options.pathApi || path.posix;
     const context = { module, exports: module.exports, Buffer, JSON, setTimeout, clearTimeout, setInterval, clearInterval,
         process: { platform: options.platform || 'linux' },
-        require: name => name === 'node:fs/promises' ? filesystem : realRequire(name) };
+        require: name => name === 'node:fs/promises' ? filesystem : name === 'node:path' ? pathApi : realRequire(name) };
     vm.runInNewContext(fs.readFileSync(sourcePath, 'utf8'), context, { filename: sourcePath });
     return { read: module.exports.readTrustFile, visited, closed: () => closed, opened: () => opened };
 }
@@ -94,7 +98,7 @@ test('read remains bounded after growth and rejects malformed contents with clos
 });
 
 test('Windows and noncanonical paths require explicit supported provisioning', async () => {
-    await assert.rejects(fixture({ platform: 'win32' }).read(filename), { code: 'TRUST_PLATFORM_UNSUPPORTED' });
+    await assert.rejects(fixture({ platform: 'win32', pathApi: path.win32 }).read('C:\\nexowatt\\license-trust.json'), { code: 'TRUST_PLATFORM_UNSUPPORTED' });
     for (const name of [null, '', 'relative.json', '/etc/../etc/nexowatt/license-trust.json', '/etc/\0trust.json']) {
         await assert.rejects(fixture().read(name), { code: 'TRUST_PATH' });
     }

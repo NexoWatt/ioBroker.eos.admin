@@ -1,0 +1,49 @@
+{
+  "inputArchive": "NexoWatt_EOS_Admin_7.10.12_NPM_FIX_FULL_REPOSITORY.zip",
+  "inputArchiveSha256": "121b45fb5d360cce735116420a544439d2be87d06c401d9e2b0c880c123102ce",
+  "productCodeUnchanged": true,
+  "READMEEqualsLICENSE": true,
+  "changed": [
+    {
+      "path": "NPM_PUBLISH_FIX_7.10.12.md",
+      "status": "changed"
+    },
+    {
+      "path": "START_HERE_7.10.12.md",
+      "status": "changed"
+    },
+    {
+      "path": "package-lock.json",
+      "status": "changed"
+    },
+    {
+      "path": "package.json",
+      "status": "changed"
+    },
+    {
+      "path": "reports/security/PUBLISH_REPAIR_2026-10-25.md",
+      "status": "changed"
+    },
+    {
+      "path": "test/eos-direct-publish.test.cjs",
+      "status": "added"
+    },
+    {
+      "path": "test/eos-release-admission.test.cjs",
+      "status": "changed"
+    },
+    {
+      "path": "tools/nexowatt-prebuilt-release-selftest.cjs",
+      "status": "changed"
+    },
+    {
+      "path": "tools/nexowatt-repair-lock-metadata.cjs",
+      "status": "changed"
+    },
+    {
+      "path": "tools/nexowatt-validate-package.cjs",
+      "status": "changed"
+    }
+  ],
+  "deleted": []
+}

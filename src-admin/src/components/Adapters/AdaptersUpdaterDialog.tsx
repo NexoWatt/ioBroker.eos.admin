@@ -6,7 +6,7 @@ import {
     DialogTitle,
     Button,
     Dialog,
-    Grid2,
+    Grid,
     FormControlLabel,
     Toolbar,
     IconButton,
@@ -21,7 +21,7 @@ import {
     Language as LanguageIcon,
 } from '@mui/icons-material';
 
-import { type AdminConnection, I18n, Utils, type IobTheme, type Translate } from '@iobroker/adapter-react-v5';
+import { type AdminConnection, I18n, Utils, type IobTheme, type Translate } from '@iobroker/gui-components';
 
 import type { AdapterRatingInfo, InstalledInfo } from './AdapterInstallDialog';
 import type { RepoAdapterObject } from './Utils';
@@ -44,16 +44,31 @@ const styles: Record<string, any> = {
         position: 'sticky',
         bottom: -10,
         pl: 1,
-        background: theme.name === 'blue' ? '#5d6467' : theme.name === 'dark' ? '#5b5b5b' : '#FFF',
+        pr: 1,
+        // same radius as the log paper next to it, so the sticky bar does not read as a square patch
+        borderRadius: `${theme.shape.borderRadius}px`,
+        // from the palette instead of per theme name: the old list knew only 'blue' and 'dark',
+        // so every newer theme got the white value
+        background: theme.palette.background.paper,
     }),
     container: {
         overflow: 'hidden',
-        height: 'calc(100% - 48px)',
+        // takes what the toolbar leaves: a fixed 48px did not match the real toolbar height and the padding,
+        // so the content scrolled as well, next to the list
+        flex: '1 1 auto',
+        minHeight: 0,
+        flexWrap: 'nowrap',
         '@media screen and (max-width: 602px)': {
-            height: 'auto',
+            flex: 'none',
+            flexWrap: 'wrap',
         },
     },
     content: {
+        display: 'flex',
+        flexDirection: 'column',
+        '& > .MuiToolbar-root': {
+            flexShrink: 0,
+        },
         '@media screen and (max-width: 500px)': {
             p: 1,
         },
@@ -100,9 +115,9 @@ interface AdaptersUpdaterDialogState {
 class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, AdaptersUpdaterDialogState> {
     updateAvailable: string[] = [];
 
-    onAdapterFinished: () => void;
+    onAdapterFinished: (() => void) | null = null;
 
-    processList: { adapter: string; version: string }[];
+    processList: { adapter: string; version: string }[] = [];
 
     constructor(props: AdaptersUpdaterDialogProps) {
         super(props);
@@ -171,7 +186,7 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                 cb();
             }
         } else {
-            const { adapter, version } = this.processList.shift();
+            const { adapter, version } = this.processList.shift() as { adapter: string; version: string };
 
             this.updateAdapter(adapter, version, () => {
                 const updated = [...this.state.updated];
@@ -228,7 +243,7 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                             <IconButton
                                 size="large"
                                 style={{ ...styles.languageButton, ...languageButtonActive }}
-                                onClick={() => this.props.toggleTranslation()}
+                                onClick={() => this.props.toggleTranslation?.()}
                                 title={I18n.t('Disable/Enable translation')}
                             >
                                 <LanguageIcon />
@@ -236,16 +251,13 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                         ) : null}
                     </div>
                 </DialogTitle>
-                <DialogContent
-                    sx={{ '&.MuiDialogContent-root': styles.content }}
-                    style={{ height: '100%' }}
-                >
-                    <Grid2
+                <DialogContent sx={{ '&.MuiDialogContent-root': styles.content }}>
+                    <Grid
                         container
                         direction="row"
                         sx={styles.container}
                     >
-                        <Grid2 style={{ height: '100%', overflow: 'hidden', width: this.state.current ? 250 : '100%' }}>
+                        <Grid style={{ height: '100%', overflow: 'hidden', width: this.state.current ? 250 : '100%' }}>
                             <div style={{ height: '100%', overflow: 'auto' }}>
                                 <AdaptersUpdater
                                     finished={this.state.finished}
@@ -257,9 +269,9 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                                     lang={this.props.lang}
                                     installed={this.props.installed}
                                     repository={this.props.repository}
-                                    noTranslation={this.props.noTranslation}
-                                    toggleTranslation={this.props.toggleTranslation}
-                                    onUpdateSelected={(selected: string[], updateAvailable: string[]) => {
+                                    noTranslation={!!this.props.noTranslation}
+                                    toggleTranslation={this.props.toggleTranslation || (() => {})}
+                                    onUpdateSelected={(selected: string[], updateAvailable?: string[]) => {
                                         if (updateAvailable) {
                                             this.updateAvailable = updateAvailable;
                                         }
@@ -269,9 +281,9 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                                     rightDependenciesFunc={this.props.rightDependenciesFunc}
                                 />
                             </div>
-                        </Grid2>
+                        </Grid>
                         {!!this.state.current && (
-                            <Grid2
+                            <Grid
                                 style={{
                                     height: '100%',
                                     overflow: 'hidden',
@@ -287,20 +299,20 @@ class AdaptersUpdaterDialog extends Component<AdaptersUpdaterDialogProps, Adapte
                                     socket={this.props.socket}
                                     t={this.props.t}
                                     cmd={`upgrade ${this.state.current}@${this.state.currentVersion}${this.state.debug ? ' --debug' : ''}`}
-                                    onFinished={() => this.onAdapterFinished()}
+                                    onFinished={() => this.onAdapterFinished?.()}
                                     errorFunc={() => {
                                         if (this.state.stopOnError) {
                                             this.setState({ stopped: true, finished: true });
                                             this.onAdapterFinished = null;
                                             this.props.onSetCommandRunning(false);
                                         } else {
-                                            this.onAdapterFinished();
+                                            this.onAdapterFinished?.();
                                         }
                                     }}
                                 />
-                            </Grid2>
+                            </Grid>
                         )}
-                    </Grid2>
+                    </Grid>
                     <Toolbar
                         variant="dense"
                         disableGutters

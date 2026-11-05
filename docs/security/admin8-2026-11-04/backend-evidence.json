@@ -1,0 +1,135 @@
+{
+  "utc": "2026-11-04T21:26:20.404050+00:00",
+  "environment": {
+    "node": "v24.22.1",
+    "os": "Linux 6.18.57 x86_64"
+  },
+  "upstream": {
+    "tag": "v8.3.5",
+    "commit": "6f77eedf525813a7a61d79188d1ff05dffd05086",
+    "mergeBaseTag": "v7.9.2",
+    "mergeBaseCommit": "d5b9a4d11ed79cece0f097e0225a8aad72b68e6d",
+    "eosBaseline": "7.10.12"
+  },
+  "commands": [
+    {
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--ignoreConfig",
+        "--noEmit",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--noImplicitOverride",
+        "--noImplicitReturns",
+        "--noFallthroughCasesInSwitch",
+        "--useUnknownInCatchVariables",
+        "--skipLibCheck",
+        "--target",
+        "ES2022",
+        "--module",
+        "Node16",
+        "--moduleResolution",
+        "Node16",
+        "--types",
+        "node",
+        "src/lib/eosUiSessionRegistry.ts"
+      ],
+      "exit": 0,
+      "log": "backend-registry-strict.txt"
+    },
+    {
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--pretty",
+        "false",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "log": "backend-typecheck.txt"
+    },
+    {
+      "command": [
+        "./node_modules/.bin/eslint",
+        "src/main.ts",
+        "src/types.d.ts",
+        "src/lib/logSearch.ts",
+        "src/lib/eosUiSessionRegistry.ts",
+        "src/lib/objectFixes.ts",
+        "src/lib/utils.ts",
+        "src/lib/eosFileTransferSecurity.js",
+        "src/lib/eosHttpsClient.js",
+        "src/lib/eosLicenseCore.js",
+        "src/lib/eosLicenseHttp.js",
+        "src/lib/eosLicenseService.js",
+        "src/lib/eosRequestSecurity.ts",
+        "src/lib/eosSessionSecurity.js",
+        "src/lib/eosUploadGuard.js",
+        "src/lib/eosWebResources.js"
+      ],
+      "exit": 0,
+      "log": "backend-eslint.txt"
+    },
+    {
+      "command": [
+        "node",
+        "tools/nexowatt-security-boundaries-selftest.cjs"
+      ],
+      "exit": 0,
+      "log": "backend-security-boundaries.txt"
+    }
+  ],
+  "regression": {
+    "command": "node --test test/eos-*.test.cjs",
+    "tests": 195,
+    "pass": 195,
+    "fail": 0,
+    "skipped": 0,
+    "log": "backend-eos-regressions.tap"
+  },
+  "boundaries": {
+    "command": "node tools/nexowatt-security-boundaries-selftest.cjs",
+    "tests": 40,
+    "pass": 40,
+    "log": "backend-security-boundaries.txt"
+  },
+  "sha256": {
+    "build/lib/eosFileTransferSecurity.js": "7887f4e86f8ea978d95c495c3992b2e8e694b7d4b286d2389ddc28369cf42dfd",
+    "build/lib/eosHttpsClient.js": "124480ca629619b7828b80fa6829be479034915fbaafd6cf760231847a66d595",
+    "build/lib/eosLicenseCore.js": "57ccef3215a9101b8a921e79f0ebba7e8f1e1e139f15d136bf8697a5db61d453",
+    "build/lib/eosLicenseHttp.js": "a1ba50c022264b265a09dbe1de8dd7849fe3f3ff9f89c24beefaed57ab9a3401",
+    "build/lib/eosLicenseService.js": "3a2e803b460ab69654ce6915f458703a4fe1dfa639f185492c48b7d9ec319c9f",
+    "build/lib/eosRequestSecurity.js": "61379481719e496a88a131f6baf42e89205b5b50f83eceaa665e80216c6125b4",
+    "build/lib/eosSessionSecurity.js": "a20576c7d7321527737e43322a6d8c8a77231727e2d018d97d447a025f65c567",
+    "build/lib/eosUiSessionRegistry.js": "3e39d78971eebde62e5f4668924d9d8f91cbbe03d3b1d3db6ccc796246200a97",
+    "build/lib/eosUploadGuard.js": "8607867d8b1f3e5f1d288a3d64ff493b7b4333eb60d3527732bc2e3f0ccfe9b0",
+    "build/lib/eosWebResources.js": "06dd664dc5ad96d29da3ff2fe1203fe28ddc39ff09fb4bc73863cd0b5ae08c46",
+    "build/lib/logSearch.js": "61f09ca55217abd7c72b71242c99488603dfdc323217b46d8271ba12375bddfe",
+    "build/lib/objectFixes.js": "40b4aa80ed5a9b96f41d390c4057c8ddb9d849f76def67e5bf56f6b7c24177e2",
+    "build/lib/utils.js": "bb9b49a162279462a3321677aa0ed1a38d528596c199ac1774a5ca56aaffc167",
+    "build/main.js": "17a44ba38b1d81c3e5b83e8ffe7f77155a77aef2720907856765b1844a6d26cb",
+    "src/lib/eosFileTransferSecurity.js": "52dff2da7943472645ed3e5732a2e89986f294460bed6ca145160dbb64782ade",
+    "src/lib/eosHttpsClient.js": "8141f06014ed4379bc211b63a6c8936ce0899cb227e1119d4af2f0be824e1888",
+    "src/lib/eosLicenseCore.js": "02ad7332677733896ad8309c79771ae8f807642a0610d14af26c941ffdde9915",
+    "src/lib/eosLicenseHttp.js": "690aeeb67fcc34482d7c412ebd12b079ac3efcee45be2708e0120f378aabc0a8",
+    "src/lib/eosLicenseService.js": "5315a3c96fb1d17df13bd703f86d52019a0b46c874b3ce76a2300589a99d41f4",
+    "src/lib/eosRequestSecurity.ts": "26a9ff395d7388ca77c09096dfc40cf0f847b328af2df037af56f7a1fbdb404b",
+    "src/lib/eosSessionSecurity.js": "c408afc041cbe055dcacdd3aa16f65cac539ad0a9c830ee2204eed6f07d961bf",
+    "src/lib/eosUiSessionRegistry.ts": "af26139cac8772c9a8d55b3ade15bbc1fec2b723fafda0e175a6f9e530657bd0",
+    "src/lib/eosUploadGuard.js": "eaaf325ba8ed78128bb12eefc7539e875c4ce49e29c926852059dde919bcd48d",
+    "src/lib/eosWebResources.js": "5548a1e0bc4e6e656a0506997babd309ca2501d780f92499885d03a9add2bef3",
+    "src/lib/logSearch.ts": "047737211d7d45e2042a9dbf5cb8a31ddb09e657dc61b1db0c1052f44cec47cb",
+    "src/lib/objectFixes.ts": "6048e4b8b8232c11a38d372a30448a0f91726549491be25ed4c0796b57620d0d",
+    "src/lib/utils.ts": "b68937ae7c4bcc1b73a4b05d943f9bf7d691ba819a71b62f5cef43c4419b3231",
+    "src/main.ts": "c0b42bde41b4f4152da6e6e69bdde113c98853608586f4b0e718502ac90a51cb",
+    "src/types.d.ts": "6b2bbba5c735314ca67342c5237c8aec50dd4a658f684d188be59251cecb38ee",
+    "test/eos-admin8-backend.test.cjs": "e907ea79c793e4c6fb91b50061fff9f92ace2ecfc5bda88c5a1524d0d714583e",
+    "test/eos-news-security.test.cjs": "8ab5d1aa98b27af4336d9e21b866e55d745165c16c2f0aece0ea0f26906aaf32"
+  },
+  "removedOSHelpers": {
+    "src/lib/checkLinuxPass.ts": true,
+    "src/lib/testPassword.ts": true,
+    "build/lib/checkLinuxPass.js": true,
+    "build/lib/testPassword.js": true
+  }
+}

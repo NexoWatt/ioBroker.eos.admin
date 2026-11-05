@@ -5,9 +5,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Fab } f
 // Icons
 import { Close as CloseIcon, PlayArrow as PlayIcon, GetApp as DownloadIcon } from '@mui/icons-material';
 
-import { type IobTheme, type Translate, type AdminConnection, Utils } from '@iobroker/adapter-react-v5';
-
-import type { ioBrokerObject } from '@/types';
+import { type IobTheme, type Translate, type AdminConnection, Utils } from '@iobroker/gui-components';
 
 const styles: Record<string, any> = {
     dialog: {
@@ -44,7 +42,7 @@ const styles: Record<string, any> = {
 interface ObjectViewFileDialogProps {
     t: Translate;
     socket: AdminConnection;
-    obj: ioBrokerObject;
+    obj: Pick<ioBroker.AnyObject, '_id'>;
     onClose: () => void;
 }
 
@@ -59,7 +57,7 @@ interface ObjectViewFileDialogState {
 }
 
 export default class ObjectViewFileDialog extends Component<ObjectViewFileDialogProps, ObjectViewFileDialogState> {
-    audioRef: React.RefObject<HTMLAudioElement>;
+    audioRef: React.RefObject<HTMLAudioElement | null>;
 
     constructor(props: ObjectViewFileDialogProps) {
         super(props);
@@ -68,7 +66,7 @@ export default class ObjectViewFileDialog extends Component<ObjectViewFileDialog
 
         this.state = {
             error: '',
-            image: null,
+            image: false,
             text: null,
             binary: null,
             fileName: `${parts[parts.length - 2]}.${parts[parts.length - 1]}`,
@@ -80,7 +78,8 @@ export default class ObjectViewFileDialog extends Component<ObjectViewFileDialog
     componentDidMount(): void {
         this.props.socket
             .getBinaryState(this.props.obj._id)
-            .then((data: string) => {
+            .then(data => {
+                data = data || '';
                 let ext = this.props.obj._id.toLowerCase().split('.').pop();
 
                 const detectedMimeType = Utils.detectMimeType(data);

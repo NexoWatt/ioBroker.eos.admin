@@ -1,0 +1,19 @@
+{
+  "utc": "2026-10-25T15:48:59.373023+00:00",
+  "command": [
+    "node",
+    "tools/nexowatt-repair-lock-metadata.cjs",
+    "--write"
+  ],
+  "exit": 1,
+  "seconds": 0.113,
+  "before": {
+    "package-lock.json": "0bd3d6e877aa66974c4dc18ab0f5f1aece1e9272c75a092af12f5aa4a8f83a9b",
+    "src-admin/package-lock.json": "180c6cfa9ea971348985cf64aebdd6c1e9100cb7bf807bdee9a7ee7a0588cdc2"
+  },
+  "after": {
+    "package-lock.json": "0bd3d6e877aa66974c4dc18ab0f5f1aece1e9272c75a092af12f5aa4a8f83a9b",
+    "src-admin/package-lock.json": "180c6cfa9ea971348985cf64aebdd6c1e9100cb7bf807bdee9a7ee7a0588cdc2"
+  },
+  "limits": "Real network request from this environment; not a successful registry repair"
+}

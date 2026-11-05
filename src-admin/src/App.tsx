@@ -1,4 +1,4 @@
-import React, { type RefObject, Suspense, type JSX } from 'react';
+import React, { Suspense, type JSX } from 'react';
 import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -11,6 +11,7 @@ import {
     Badge,
     Box,
     Button,
+    CssBaseline,
     Checkbox,
     CircularProgress,
     Dialog,
@@ -19,13 +20,14 @@ import {
     DialogContentText,
     DialogTitle,
     FormControlLabel,
-    Grid2 as Grid,
+    Grid,
     IconButton,
     ListItemIcon,
     ListItemText,
     Menu,
     MenuItem,
     Paper,
+    Alert,
     Snackbar,
     Toolbar,
     Tooltip,
@@ -35,11 +37,9 @@ import {
 // @mui/icons-material
 import {
     Menu as MenuIcon,
-    Build as BuildIcon,
     Update as UpdateIcon,
     Visibility as VisibilityIcon,
     PictureInPictureAlt as PictureInPictureAltIcon,
-    Person as UserIcon,
     CloudSync as SyncIcon,
     SyncDisabled as SyncIconDisabled,
     Close as CancelIcon,
@@ -51,6 +51,7 @@ import {
     AdminConnection as Connection,
     type FilteredNotificationInformation,
     type HostInfo,
+    type OAuth2Response,
     PROGRESS,
 } from '@iobroker/socket-client';
 
@@ -59,10 +60,10 @@ import {
     I18n,
     Router,
     DialogConfirm,
-    Icon,
     withWidth,
     Theme,
     IconExpert,
+    ScrollbarStyles,
     ToggleThemeMenu,
     type IobTheme,
     type ThemeName,
@@ -70,7 +71,7 @@ import {
     type ThemeType,
     Utils,
     dictionary,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import NotificationsDialog from '@/dialogs/NotificationsDialog';
 import type { AdminGuiConfig, CommandFile, CompactAdapterInfo, CompactHost, NotificationsCount } from '@/types';
@@ -100,9 +101,13 @@ import { HostsWorker, type HostEvent, type NotificationAnswer } from './Workers/
 import { AdaptersWorker, type AdapterEvent } from './Workers/AdaptersWorker';
 import { ObjectsWorker } from './Workers/ObjectsWorker';
 import DiscoveryDialog from './dialogs/DiscoveryDialog';
+import type { DiscoveryObject } from './dialogs/GenerateInputsModal';
+import { countUnhandledProposals } from './helpers/discovery';
 import SlowConnectionWarningDialog, { SlowConnectionWarningDialogClass } from './dialogs/SlowConnectionWarningDialog';
+import TipsDialog from './dialogs/TipsDialog';
 import IsVisible from './components/IsVisible';
 import type { CompactInstanceInfo } from './components/Adapters/AdapterUpdateDialog';
+import { adminHref } from './helpers/utils';
 
 import enLocal from './i18n/en.json';
 import deLocal from './i18n/de.json';
@@ -115,20 +120,43 @@ import esLocal from './i18n/es.json';
 import plLocal from './i18n/pl.json';
 import ukLocal from './i18n/uk.json';
 import zhCNLocal from './i18n/zh-cn.json';
+import { isChunkLoadError, lazyWithReload, onPreloadError } from './helpers/lazyWithReload';
 
 // Tabs
-const Adapters = React.lazy(() => import('./tabs/Adapters'));
-const Instances = React.lazy(() => import('./tabs/Instances'));
-const Intro = React.lazy(() => import('./tabs/Intro'));
-const Logs = React.lazy(() => import('./tabs/Logs'));
-const Files = React.lazy(() => import('./tabs/Files'));
-const Objects = React.lazy(() => import('./tabs/Objects'));
-const Users = React.lazy(() => import('./tabs/Users'));
-const Enums = React.lazy(() => import('./tabs/Enums'));
-const CustomTab = React.lazy(() => import('./tabs/CustomTab'));
-const DeviceManagerTab = React.lazy(() => import('./tabs/DeviceManager'));
-const Hosts = React.lazy(() => import('./tabs/Hosts'));
-const EasyMode = React.lazy(() => import('./tabs/EasyMode'));
+/**
+ * Tabs that get `menuButtonSpace` handed over and keep the upper left corner free themselves.
+ * Every other tab - above all the custom tabs of the adapters - gets a strip above its content.
+ */
+const TABS_WITH_OWN_TOOLBAR = ['tab-overview', 'tab-adapters', 'tab-instances', 'tab-logs'];
+
+/** Tabs that admin implements itself (see `getCurrentTab` and `App.isAdminTab`) */
+const ADMIN_OWN_TABS = [
+    'tab-overview',
+    'tab-intro',
+    'tab-adapters',
+    'tab-instances',
+    'tab-objects',
+    'tab-enums',
+    'tab-logs',
+    'tab-users',
+    'tab-hosts',
+    'tab-files',
+    'tab-devicemanager',
+];
+
+const Overview = lazyWithReload(() => import('./tabs/Overview'));
+const Adapters = lazyWithReload(() => import('./tabs/Adapters'));
+const Instances = lazyWithReload(() => import('./tabs/Instances'));
+const Intro = lazyWithReload(() => import('./tabs/Intro'));
+const Logs = lazyWithReload(() => import('./tabs/Logs'));
+const Files = lazyWithReload(() => import('./tabs/Files'));
+const Objects = lazyWithReload(() => import('./tabs/Objects'));
+const Users = lazyWithReload(() => import('./tabs/Users'));
+const Enums = lazyWithReload(() => import('./tabs/Enums'));
+const CustomTab = lazyWithReload(() => import('./tabs/CustomTab'));
+const DeviceManagerTab = lazyWithReload(() => import('./tabs/ConfigManager'));
+const Hosts = lazyWithReload(() => import('./tabs/Hosts'));
+const EasyMode = lazyWithReload(() => import('./tabs/EasyMode'));
 
 declare global {
     interface Window {
@@ -211,6 +239,8 @@ const styles: Record<string, any> = {
     content: (theme: IobTheme) => ({
         flexGrow: 1,
         padding: 1,
+        // the tabs bring their own spacing at the top - a second one only wastes height
+        paddingTop: 0,
         transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -259,13 +289,6 @@ const styles: Record<string, any> = {
     baseSettingsButton: {
         color: 'red',
     },
-    alert_info: {},
-    alert_error: {
-        backgroundColor: '#f44336',
-    },
-    alert_success: {
-        backgroundColor: '#4caf50',
-    },
     avatarNotVisible: {
         opacity: 0,
         marginLeft: 5,
@@ -297,33 +320,31 @@ const styles: Record<string, any> = {
     flexGrow: {
         flexGrow: 2,
     },
-    userBadge: {
-        lineHeight: '48px',
-        display: 'inline-block',
+    floatingButtons: {
+        position: 'fixed',
+        top: 4,
+        left: 4,
+        zIndex: 1200,
+        display: 'flex',
+        gap: 0.5,
     },
-    userIcon: {
-        borderRadius: 4,
-        width: 44,
-        height: 44,
-        verticalAlign: 'middle',
-        marginLeft: 10,
-        marginRight: 10,
+    /**
+     * Without an app bar the content starts at the very top - the three breakpoints of
+     *  `mixins.toolbar` in `content` all have to be overridden
+     */
+    contentNoAppBar: {
+        mt: 0,
+        '@media (min-width:0px) and (orientation: landscape)': { mt: 0 },
+        '@media (min-width:600px)': { mt: 0 },
     },
-    userText: {
-        verticalAlign: 'middle',
-        fontSize: 16,
-        maxWidth: 250,
-        marginRight: 10,
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        display: 'inline-block',
+    /**
+     * Room for the floating menu button on tabs that cannot make room for it themselves (custom
+     * tabs of adapters, mostly iframes). A strip above the content, not an indent on the left:
+     * indenting would push the whole page aside instead of just the toolbar row.
+     */
+    contentMenuButtonSpace: {
+        pt: '44px',
     },
-    userBackground: (theme: IobTheme) => ({
-        borderRadius: 1,
-        backgroundColor: theme.palette.mode === 'dark' ? '#EEE' : '#222',
-        p: 0.5,
-    }),
     styleVersion: {
         fontSize: 10,
     },
@@ -362,6 +383,61 @@ interface ObjectGuiSettings extends ioBroker.StateObject {
         sessionStorage: Record<string, any>;
         'App.drawerState'?: string;
     };
+}
+
+/** Changes to the stored GUI settings, per storage: the new value, or `null` for a removed entry */
+interface GuiSettingsChanges {
+    localStorage: Record<string, string | null>;
+    sessionStorage: Record<string, string | null>;
+}
+
+/** Brings the settings of an older admin - stored flat in `native` - into the current form */
+function normalizeGuiSettings(obj: ObjectGuiSettings): ObjectGuiSettings {
+    obj.native ||= { localStorage: {}, sessionStorage: {} };
+    if (!obj.native.localStorage) {
+        obj.native = { localStorage: obj.native, sessionStorage: {} };
+    }
+    obj.native.sessionStorage ||= {};
+    return obj;
+}
+
+/**
+ * The writes of the GUI settings run one after another, and neither the read nor the write of the socket client
+ * times out by itself (a lost connection rejects them, a server that does not answer does not) - so a request
+ * without an answer must not hold back every later write
+ */
+const GUI_SETTINGS_TIMEOUT = 10_000;
+
+/** A write that got no answer while the connection is up is tried again after this time */
+const GUI_SETTINGS_RETRY = 5_000;
+
+/** The requests that a lost connection cuts off fail just after it: errors within this time are not shown */
+const CONNECTION_LOSS_GRACE = 5_000;
+
+/** An error is shown after this delay, so one that admin answers just before it shuts down can be recognized as such */
+const ERROR_ALERT_DELAY = 1_000;
+
+function guiSettingsTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    return Promise.race([
+        promise,
+        new Promise<never>((_resolve, reject) => {
+            timer = setTimeout(() => reject(new Error(`${what} got no answer`)), GUI_SETTINGS_TIMEOUT);
+        }),
+    ]).finally(() => clearTimeout(timer));
+}
+
+/** Applies the changes to the stored settings */
+function applyGuiSettingsChanges(native: ObjectGuiSettings['native'], changes: GuiSettingsChanges): void {
+    for (const storage of ['localStorage', 'sessionStorage'] as const) {
+        for (const [name, value] of Object.entries(changes[storage])) {
+            if (value === null) {
+                delete native[storage][name];
+            } else {
+                native[storage][name] = value;
+            }
+        }
+    }
 }
 
 const DEFAULT_GUI_SETTINGS_OBJECT: ObjectGuiSettings = {
@@ -421,7 +497,8 @@ interface AppState {
         id?: string;
         arg?: string;
     };
-    systemConfig: ioBroker.SystemConfigObject;
+    /** Null until the configuration has been read - the app renders before that */
+    systemConfig: ioBroker.SystemConfigObject | null;
     showHostWarning: {
         host: string;
         instances: Record<string, ioBroker.InstanceObject>;
@@ -433,6 +510,8 @@ interface AppState {
         color?: string;
         icon?: string;
         invertBackground: boolean;
+        /** Name of the leading group, shown below the name in the menu */
+        group?: string;
     } | null;
     repository: CompactRepository;
     installed: CompactInstalledInfo;
@@ -455,6 +534,18 @@ interface AppState {
         subTab?: string;
         param?: string;
     } | null;
+    /**
+     * Pending navigation that would take the AI assistant away. Set while the user is asked whether
+     * the assistant may be closed; `null` closes the question.
+     */
+    chatLeaveDialog: {
+        /** The navigation to execute if the user agrees */
+        target: { hash: string } | { tab: string; subTab?: string; param?: string };
+        /** Why the assistant is at stake: a request is still running, or it navigates there itself */
+        reason: 'busy' | 'assistant';
+        /** Reports the decision back to the assistant, so it can tell the user that it stayed */
+        resolve?: (agreed: boolean) => void;
+    } | null;
     baseSettingsOpened: boolean;
     unsavedDataInDialog: boolean;
     systemSettingsOpened: boolean;
@@ -471,6 +562,8 @@ interface AppState {
     wizard: boolean;
     performed: boolean;
     discoveryAlive: boolean;
+    /** Proposals of the last discovery scan that are neither created nor ignored */
+    discoveryProposals: number;
     readTimeoutMs: number;
     showSlowConnectionWarning: boolean;
     versionAdmin: string;
@@ -478,7 +571,7 @@ interface AppState {
     noTranslation: boolean;
     cloudNotConnected: boolean;
     cloudReconnect: number;
-    showRedirect: string;
+    showRedirect: string | undefined;
     redirectCountDown: number;
     triggerAdapterUpdate: number;
     updating: boolean;
@@ -498,28 +591,45 @@ interface AppState {
         checkNews: ShowMessage[];
         lastNewsId: string | undefined;
     } | null;
+    /** The "Did you know ...?" dialog is open */
+    showTips: boolean;
     askForTokenRefresh: { expireAt: number; resolve: (prolong: boolean) => void; doNotAsk: boolean } | null;
-    userMenuAnchor: HTMLElement | null;
 }
 
 class App extends Router<AppProps, AppState> {
     private readonly translations: Record<ioBroker.Languages, Record<string, string>>;
     private _tempAllStored = true;
     private refConfigIframe: HTMLIFrameElement | null = null;
-    private readonly refUser: RefObject<HTMLDivElement>;
-    private readonly refUserDiv: RefObject<HTMLDivElement>;
     private expireInSecInterval: ReturnType<typeof setInterval> | null = null;
     private readonly toggleThemePossible: boolean;
     private adminGuiConfig: AdminGuiConfig;
-    private logsWorker: LogsWorker | null;
-    private instancesWorker: InstancesWorker | null;
-    private hostsWorker: HostsWorker | null;
-    private adaptersWorker: AdaptersWorker | null;
-    private objectsWorker: ObjectsWorker | null;
-    private guiSettings: ObjectGuiSettings;
+    private logsWorker: LogsWorker | null = null;
+    private instancesWorker: InstancesWorker | null = null;
+    private hostsWorker: HostsWorker | null = null;
+    private adaptersWorker: AdaptersWorker | null = null;
+    private objectsWorker: ObjectsWorker | null = null;
+
+    /** The latest read of repository, installed versions and adapters. The start does not wait for it, the news do */
+    private repoInfoPromise: Promise<void> | null = null;
+
+    /** Number of the latest `readRepoAndInstalledInfo` run. A slower, older run must not overwrite a newer one */
+    private repoInfoRun = 0;
+    private guiSettings: ObjectGuiSettings | null = null;
+
+    /**
+     * What this window changed in the stored GUI settings since its last write - `null` removes the entry.
+     * A write applies only these changes to a fresh read of the object. Writing the copy read at the start
+     * threw away everything saved since then: the settings of a second window or device, and any other
+     * change to the object, e.g. a custom setting in `common.custom`
+     */
+    private guiSettingsChanges: GuiSettingsChanges = { localStorage: {}, sessionStorage: {} };
+
+    /** The writes of the GUI settings run one after another, so a slow write cannot overtake a newer one */
+    private guiSettingsWrite: Promise<void> = Promise.resolve();
     private localStorageTimer: ReturnType<typeof setTimeout> | null = null;
-    private languageSet: boolean;
-    private socket: AdminConnection;
+    private guiSettingsRetryTimer: ReturnType<typeof setTimeout> | null = null;
+    private languageSet: boolean = false;
+    private socket: AdminConnection | null = null;
     private adminInstance: string = '';
     private newsInstance: number = 0;
     private doNotAskSessionExpiration: number = 0;
@@ -533,17 +643,40 @@ class App extends Router<AppProps, AppState> {
         started: number;
     } | null = null;
 
+    /** True while the AI assistant waits for an answer. Leaving its tab now would discard the answer */
+    private chatBusy = false;
+
+    /** The hash this app has already navigated to. Used to tell which tab is being left */
+    private lastHash: string = window.location.hash;
+
+    /** The user has agreed to lose the assistant, so the next navigation must not ask again */
+    private chatLeaveConfirmed = false;
+
+    /** When the connection to admin was lost the last time (e.g. by a restart of admin), 0 if never */
+    private connectionLostAt = 0;
+
     constructor(props: AppProps) {
         super(props);
 
         try {
             window.alert = message => {
-                if (message && message.toString().toLowerCase().includes('error')) {
-                    console.error(message);
-                    this.showAlert(message.toString(), 'error');
+                const text = message?.toString() ?? '';
+                const raisedAt = Date.now();
+                if (this.isCausedByConnectionLoss(text, raisedAt)) {
+                    // the overlay already tells that the connection is lost
+                    console.warn(`Not shown, as the connection to admin is lost: ${text}`);
+                } else if (text.toLowerCase().includes('error')) {
+                    console.error(text);
+                    setTimeout(() => {
+                        if (this.isCausedByConnectionLoss(text, raisedAt)) {
+                            console.warn(`Not shown, as the connection to admin is lost: ${text}`);
+                        } else {
+                            this.showAlert(text, 'error');
+                        }
+                    }, ERROR_ALERT_DELAY);
                 } else {
-                    console.log(message);
-                    this.showAlert(message.toString(), 'info');
+                    console.log(text);
+                    this.showAlert(text, 'info');
                 }
             };
         } catch {
@@ -568,20 +701,18 @@ class App extends Router<AppProps, AppState> {
         };
 
         // merge together
-        Object.keys(translations).forEach((lang: ioBroker.Languages) =>
-            Object.assign(this.translations[lang], translations[lang]),
+        Object.keys(translations).forEach(lang =>
+            Object.assign(this.translations[lang as ioBroker.Languages], translations[lang as ioBroker.Languages]),
         );
 
         // init translations
-        I18n.setTranslations(this.translations);
+        I18n.extendTranslations(this.translations);
         I18n.setLanguage(
             (window.navigator.language || window.navigator.userLanguage || 'en')
                 .substring(0, 2)
                 .toLowerCase() as ioBroker.Languages,
         );
 
-        this.refUser = React.createRef<HTMLDivElement>();
-        this.refUserDiv = React.createRef<HTMLDivElement>();
         this.adminGuiConfig = {
             admin: {
                 menu: {},
@@ -635,7 +766,7 @@ class App extends Router<AppProps, AppState> {
                 ownHost: '',
                 currentTab: Router.getLocation(),
                 systemConfig: null,
-                user: null, // Logged in user
+                user: null, // Logged-in user
 
                 repository: {},
                 installed: {},
@@ -659,6 +790,7 @@ class App extends Router<AppProps, AppState> {
                 tab: null,
                 dataNotStoredDialog: false,
                 dataNotStoredTab: null,
+                chatLeaveDialog: null,
 
                 baseSettingsOpened: false,
                 unsavedDataInDialog: false,
@@ -672,8 +804,10 @@ class App extends Router<AppProps, AppState> {
 
                 wizard: true,
                 performed: false,
+                showTips: false,
 
                 discoveryAlive: false,
+                discoveryProposals: 0,
 
                 readTimeoutMs: SlowConnectionWarningDialogClass.getReadTimeoutMs(),
                 showSlowConnectionWarning: false,
@@ -708,7 +842,6 @@ class App extends Router<AppProps, AppState> {
                 showHostWarning: null,
                 adapters: {},
                 askForTokenRefresh: null,
-                userMenuAnchor: null,
             };
             this.logsWorker = null;
             this.instancesWorker = null;
@@ -738,17 +871,40 @@ class App extends Router<AppProps, AppState> {
     /**
      * Check if SSO response parameters are present in the URL.
      */
-    static checkSsoResponse(): void {
+    static async checkSsoResponse(): Promise<void> {
         // Due to the fact that the SSO process can only provide its parameters via a callback uri, we need to extract from the search parameters
         const searchParams = new URLSearchParams(window.location.search);
 
+        // Only a one-time code is in the URL, the tokens are fetched with it, so they end up neither in the
+        // browser history nor in proxy logs
+        if (searchParams.has('ssoCode')) {
+            try {
+                const response = await fetch(adminHref('sso-token'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: searchParams.get('ssoCode') }),
+                });
+                const result: Partial<OAuth2Response> & { id_token?: string } = await response.json();
+                // After connecting an identity only the ID token comes back. Nothing uses it, so it is not kept.
+                if (response.ok && result.access_token) {
+                    Connection.saveTokensStatic(result as OAuth2Response, true);
+                }
+            } catch (e) {
+                console.error(`Cannot finish the single sign-on: ${e}`);
+            }
+            window.localStorage.removeItem('oidc_id_token');
+            window.location.search = '';
+            return;
+        }
+
+        // Older webservers put the tokens into the URL
         if (searchParams.has('id_token')) {
-            window.localStorage.setItem('oidc_id_token', searchParams.get('id_token'));
+            window.localStorage.setItem('oidc_id_token', searchParams.get('id_token') as string);
             window.location.search = '';
         }
 
         if (searchParams.has('ssoLoginResponse')) {
-            const res = JSON.parse(searchParams.get('ssoLoginResponse'));
+            const res = JSON.parse(searchParams.get('ssoLoginResponse') as string);
             Connection.saveTokensStatic(res, true);
             window.location.search = '';
         }
@@ -773,7 +929,7 @@ class App extends Router<AppProps, AppState> {
         return invertedColor === '#000000' && this.state.themeType === 'light';
     }
 
-    localStorageGetItem = (name: string): any => this.guiSettings.native.localStorage[name];
+    localStorageGetItem = (name: string): any => this.guiSettings?.native.localStorage[name];
 
     localStorageSetItem = (name: string, value: any): void => {
         if (value === null) {
@@ -782,19 +938,23 @@ class App extends Router<AppProps, AppState> {
             this.localStorageRemoveItem(name);
             return;
         }
-        this.guiSettings.native.localStorage[name] = value.toString();
+        if (this.guiSettings) {
+            this.guiSettings.native.localStorage[name] = value.toString();
+            this.guiSettingsChanges.localStorage[name] = value.toString();
+        }
 
         this.localStorageSave();
     };
 
     localStorageRemoveItem = (name: string): void => {
-        if (Object.prototype.hasOwnProperty.call(this.guiSettings.native.localStorage, name)) {
+        if (this.guiSettings && Object.prototype.hasOwnProperty.call(this.guiSettings.native.localStorage, name)) {
             delete this.guiSettings.native.localStorage[name];
+            this.guiSettingsChanges.localStorage[name] = null;
             this.localStorageSave();
         }
     };
 
-    sessionStorageGetItem = (name: string): any => this.guiSettings.native.sessionStorage[name];
+    sessionStorageGetItem = (name: string): any => this.guiSettings?.native.sessionStorage[name];
 
     sessionStorageSetItem = (name: string, value: any): void => {
         if (value === null) {
@@ -803,13 +963,17 @@ class App extends Router<AppProps, AppState> {
             this.sessionStorageRemoveItem(name);
             return;
         }
-        this.guiSettings.native.sessionStorage[name] = value.toString();
+        if (this.guiSettings) {
+            this.guiSettings.native.sessionStorage[name] = value.toString();
+            this.guiSettingsChanges.sessionStorage[name] = value.toString();
+        }
         this.localStorageSave();
     };
 
     sessionStorageRemoveItem = (name: string): void => {
-        if (Object.prototype.hasOwnProperty.call(this.guiSettings.native.sessionStorage, name)) {
+        if (this.guiSettings && Object.prototype.hasOwnProperty.call(this.guiSettings.native.sessionStorage, name)) {
             delete this.guiSettings.native.sessionStorage[name];
+            this.guiSettingsChanges.sessionStorage[name] = null;
             this.localStorageSave();
         }
     };
@@ -818,10 +982,61 @@ class App extends Router<AppProps, AppState> {
         if (this.localStorageTimer) {
             clearTimeout(this.localStorageTimer);
         }
-        this.localStorageTimer = setTimeout(async () => {
+        if (this.guiSettingsRetryTimer) {
+            clearTimeout(this.guiSettingsRetryTimer);
+            this.guiSettingsRetryTimer = null;
+        }
+        this.localStorageTimer = setTimeout(() => {
             this.localStorageTimer = null;
-            await this.socket.setObject(`system.adapter.${this.adminInstance}.guiSettings`, this.guiSettings);
+            this.guiSettingsWrite = this.guiSettingsWrite.then(() => this.writeGuiSettings());
         }, 200);
+    }
+
+    /**
+     * Writes the changes of this window into the stored GUI settings. The object is read anew right before,
+     * and only the changed entries are applied to it, so what another window, another device or anybody else
+     * wrote to it since this window read it stays. The window keeps the fresh object afterwards
+     */
+    async writeGuiSettings(): Promise<void> {
+        const changes = this.guiSettingsChanges;
+        if (
+            !this.guiSettings ||
+            !this.socket ||
+            (!Object.keys(changes.localStorage).length && !Object.keys(changes.sessionStorage).length)
+        ) {
+            return;
+        }
+        this.guiSettingsChanges = { localStorage: {}, sessionStorage: {} };
+        const id = `system.adapter.${this.adminInstance}.guiSettings`;
+
+        try {
+            const stored = (await guiSettingsTimeout(this.socket.getObject(id), 'Reading')) as
+                ObjectGuiSettings | null | undefined;
+            // Without a stored object (deleted meanwhile) the copy of this window is written, as before
+            const obj = normalizeGuiSettings(stored || JSON.parse(JSON.stringify(this.guiSettings)));
+            applyGuiSettingsChanges(obj.native, changes);
+            await guiSettingsTimeout(this.socket.setObject(id, obj), 'Writing');
+
+            if (this.guiSettings) {
+                // Changes made while this write was running are still to be written - keep them visible
+                this.guiSettings = obj;
+                applyGuiSettingsChanges(this.guiSettings.native, this.guiSettingsChanges);
+            }
+        } catch (e) {
+            // Keep the changes for the next write. A change made in the meantime is newer and wins
+            for (const storage of ['localStorage', 'sessionStorage'] as const) {
+                this.guiSettingsChanges[storage] = { ...changes[storage], ...this.guiSettingsChanges[storage] };
+            }
+            console.warn(`Could not save "${id}": ${(e as Error).message}`);
+            // A lost connection writes the changes on the reconnect. Without it (the server did not answer)
+            // nothing else would write them until the next change, so try again
+            if (this.socket?.isConnected() && !this.localStorageTimer && !this.guiSettingsRetryTimer) {
+                this.guiSettingsRetryTimer = setTimeout(() => {
+                    this.guiSettingsRetryTimer = null;
+                    this.localStorageSave();
+                }, GUI_SETTINGS_RETRY);
+            }
+        }
     }
 
     toggleTranslation = (): void => {
@@ -833,24 +1048,32 @@ class App extends Router<AppProps, AppState> {
     };
 
     async getGUISettings(): Promise<void> {
-        let obj;
+        let obj: ObjectGuiSettings | null | undefined = null;
 
-        if (!this.adminInstance) {
+        if (!this.adminInstance || !this.socket) {
             return;
         }
 
+        // A read that did not answer says nothing about whether the object exists. Only a read that
+        // came back empty may be answered with a fresh default object below - otherwise a timeout
+        // during the start would overwrite the stored settings of the user with the defaults
+        let readFailed = false;
         try {
-            obj = await this.socket.getObject(`system.adapter.${this.adminInstance}.guiSettings`);
+            obj = (await this.socket.getObject(`system.adapter.${this.adminInstance}.guiSettings`)) as
+                ObjectGuiSettings | null | undefined;
         } catch (e) {
-            console.warn(`Could not get "system.adapter.${this.adminInstance}.guiSettings": ${e.message}`);
+            readFailed = true;
+            console.warn(`Could not get "system.adapter.${this.adminInstance}.guiSettings": ${(e as Error).message}`);
         }
 
-        if (!obj) {
+        if (!obj && !readFailed) {
             obj = JSON.parse(JSON.stringify(DEFAULT_GUI_SETTINGS_OBJECT));
             try {
-                await this.socket.setObject(`system.adapter.${this.adminInstance}.guiSettings`, obj);
+                await this.socket.setObject(`system.adapter.${this.adminInstance}.guiSettings`, obj!);
             } catch (e) {
-                console.warn(`Could not update "system.adapter.${this.adminInstance}.guiSettings": ${e}`);
+                console.warn(
+                    `Could not update "system.adapter.${this.adminInstance}.guiSettings": ${(e as Error).message}`,
+                );
             }
         }
 
@@ -861,10 +1084,14 @@ class App extends Router<AppProps, AppState> {
             state = { val: false };
         }
         if (state?.val) {
-            this.guiSettings = obj;
-            this.guiSettings.native ||= { localStorage: {}, sessionStorage: {} };
-            if (!this.guiSettings.native.localStorage) {
-                this.guiSettings.native = { localStorage: this.guiSettings.native, sessionStorage: {} };
+            this.guiSettings = normalizeGuiSettings(obj || JSON.parse(JSON.stringify(DEFAULT_GUI_SETTINGS_OBJECT)));
+            // A reconnect reads the settings anew - a change that could not be written yet stays and is written
+            if (
+                Object.keys(this.guiSettingsChanges.localStorage).length ||
+                Object.keys(this.guiSettingsChanges.sessionStorage).length
+            ) {
+                applyGuiSettingsChanges(this.guiSettings.native, this.guiSettingsChanges);
+                this.localStorageSave();
             }
 
             // @ts-expect-error it is not a full implementation of storage
@@ -897,105 +1124,109 @@ class App extends Router<AppProps, AppState> {
                 }
             });
         } else if (this.state.guiSettings) {
-            window._localStorage = null;
-            window._sessionStorage = null;
+            window._localStorage = undefined;
+            window._sessionStorage = undefined;
 
             this.setState({ guiSettings: false });
         }
     }
 
-    enableGuiSettings(enabled: boolean, ownSettings?: boolean): void {
-        if (enabled && !this.guiSettings) {
-            void this.socket.getObject(`system.adapter.${this.adminInstance}.guiSettings`).then(async obj => {
-                this.guiSettings = obj || JSON.parse(JSON.stringify(DEFAULT_GUI_SETTINGS_OBJECT));
+    async enableGuiSettings(enabled: boolean, ownSettings?: boolean): Promise<void> {
+        if (enabled && !this.guiSettings && this.socket) {
+            const obj = await this.socket.getObject(`system.adapter.${this.adminInstance}.guiSettings`);
+            this.guiSettings = obj || JSON.parse(JSON.stringify(DEFAULT_GUI_SETTINGS_OBJECT));
 
-                if (ownSettings || !this.guiSettings.native || !Object.keys(this.guiSettings.native).length) {
-                    this.guiSettings.native = { localStorage: {}, sessionStorage: {} };
-                    Object.keys(window.localStorage).forEach(name => {
-                        if (
-                            name !== 'getItem' &&
-                            name !== 'setItem' &&
-                            name !== 'removeItem' &&
-                            name !== 'clear' &&
-                            name !== 'key' &&
-                            name !== 'length'
-                        ) {
-                            this.guiSettings.native.localStorage[name] = window.localStorage.getItem(name);
-                        }
-                    });
-
-                    Object.keys(window.sessionStorage).forEach(name => {
-                        if (
-                            name !== 'getItem' &&
-                            name !== 'setItem' &&
-                            name !== 'removeItem' &&
-                            name !== 'clear' &&
-                            name !== 'key' &&
-                            name !== 'length'
-                        ) {
-                            this.guiSettings.native.sessionStorage[name] = window.sessionStorage.getItem(name);
-                        }
-                    });
-                    await this.socket.setObject(`system.adapter.${this.adminInstance}.guiSettings`, this.guiSettings);
-                    await this.socket.setState(`system.adapter.${this.adminInstance}.guiSettings`, {
-                        val: true,
-                        ack: true,
-                    });
-                } else {
-                    await this.socket.setState(`system.adapter.${this.adminInstance}.guiSettings`, {
-                        val: true,
-                        ack: true,
-                    });
-                    window.location.reload();
-                }
-
-                await this.getGUISettings();
-            });
-        } else if (!enabled && this.guiSettings) {
-            void this.socket.getObject(`system.adapter.${this.adminInstance}.guiSettings`).then(async obj => {
-                if (!obj) {
-                    try {
-                        // create an object if not exists
-                        await this.socket.setObject(
-                            `system.adapter.${this.adminInstance}.guiSettings`,
-                            DEFAULT_GUI_SETTINGS_OBJECT,
-                        );
-                    } catch (e) {
-                        console.error(`Cannot create system.adapter.${this.adminInstance}.guiSettings": ${e}`);
+            if (ownSettings || !this.guiSettings!.native || !Object.keys(this.guiSettings!.native).length) {
+                this.guiSettings!.native = { localStorage: {}, sessionStorage: {} };
+                Object.keys(window.localStorage).forEach(name => {
+                    if (
+                        name !== 'getItem' &&
+                        name !== 'setItem' &&
+                        name !== 'removeItem' &&
+                        name !== 'clear' &&
+                        name !== 'key' &&
+                        name !== 'length'
+                    ) {
+                        this.guiSettings!.native.localStorage[name] = window.localStorage.getItem(name);
                     }
-                }
-                window._localStorage = null;
-                window._sessionStorage = null;
+                });
 
-                // clear localStorage
-                Object.keys(window.localStorage).forEach(key => window.localStorage.removeItem(key));
-                Object.keys(window.sessionStorage).forEach(key => window.sessionStorage.removeItem(key));
+                Object.keys(window.sessionStorage).forEach(name => {
+                    if (
+                        name !== 'getItem' &&
+                        name !== 'setItem' &&
+                        name !== 'removeItem' &&
+                        name !== 'clear' &&
+                        name !== 'key' &&
+                        name !== 'length'
+                    ) {
+                        this.guiSettings!.native.sessionStorage[name] = window.sessionStorage.getItem(name);
+                    }
+                });
+                await this.socket.setObject(`system.adapter.${this.adminInstance}.guiSettings`, this.guiSettings!);
+                await this.socket.setState(`system.adapter.${this.adminInstance}.guiSettings`, {
+                    val: true,
+                    ack: true,
+                });
+            } else {
+                await this.socket.setState(`system.adapter.${this.adminInstance}.guiSettings`, {
+                    val: true,
+                    ack: true,
+                });
+                window.location.reload();
+            }
 
-                Object.keys(this.guiSettings.native.localStorage).forEach(name =>
-                    window.localStorage.setItem(name, this.guiSettings.native.localStorage[name]),
-                );
-                Object.keys(this.guiSettings.native.sessionStorage).forEach(name =>
-                    window.sessionStorage.setItem(name, this.guiSettings.native.sessionStorage[name]),
-                );
-
-                this.guiSettings = null;
-
+            await this.getGUISettings();
+        } else if (!enabled && this.guiSettings && this.socket) {
+            const obj = await this.socket.getObject(`system.adapter.${this.adminInstance}.guiSettings`);
+            if (!obj) {
                 try {
-                    await this.socket.setState(`system.adapter.${this.adminInstance}.guiSettings`, {
-                        val: false,
-                        ack: true,
-                    });
+                    // create an object if not exists
+                    await this.socket.setObject(
+                        `system.adapter.${this.adminInstance}.guiSettings`,
+                        DEFAULT_GUI_SETTINGS_OBJECT,
+                    );
                 } catch (e) {
-                    window.alert(`Cannot disable settings: ${e}`);
+                    console.error(`Cannot create system.adapter.${this.adminInstance}.guiSettings": ${e}`);
                 }
-                this.setState({ guiSettings: false });
-            });
+            }
+            window._localStorage = undefined;
+            window._sessionStorage = undefined;
+
+            // clear localStorage
+            Object.keys(window.localStorage).forEach(key => window.localStorage.removeItem(key));
+            Object.keys(window.sessionStorage).forEach(key => window.sessionStorage.removeItem(key));
+
+            Object.keys(this.guiSettings.native.localStorage).forEach(name =>
+                window.localStorage.setItem(name, this.guiSettings!.native.localStorage[name]),
+            );
+            Object.keys(this.guiSettings.native.sessionStorage).forEach(name =>
+                window.sessionStorage.setItem(name, this.guiSettings!.native.sessionStorage[name]),
+            );
+
+            this.guiSettings = null;
+            this.guiSettingsChanges = { localStorage: {}, sessionStorage: {} };
+            if (this.guiSettingsRetryTimer) {
+                clearTimeout(this.guiSettingsRetryTimer);
+                this.guiSettingsRetryTimer = null;
+            }
+
+            try {
+                await this.socket.setState(`system.adapter.${this.adminInstance}.guiSettings`, {
+                    val: false,
+                    ack: true,
+                });
+            } catch (e) {
+                window.alert(`Cannot disable settings: ${e}`);
+            }
+            this.setState({ guiSettings: false });
         }
     }
 
     componentDidMount(): void {
         // check if we are mounted as SSO response
-        App.checkSsoResponse();
+        void App.checkSsoResponse();
+        window.addEventListener('vite:preloadError', onPreloadError);
 
         if (!this.state.login) {
             window.addEventListener('hashchange', this.onHashChanged, false);
@@ -1013,102 +1244,113 @@ class App extends Router<AppProps, AppState> {
                 name: 'eos-admin',
                 admin5only: true,
                 port: App.getPort(),
+                // Default of the socket client is five seconds. The start of the admin sends its
+                // requests to a host that is busy with the repository and the objects at that
+                // moment, and those five seconds were over before it got around to answering -
+                // which left the app hanging on its loader (#3641)
+                cmdTimeout: this.state.readTimeoutMs,
                 autoSubscribes: ['system.adapter.*'], // Do not subscribe on '*' and really we don't need a 'system.adapter.*' either. Every tab must subscribe itself to everything that it needs
                 autoSubscribeLog: true,
                 tokenTimeoutHandler: this.onSessionExpiration,
-                onProgress: progress => {
+                onProgress: async (progress: number): Promise<void> => {
+                    if (!this.socket) {
+                        return;
+                    }
                     if (progress === PROGRESS.CONNECTING) {
+                        // set before the cut-off requests fail, so their errors are recognized
+                        if (this.state.connected) {
+                            this.connectionLostAt = Date.now();
+                        }
                         this.setState({
                             connected: false,
                         });
                     } else if (progress === PROGRESS.READY) {
                         // BF: (2022.05.09) here must be this.socket.getVersion(true), but I have no idea why it does not work :(
-                        this.socket
-                            .getVersion()
-                            .then(async versionInfo => {
-                                console.log(
-                                    `Stored version: ${this.state.versionAdmin}, new version: ${versionInfo.version}`,
-                                );
-                                if (this.state.versionAdmin && this.state.versionAdmin !== versionInfo.version) {
-                                    window.alert('New adapter version detected. Reloading...');
-                                    setTimeout(() => window.location.reload(), 500);
-                                }
-                                if (!this.adminInstance) {
-                                    this.adminInstance = await this.socket.getCurrentInstance();
-                                }
+                        try {
+                            const versionInfo = await this.socket.getVersion();
+                            console.log(
+                                `Stored version: ${this.state.versionAdmin}, new version: ${versionInfo.version}`,
+                            );
+                            if (this.state.versionAdmin && this.state.versionAdmin !== versionInfo.version) {
+                                window.alert('New adapter version detected. Reloading...');
+                                setTimeout(() => window.location.reload(), 500);
+                            }
+                            this.adminInstance ||= await this.socket.getCurrentInstance();
 
-                                // read settings anew
-                                await this.getGUISettings();
+                            // read settings anew
+                            await this.getGUISettings();
 
-                                const newState: Partial<AppState> = {
-                                    connected: true,
-                                    progress: 100,
-                                    versionAdmin: versionInfo.version,
-                                    // Default to enabled; overridden from the admin settings below. Setting it
-                                    // together with `connected` avoids briefly showing the assistant launcher.
-                                    disableMcp: true,
-                                };
+                            const newState: Partial<AppState> = {
+                                connected: true,
+                                progress: 100,
+                                versionAdmin: versionInfo.version,
+                                // Default to enabled; overridden from the admin settings below. Setting it
+                                // together with `connected` avoids briefly showing the assistant launcher.
+                                disableMcp: true,
+                            };
 
-                                if (this.state.cmd && /\b(?:admin|eos-admin)(?:@[-.\w]+)?(?:\s+--debug)?$/.test(this.state.cmd)) {
-                                    // close the command dialog after reconnecting (maybe admin was restarted, and the update is now finished)
-                                    newState.commandRunning = false;
-                                    newState.forceUpdateAdapters = this.state.forceUpdateAdapters + 1;
+                            if (
+                                this.state.cmd &&
+                                /\b(?:admin|eos-admin)(?:@[-.\w]+)?(?:\s+--debug)?$/.test(this.state.cmd)
+                            ) {
+                                // close the command dialog after reconnecting (maybe admin was restarted, and the update is now finished)
+                                newState.commandRunning = false;
+                                newState.forceUpdateAdapters = this.state.forceUpdateAdapters + 1;
 
-                                    this.closeCmdDialog(() => {
-                                        this.setState(newState as AppState);
-                                        window.location.reload();
-                                    });
-                                } else {
-                                    try {
-                                        const adminObj = await this.socket.getObject(
-                                            `system.adapter.${this.adminInstance}`,
-                                        );
-                                        // Hide the AI assistant launcher when MCP is disabled in the settings.
-                                        newState.disableMcp = !!adminObj?.native?.disableMcp;
-                                        // use instance language
-                                        if (adminObj?.native?.language) {
-                                            if (adminObj.native.language !== I18n.getLanguage()) {
-                                                console.log(`Language changed to ${adminObj.native.language}`);
-                                                I18n.setLanguage(adminObj.native.language);
-                                                if (this.languageSet) {
-                                                    window.location.reload();
-                                                } else {
-                                                    this.languageSet = true;
-                                                }
-                                            }
-                                        } else if (this.socket.systemLang !== I18n.getLanguage()) {
-                                            console.log(`Language changed to ${this.socket.systemLang}`);
-                                            I18n.setLanguage(this.socket.systemLang);
+                                this.closeCmdDialog(() => {
+                                    this.setState(newState as AppState);
+                                    window.location.reload();
+                                });
+                            } else {
+                                try {
+                                    const adminObj = await this.socket.getObject(
+                                        `system.adapter.${this.adminInstance}`,
+                                    );
+                                    // Hide the AI assistant launcher when MCP is disabled in the settings.
+                                    newState.disableMcp = true;
+                                    // use instance language
+                                    if (adminObj?.native?.language) {
+                                        if (adminObj.native.language !== I18n.getLanguage()) {
+                                            console.log(`Language changed to ${adminObj.native.language}`);
+                                            I18n.setLanguage(adminObj.native.language);
                                             if (this.languageSet) {
                                                 window.location.reload();
                                             } else {
                                                 this.languageSet = true;
                                             }
                                         }
-                                    } catch (e) {
-                                        console.error(`Cannot read admin settings: ${e}`);
-                                    }
-
-                                    this.setState(newState as AppState);
-                                }
-                            })
-                            .catch(err => {
-                                console.error(`Cannot read version: ${err}`);
-                                if (err === 'ioBroker is not connected') {
-                                    setInterval(() => {
-                                        if (this.state.cloudReconnect > 0) {
-                                            this.setState({ cloudReconnect: this.state.cloudReconnect - 1 });
-                                        } else {
+                                    } else if (this.socket.systemLang !== I18n.getLanguage()) {
+                                        console.log(`Language changed to ${this.socket.systemLang}`);
+                                        I18n.setLanguage(this.socket.systemLang);
+                                        if (this.languageSet) {
                                             window.location.reload();
+                                        } else {
+                                            this.languageSet = true;
                                         }
-                                    }, 1_000);
-
-                                    this.setState({
-                                        cloudNotConnected: true,
-                                        cloudReconnect: 10,
-                                    });
+                                    }
+                                } catch (e) {
+                                    console.error(`Cannot read admin settings: ${e}`);
                                 }
-                            });
+
+                                this.setState(newState as AppState);
+                            }
+                        } catch (err) {
+                            console.error(`Cannot read version: ${err}`);
+                            if (err === 'ioBroker is not connected') {
+                                setInterval(() => {
+                                    if (this.state.cloudReconnect > 0) {
+                                        this.setState({ cloudReconnect: this.state.cloudReconnect - 1 });
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                }, 1_000);
+
+                                this.setState({
+                                    cloudNotConnected: true,
+                                    cloudReconnect: 10,
+                                });
+                            }
+                        }
                     } else {
                         this.setState({
                             connected: true,
@@ -1117,6 +1359,9 @@ class App extends Router<AppProps, AppState> {
                     }
                 },
                 onReady: async () => {
+                    if (!this.socket) {
+                        throw new Error('Socket not initialized');
+                    }
                     // Combine adminGuiConfig with user settings
                     this.adminGuiConfig = {
                         admin: {
@@ -1125,30 +1370,44 @@ class App extends Router<AppProps, AppState> {
                             adapters: {},
                             login: {},
                         },
-                        ...this.socket.systemConfig.native?.vendor,
+                        ...this.socket?.systemConfig?.native?.vendor,
                     };
-                    this.adminGuiConfig.admin.menu ||= {};
-                    this.adminGuiConfig.admin.settings ||= {};
-                    this.adminGuiConfig.admin.adapters ||= {};
-                    this.adminGuiConfig.admin.login ||= {};
+                    this.adminGuiConfig.admin!.menu ||= {};
+                    this.adminGuiConfig.admin!.settings ||= {};
+                    this.adminGuiConfig.admin!.adapters ||= {};
+                    this.adminGuiConfig.admin!.login ||= {};
 
                     try {
-                        if (!this.adminInstance) {
-                            this.adminInstance = await this.socket.getCurrentInstance();
-                        }
-                        if (!this.adminInstance) {
-                            console.error('Cannot read admin instance!');
-                        }
-                        const adminObj = await this.socket.getObject(`system.adapter.${this.adminInstance}`);
-                        // use instance language
-                        if (adminObj?.native?.language) {
-                            I18n.setLanguage(adminObj.native.language);
-                        } else {
+                        // None of these reads may end the start: a host that is busy with the
+                        // repository answers slowly, and the admin used to stay on its logo until
+                        // the user pressed F5 because one of them ran into its timeout (#3641)
+                        try {
+                            this.adminInstance ||= await this.socket.getCurrentInstance();
+                            if (!this.adminInstance) {
+                                console.error('Cannot read admin instance!');
+                            }
+                            const adminObj = await this.socket.getObject(`system.adapter.${this.adminInstance}`);
+                            // use instance language
+                            if (adminObj?.native?.language) {
+                                I18n.setLanguage(adminObj.native.language);
+                            } else {
+                                I18n.setLanguage(this.socket.systemLang);
+                            }
+                        } catch (e) {
+                            console.warn(`Cannot read the settings of this admin: ${(e as Error).message}`);
                             I18n.setLanguage(this.socket.systemLang);
                         }
 
                         this.languageSet = true;
-                        const isStrict = await this.socket.getIsEasyModeStrict();
+
+                        // The easy mode is the exception, so an unanswered question means "no":
+                        // the normal GUI is shown instead of nothing at all
+                        let isStrict = false;
+                        try {
+                            isStrict = await this.socket.getIsEasyModeStrict();
+                        } catch (e) {
+                            console.warn(`Cannot read the easy mode: ${(e as Error).message}`);
+                        }
 
                         await this.getGUISettings();
 
@@ -1178,10 +1437,20 @@ class App extends Router<AppProps, AppState> {
                         try {
                             newState.systemConfig = await this.socket.getCompactSystemConfig();
                             newState.wizard = !newState.systemConfig.common.licenseConfirmed;
+                            // Somebody who has not confirmed the license yet is busy with the wizard,
+                            // and a tip about the object browser would only be in the way there.
+                            newState.showTips = !newState.wizard && !newState.systemConfig.common.tipsDisabled;
                             await this.findCurrentHost(newState);
-                            await this.readRepoAndInstalledInfo(newState.currentHost, newState.hosts);
+                            if (newState.currentHost) {
+                                // Repository and installed versions are read WITHOUT waiting for them:
+                                // only the adapters tab needs them, while menu, objects and logs are
+                                // ready without. A host that cannot reach the repository server does not
+                                // answer these two, so the admin used to show its loader for the whole
+                                // read timeout - with the start hanging on it, not the tab that needs it
+                                void this.readRepoAndInstalledInfo(newState.currentHost);
+                            }
                         } catch (e) {
-                            console.log(`Error reading repo in onReady: ${e.stack}`);
+                            console.log(`Error reading repo in onReady: ${(e as Error).stack}`);
                         }
 
                         this.adaptersWorker.registerRepositoryHandler(this.repoChangeHandler);
@@ -1192,40 +1461,57 @@ class App extends Router<AppProps, AppState> {
                         const storedExpertMode = (window._sessionStorage || window.sessionStorage).getItem(
                             'App.expertMode',
                         );
-                        newState.expertMode = isEosAdministrator()
-                            && (storedExpertMode ? storedExpertMode === 'true' : !!newState.systemConfig.common.expertMode);
+                        newState.expertMode =
+                            isEosAdministrator() &&
+                            (storedExpertMode
+                                ? storedExpertMode === 'true'
+                                : !!newState.systemConfig?.common.expertMode);
 
                         // Read the user and show him
-                        if (this.socket.isSecure || this.socket.systemConfig.native?.vendor) {
+                        if (this.socket.isSecure || this.socket.systemConfig?.native?.vendor) {
                             try {
                                 const user = await this.socket.getCurrentUser();
 
                                 const userObj = await this.socket.getObject(`system.user.${user}`);
 
-                                if (userObj.native?.vendor) {
+                                if (userObj?.native?.vendor) {
                                     Object.assign(this.adminGuiConfig, userObj.native.vendor);
                                 }
 
-                                if (this.socket.isSecure) {
+                                if (this.socket.isSecure && userObj) {
                                     this.setState({
                                         user: {
                                             id: userObj._id,
                                             name: Utils.getObjectNameFromObj(userObj, this.socket.systemLang),
                                             color: userObj.common.color,
                                             icon: userObj.common.icon,
-                                            invertBackground: this.mustInvertBackground(userObj.common.color),
+                                            invertBackground: userObj.common.color
+                                                ? this.mustInvertBackground(userObj.common.color)
+                                                : false,
+                                            group: await this.getLeadingGroupName(userObj._id),
                                         },
                                     });
                                 }
                             } catch (e) {
-                                console.error(`Could not determine user to show: ${e.toString()}, ${e.stack}`);
-                                this.showAlert(e.toString(), 'error');
+                                console.error(
+                                    `Could not determine user to show: ${(e as Error).toString()}, ${(e as Error).stack}`,
+                                );
+                                this.showAlert((e as Error).toString(), 'error');
                             }
                         }
 
                         this.setState(newState as AppState, () => this.setCurrentTabTitle());
 
                         void this.socket.subscribeState('system.adapter.discovery.0.alive', this.onDiscoveryAlive);
+
+                        // The discovery adapter can scan on a timer and nothing else in admin
+                        // watches that: without this, the result of a nightly scan would sit in
+                        // `system.discovery` until somebody happens to open the dialog.
+                        void this.socket
+                            .getObject('system.discovery')
+                            .then(obj => this.onDiscoveryObject('system.discovery', obj))
+                            .catch(e => console.warn(`Cannot read system.discovery: ${e as string}`));
+                        void this.socket.subscribeObject('system.discovery', this.onDiscoveryObject);
 
                         // Give some time for communication
                         setTimeout(() => this.logsWorkerChanged(this.state.currentHost), 1000);
@@ -1234,18 +1520,22 @@ class App extends Router<AppProps, AppState> {
                             () =>
                                 this.findNewsInstance().then(instance => {
                                     this.newsInstance = instance;
-                                    void this.socket.subscribeState(`admin.${instance}.info.newsFeed`, this.onNews);
+                                    void this.socket?.subscribeState(`admin.${instance}.info.newsFeed`, this.onNews);
                                 }),
                             5_000,
                         );
 
                         setTimeout(async () => {
-                            const notifications = await this.hostsWorker.getNotifications(newState.currentHost);
+                            const notifications = await this.hostsWorker?.getNotifications(newState.currentHost);
                             await this.handleNewNotifications(notifications);
                         }, 3_000);
                     } catch (e) {
-                        console.error(`Error in onReady: ${e.stack}`);
-                        this.showAlert(`Error in onReady: ${e.stack}`, 'error');
+                        console.error(`Error in onReady: ${(e as Error).stack}`);
+                        this.showAlert(`Error in onReady: ${(e as Error).stack}`, 'error');
+                        // Last resort: show the app instead of the loader. Whatever failed here, the
+                        // menu, the error message and the reconnect handling are more use than a logo
+                        // that never goes away and that only F5 got the user past (#3641)
+                        this.setState({ ready: true });
                     }
                 },
                 onError: (error: string | Error) => {
@@ -1276,7 +1566,7 @@ class App extends Router<AppProps, AppState> {
                         this.showAlert(errorStr, 'error');
                     }
                 },
-            }) as unknown as AdminConnection;
+            });
             (window as any).NEXOWATT_EOS_ADMIN_SOCKET = this.socket;
             (window as any).NEXOWATT_EOS_SOCKET = this.socket;
             window.dispatchEvent(new CustomEvent('nexowatt-eos-admin-socket-ready'));
@@ -1285,7 +1575,9 @@ class App extends Router<AppProps, AppState> {
 
     componentWillUnmount(): void {
         window.removeEventListener('hashchange', this.onHashChanged, false);
+        window.removeEventListener('vite:preloadError', onPreloadError);
         this.socket?.unsubscribeState('system.adapter.discovery.0.alive', this.onDiscoveryAlive);
+        void this.socket?.unsubscribeObject('system.discovery', this.onDiscoveryObject);
 
         this.adaptersWorker?.unregisterRepositoryHandler(this.repoChangeHandler);
         this.adaptersWorker?.unregisterHandler(this.adaptersChangeHandler);
@@ -1295,6 +1587,10 @@ class App extends Router<AppProps, AppState> {
             clearInterval(this.expireInSecInterval);
             this.expireInSecInterval = null;
         }
+        if (this.guiSettingsRetryTimer) {
+            clearTimeout(this.guiSettingsRetryTimer);
+            this.guiSettingsRetryTimer = null;
+        }
 
         if (this.pendingCommandTimer) {
             clearTimeout(this.pendingCommandTimer);
@@ -1302,10 +1598,9 @@ class App extends Router<AppProps, AppState> {
         }
         this.pendingCommand = null;
 
-
         if (window._localStorage) {
-            window._localStorage = null;
-            window._sessionStorage = null;
+            window._localStorage = undefined;
+            window._sessionStorage = undefined;
         }
     }
 
@@ -1333,7 +1628,9 @@ class App extends Router<AppProps, AppState> {
     };
 
     repoChangeHandler = (): void => {
-        void this.readRepoAndInstalledInfo(this.state.currentHost, null, true).then(() => console.log('Repo updated!'));
+        void this.readRepoAndInstalledInfo(this.state.currentHost, { update: true }).then(() =>
+            console.log('Repo updated!'),
+        );
     };
 
     adaptersChangeHandler = (events: AdapterEvent[]): void => {
@@ -1352,8 +1649,9 @@ class App extends Router<AppProps, AppState> {
             } else if (installed[adapter]) {
                 Object.keys(installed[adapter]).forEach(attr => {
                     if (
+                        event.obj &&
                         (installed[adapter] as Record<string, any>)[attr] !==
-                        (event.obj.common as Record<string, any>)[attr]
+                            (event.obj.common as Record<string, any>)[attr]
                     ) {
                         (installed[adapter] as Record<string, any>)[attr] = (event.obj.common as Record<string, any>)[
                             attr
@@ -1373,6 +1671,9 @@ class App extends Router<AppProps, AppState> {
     };
 
     async findCurrentHost(newState: Partial<AppState>): Promise<void> {
+        if (!this.socket) {
+            return;
+        }
         newState.hosts = await this.socket.getCompactHosts();
 
         if (!this.state.currentHost) {
@@ -1437,9 +1738,12 @@ class App extends Router<AppProps, AppState> {
                                 <Checkbox
                                     checked={this.state.askForTokenRefresh.doNotAsk}
                                     onChange={() => {
-                                        const askForTokenRefresh = { ...this.state.askForTokenRefresh };
-                                        this.state.askForTokenRefresh.doNotAsk =
-                                            !this.state.askForTokenRefresh.doNotAsk;
+                                        const askForTokenRefresh = { ...this.state.askForTokenRefresh } as {
+                                            expireAt: number;
+                                            resolve: (prolong: boolean) => void;
+                                            doNotAsk: boolean;
+                                        };
+                                        askForTokenRefresh.doNotAsk = !this.state.askForTokenRefresh?.doNotAsk;
                                         this.setState({ askForTokenRefresh });
                                     }}
                                 />
@@ -1450,9 +1754,9 @@ class App extends Router<AppProps, AppState> {
                 <DialogActions>
                     <Button
                         onClick={() => {
-                            const resolve = this.state.askForTokenRefresh.resolve;
+                            const resolve = this.state.askForTokenRefresh?.resolve;
 
-                            if (this.state.askForTokenRefresh.doNotAsk) {
+                            if (this.state.askForTokenRefresh?.doNotAsk) {
                                 // Add 2 hours for the session
                                 this.doNotAskSessionExpiration = Date.now() + 3_600_000 * 2;
                             }
@@ -1462,7 +1766,7 @@ class App extends Router<AppProps, AppState> {
                                 this.expireInSecInterval = null;
                             }
 
-                            this.setState({ askForTokenRefresh: null }, () => resolve(true));
+                            this.setState({ askForTokenRefresh: null }, () => resolve?.(true));
                         }}
                         variant="contained"
                         startIcon={<UpdateIcon />}
@@ -1492,7 +1796,7 @@ class App extends Router<AppProps, AppState> {
             this.expireInSecInterval = setTimeout(() => {
                 Connection.deleteTokensStatic();
                 window.location.href = './index.html?login&eosLogout=timeout';
-            }, delay) as unknown as ReturnType<typeof setInterval>;
+            }, delay);
             resolve(false);
         });
     };
@@ -1503,33 +1807,45 @@ class App extends Router<AppProps, AppState> {
         }
     };
 
-    getDiscoveryModal = (): JSX.Element => (
-        <DiscoveryDialog
-            themeType={this.state.themeType}
-            themeName={this.state.themeName}
-            theme={this.state.theme}
-            socket={this.socket}
-            systemConfig={this.state.systemConfig.common}
-            dateFormat={this.state.systemConfig.common.dateFormat}
-            currentHost={this.state.currentHost}
-            defaultLogLevel={this.state.systemConfig.common.defaultLogLevel}
-            repository={this.state.repository}
-            hosts={this.state.hosts}
-            onClose={() => Router.doNavigate(null)}
-        />
-    );
+    onDiscoveryObject = (_id: string, obj?: ioBroker.Object | null): void => {
+        // creating or ignoring a proposal writes this object as well, so the badge counts
+        // itself down while the user works through the dialog
+        const discoveryProposals = countUnhandledProposals(obj as unknown as DiscoveryObject | null);
+        if (discoveryProposals !== this.state.discoveryProposals) {
+            this.setState({ discoveryProposals });
+        }
+    };
+
+    getDiscoveryModal = (): JSX.Element | null =>
+        this.state.systemConfig && this.socket ? (
+            <DiscoveryDialog
+                themeType={this.state.themeType}
+                themeName={this.state.themeName}
+                theme={this.state.theme}
+                socket={this.socket}
+                systemConfig={this.state.systemConfig.common}
+                dateFormat={this.state.systemConfig.common.dateFormat}
+                currentHost={this.state.currentHost}
+                defaultLogLevel={this.state.systemConfig.common.defaultLogLevel || 'info'}
+                repository={this.state.repository}
+                hosts={this.state.hosts}
+                onClose={() => Router.doNavigate(null)}
+            />
+        ) : null;
 
     async findNewsInstance(): Promise<number> {
         const maxCount = 200;
-        for (let instance = 0; instance < maxCount; instance++) {
-            try {
-                const adminAlive = await this.socket.getState(`system.adapter.eos-admin.${instance}.alive`);
-                if (adminAlive?.val) {
-                    return instance;
+        if (this.socket) {
+            for (let instance = 0; instance < maxCount; instance++) {
+                try {
+                    const adminAlive = await this.socket.getState(`system.adapter.eos-admin.${instance}.alive`);
+                    if (adminAlive?.val) {
+                        return instance;
+                    }
+                } catch (e) {
+                    console.error(`Cannot find news instance: ${(e as Error).stack}`);
+                    this.showAlert(`Cannot find news instance: ${(e as Error).stack}`, 'error');
                 }
-            } catch (e) {
-                console.error(`Cannot find news instance: ${e.stack}`);
-                this.showAlert(`Cannot find news instance: ${e.stack}`, 'error');
             }
         }
         return 0;
@@ -1539,7 +1855,7 @@ class App extends Router<AppProps, AppState> {
      * Render the notification dialog
      */
     renderNotificationsDialog(): JSX.Element | null {
-        if (!this.state.notificationsDialog) {
+        if (!this.state.notificationsDialog || !this.state.systemConfig || !this.socket) {
             return null;
         }
 
@@ -1548,7 +1864,7 @@ class App extends Router<AppProps, AppState> {
                 notifications={this.state.notifications?.notifications || {}}
                 instances={this.state.notifications?.instances || {}}
                 onClose={() => this.setState({ notificationsDialog: false })}
-                ackCallback={(host, name) => this.socket.clearNotifications(host, name)}
+                ackCallback={(host, name) => this.socket!.clearNotifications(host, name)}
                 dateFormat={this.state.systemConfig.common.dateFormat}
                 isFloatComma={this.state.systemConfig.common.isFloatComma}
                 themeType={this.state.themeType}
@@ -1560,7 +1876,7 @@ class App extends Router<AppProps, AppState> {
     }
 
     renderHostWarningDialog(): JSX.Element | null {
-        if (!this.state.showHostWarning) {
+        if (!this.state.showHostWarning || !this.state.systemConfig || !this.socket) {
             return null;
         }
 
@@ -1570,14 +1886,16 @@ class App extends Router<AppProps, AppState> {
                 messages={this.state.showHostWarning.result.system.categories}
                 dateFormat={this.state.systemConfig.common.dateFormat}
                 themeType={this.state.themeType}
-                ackCallback={name => this.socket.clearNotifications(this.state.showHostWarning.host, name)}
+                ackCallback={name => this.socket!.clearNotifications(this.state.showHostWarning!.host, name)}
                 onClose={() => this.setState({ showHostWarning: null })}
             />
         );
     }
 
     /** Called when notifications detected, updates the notification indicator */
-    handleNewNotifications = async (notifications: Record<string, NotificationAnswer>): Promise<void> => {
+    handleNewNotifications = async (
+        notifications: Record<string, NotificationAnswer> | undefined | null,
+    ): Promise<void> => {
         const noNotifications: NotificationsCount = {
             warning: 0,
             other: 0,
@@ -1607,9 +1925,10 @@ class App extends Router<AppProps, AppState> {
             }
         }
 
-        const instances = await this.instancesWorker.getObjects();
-
-        this.setState({ noNotifications, notifications: { notifications, instances } });
+        if (this.instancesWorker) {
+            const instances = await this.instancesWorker.getObjects();
+            this.setState({ noNotifications, notifications: { notifications, instances } });
+        }
     };
 
     /**
@@ -1629,14 +1948,16 @@ class App extends Router<AppProps, AppState> {
         const result = notifications[host].result;
 
         if (result?.system && Object.keys(result.system.categories).length) {
-            await this.instancesWorker.getObjects().then(instances =>
-                this.setState({
-                    showHostWarning: {
-                        host,
-                        instances,
-                        result,
-                    },
-                }),
+            await this.instancesWorker?.getObjects().then(
+                instances =>
+                    instances &&
+                    this.setState({
+                        showHostWarning: {
+                            host,
+                            instances,
+                            result,
+                        },
+                    }),
             );
         }
     };
@@ -1644,9 +1965,12 @@ class App extends Router<AppProps, AppState> {
     /**
      * Get news for a specific adapter instance
      */
-    onNews = async (_id: string, newsFeed: ioBroker.State): Promise<void> => {
+    onNews = async (_id: string, newsFeed: ioBroker.State | null | undefined): Promise<void> => {
+        if (!this.socket) {
+            throw new Error('Socket not initialized');
+        }
         try {
-            if (!this.state.systemConfig.common.licenseConfirmed) {
+            if (!this.state.systemConfig?.common.licenseConfirmed) {
                 return;
             }
 
@@ -1669,11 +1993,21 @@ class App extends Router<AppProps, AppState> {
                         .getCompactInstances()
                         .catch((): null => null);
 
-                    const objectsDbType: DbType = (await this.socket.getDiagData(this.state.currentHost, 'normal'))
-                        .objectsType;
+                    let objectsDbType: DbType | undefined;
+                    if (this.state.currentHost) {
+                        const diagData = await this.socket.getDiagData(this.state.currentHost, 'normal');
+                        objectsDbType = diagData?.objectsType;
+                    }
 
-                    const objects = await this.objectsWorker.getObjects(true);
+                    // Whatever the worker has is good enough for the number in a news condition. A
+                    // forced read pulled the whole object database a second time, right after the
+                    // start page had read it - tens of megabytes through a busy host (#3656)
+                    const objects = await this.objectsWorker?.getObjects();
                     const noObjects = Object.keys(objects || {}).length;
+
+                    // The conditions of the news check the adapters and the version of js-controller. The start
+                    // does not wait for them, and with empty ones a news for "not installed" would reach everybody
+                    await this.repoInfoPromise?.catch(() => {});
 
                     const checkNews = checkMessages(news, lastNewsId?.val as string, {
                         lang: I18n.getLanguage(),
@@ -1681,10 +2015,11 @@ class App extends Router<AppProps, AppState> {
                         instances: instances || {},
                         nodeVersion: info ? info['Node.js'] || '?' : '?',
                         npmVersion: info ? info.NPM || '?' : '?',
+                        jsControllerVersion: this.state.installed?.['js-controller']?.version || '',
                         os: info ? info.os || '?' : '?',
                         activeRepo: this.state.systemConfig.common.activeRepo,
                         uuid,
-                        objectsDbType,
+                        objectsDbType: objectsDbType || 'jsonl',
                         noObjects,
                     });
 
@@ -1699,13 +2034,13 @@ class App extends Router<AppProps, AppState> {
                 }
             }
         } catch (e) {
-            console.error(`Could not process news: ${e.stack}`);
-            this.showAlert(`Could not process news: ${e.stack}`, 'error');
+            console.error(`Could not process news: ${(e as Error).stack}`);
+            this.showAlert(`Could not process news: ${(e as Error).stack}`, 'error');
         }
     };
 
     renderNewsDialog(): JSX.Element | null {
-        if (!this.state.showNews) {
+        if (!this.state.showNews || !this.socket) {
             return null;
         }
         return (
@@ -1714,7 +2049,7 @@ class App extends Router<AppProps, AppState> {
                 current={this.state.showNews.lastNewsId}
                 onSetLastNewsId={async id => {
                     if (id) {
-                        await this.socket.setState(`admin.${this.newsInstance}.info.newsLastId`, {
+                        await this.socket!.setState(`admin.${this.newsInstance}.info.newsLastId`, {
                             val: id,
                             ack: true,
                         });
@@ -1723,6 +2058,62 @@ class App extends Router<AppProps, AppState> {
                 }}
             />
         );
+    }
+
+    /** Key under which the tip that was shown the last time is remembered, per browser */
+    static readonly LAST_TIP_ID = 'App.lastTipId';
+
+    renderTipsDialog(): JSX.Element | null {
+        // A tip is the least important thing on the screen. It waits until the dialogs that the start
+        // may bring along are gone, and appears by itself afterwards, as this is rendered again.
+        if (!this.state.showTips || this.state.wizard || this.state.showNews || this.state.showHostWarning) {
+            return null;
+        }
+
+        return (
+            <TipsDialog
+                t={I18n.t}
+                lang={this.state.lang}
+                lastTipId={(window._localStorage || window.localStorage).getItem(App.LAST_TIP_ID)}
+                onClose={(dontShowAgain: boolean, lastTipId: string): void => {
+                    (window._localStorage || window.localStorage).setItem(App.LAST_TIP_ID, lastTipId);
+                    this.setState({ showTips: false });
+
+                    if (dontShowAgain) {
+                        // The flag belongs to the installation and not to the browser, so that the
+                        // dialog stays away on every device. It can be switched on again in the
+                        // system settings.
+                        void this.disableTips();
+                    }
+                }}
+            />
+        );
+    }
+
+    /** Remember in `system.config` that the tips must not be shown at the start any more */
+    async disableTips(): Promise<void> {
+        if (!this.socket) {
+            return;
+        }
+        try {
+            const systemConfig = await this.socket.getSystemConfig(true);
+            if (systemConfig?.common && !systemConfig.common.tipsDisabled) {
+                systemConfig.common.tipsDisabled = true;
+                await this.socket.setSystemConfig(systemConfig);
+            }
+            if (this.state.systemConfig?.common) {
+                // The system settings read the flag from here, so the dialog of this session already
+                // shows the new value
+                this.setState({
+                    systemConfig: {
+                        ...this.state.systemConfig,
+                        common: { ...this.state.systemConfig.common, tipsDisabled: true },
+                    },
+                });
+            }
+        } catch (e) {
+            this.showAlert(`Cannot save system configuration: ${(e as Error).toString()}`, 'error');
+        }
     }
 
     renderSlowConnectionWarning(): JSX.Element | null {
@@ -1737,7 +2128,7 @@ class App extends Router<AppProps, AppState> {
                 onClose={readTimeoutMs => {
                     if (readTimeoutMs) {
                         this.setState({ showSlowConnectionWarning: false, readTimeoutMs }, () =>
-                            this.readRepoAndInstalledInfo(this.state.currentHost),
+                            this.readRepoAndInstalledInfo(this.state.currentHost, { offerLongerTimeout: true }),
                         );
                     } else {
                         this.setState({ showSlowConnectionWarning: false });
@@ -1747,35 +2138,89 @@ class App extends Router<AppProps, AppState> {
         );
     }
 
-    async readRepoAndInstalledInfo(currentHost: string, hosts?: CompactHost[] | null, update?: boolean): Promise<void> {
-        hosts ||= this.state.hosts;
+    /**
+     * Reads the repository, the installed versions and the adapters of the host into the state.
+     * The hosts are not part of it: they are kept up to date by the hosts worker, and a list taken
+     * before the reads would overwrite its changes when a slow read finishes
+     *
+     * @param currentHost host to read from, e.g. `system.host.raspberrypi`
+     * @param options how to read
+     * @param options.update ask the host for fresh data instead of what it has cached
+     * @param options.offerLongerTimeout allow the dialog about a slow connection when a read times
+     * out - only for a read the user asked for. Nothing waits for the read of the start, so a dialog
+     * there interrupted a start that was going perfectly well otherwise (#3656)
+     */
+    readRepoAndInstalledInfo(
+        currentHost: string,
+        options?: { update?: boolean; offerLongerTimeout?: boolean },
+    ): Promise<void> {
+        const promise = this.readRepoAndInstalledInfoRun(currentHost, ++this.repoInfoRun, options);
+        this.repoInfoPromise = promise;
+        return promise;
+    }
 
-        const repository: CompactRepository = await this.socket
-            .getCompactRepository(currentHost, update, this.state.readTimeoutMs)
-            .catch((e: unknown): CompactRepository => {
-                window.alert(`Cannot getRepositoryCompact: ${e as Error}`);
-                if ((e as Error).toString().includes('timeout')) {
-                    this.setState({ showSlowConnectionWarning: true });
-                }
-                return {} as CompactRepository;
-            });
+    private async readRepoAndInstalledInfoRun(
+        currentHost: string,
+        run: number,
+        options?: { update?: boolean; offerLongerTimeout?: boolean },
+    ): Promise<void> {
+        if (!this.socket) {
+            throw new Error('Socket not initialized');
+        }
+        const update = options?.update;
+        const onTimeout = (): void => {
+            if (options?.offerLongerTimeout) {
+                this.setState({ showSlowConnectionWarning: true });
+            }
+        };
 
-        const installed: CompactInstalledInfo = await this.socket
-            .getCompactInstalled(currentHost, update, this.state.readTimeoutMs)
-            .catch((e: unknown): CompactInstalledInfo => {
-                window.alert(`Cannot getInstalled: ${e as Error}`);
-                if ((e as Error).toString().includes('timeout')) {
-                    this.setState({ showSlowConnectionWarning: true });
-                }
-                return {} as CompactInstalledInfo;
-            });
+        // The three reads do not depend on each other, so they run at the same time. One after the
+        // other they added up their waiting time: a host that cannot reach the repository server
+        // answers neither of the first two, and both ran into their own read timeout - fifteen
+        // seconds each, thirty in a row
+        const [repository, installed, adapters]: [
+            CompactRepository,
+            CompactInstalledInfo,
+            Record<string, CompactAdapterInfo>,
+        ] = await Promise.all([
+            this.socket
+                .getCompactRepository(currentHost, update, this.state.readTimeoutMs)
+                .catch((e: unknown): CompactRepository => {
+                    window.alert(`Cannot getRepositoryCompact: ${e as Error}`);
+                    if ((e as Error).toString().includes('timeout')) {
+                        onTimeout();
+                    }
+                    return {};
+                }),
+            this.socket
+                .getCompactInstalled(currentHost, update, this.state.readTimeoutMs)
+                .catch((e: unknown): CompactInstalledInfo => {
+                    window.alert(`Cannot getInstalled: ${e as Error}`);
+                    if ((e as Error).toString().includes('timeout')) {
+                        onTimeout();
+                    }
+                    return {};
+                }),
+            // The adapters come fast, also from a host that cannot reach the repository server: they are
+            // shown at once instead of waiting for the two slow reads
+            this.socket
+                .getCompactAdapters(update)
+                .then(adapters => {
+                    if (run === this.repoInfoRun) {
+                        this.setState({ adapters });
+                    }
+                    return adapters;
+                })
+                .catch((e: unknown): Record<string, CompactAdapterInfo> => {
+                    window.alert(`Cannot read adapters: ${e as Error}`);
+                    return {};
+                }),
+        ]);
 
-        const adapters: Record<string, CompactAdapterInfo> = await this.socket
-            .getCompactAdapters(update)
-            .catch((e: unknown): Record<string, CompactAdapterInfo> => {
-                window.alert(`Cannot read adapters: ${e as Error}`);
-                return {} as Record<string, CompactAdapterInfo>;
-            });
+        if (run !== this.repoInfoRun) {
+            // a newer run has taken over in the meantime
+            return;
+        }
 
         if (installed && adapters) {
             Object.keys(adapters).forEach(id => {
@@ -1788,7 +2233,6 @@ class App extends Router<AppProps, AppState> {
         this.setState({
             repository,
             installed,
-            hosts,
             adapters,
         });
     }
@@ -1797,12 +2241,97 @@ class App extends Router<AppProps, AppState> {
         this.logsWorker?.setCurrentHost(currentHost);
     };
 
+    /** The tab of a hash location: `#tab-objects/edit/<id>` -> `tab-objects` */
+    static tabOfHash(hash: string): string {
+        return hash.replace(/^#/, '').split('/')[0];
+    }
+
+    /**
+     * Is this one of the tabs admin implements itself (see `getCurrentTab`)? Only those show the AI
+     * assistant - a custom tab of an adapter is an iframe the assistant knows nothing about.
+     * No tab at all is the admin start page, so it counts as admin's own.
+     */
+    static isAdminTab(tab: string | undefined): boolean {
+        return !tab || ADMIN_OWN_TABS.includes(tab);
+    }
+
+    /**
+     * The assistant is unmounted as soon as one of admin's own tabs is left, so an answer it is
+     * still waiting for would be thrown away. Tells whether the user has to confirm that first.
+     *
+     * @param targetTab the tab that is about to be opened
+     */
+    private chatBlocksLeaving(targetTab: string | undefined): boolean {
+        // The user has already agreed in the dialog - this is that very navigation.
+        if (this.chatLeaveConfirmed) {
+            this.chatLeaveConfirmed = false;
+            return false;
+        }
+        return this.chatBusy && App.isAdminTab(App.tabOfHash(this.lastHash)) && !App.isAdminTab(targetTab);
+    }
+
     /**
      * Updates the current currentTab in the states
      */
     onHashChanged = (): void => {
+        const newHash = window.location.hash;
+
+        if (this.chatBlocksLeaving(App.tabOfHash(newHash))) {
+            // Put the old route back into the address bar (without a history entry and without a new
+            // `hashchange`) and let the user decide whether the pending answer may be lost.
+            window.history.replaceState(
+                null,
+                '',
+                this.lastHash || `${window.location.pathname}${window.location.search}`,
+            );
+            this.setState({ chatLeaveDialog: { target: { hash: newHash }, reason: 'busy' } });
+            return;
+        }
+
+        this.lastHash = newHash;
         this.setState({ currentTab: Router.getLocation() }, () => this.setCurrentTabTitle());
     };
+
+    /**
+     * The assistant navigates the admin UI itself. It only exists on admin's own tabs, so a custom
+     * tab would close it - that is the user's decision, not the assistant's.
+     *
+     * @param hash the route the assistant wants to open
+     * @returns false if the user refused, so the assistant can say so in the chat
+     */
+    assistantNavigate(hash: string): Promise<boolean> {
+        const normalized = hash.startsWith('#') ? hash : `#${hash}`;
+        if (App.isAdminTab(App.tabOfHash(normalized))) {
+            window.location.hash = normalized;
+            return Promise.resolve(true);
+        }
+        return new Promise<boolean>(resolve =>
+            this.setState({ chatLeaveDialog: { target: { hash: normalized }, reason: 'assistant', resolve } }),
+        );
+    }
+
+    /**
+     * The user answered the question whether the assistant may be given up.
+     *
+     * @param agreed true if the pending navigation shall be executed
+     */
+    private onChatLeaveDialog(agreed: boolean): void {
+        const dialog = this.state.chatLeaveDialog;
+        this.setState({ chatLeaveDialog: null }, () => {
+            // The assistant asked for this navigation and has to know that it did not happen
+            dialog?.resolve?.(agreed);
+            const target = dialog?.target;
+            if (!agreed || !target) {
+                return;
+            }
+            this.chatLeaveConfirmed = true;
+            if ('hash' in target) {
+                window.location.hash = target.hash;
+            } else {
+                this.handleNavigation(target.tab, target.subTab, target.param);
+            }
+        });
+    }
 
     /**
      * Get the used port
@@ -1873,12 +2402,58 @@ class App extends Router<AppProps, AppState> {
                 themeType: App.getThemeType(theme),
             },
             () => {
-                // DH (2026.04.12) Remove this line after all adapters update adapter-react-v5 to V8.2.x
+                // DH (2026.04.12) Remove this line after all adapters update gui-components to V8.2.x
                 this.refConfigIframe?.contentWindow?.postMessage('updateTheme', '*');
                 this.refConfigIframe?.contentWindow?.postMessage({ type: 'updateTheme', themeName: newThemeName }, '*');
             },
         );
     };
+
+    /**
+     * The host selector for the tabs that show the data of one host.
+     *
+     * It used to sit in the app bar and was only greyed out on the other tabs. Now it is handed to
+     * the four tabs that show data of one host (overview, adapters, instances, logs), and each of
+     * them puts it at the right end of its header - so the app bar can be emptied step by step.
+     * The element is built here because switching the host also has to reload the repository and
+     * the notifications, and that logic must not be duplicated in four tabs.
+     */
+    renderHostSelector(): JSX.Element | null {
+        if (!this.socket || !this.hostsWorker) {
+            return null;
+        }
+
+        return (
+            <IsVisible
+                name="admin.appBar.hostSelector"
+                config={this.adminGuiConfig}
+            >
+                <HostSelectors
+                    themeType={this.state.themeType}
+                    expertMode={this.state.expertMode}
+                    socket={this.socket}
+                    hostsWorker={this.hostsWorker}
+                    currentHost={this.state.currentHost}
+                    setCurrentHost={(hostName, host) => {
+                        this.setState(
+                            {
+                                currentHostName: hostName,
+                                currentHost: host,
+                            },
+                            async () => {
+                                this.logsWorkerChanged(host);
+                                (window._localStorage || window.localStorage).setItem('App.currentHost', host);
+                                await this.readRepoAndInstalledInfo(host, { offerLongerTimeout: true });
+                                // read notifications from the host
+                                const notifications = await this.hostsWorker?.getNotifications(host);
+                                await this.handleNewNotifications(notifications);
+                            },
+                        );
+                    }}
+                />
+            </IsVisible>
+        );
+    }
 
     setCurrentTabTitle(): void {
         this.setTitle(this.state.currentTab.tab.replace('tab-', ''));
@@ -1889,7 +2464,19 @@ class App extends Router<AppProps, AppState> {
     }
 
     getCurrentTab(): JSX.Element | null {
-        if (this.state && this.state.currentTab && this.state.currentTab.tab) {
+        if (
+            !this.socket ||
+            !this.hostsWorker ||
+            !this.adaptersWorker ||
+            !this.instancesWorker ||
+            !this.objectsWorker ||
+            !this.state.systemConfig ||
+            !this.logsWorker
+        ) {
+            return null;
+        }
+
+        if (this.state?.currentTab?.tab) {
             if (this.state.currentTab.tab === 'tab-adapters') {
                 const small = this.props.width === 'xs' || this.props.width === 'sm';
                 const opened = !small && this.state.drawerState === DrawerStates.opened;
@@ -1917,7 +2504,7 @@ class App extends Router<AppProps, AppState> {
                             executeCommand={(
                                 cmd: string,
                                 host?: string,
-                                callback?: (exitCode: number) => void,
+                                callback?: (exitCode?: number) => void,
                                 files?: CommandFile[],
                             ) => this.executeCommand(cmd, host, callback, files)}
                             commandRunning={this.state.commandRunning}
@@ -1930,6 +2517,8 @@ class App extends Router<AppProps, AppState> {
                             adminInstance={this.adminInstance}
                             currentAdminVersion={this.state.versionAdmin}
                             onUpdating={updating => this.setState({ updating })}
+                            hostSelector={this.renderHostSelector()}
+                            menuButtonSpace={this.needsMenuButtonSpace()}
                         />
                     </Suspense>
                 );
@@ -1969,7 +2558,7 @@ class App extends Router<AppProps, AppState> {
                             executeCommand={(
                                 cmd: string,
                                 host?: string,
-                                callback?: (exitCode: number) => void,
+                                callback?: (exitCode?: number) => void,
                                 files?: CommandFile[],
                             ) => this.executeCommand(cmd, host, callback, files)}
                             inBackgroundCommand={this.state.commandError || this.state.performed}
@@ -1980,6 +2569,34 @@ class App extends Router<AppProps, AppState> {
                                 }
                             }}
                             handleNavigation={this.handleNavigation}
+                            hostSelector={this.renderHostSelector()}
+                            menuButtonSpace={this.needsMenuButtonSpace()}
+                        />
+                    </Suspense>
+                );
+            }
+            if (this.state.currentTab.tab === 'tab-overview') {
+                return (
+                    <Suspense fallback={<Connecting />}>
+                        <Overview
+                            key="overview"
+                            t={I18n.t}
+                            lang={this.state.lang}
+                            socket={this.socket}
+                            theme={this.state.theme}
+                            themeType={this.state.themeType}
+                            currentHost={this.state.currentHost}
+                            currentHostName={this.state.currentHostName}
+                            hostsWorker={this.hostsWorker}
+                            instancesWorker={this.instancesWorker}
+                            objectsWorker={this.objectsWorker}
+                            logsWorker={this.logsWorker}
+                            expertMode={this.state.expertMode}
+                            installed={this.state.installed}
+                            repository={this.state.repository}
+                            handleNavigation={(tab: string) => this.handleNavigation(tab)}
+                            hostSelector={this.renderHostSelector()}
+                            menuButtonSpace={this.needsMenuButtonSpace()}
                         />
                     </Suspense>
                 );
@@ -2021,6 +2638,8 @@ class App extends Router<AppProps, AppState> {
                             currentHost={this.state.currentHost}
                             hostsWorker={this.hostsWorker}
                             clearErrors={() => this.clearLogErrors()}
+                            hostSelector={this.renderHostSelector()}
+                            menuButtonSpace={this.needsMenuButtonSpace()}
                         />
                     </Suspense>
                 );
@@ -2109,7 +2728,7 @@ class App extends Router<AppProps, AppState> {
                             executeCommand={(
                                 cmd: string,
                                 host?: string,
-                                callback?: (exitCode: number) => void,
+                                callback?: (exitCode?: number) => void,
                                 files?: CommandFile[],
                             ) => this.executeCommand(cmd, host, callback, files)}
                             systemConfig={this.state.systemConfig}
@@ -2172,8 +2791,8 @@ class App extends Router<AppProps, AppState> {
     }
 
     clearLogErrors(): void {
-        this.logsWorker.resetErrors();
-        this.logsWorker.resetWarnings();
+        this.logsWorker?.resetErrors();
+        this.logsWorker?.resetWarnings();
     }
 
     getCurrentDialog(): JSX.Element | null {
@@ -2202,12 +2821,14 @@ class App extends Router<AppProps, AppState> {
                 onClose={async (repoChanged?: boolean) => {
                     Router.doNavigate(null);
                     // read systemConfig anew
-                    const systemConfig = await this.socket.getObject('system.config');
+                    const systemConfig = await this.socket?.getObject('system.config');
 
-                    if (repoChanged) {
-                        this.setState({ triggerAdapterUpdate: this.state.triggerAdapterUpdate + 1, systemConfig });
-                    } else {
-                        this.setState({ systemConfig });
+                    if (systemConfig) {
+                        if (repoChanged) {
+                            this.setState({ triggerAdapterUpdate: this.state.triggerAdapterUpdate + 1, systemConfig });
+                        } else {
+                            this.setState({ systemConfig });
+                        }
                     }
                 }}
                 lang={this.state.lang}
@@ -2230,6 +2851,28 @@ class App extends Router<AppProps, AppState> {
         }
 
         this.setState({ alert: false });
+    }
+
+    /**
+     * Whether a message is only the consequence of a lost connection to admin, like "Cannot read instances!"
+     * after a restart of admin. Such a message would hide the actual cause, which the overlay shows anyway.
+     *
+     * @param message the text to show
+     * @param raisedAt when the message was raised
+     */
+    isCausedByConnectionLoss(message: string, raisedAt: number): boolean {
+        if (message.includes('notConnectedError')) {
+            return true;
+        }
+        if (!this.connectionLostAt) {
+            return false;
+        }
+        return !this.socket?.isConnected() || this.connectionLostAt > raisedAt - CONNECTION_LOSS_GRACE;
+    }
+
+    /** The text of the overlay while the connection is lost. The first connect shows the spinner only */
+    getConnectionLostText(): string | undefined {
+        return this.connectionLostAt ? I18n.t('Connection to admin lost. Waiting for reconnection...') : undefined;
     }
 
     showAlert(alertMessage: string | Error, alertType?: 'error' | 'warning' | 'info' | 'success'): void {
@@ -2273,10 +2916,17 @@ class App extends Router<AppProps, AppState> {
         }
     }
 
-    handleNavigation = (tab: string, subTab?: string, param?: string): void => {
+    handleNavigation = (tab: string | undefined, subTab?: string, param?: string): void => {
         if (tab) {
+            if (this.chatBlocksLeaving(tab)) {
+                this.setState({ chatLeaveDialog: { target: { tab, subTab, param }, reason: 'busy' } });
+                return;
+            }
             if (this._tempAllStored) {
                 Router.doNavigate(tab, subTab, param);
+
+                // The `hashchange` that follows must not ask again about the assistant
+                this.lastHash = window.location.hash;
 
                 this.setState({ currentTab: Router.getLocation() });
             } else {
@@ -2322,10 +2972,15 @@ class App extends Router<AppProps, AppState> {
         );
     }
 
-    executeCommand(cmd: string, host?: string, callback?: (exitCode: number) => void, files?: CommandFile[]): void {
+    executeCommand(
+        cmd: string,
+        host?: string,
+        callback?: ((exitCode?: number) => void) | null,
+        files?: CommandFile[],
+    ): void {
         if (typeof host === 'boolean') {
             callback = host;
-            host = null;
+            host = undefined;
         }
 
         const connectionReady =
@@ -2343,7 +2998,7 @@ class App extends Router<AppProps, AppState> {
                 return;
             }
 
-            const pending = { cmd, host, callback, files, started: Date.now() };
+            const pending = { cmd, host, callback: callback || undefined, files, started: Date.now() };
             this.pendingCommand = pending;
             this.showAlert(
                 'EOS stellt die Verbindung noch her. Der Befehl wird automatisch gestartet, sobald das System bereit ist.',
@@ -2399,6 +3054,8 @@ class App extends Router<AppProps, AppState> {
                         cmd,
                         cmdDialog: true,
                         callback,
+                        // the host must be set here too, as it was reset above and a chained
+                        // command (e.g. install => upload => add) would else run on the current host
                         commandHost: host || this.state.currentHost,
                         cmdFiles: files || null,
                     }),
@@ -2438,27 +3095,36 @@ class App extends Router<AppProps, AppState> {
                     executeCommand={(
                         cmd: string,
                         host?: string,
-                        callback?: (exitCode: number) => void,
+                        callback?: (exitCode?: number) => void,
                         files?: CommandFile[],
                     ) => this.executeCommand(cmd, host, callback, files)}
                     host={this.state.currentHost}
-                    socket={this.socket}
+                    socket={this.socket!}
                     themeName={this.state.themeName}
                     themeType={this.state.themeType}
                     toggleTheme={this.toggleTheme}
                     lang={I18n.getLanguage()}
                     onClose={(redirect?: string) => {
-                        this.setState({ wizard: false, showRedirect: redirect, redirectCountDown: 10 }, () => {
-                            if (this.state.showRedirect) {
-                                setInterval(() => {
-                                    if (this.state.redirectCountDown > 0) {
-                                        this.setState({ redirectCountDown: this.state.redirectCountDown - 1 });
-                                    } else {
-                                        window.location.href = this.state.showRedirect;
-                                    }
-                                }, 1_000);
-                            }
-                        });
+                        // The language could be changed in the wizard
+                        this.setState(
+                            {
+                                wizard: false,
+                                showRedirect: redirect,
+                                redirectCountDown: 10,
+                                lang: I18n.getLanguage(),
+                            },
+                            () => {
+                                if (this.state.showRedirect) {
+                                    setInterval(() => {
+                                        if (this.state.redirectCountDown > 0) {
+                                            this.setState({ redirectCountDown: this.state.redirectCountDown - 1 });
+                                        } else {
+                                            window.location.href = this.state.showRedirect!;
+                                        }
+                                    }, 1_000);
+                                }
+                            },
+                        );
                     }}
                     onNavigate={(tab: string, subTab?: string, param?: string) => {
                         // In wizard mode, many of the objects are not loaded yet.
@@ -2494,10 +3160,15 @@ class App extends Router<AppProps, AppState> {
                         (window.document.all && window.external?.AddFavorite) ? (
                             <Button
                                 onClick={() => {
-                                    if (window.sidebar) {
+                                    if (window.sidebar && this.state.showRedirect) {
                                         // Firefox
                                         window.sidebar.addPanel('NexoWatt EOS Admin', this.state.showRedirect, '');
-                                    } else if (window.opera && window.print) {
+                                    } else if (
+                                        window.opera &&
+                                        this.state.showRedirect &&
+                                        // @ts-expect-error ignore
+                                        window.print
+                                    ) {
                                         // Opera
                                         const elem = document.createElement('a');
                                         elem.setAttribute('href', this.state.showRedirect);
@@ -2517,7 +3188,9 @@ class App extends Router<AppProps, AppState> {
                         {this.state.redirectCountDown ? (
                             <Button
                                 variant="contained"
-                                onClick={() => (window.location.href = this.state.showRedirect)}
+                                onClick={() =>
+                                    this.state.showRedirect && (window.location.href = this.state.showRedirect)
+                                }
                             >
                                 {I18n.t('Go to admin now')}
                             </Button>
@@ -2530,12 +3203,12 @@ class App extends Router<AppProps, AppState> {
     }
 
     renderCommandDialog(): JSX.Element | null {
-        return this.state.cmd ? (
+        return this.state.cmd && this.socket ? (
             <CommandDialog
                 onSetCommandRunning={(commandRunning: boolean) => this.setState({ commandRunning })}
                 onClose={() => this.closeCmdDialog(() => this.setState({ commandRunning: false }))}
                 visible={this.state.cmdDialog}
-                callback={this.state.callback}
+                callback={this.state.callback as () => void}
                 onInBackground={() => this.setState({ cmdDialog: false })}
                 cmd={this.state.cmd}
                 files={this.state.cmdFiles || undefined}
@@ -2551,94 +3224,112 @@ class App extends Router<AppProps, AppState> {
         ) : null;
     }
 
-    renderLoggedUser(): JSX.Element | null {
-        if (this.state.user && this.props.width !== 'xs' && this.props.width !== 'sm') {
-            return (
-                <div>
-                    {this.state.systemConfig.common.siteName ? (
-                        <div style={styles.siteName}>{this.state.systemConfig.common.siteName}</div>
-                    ) : null}
-
-                    <Box
-                        component="div"
-                        title={this.state.user.id}
-                        sx={{
-                            ...styles.userBadge,
-                            ...(this.state.user.invertBackground ? styles.userBackground : undefined),
-                            ...(this.socket.isSecure ? { cursor: 'pointer' } : {}),
-                        }}
-                        ref={this.refUser}
-                        {...(this.socket.isSecure
-                            ? {
-                                  onClick: (event: React.MouseEvent<HTMLDivElement>) =>
-                                      this.setState({ userMenuAnchor: event.currentTarget }),
-                              }
-                            : {})}
-                    >
-                        {this.state.user.icon ? (
-                            <Icon
-                                src={this.state.user.icon}
-                                style={styles.userIcon}
-                            />
-                        ) : (
-                            <UserIcon style={styles.userIcon} />
-                        )}
-                        <div
-                            ref={this.refUserDiv}
-                            style={{
-                                ...styles.userText,
-                                color: this.state.user?.color || undefined,
-                            }}
-                        >
-                            {this.state.user.name}
-                        </div>
-                    </Box>
-
-                    {this.socket.isSecure && (
-                        <Menu
-                            anchorEl={this.state.userMenuAnchor}
-                            open={Boolean(this.state.userMenuAnchor)}
-                            onClose={() => this.setState({ userMenuAnchor: null })}
-                            anchorOrigin={{
-                                vertical: 'bottom',
-                                horizontal: 'right',
-                            }}
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'right',
-                            }}
-                        >
-                            <MenuItem
-                                onClick={() => {
-                                    this.setState({ userMenuAnchor: null });
-                                    App.logout();
-                                }}
-                            >
-                                <ListItemIcon>
-                                    <Logout fontSize="small" />
-                                </ListItemIcon>
-                                <ListItemText>{I18n.t('ra_Logout')}</ListItemText>
-                            </MenuItem>
-                        </Menu>
-                    )}
-                </div>
-            );
+    /**
+     * The site name in the app bar.
+     *
+     * The logged-in user with its logout menu used to be here as well - it sits at the lower edge of
+     * the menu now, see the `user` prop of the drawer.
+     */
+    /**
+     * Name of the group that says the most about a user, for the line below the name in the menu.
+     *
+     * `administrator` wins when the user is a member of it - being an administrator matters more
+     * than any other membership. Otherwise the first group is taken.
+     *
+     * @param userId e.g. `system.user.admin`
+     */
+    async getLeadingGroupName(userId: `system.user.${string}`): Promise<string> {
+        if (!this.socket) {
+            throw new Error('Socket not ready');
         }
-        if (this.props.width !== 'xs' && this.props.width !== 'sm' && this.state.systemConfig.common.siteName) {
-            return <div style={styles.siteName}>{this.state.systemConfig.common.siteName}</div>;
+        try {
+            const groups = await this.socket.getForeignObjects('system.group.*', 'group');
+            const own = Object.values(groups || {}).filter(group => group?.common?.members?.includes(userId));
+            const leading = own.find(group => group._id === 'system.group.administrator') || own[0];
+            return leading ? Utils.getObjectNameFromObj(leading, this.socket.systemLang) : '';
+        } catch (e) {
+            // the group is only additional information - the menu works without it
+            console.warn(`Cannot read groups of ${userId}: ${e as Error}`);
+            return '';
+        }
+    }
+
+    renderSiteName(): JSX.Element | null {
+        const siteName = this.state.systemConfig?.common?.siteName;
+        if (siteName) {
+            return <div style={styles.siteName}>{siteName}</div>;
         }
         return null;
+    }
+
+    /**
+     * Replaces the app bar when there is no site name.
+     *
+     * Without it the menu could not be reached again once it is fully closed - the drawer hides
+     * completely in that state and the button for it used to live in the bar. The indicator of a
+     * running command would be lost as well.
+     */
+    /**
+     * True when the floating menu button covers the upper left corner of the tab, so the tab has to
+     * keep that spot free. Only the case without an app bar and with a completely hidden menu.
+     */
+    needsMenuButtonSpace(): boolean {
+        return !this.state.systemConfig?.common?.siteName && this.state.drawerState === DrawerStates.closed;
+    }
+
+    renderFloatingButtons(): JSX.Element | null {
+        const showMenuButton = this.state.drawerState === DrawerStates.closed;
+        const showCmd = this.state.cmd && !this.state.cmdDialog;
+
+        if (!showMenuButton && !showCmd) {
+            return null;
+        }
+
+        return (
+            <Box sx={styles.floatingButtons}>
+                {showMenuButton ? (
+                    <IconButton onClick={() => this.handleDrawerState(DrawerStates.opened as 0)}>
+                        <MenuIcon />
+                    </IconButton>
+                ) : null}
+                {showCmd ? (
+                    <IconButton onClick={() => this.setState({ cmdDialog: true })}>
+                        <PictureInPictureAltIcon
+                            style={
+                                this.state.commandError
+                                    ? styles.errorCmd
+                                    : this.state.performed
+                                      ? Utils.getStyle(this.state.theme, styles.performed)
+                                      : styles.cmd
+                            }
+                        />
+                    </IconButton>
+                ) : null}
+            </Box>
+        );
     }
 
     renderAlertSnackbar(): JSX.Element {
         return (
             <Snackbar
-                style={styles[`alert_${this.state.alertType}`]}
                 open={this.state.alert}
                 autoHideDuration={6000}
                 onClose={() => this.handleAlertClose()}
-                message={this.state.alertMessage}
-            />
+            >
+                {/*
+                 * The color has to sit on the `Alert`, not on the `Snackbar`: the snackbar itself is
+                 * only the positioning container, the visible box is its content. Painting the
+                 * container left the content in the MUI default color - a light grey block on the
+                 * dark theme with only a red rim showing.
+                 */}
+                <Alert
+                    severity={this.state.alertType}
+                    variant="filled"
+                    onClose={() => this.handleAlertClose()}
+                >
+                    {this.state.alertMessage}
+                </Alert>
+            </Snackbar>
         );
     }
 
@@ -2662,6 +3353,30 @@ class App extends Router<AppProps, AppState> {
                 ok={I18n.t('ra_Discard')}
                 cancel={I18n.t('ra_Cancel')}
                 onClose={(isYes: boolean) => (isYes ? this.confirmDataNotStored() : this.closeDataNotStoredDialog())}
+            />
+        );
+    }
+
+    /**
+     * Asks whether the AI assistant may be left behind: it only lives on admin's own tabs, so a
+     * custom tab either discards the answer it is still waiting for or closes it altogether.
+     */
+    renderChatLeaveDialog(): JSX.Element | null {
+        if (!this.state.chatLeaveDialog) {
+            return null;
+        }
+        const busy = this.state.chatLeaveDialog.reason === 'busy';
+        return (
+            <DialogConfirm
+                title={I18n.t('ra_Please confirm')}
+                text={I18n.t(
+                    busy
+                        ? 'The assistant is still working on an answer, which is lost on this tab. Leave anyway?'
+                        : 'The assistant is not available on this tab and will be closed. Continue?',
+                )}
+                ok={I18n.t(busy ? 'Leave anyway' : 'Continue')}
+                cancel={I18n.t('ra_Cancel')}
+                onClose={(isYes: boolean) => this.onChatLeaveDialog(isYes)}
             />
         );
     }
@@ -2701,7 +3416,9 @@ class App extends Router<AppProps, AppState> {
                 <MenuItem
                     onClick={() => {
                         this.setState({ showGuiSettings: null });
-                        this.enableGuiSettings(true);
+                        this.enableGuiSettings(true).catch(e =>
+                            console.error(`Cannot enable GUI settings: ${e as Error}`),
+                        );
                     }}
                 >
                     {I18n.t('Use settings of other browsers')}
@@ -2709,7 +3426,9 @@ class App extends Router<AppProps, AppState> {
                 <MenuItem
                     onClick={() => {
                         this.setState({ showGuiSettings: null });
-                        this.enableGuiSettings(true, true);
+                        this.enableGuiSettings(true, true).catch(e =>
+                            console.error(`Cannot enable GUI settings: ${e as Error}`),
+                        );
                     }}
                 >
                     {I18n.t('Use settings of this browser')}
@@ -2724,95 +3443,79 @@ class App extends Router<AppProps, AppState> {
         ) : null;
     }
 
-    renderToolbar(small: boolean): JSX.Element {
+    /**
+     * The global buttons that used to sit in the app bar: notifications, discovery, theme, expert
+     * mode and the settings synchronisation.
+     *
+     * They are rendered by the drawer at its lower edge now. The app bar is supposed to disappear
+     * completely, so nothing that the user needs permanently may stay in it.
+     */
+    renderMenuButtons(): JSX.Element {
         const storedExpertMode = (window._sessionStorage || window.sessionStorage).getItem('App.expertMode');
         const expertModePermanent =
-            !storedExpertMode || (storedExpertMode === 'true') === !!this.state.systemConfig.common.expertMode;
-
-        const performedStyle = Utils.getStyle(this.state.theme, styles.performed);
+            !storedExpertMode || (storedExpertMode === 'true') === !!this.state.systemConfig?.common.expertMode;
         const sumNotification = this.state.noNotifications.warning + this.state.noNotifications.other;
 
         return (
-            <Toolbar>
-                <IconButton
-                    size="large"
-                    edge="start"
-                    style={{
-                        ...styles.menuButton,
-                        ...(!small && this.state.drawerState !== DrawerStates.closed ? styles.hide : undefined),
-                    }}
-                    onClick={() => this.handleDrawerState(DrawerStates.opened as 0)}
+            <>
+                <Tooltip
+                    title={I18n.t('Notifications')}
+                    slotProps={{ popper: { sx: styles.tooltip } }}
                 >
-                    <MenuIcon />
-                </IconButton>
-                <div style={styles.wrapperButtons}>
-                    <Tooltip
-                        title={I18n.t('Notifications')}
-                        slotProps={{ popper: { sx: styles.tooltip } }}
+                    <IconButton
+                        disableRipple={!sumNotification}
+                        style={{ opacity: sumNotification ? 1 : 0.3 }}
+                        onClick={sumNotification ? () => this.setState({ notificationsDialog: true }) : undefined}
                     >
-                        <IconButton
-                            size="large"
-                            disableRipple={!sumNotification}
-                            style={{ opacity: sumNotification ? 1 : 0.3 }}
-                            onClick={sumNotification ? () => this.setState({ notificationsDialog: true }) : null}
+                        <Badge
+                            badgeContent={this.state.noNotifications.other + this.state.noNotifications.warning}
+                            color={this.state.noNotifications.warning > 0 ? 'error' : 'secondary'}
+                            max={99}
                         >
-                            <Badge
-                                badgeContent={this.state.noNotifications.other + this.state.noNotifications.warning}
-                                color={this.state.noNotifications.warning > 0 ? 'error' : 'secondary'}
-                                max={99}
-                            >
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
-                    </Tooltip>
-                    <IsVisible
-                        name="admin.appBar.discovery"
-                        config={this.adminGuiConfig}
-                    >
-                        {this.state.discoveryAlive && (
-                            <Tooltip
-                                title={I18n.t('Discovery devices')}
-                                slotProps={{ popper: { sx: styles.tooltip } }}
-                            >
-                                <IconButton
-                                    size="large"
-                                    onClick={() => Router.doNavigate(null, 'discovery')}
-                                >
-                                    <VisibilityIcon />
-                                </IconButton>
-                            </Tooltip>
-                        )}
-                    </IsVisible>
-                    <IsVisible
-                        name="admin.appBar.systemSettings"
-                        config={this.adminGuiConfig}
-                    >
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>
+                </Tooltip>
+                <IsVisible
+                    name="admin.appBar.discovery"
+                    config={this.adminGuiConfig}
+                >
+                    {this.state.discoveryAlive ? (
                         <Tooltip
-                            title={I18n.t('System settings')}
+                            title={
+                                this.state.discoveryProposals
+                                    ? `${I18n.t('Discovery devices')} - ${I18n.t('New adapter proposals')}: ${this.state.discoveryProposals}`
+                                    : I18n.t('Discovery devices')
+                            }
                             slotProps={{ popper: { sx: styles.tooltip } }}
                         >
-                            <IconButton
-                                size="large"
-                                onClick={() => Router.doNavigate(null, 'system')}
-                            >
-                                <BuildIcon />
+                            <IconButton onClick={() => Router.doNavigate(null, 'discovery')}>
+                                <Badge
+                                    badgeContent={this.state.discoveryProposals}
+                                    color="secondary"
+                                    max={99}
+                                >
+                                    <VisibilityIcon />
+                                </Badge>
                             </IconButton>
                         </Tooltip>
+                    ) : (
+                        <div style={{ display: 'none' }} />
+                    )}
+                </IsVisible>
+                {this.toggleThemePossible ? (
+                    <IsVisible
+                        name="admin.appBar.toggleTheme"
+                        config={this.adminGuiConfig}
+                    >
+                        <ToggleThemeMenu
+                            toggleTheme={this.toggleTheme}
+                            themeName={this.state.themeName}
+                            t={I18n.t}
+                        />
                     </IsVisible>
-                    {this.toggleThemePossible ? (
-                        <IsVisible
-                            name="admin.appBar.toggleTheme"
-                            config={this.adminGuiConfig}
-                        >
-                            <ToggleThemeMenu
-                                size="large"
-                                toggleTheme={this.toggleTheme}
-                                themeName={this.state.themeName as 'dark' | 'light' | 'colored' | 'blue'}
-                                t={I18n.t}
-                            />
-                        </IsVisible>
-                    ) : null}
-                    {isEosAdministrator() ? (
+                ) : null}
+                {isEosAdministrator() ? (
                     <IsVisible
                         name="admin.appBar.expertMode"
                         config={this.adminGuiConfig}
@@ -2830,10 +3533,9 @@ class App extends Router<AppProps, AppState> {
                                 invisible={expertModePermanent}
                             >
                                 <IconButton
-                                    size="large"
                                     data-eos-expert-control="1"
                                     onClick={() => {
-                                        if (!!this.state.systemConfig.common.expertMode === !this.state.expertMode) {
+                                        if (!!this.state.systemConfig?.common.expertMode === !this.state.expertMode) {
                                             (window._sessionStorage || window.sessionStorage).setItem(
                                                 'App.expertMode',
                                                 this.state.expertMode ? 'false' : 'true',
@@ -2861,8 +3563,6 @@ class App extends Router<AppProps, AppState> {
                                     color="default"
                                 >
                                     <IconExpert
-                                        // glowColor={this.state.theme.palette.secondary.main}
-                                        // active={this.state.expertMode}
                                         style={{
                                             ...styles.expertIcon,
                                             ...(this.state.expertMode ? styles.expertIconActive : undefined),
@@ -2872,67 +3572,49 @@ class App extends Router<AppProps, AppState> {
                             </Badge>
                         </Tooltip>
                     </IsVisible>
-                    ) : null}
-                    {isEosAdministrator() && this.state.expertMode ? (
-                        <Tooltip
-                            title={I18n.t('Synchronize admin settings between all opened browser windows')}
-                            slotProps={{ popper: { sx: styles.tooltip } }}
-                        >
-                            <IconButton
-                                size="large"
-                                onClick={e =>
-                                    this.state.guiSettings
-                                        ? this.enableGuiSettings(false)
-                                        : this.setState({ showGuiSettings: e.target as HTMLButtonElement })
-                                }
-                                style={{
-                                    color: this.state.guiSettings ? this.state.theme.palette.expert : undefined,
-                                }}
-                            >
-                                {this.state.guiSettings ? <SyncIcon /> : <SyncIconDisabled />}
-                            </IconButton>
-                        </Tooltip>
-                    ) : null}
-                    <IsVisible
-                        name="admin.appBar.hostSelector"
-                        config={this.adminGuiConfig}
+                ) : null}
+                {isEosAdministrator() && this.state.expertMode ? (
+                    <Tooltip
+                        title={I18n.t('Synchronize admin settings between all opened browser windows')}
+                        slotProps={{ popper: { sx: styles.tooltip } }}
                     >
-                        <HostSelectors
-                            tooltip={
-                                this.state.currentTab.tab !== 'tab-instances' &&
-                                this.state.currentTab.tab !== 'tab-adapters' &&
-                                this.state.currentTab.tab !== 'tab-logs'
-                                    ? I18n.t('You can change host on Instances, Adapters or Logs pages')
-                                    : undefined
+                        <IconButton
+                            onClick={e =>
+                                this.state.guiSettings
+                                    ? this.enableGuiSettings(false)
+                                    : this.setState({ showGuiSettings: e.target as HTMLButtonElement })
                             }
-                            themeType={this.state.themeType}
-                            expertMode={this.state.expertMode}
-                            socket={this.socket}
-                            hostsWorker={this.hostsWorker}
-                            currentHost={this.state.currentHost}
-                            setCurrentHost={(hostName, host) => {
-                                this.setState(
-                                    {
-                                        currentHostName: hostName,
-                                        currentHost: host,
-                                    },
-                                    async () => {
-                                        this.logsWorkerChanged(host);
-                                        (window._localStorage || window.localStorage).setItem('App.currentHost', host);
-                                        await this.readRepoAndInstalledInfo(host, this.state.hosts);
-                                        // read notifications from the host
-                                        const notifications = await this.hostsWorker.getNotifications(host);
-                                        await this.handleNewNotifications(notifications);
-                                    },
-                                );
+                            style={{
+                                color: this.state.guiSettings ? this.state.theme.palette.expert : undefined,
                             }}
-                            disabled={
-                                this.state.currentTab.tab !== 'tab-instances' &&
-                                this.state.currentTab.tab !== 'tab-adapters' &&
-                                this.state.currentTab.tab !== 'tab-logs'
-                            }
-                        />
-                    </IsVisible>
+                        >
+                            {this.state.guiSettings ? <SyncIcon /> : <SyncIconDisabled />}
+                        </IconButton>
+                    </Tooltip>
+                ) : null}
+            </>
+        );
+    }
+
+    renderToolbar(small: boolean): JSX.Element {
+        const performedStyle = Utils.getStyle(this.state.theme, styles.performed);
+
+        return (
+            <Toolbar>
+                <IconButton
+                    size="large"
+                    edge="start"
+                    style={{
+                        ...styles.menuButton,
+                        ...(!small && this.state.drawerState !== DrawerStates.closed ? styles.hide : undefined),
+                    }}
+                    onClick={() => this.handleDrawerState(DrawerStates.opened as 0)}
+                >
+                    <MenuIcon />
+                </IconButton>
+                <div style={styles.wrapperButtons}>
+                    {/* notifications, discovery, theme, expert mode and the settings synchronisation
+                        moved to the lower edge of the menu, see `renderMenuButtons` */}
                     <div style={styles.flexGrow} />
                     {this.state.cmd && !this.state.cmdDialog && (
                         <IconButton
@@ -2952,7 +3634,7 @@ class App extends Router<AppProps, AppState> {
                     )}
                 </div>
 
-                {this.renderLoggedUser()}
+                {this.renderSiteName()}
 
                 {this.state.drawerState !== DrawerStates.opened &&
                     !this.state.expertMode &&
@@ -2964,7 +3646,7 @@ class App extends Router<AppProps, AppState> {
                                 ...(this.state.drawerState !== DrawerStates.opened ? styles.avatarVisible : undefined),
                             }}
                             spacing={1}
-                            alignItems="center"
+                            sx={{ alignItems: 'center' }}
                         >
                             {!this.state.user ? (
                                 <Box
@@ -2986,7 +3668,7 @@ class App extends Router<AppProps, AppState> {
                             ) : null}
                             <Grid>
                                 <a
-                                    href="/#easy"
+                                    href="#easy"
                                     onClick={event => event.preventDefault()}
                                     style={{ color: 'inherit', textDecoration: 'none' }}
                                 >
@@ -3028,8 +3710,24 @@ class App extends Router<AppProps, AppState> {
     }
 
     renderSampleError(): JSX.Element {
-        const message = this.state.hasGlobalError.message;
-        const stack = this.state.hasGlobalError.stack;
+        const message = this.state.hasGlobalError?.message;
+        const stack = this.state.hasGlobalError?.stack;
+
+        if (isChunkLoadError(this.state.hasGlobalError)) {
+            // not a bug: the page is older than the admin, which was updated or restarted meanwhile (#3678)
+            return (
+                <div style={{ textAlign: 'center', fontSize: 22, marginTop: 50 }}>
+                    <h2>{I18n.t('The admin was updated. Please load the page anew.')}</h2>
+                    <Button
+                        variant="contained"
+                        onClick={() => window.location.reload()}
+                    >
+                        {I18n.t('Reload')}
+                    </Button>
+                    <div style={{ color: '#888', fontSize: 14, marginTop: 20 }}>{message}</div>
+                </div>
+            );
+        }
 
         return (
             <div
@@ -3098,12 +3796,16 @@ class App extends Router<AppProps, AppState> {
         );
     }
 
-    renderEasyMode(): JSX.Element {
+    renderEasyMode(): JSX.Element | null {
+        if (!this.socket) {
+            return null;
+        }
+
         return (
             <StyledEngineProvider injectFirst>
                 <ThemeProvider theme={this.state.theme}>
                     <div style={{ height: '100%' }}>
-                        {!this.state.connected && <Connecting />}
+                        {!this.state.connected && <Connecting text={this.getConnectionLostText()} />}
                         <Suspense fallback={<Connecting />}>
                             <EasyMode
                                 navigate={Router.doNavigate}
@@ -3118,8 +3820,8 @@ class App extends Router<AppProps, AppState> {
                                 configs={this.state.easyModeConfigs}
                                 socket={this.socket}
                                 configStored={value => this.allStored(value)}
-                                isFloatComma={this.state.systemConfig?.common.isFloatComma}
-                                dateFormat={this.state.systemConfig?.common.dateFormat}
+                                isFloatComma={!!this.state.systemConfig?.common.isFloatComma}
+                                dateFormat={this.state.systemConfig?.common.dateFormat || 'DD.MM.YYYY'}
                                 t={I18n.t}
                                 lang={I18n.getLanguage()}
                                 onRegisterIframeRef={ref => (this.refConfigIframe = ref)}
@@ -3137,8 +3839,13 @@ class App extends Router<AppProps, AppState> {
         );
     }
 
-    render(): JSX.Element {
+    render(): JSX.Element | null {
         const small = this.props.width === 'xs' || this.props.width === 'sm';
+        // The bar has nothing left to show but the name of the installation.
+        // Optional chaining is required: this runs before the early returns below, and until the
+        // configuration has been read `systemConfig` is null - the type says otherwise.
+        const showAppBar = !!this.state.systemConfig?.common?.siteName;
+        const menuButtonSpace = this.needsMenuButtonSpace();
 
         if (this.state.cloudNotConnected) {
             return (
@@ -3188,6 +3895,7 @@ class App extends Router<AppProps, AppState> {
             return (
                 <StyledEngineProvider injectFirst>
                     <ThemeProvider theme={this.state.theme}>
+                        <CssBaseline />
                         <Loader themeType={this.state.themeType} />
                         {this.renderAlertSnackbar()}
                     </ThemeProvider>
@@ -3201,6 +3909,8 @@ class App extends Router<AppProps, AppState> {
         return (
             <StyledEngineProvider injectFirst>
                 <ThemeProvider theme={this.state.theme}>
+                    <ScrollbarStyles theme={this.state.theme} />
+                    <CssBaseline />
                     <style>
                         {`@keyframes myEffect2 {
                         0% {
@@ -3229,29 +3939,39 @@ class App extends Router<AppProps, AppState> {
                         // Reserve room on the right when the chat assistant is docked side-by-side.
                         style={{ ...styles.root, paddingRight: this.state.chatDockWidth || undefined }}
                     >
-                        <AppBar
-                            color="default"
-                            position="fixed"
-                            sx={Utils.getStyle(
-                                this.state.theme,
-                                styles.appBar,
-                                !small &&
-                                    this.state.drawerState === DrawerStates.opened &&
-                                    !this.state.editMenuList &&
-                                    styles.appBarShift,
-                                !small &&
-                                    this.state.drawerState === DrawerStates.opened &&
-                                    this.state.editMenuList &&
-                                    styles.appBarShiftEdit,
-                                !small && this.state.drawerState === DrawerStates.compact && styles.appBarShiftCompact,
-                                // Keep the toolbar controls left of the docked chat panel.
-                                this.state.chatDockWidth
-                                    ? { paddingRight: `${this.state.chatDockWidth}px` }
-                                    : undefined,
-                            )}
-                        >
-                            {this.renderToolbar(small)}
-                        </AppBar>
+                        {/*
+                         * The app bar only exists for the site name. Without a name there is
+                         * nothing left to show in it, and the space is better used by the content.
+                         */}
+                        {showAppBar ? (
+                            <AppBar
+                                color="default"
+                                position="fixed"
+                                sx={Utils.getStyle(
+                                    this.state.theme,
+                                    styles.appBar,
+                                    !small &&
+                                        this.state.drawerState === DrawerStates.opened &&
+                                        !this.state.editMenuList &&
+                                        styles.appBarShift,
+                                    !small &&
+                                        this.state.drawerState === DrawerStates.opened &&
+                                        this.state.editMenuList &&
+                                        styles.appBarShiftEdit,
+                                    !small &&
+                                        this.state.drawerState === DrawerStates.compact &&
+                                        styles.appBarShiftCompact,
+                                    // Keep the toolbar controls left of the docked chat panel.
+                                    this.state.chatDockWidth
+                                        ? { paddingRight: `${this.state.chatDockWidth}px` }
+                                        : undefined,
+                                )}
+                            >
+                                {this.renderToolbar(small)}
+                            </AppBar>
+                        ) : (
+                            this.renderFloatingButtons()
+                        )}
                         <DndProvider backend={!small ? HTML5Backend : TouchBackend}>
                             <Drawer
                                 adminGuiConfig={this.adminGuiConfig}
@@ -3263,11 +3983,12 @@ class App extends Router<AppProps, AppState> {
                                 onStateChange={(state: 0 | 1 | 2) => this.handleDrawerState(state)}
                                 onLogout={() => App.logout()}
                                 currentTab={this.state.currentTab && this.state.currentTab.tab}
+                                currentTabId={this.state.currentTab?.id}
                                 instancesWorker={this.instancesWorker}
                                 hostsWorker={this.hostsWorker}
                                 logsWorker={this.logsWorker}
                                 logoutTitle={I18n.t('ra_Logout')}
-                                isSecure={this.socket.isSecure}
+                                isSecure={this.socket?.isSecure}
                                 versionAdmin={this.state.versionAdmin}
                                 t={I18n.t}
                                 lang={I18n.getLanguage()}
@@ -3285,6 +4006,9 @@ class App extends Router<AppProps, AppState> {
                                 provideTabsInfo={(tabs: AdminTab[]): void => {
                                     this.tabsInfo = tabs;
                                 }}
+                                onSystemSettings={() => Router.doNavigate(null, 'system')}
+                                menuButtons={this.renderMenuButtons()}
+                                user={this.state.user}
                             />
                         </DndProvider>
                         <Paper
@@ -3304,6 +4028,10 @@ class App extends Router<AppProps, AppState> {
                                     styles.contentMarginEdit,
                                 !small && this.state.drawerState !== DrawerStates.opened && styles.contentMarginCompact,
                                 !small && this.state.drawerState !== DrawerStates.closed && styles.contentShift,
+                                !showAppBar && styles.contentNoAppBar,
+                                menuButtonSpace &&
+                                    !TABS_WITH_OWN_TOOLBAR.includes(this.state.currentTab.tab) &&
+                                    styles.contentMenuButtonSpace,
                             )}
                         >
                             {this.getCurrentTab()}
@@ -3314,15 +4042,17 @@ class App extends Router<AppProps, AppState> {
                     {this.renderExpertDialog()}
                     {this.getCurrentDialog()}
                     {this.renderDialogConfirm()}
+                    {this.renderChatLeaveDialog()}
                     {this.renderCommandDialog()}
                     {this.renderWizardDialog()}
                     {this.showRedirectDialog()}
                     {this.renderSlowConnectionWarning()}
                     {this.renderNewsDialog()}
+                    {this.renderTipsDialog()}
                     {this.renderHostWarningDialog()}
                     {this.renderNotificationsDialog()}
                     {!this.state.connected && !this.state.redirectCountDown && !this.state.updating ? (
-                        <Connecting />
+                        <Connecting text={this.getConnectionLostText()} />
                     ) : null}
                     {this.renderShowGuiSettings()}
                     {/* NexoWatt EOS: upstream ioBroker assistant / external AI binding disabled. Custom EOS Assist remains active. */}

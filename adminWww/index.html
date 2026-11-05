@@ -5,12 +5,18 @@
     class="eos-native-shell"
 >
     <head>
-        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
-        <meta http-equiv="Pragma" content="no-cache" />
-        <meta http-equiv="Expires" content="0" />
-          <script src="./js/eos-manual-write-policy.js?v=7109"></script>
-          <script type="module" src="./assets/hostInit-v85.js?v=85"></script>
-        
+        <meta
+            http-equiv="Cache-Control"
+            content="no-store, no-cache, must-revalidate"
+        />
+        <meta
+            http-equiv="Pragma"
+            content="no-cache"
+        />
+        <meta
+            http-equiv="Expires"
+            content="0"
+        />
         <meta charset="utf-8" />
         <link
             rel="icon"
@@ -34,21 +40,53 @@
         />
         <link
             rel="stylesheet"
-            href="css/leaflet.css"
+            href="css/leaflet.css?eos-release=8.0.0"
         />
-        <link rel="stylesheet" href="./css/nexowatt-native-shell.css?v=7109" />
-        <link rel="stylesheet" href="./css/eos-ems-overview.css?v=7109" />
-        <link rel="stylesheet" href="./css/eos-auto-update.css?v=7103" />
+        <link
+            rel="stylesheet"
+            href="css/nexowatt-native-shell.css?v=7109&amp;eos-release=8.0.0"
+        />
+        <link
+            rel="stylesheet"
+            href="css/eos-ems-overview.css?v=7109&amp;eos-release=8.0.0"
+        />
+        <link
+            rel="stylesheet"
+            href="./css/eos-auto-update.css?v=7103&amp;eos-release=8.0.0"
+        />
         <link
             rel="manifest"
             href="manifest.json"
             crossorigin="use-credentials"
         />
-        <script type="text/javascript" onerror="setTimeout(function(){window.location.reload()}, 5000)" src="./lib/js/socket.io.js"></script>
-        <script
-            type="text/javascript"
-            src="./lib/js/sparkline.js"
-        ></script>
+        <script src="js/eos-manual-write-policy.js?v=7109&amp;eos-release=8.0.0"></script>
+        <script>
+            const script = document.createElement('script');
+
+            window.registerSocketOnLoad = function (cb) {
+                window.socketLoadedHandler = cb;
+            };
+
+            script.onload = function () {
+                typeof window.socketLoadedHandler === 'function' && window.socketLoadedHandler();
+            };
+
+            script.onerror = function () {
+                console.error('Cannot load socket.io. Retry in 5 seconds');
+                setTimeout(function () {
+                    window.location.reload();
+                }, 5000);
+            };
+
+            setTimeout(() => {
+                script.src =
+                    window.location.port === '3000'
+                        ? `${window.location.protocol}//${window.location.hostname}:8081/lib/js/socket.io.js`
+                        : "./lib/js/socket.io.js?eos-release=8.0.0";
+            }, 1000);
+
+            document.head.appendChild(script);
+        </script>
         <title>NexoWatt EOS - Energy Operation System</title>
 
         <script>
@@ -77,27 +115,13 @@
             window.loginHideLogo = 'false';
             window.loginBackgroundColor = '#020914';
             window.loadingBackgroundColor = '#020914';
+            window.socketPath = '@@socketPath@@';
+            if (window.socketPath.startsWith('@@')) {
+                // dev mode: vite serves this file directly, so the server did not replace the placeholders
+                window.socketPath = '';
+            }
         </script>
-        <style>
-            .root {
-                background-color: rgba(255, 255, 255, 0.87);
-                border-radius: 10px;
-            }
-            .unsupported {
-                width: 200px;
-                background-color: #aaaaaa;
-                margin: auto;
-                margin-top: 3rem;
-                padding: 10px;
-                line-height: 25px;
-                border-radius: 4px;
-                text-align: center;
-            }
-            .leaflet-container {
-                height: 400px;
-                width: 100%;
-            }
-        </style>
+        <style>.root{background-color:#ffffffde;border-radius:10px}.unsupported{text-align:center;background-color:#aaa;border-radius:4px;width:200px;margin:3rem auto auto;padding:10px;line-height:25px}.leaflet-container{width:100%;height:400px}</style>
         <script>
             setTimeout(() => {
                 const body = document.body;
@@ -158,26 +182,67 @@
                 false,
             );
         </script>
-      <link rel="modulepreload" crossorigin href="./assets/preload-helper-BDBacUwf.js">
-      <link rel="modulepreload" crossorigin href="./assets/iobroker_admin__mf_v__runtimeInit__mf_v__-g2X2zhAf.js">
-            <script defer src="./js/eos-role-bootstrap.js?v=7109&amp;security=20260930" data-eos-entry="./assets/index-CQZugZ1z-v85.js?v=85"></script>
-            <script defer src="./js/eos-policy-client.js?v=7109"></script>
-            <script defer src="./js/eos-branding-sanitizer.js?v=7109"></script>
-            <script defer src="./js/nexowatt-native-shell.js?v=7109"></script>
-            <script defer src="./js/eos-native-security.js?v=7109"></script>
-            <script defer src="./js/eos-basic-settings.js?v=7109"></script>
-            <script defer src="./js/eos-role-ui.js?v=7109"></script>
-            <script defer src="./js/eos-account-management.js?v=7109&amp;security=20260930"></script>
-            <script defer src="./js/eos-ems-overview.js?v=7109"></script>
-            
-            <script defer src="./js/eos-auto-update.js?v=7103"></script>
-            <script defer src="./js/eos-assistant.js?v=7109"></script>
+      
+      
     </head>
     <body>
         <noscript>Für NexoWatt EOS muss JavaScript aktiviert sein.</noscript>
         <div id="root"></div>
-<script defer src="static/js/nexowatt-stable-login.js?v=7109"></script>
-<script defer src="static/js/nexowatt-stable-v7109.js?v=7109"></script>
-<script defer src="./js/eos-license-link.js?v=7110"></script>
-</body>
+        <script
+            defer
+            src="js/eos-role-bootstrap.js?v=7109&amp;security=20260930&amp;eos-release=8.0.0"
+            data-eos-entry="./assets/mf-entry-bootstrap-0-a6a54377.js"
+        ></script>
+        <script
+            defer
+            src="js/eos-policy-client.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-branding-sanitizer.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/nexowatt-native-shell.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-native-security.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-basic-settings.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-role-ui.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="./js/eos-auto-update.js?v=7103&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-account-management.js?v=7109&amp;security=20260930&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-ems-overview.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-assistant.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="static/js/nexowatt-stable-login.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="static/js/nexowatt-stable-v7109.js?v=7109&amp;eos-release=8.0.0"
+        ></script>
+        <script
+            defer
+            src="js/eos-license-link.js?v=7110&amp;eos-release=8.0.0"
+        ></script></body>
 </html>

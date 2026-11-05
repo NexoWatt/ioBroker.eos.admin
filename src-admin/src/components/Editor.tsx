@@ -1,19 +1,11 @@
 import React, { Component, type JSX } from 'react';
 
-import AceEditor from 'react-ace';
-import 'ace-builds/src-min-noconflict/mode-json';
-import 'ace-builds/src-min-noconflict/mode-json5';
-import 'ace-builds/src-min-noconflict/mode-xml';
-import 'ace-builds/src-min-noconflict/mode-html';
-import 'ace-builds/src-min-noconflict/worker-json';
-import 'ace-builds/src-min-noconflict/worker-javascript';
-import 'ace-builds/src-min-noconflict/worker-xml';
-import 'ace-builds/src-min-noconflict/worker-html';
-import 'ace-builds/src-min-noconflict/theme-clouds_midnight';
-import 'ace-builds/src-min-noconflict/theme-chrome';
-import 'ace-builds/src-min-noconflict/ext-language_tools';
+// `AceEditor` brings the modes and themes with it, see there
+import AceEditor from './AceEditor';
 
-import type { ThemeType } from '@iobroker/adapter-react-v5';
+import type { ThemeType } from '@iobroker/gui-components';
+
+import { CTRL_ENTER_KEY } from '../helpers/ctrlEnter';
 
 export interface EditorProps {
     fontSize?: number;
@@ -27,6 +19,8 @@ export interface EditorProps {
     editValueMode?: boolean;
     error?: boolean;
     style?: React.CSSProperties;
+    /** Called if the user pressed CTRL+ENTER (CMD+ENTER on mac) inside the editor */
+    onCtrlEnter?: () => void;
 }
 
 class Editor extends Component<EditorProps> {
@@ -39,6 +33,17 @@ class Editor extends Component<EditorProps> {
                     minHeight: 200,
                     ...this.props.style,
                 }}
+                commands={
+                    this.props.onCtrlEnter
+                        ? [
+                              {
+                                  name: 'writeValue',
+                                  bindKey: CTRL_ENTER_KEY,
+                                  exec: () => this.props.onCtrlEnter?.(),
+                              },
+                          ]
+                        : undefined
+                }
                 mode={this.props.mode || 'json'}
                 width="100%"
                 height="100%"
@@ -49,7 +54,7 @@ class Editor extends Component<EditorProps> {
                 theme={this.props.themeType === 'dark' ? 'clouds_midnight' : 'chrome'}
                 value={this.props.value}
                 readOnly={!this.props.onChange}
-                onChange={newValue => this.props.onChange(newValue)}
+                onChange={newValue => this.props.onChange?.(newValue)}
                 name={this.props.name || 'UNIQUE_ID_OF_DIV1'}
                 fontSize={this.props.fontSize || 14}
                 setOptions={{

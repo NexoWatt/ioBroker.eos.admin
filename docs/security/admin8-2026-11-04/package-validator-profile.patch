@@ -1,0 +1,125 @@
+--- @iobroker/testing@6.3.1/build/tests/packageFiles/index.js
++++ tools/vendor/iobroker-testing-package-files.cjs
+@@ -1,3 +1,7 @@
++// EOS development-only profile of @iobroker/testing 6.3.1 packageFiles validator.
++// Original Copyright (c) 2024-2026 AlCalzone <d.griesel@gmx.net>, MIT.
++// See iobroker-testing-package-files.LICENSE and package-profile-provenance.json.
++// Changes: verified offline schemas, strict EOS metadata overlay and truthful optional proprietary repository metadata.
+ "use strict";
+ var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+@@ -44,7 +48,8 @@
+ const json5_1 = __importDefault(require("json5"));
+ const path = __importStar(require("path"));
+ const ajv_1 = require("ajv");
+-const axios_1 = __importDefault(require("axios"));
++const { createHash } = require("node:crypto");
++const { createEosIoPackageSchema, JSON_CONFIG_SCHEMA_ID, LOCAL_LICENSE_LINK } = require('../nexowatt-package-schema-profile.cjs');
+ const jsonValidators = {};
+ /** URL to the JSON config schema */
+ const JSON_CONFIG_SCHEMA_URL = 'https://raw.githubusercontent.com/ioBroker/json-config/main/schemas/jsonConfig.json';
+@@ -59,16 +64,26 @@
+  * @param name what to call the schema in messages
+  */
+ async function downloadSchema(url, name) {
+-    try {
+-        console.debug(`retrieving json schema from ${url}`);
+-        const schemaRes = await axios_1.default.get(url, { timeout: SCHEMA_DOWNLOAD_TIMEOUT_MS });
+-        return schemaRes.data;
+-    }
+-    catch (e) {
+-        console.error(`Could not get ${name} schema: ${e.message}`);
+-        throw new Error(`Could not get ${name} schema`);
+-    }
+-}
++    const directory = path.join(__dirname, '..', '..', 'test', 'schemas');
++    const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'sources.json'), 'utf8'));
++    const entry = manifest.schemas.find(item => item.requestUrl === url);
++    const officialPaths = {
++        [JSON_CONFIG_SCHEMA_URL]: ['ioBroker/json-config', 'schemas/jsonConfig.json'],
++        [IO_PACKAGE_SCHEMA_URL]: ['ioBroker/ioBroker.js-controller', 'schemas/io-package.json'],
++    };
++    const official = officialPaths[url];
++    if (!entry || !official || !/^[a-zA-Z0-9.-]+\.json$/.test(entry.file) || !/^[a-f0-9]{64}$/.test(entry.sha256)
++        || !/^[a-f0-9]{40}$/.test(entry.commit)
++        || entry.sourceUrl !== `https://raw.githubusercontent.com/${official[0]}/${entry.commit}/${official[1]}`) {
++        throw new Error(`No verified offline pin for ${name}`);
++    }
++    const bytes = fs.readFileSync(path.join(directory, entry.file));
++    if (bytes.length > 8 * 1024 * 1024 || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) {
++        throw new Error(`Offline schema integrity failure: ${name}`);
++    }
++    return JSON.parse(bytes.toString('utf8'));
++}
++
+ /**
+  * A JSON tab (`common.adminTab.link`) has the same format as `jsonConfig.json`, with two differences:
+  * its root may have a `command` (message that is sent to the instance when the tab is opened),
+@@ -157,11 +172,14 @@
+     if (jsonValidators.ioPackage) {
+         return jsonValidators.ioPackage;
+     }
+-    const schema = await downloadSchema(IO_PACKAGE_SCHEMA_URL, 'io-package.json');
++    const officialSchema = await downloadSchema(IO_PACKAGE_SCHEMA_URL, 'io-package.json');
++    const version = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8')).version;
++    const schema = createEosIoPackageSchema(officialSchema, version);
+     try {
+         // The schema is not written for Ajv's strict mode: with it, every run would log dozens of warnings.
+         // All errors are collected, so the adapter developer can fix them in one go
+         const ajv = new ajv_1.Ajv({ allErrors: true, strict: false });
++        ajv.addSchema(await downloadSchema(JSON_CONFIG_SCHEMA_URL, 'jsonConfig'), JSON_CONFIG_SCHEMA_ID);
+         jsonValidators.ioPackage = ajv.compile(schema);
+         return jsonValidators.ioPackage;
+     }
+@@ -189,7 +207,7 @@
+ async function validateIoPackage(ioPackage) {
+     const validate = await getIoPackageValidator();
+     if (!validate(ioPackage)) {
+-        throw new Error(`io-package.json does not match the schema ${IO_PACKAGE_SCHEMA_URL}:\n${formatSchemaErrors(validate.errors)}`);
++        throw new Error(`io-package.json does not match the strict EOS profile of ${IO_PACKAGE_SCHEMA_URL}:\n${formatSchemaErrors(validate.errors)}`);
+     }
+ }
+ /**
+@@ -283,8 +301,6 @@
+                 'description',
+                 'author',
+                 'license',
+-                'repository',
+-                'repository.type',
+             ];
+             requiredProperties.forEach(prop => ensurePropertyExists(prop, packageContent));
+             it('The package name is correct', () => {
+@@ -300,8 +316,23 @@
+                     (0, chai_1.expect)(packageContent.main).to.not.be.undefined;
+                 });
+             }
+-            it(`The repository type is "git"`, () => {
++            it('Repository metadata is truthful for the proprietary EOS distribution', () => {
++                if (packageContent.repository === undefined) {
++                    // npm permits omitting repository metadata. The private source ZIP has no supplied
++                    // EOS Git URL; copying ioBroker/admin's URL would falsely claim it as this product's source.
++                    (0, chai_1.expect)(packageContent.license).to.equal('UNLICENSED');
++                    (0, chai_1.expect)(iopackContent.common.licenseInformation?.type).to.equal('paid');
++                    (0, chai_1.expect)(fs.existsSync(path.join(adapterDir, 'NEXOWATT_PROPRIETARY_LICENSE.md'))).to.equal(true);
++                    if (iopackContent.common.licenseInformation.link === LOCAL_LICENSE_LINK) {
++                        (0, chai_1.expect)(fs.existsSync(path.join(adapterDir, 'admin', 'LICENSE-NEXOWATT.md'))).to.equal(true);
++                        (0, chai_1.expect)(fs.existsSync(path.join(adapterDir, 'adminWww', 'LICENSE-NEXOWATT.md'))).to.equal(true);
++                    }
++                    return;
++                }
++                (0, chai_1.expect)(packageContent.repository).to.be.an('object');
+                 (0, chai_1.expect)(packageContent.repository.type).to.equal('git');
++                (0, chai_1.expect)(packageContent.repository.url).to.be.a('string').and.not.equal('');
++                (0, chai_1.expect)(packageContent.repository.url).not.to.match(/github\.com[:/]ioBroker\/ioBroker\.admin(?:\.git)?(?:[#/]|$)/i);
+             });
+             it('npm is not listed as a dependency', () => {
+                 for (const depType of [
+@@ -355,7 +386,7 @@
+             ];
+             requiredProperties.forEach(prop => ensurePropertyExists(prop, iopackContent));
+             if (!options?.ignoreIoPackageValidation) {
+-                it('io-package.json matches its schema', () => validateIoPackage(iopackContent)).timeout(SCHEMA_DOWNLOAD_TIMEOUT_MS + 5000);
++                it('io-package.json matches the strict EOS profile of the pinned official schema', () => validateIoPackage(iopackContent)).timeout(SCHEMA_DOWNLOAD_TIMEOUT_MS + 5000);
+             }
+             it(`The title does not contain "adapter" or "iobroker"`, () => {
+                 if (!iopackContent.title) {

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "guiVersion": "10.3.14",
+  "guiIntegrity": "sha512-cKGH2eV5ceNrQpubIxf7j2P55RP7jJJiY50/As7RJA0TI2e1sFH1VVozIusPiHB6JRuXndPzRdQMkN0fQSq82Q==",
+  "compilerVersion": "5.9.3",
+  "dialogSource": "src-admin/src/components/Object/ObjectBrowserValue.tsx",
+  "dialogSourceSha256": "fdad8b8d6883807d0e7f98e2926e24049ef04ffd4a7c8c8a4bacc0bf8e63f58c",
+  "files": {
+    "renderLeaf.js": "fc83f88782dff6c9be96a7a23bcf708b91dc506f7c1eec3f9ee80f7c3b154908",
+    "ObjectBrowserClass.js": "9035748c6c46abec2651801928d856d0ac0e29cd29d22519d461a883277b278c",
+    "dialogs.js": "1e23d7ad1d81414bfa3e4692728119d62cf46f62841f61f48346e88d1a3b103d",
+    "contextMenu.js": "12391212f23035fbf3455f3cfca6a6161b0bb6d48f813f4eb5f6c514a2abf460",
+    "LICENSE.gui-components": "67009a9a953441eb82a5ff073f5e338b830ca96d89db55ddd8e60618d14c7e7c",
+    "ObjectBrowserValue.test.cjs": "ebf3bb2d3790c7f94ddc5b0e1bba02c9156cafdb90472481d7bc8a8fcd2023d9"
+  }
+}

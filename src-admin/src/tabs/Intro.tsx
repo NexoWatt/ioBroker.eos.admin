@@ -2,15 +2,31 @@ import React, { type JSX } from 'react';
 
 import semver from 'semver';
 
-import { Fab, Snackbar, Tooltip, LinearProgress, Skeleton } from '@mui/material';
+import { Box, Fab, Grid, Snackbar, Tooltip, LinearProgress, Skeleton } from '@mui/material';
 
 import {
     Add as AddIcon,
+    Apps as AppsIcon,
+    Cancel as DeadIcon,
     Check as CheckIcon,
+    CheckCircle as AliveIcon,
     Close as CloseIcon,
+    Computer as ComputerIcon,
     Create as CreateIcon,
+    DeveloperBoard as ArchitectureIcon,
+    Extension as ExtensionIcon,
+    FolderOpen as FolderIcon,
+    Memory as RamIcon,
+    PowerSettingsNew as BootIcon,
+    Public as TimeZoneIcon,
     Refresh as RefreshIcon,
+    Schedule as ClockIcon,
+    Speed as SpeedIcon,
+    Storage as DiskIcon,
+    Timer as UptimeIcon,
 } from '@mui/icons-material';
+
+import { FaApple, FaFreebsd, FaLinux, FaMicrochip, FaNodeJs, FaNpm, FaWindows } from 'react-icons/fa';
 
 import {
     type AdminConnection,
@@ -18,14 +34,22 @@ import {
     type IobTheme,
     type Translate,
     TabContainer,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import type { HostInfo } from '@iobroker/socket-client';
 
 import type { InstancesWorker, InstanceEvent } from '@/Workers/InstancesWorker';
 import type { HostsWorker, HostAliveEvent, HostEvent } from '@/Workers/HostsWorker';
 import AdminUtils from '@/helpers/AdminUtils';
-import { replaceLink, applyReverseProxyToLink, type ReverseProxyItem } from '@/helpers/utils';
+import {
+    replaceLink,
+    applyReverseProxyToLink,
+    applyRemoteAccessToLink,
+    detectRemoteAccess,
+    replacesExistingLink,
+    type RemoteAccessInfo,
+    type ReverseProxyItem,
+} from '@/helpers/utils';
 import IntroCard from '@/components/Intro/IntroCard';
 import EditIntroLinkDialog from '@/components/Intro/EditIntroLinkDialog';
 
@@ -63,10 +87,6 @@ export type CompactHost = {
 };
 
 const styles: Record<string, any> = {
-    root: {
-        width: '100%',
-        height: '100%',
-    },
     button: {
         position: 'absolute',
         bottom: 16,
@@ -92,15 +112,10 @@ const styles: Record<string, any> = {
             backgroundColor: theme.palette.error.dark,
         },
     }),
-    bold: {
-        fontWeight: 'bold',
-    },
-    container: {
-        overflowY: 'auto',
-    },
-    hostOffline: {
-        color: '#bb0000',
-    },
+    hostOffline: (theme: IobTheme) => ({
+        color: theme.palette.error.main,
+        fontWeight: 500,
+    }),
     updateExists: {
         color: '#c28700',
         marginRight: 4,
@@ -113,8 +128,61 @@ const styles: Record<string, any> = {
         opacity: 0.6,
     },
     instanceNumber: {
-        opacity: 0.7,
-        fontSize: 16,
+        opacity: 0.6,
+        fontWeight: 500,
+    },
+    hostStats: {
+        display: 'grid',
+        gridTemplateColumns: 'auto minmax(0, 1fr)',
+        columnGap: '10px',
+        rowGap: '3px',
+        alignItems: 'baseline',
+    },
+    hostStatLabel: (theme: IobTheme) => ({
+        color: theme.palette.text.disabled,
+        whiteSpace: 'nowrap',
+    }),
+    hostStatValue: {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
+    /** The info dialog has an icon in front of every name, so it has one column more than the card */
+    hostInfoStats: {
+        display: 'grid',
+        gridTemplateColumns: 'auto auto minmax(0, 1fr)',
+        columnGap: '12px',
+        // the card needs tight rows, the dialog has room to breathe
+        rowGap: '6px',
+        alignItems: 'center',
+    },
+    hostInfoIcon: (theme: IobTheme) => ({
+        display: 'flex',
+        alignItems: 'center',
+        color: theme.palette.text.disabled,
+        fontSize: 18,
+        '& svg': {
+            fontSize: 18,
+        },
+    }),
+    /** In the info dialog nothing is cut off, even a long path or JSON value wraps */
+    hostInfoValue: {
+        overflowWrap: 'anywhere',
+    },
+    diskValue: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    diskBar: {
+        flex: '1 1 auto',
+        minWidth: 60,
+        maxWidth: 160,
+        height: 8,
+        borderRadius: 4,
+    },
+    diskText: {
+        whiteSpace: 'nowrap',
     },
     updateIcon: {
         cursor: 'pointer',
@@ -123,17 +191,27 @@ const styles: Record<string, any> = {
     tooltip: {
         pointerEvents: 'none',
     },
-    viewModeDiv: {
-        position: 'relative',
-        display: 'flex',
-        flexFlow: 'wrap',
+    cards: {
+        alignContent: 'flex-start',
+        // no own scrollbar - the panel around the tab already scrolls
         width: '100%',
-        minHeight: 72,
-        paddingBottom: 72,
-        overflow: 'visible',
-        justifyContent: 'left',
+        // the cards must not touch the frame around them. The panel adds another 8px left and right.
+        pt: '12px',
+        px: '8px',
+        // the floating buttons sit in the lower right corner and must not cover the last row
+        pb: '64px',
     },
 };
+
+/** One line of the host info dialog */
+interface HostInfoRow {
+    /** Name of the value, as the host reports it */
+    name: string;
+    /** The value as plain text, used for the clipboard */
+    text: string;
+    /** Rendered value, if it is more than its text, like the disk bar */
+    value?: JSX.Element;
+}
 
 type HostInfoEx = HostInfo & {
     alive?: boolean;
@@ -169,6 +247,8 @@ interface IntroInstanceItem {
     linkName?: string;
     order?: number;
     info: string;
+    /** The admin was opened through the remote access, and this page is not published there */
+    unreachable?: boolean;
     port?: number;
 }
 
@@ -179,7 +259,108 @@ const formatInfo: Record<string, (seconds: number, t?: Translate) => string> = {
     Speed: AdminUtils.formatSpeed,
     'Disk size': AdminUtils.formatBytes,
     'Disk free': AdminUtils.formatBytes,
+    // the host reports `Date.getTimezoneOffset()`: minutes, and negative east of Greenwich
+    timeOffset: (minutes: number): string => {
+        const abs = Math.abs(minutes);
+        const hours = Math.floor(abs / 60);
+        const rest = abs % 60;
+        return `UTC${minutes > 0 ? '-' : '+'}${hours}${rest ? `:${rest.toString().padStart(2, '0')}` : ''}`;
+    },
 };
+
+/**
+ * The host sends its `time` as a timestamp and its `timeOffset` as `Date.getTimezoneOffset()`, so the wall clock of the
+ * host is the timestamp shifted by that offset and then read as UTC. Showing it in the local time zone of the browser
+ * or in UTC would be the time of somebody else.
+ *
+ * @param time timestamp of the host
+ * @param timeOffset `Date.getTimezoneOffset()` of the host: minutes, negative east of Greenwich
+ * @param lang language of the GUI
+ */
+function formatHostTime(time: number, timeOffset: number | undefined, lang: ioBroker.Languages): string {
+    const offset = typeof timeOffset === 'number' ? timeOffset : new Date().getTimezoneOffset();
+    const shifted = new Date(time - offset * 60_000);
+    try {
+        return shifted.toLocaleString(lang === 'zh-cn' ? 'zh-CN' : lang, { timeZone: 'UTC' });
+    } catch {
+        // some browsers do not know every language tag
+        return shifted.toUTCString().replace(' GMT', '');
+    }
+}
+
+/** The names are headings of the info dialog, so they all start with a capital letter */
+function capitalize(name: string): string {
+    return name ? name[0].toUpperCase() + name.substring(1) : name;
+}
+
+/** The icon in front of the platform tells at a glance which system the host runs on */
+function platformIcon(platform: string): JSX.Element {
+    const name = platform.toLowerCase();
+    // "darwin" has to be asked before "win", it contains it
+    if (name.includes('darwin') || name.includes('osx') || name.includes('mac')) {
+        return <FaApple />;
+    }
+    if (name.includes('win')) {
+        return <FaWindows />;
+    }
+    if (name.includes('bsd')) {
+        return <FaFreebsd />;
+    }
+    // docker runs on linux, so the penguin fits it as well
+    if (name.includes('linux') || name.includes('docker') || name.includes('android')) {
+        return <FaLinux />;
+    }
+    return <ComputerIcon />;
+}
+
+/**
+ * The icon for one line of the host info dialog
+ *
+ * @param name name of the value, as the host reports it
+ * @param hostData all values of the host, needed for the platform and for the alive state
+ */
+function hostInfoIcon(name: string, hostData: Record<string, any>): JSX.Element | null {
+    switch (name) {
+        case 'Platform':
+        case 'os':
+            return platformIcon(`${hostData.Platform || ''} ${hostData.os || ''}`);
+        case 'Architecture':
+            return <ArchitectureIcon />;
+        case 'CPUs':
+        case 'Model':
+            return <FaMicrochip />;
+        case 'Speed':
+            return <SpeedIcon />;
+        case 'RAM':
+            return <RamIcon />;
+        case 'System uptime':
+            return <BootIcon />;
+        case 'Uptime':
+            return <UptimeIcon />;
+        case 'Node.js':
+            return <FaNodeJs />;
+        case 'NPM':
+            return <FaNpm />;
+        case 'time':
+            return <ClockIcon />;
+        case 'timeOffset':
+            return <TimeZoneIcon />;
+        case 'adapters count':
+            return <ExtensionIcon />;
+        case 'Disk size':
+        case 'Disk free':
+            return <DiskIcon />;
+        case 'Active instances':
+            return <AppsIcon />;
+        case 'location':
+            return <FolderIcon />;
+        case 'alive':
+        case 'active':
+            return hostData[name] ? <AliveIcon color="success" /> : <DeadIcon color="error" />;
+        default:
+            return null;
+    }
+}
 
 interface IntroProps {
     showAlert: (message: string, type?: 'error' | 'warning' | 'info' | 'success') => void;
@@ -271,6 +452,9 @@ class Intro extends React.Component<IntroProps, IntroState> {
 
     private deactivatedOriginal?: string[];
 
+    /** Set if this admin was opened through the remote access of ioBroker Cloud/Pro */
+    private remoteAccess: RemoteAccessInfo | null = null;
+
     private readonly t: Translate;
 
     private getDataTimeout?: ReturnType<typeof setTimeout>;
@@ -329,8 +513,8 @@ class Intro extends React.Component<IntroProps, IntroState> {
         // Reaffirm the already authenticated main AdminConnection for the separate
         // read-only EMS overview runtime. No additional socket is created.
         const eosWindow = window as typeof window & {
-            NEXOWATT_EOS_ADMIN_SOCKET?: typeof this.props.socket;
-            NEXOWATT_EOS_SOCKET?: typeof this.props.socket;
+            NEXOWATT_EOS_ADMIN_SOCKET?: IntroProps['socket'];
+            NEXOWATT_EOS_SOCKET?: IntroProps['socket'];
         };
         eosWindow.NEXOWATT_EOS_ADMIN_SOCKET = this.props.socket;
         eosWindow.NEXOWATT_EOS_SOCKET = this.props.socket;
@@ -349,7 +533,9 @@ class Intro extends React.Component<IntroProps, IntroState> {
             nodeUpdateSupported = supported;
         } catch (error) {
             const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
-            if (role === 'admin') throw error;
+            if (role === 'admin') {
+                throw error;
+            }
         }
         await new Promise<void>(resolve => this.setState({ reverseProxy, nodeUpdateSupported }, () => resolve()));
 
@@ -457,14 +643,14 @@ class Intro extends React.Component<IntroProps, IntroState> {
         // restore old state
         this.setState(
             {
-                deactivated: this.deactivatedOriginal,
-                introLinks: JSON.parse(this.introLinksOriginal),
+                deactivated: this.deactivatedOriginal || null,
+                introLinks: JSON.parse(this.introLinksOriginal || '[]'),
                 hasUnsavedChanges: false,
                 edit: false,
             },
             () => {
-                this.deactivatedOriginal = null;
-                this.introLinksOriginal = null;
+                this.deactivatedOriginal = undefined;
+                this.introLinksOriginal = undefined;
             },
         );
     }
@@ -493,7 +679,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
     }
 
     getInstancesCards(): (JSX.Element | null)[] {
-        return this.state.instances?.map(instance => {
+        return (this.state.instances || []).map(instance => {
             const cardKey = `${instance.id}_${instance.linkName}`;
             const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
             const isAdministrator = role === 'admin' || role === 'service';
@@ -508,8 +694,15 @@ class Intro extends React.Component<IntroProps, IntroState> {
             const forceVisibleAdminCard = isAdministrator && /^(?:admin|xterm)(?:\.|$)/i.test(instance.id);
             const enabled = forceVisibleAdminCard || forceVisibleRoleCard || !this.state.deactivated?.includes(cardKey);
             if (enabled || this.state.edit) {
-                let linkText = instance.link ? instance.link.replace(/^https?:\/\//, '') : '';
-                linkText = linkText.split('/')[0];
+                // the user wants to see where a card jumps to. A relative link stays on the admin itself.
+                let linkText = '';
+                if (instance.link) {
+                    try {
+                        linkText = new URL(instance.link, window.location.href).host;
+                    } catch {
+                        linkText = instance.link.replace(/^https?:\/\//, '').split('/')[0];
+                    }
+                }
 
                 // ignore own admin instance
                 if (instance.id === this.props.adminInstance) {
@@ -528,6 +721,15 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 }
 
                 const hostData: HostInfoEx | null = this.state.hostsData ? this.state.hostsData[instance.id] : null;
+                // only the host cards carry a lamp, and only they have `info`
+                let status: 'online' | 'offline' | 'unknown' | undefined;
+                if (instance.info) {
+                    if (hostData && typeof hostData === 'object') {
+                        status = hostData.alive === false ? 'offline' : 'online';
+                    } else {
+                        status = 'unknown';
+                    }
+                }
                 const timeDiff = this.state.hostTimeDiffMap.get(instance.id) ?? 0;
                 const dataTimestamp = this.state.hostDataTimestampMap.get(instance.id) ?? 0;
                 const currentTime = Date.now();
@@ -536,40 +738,36 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 return (
                     <IntroCard
                         key={`${instance.id}_${instance.link}`}
-                        image={instance.image}
+                        image={instance.image || ''}
                         title={
                             <>
-                                <span
-                                    style={
-                                        instance.name && instance.name.length > 12 ? { fontSize: '1rem' } : undefined
-                                    }
-                                >
-                                    {instance.name}
-                                </span>
+                                {instance.name}
                                 {isShowInstance ? (
                                     <span style={styles.instanceNumber}>.{instance.id.split('.').pop()}</span>
                                 ) : null}
                             </>
                         }
-                        action={{ link: instance.link, text: linkText }}
+                        action={{ link: instance.link || '', text: linkText }}
                         t={this.props.t}
                         lang={this.props.lang}
-                        color={instance.color}
+                        color={instance.color || ''}
                         showInfo={!!instance.info}
+                        status={status}
                         edit={this.state.edit}
-                        offline={hostData && hostData.alive === false}
+                        offline={!!hostData && hostData.alive === false}
                         warning={
                             timeDiff > this.#THRESHOLD_TIME_DIFF_MS && isDataFresh
                                 ? this.t(
                                       'Backend time differs by %s minutes',
                                       Math.round(timeDiff / this.#ONE_MINUTE_MS).toString(),
                                   )
-                                : null
+                                : undefined
                         }
                         enabled={enabled}
+                        unreachable={!!instance.unreachable}
                         disabled={!hostData || typeof hostData !== 'object'}
                         getHostDescriptionAll={() => this.getHostDescriptionAll(instance.id)}
-                        toggleActivation={() => this.toggleCard(instance.id, instance.linkName)}
+                        toggleActivation={() => this.toggleCard(instance.id, instance.linkName || '')}
                         openSnackBarFunc={() => this.setState({ openSnackBar: true })}
                         theme={this.props.theme}
                     >
@@ -594,7 +792,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
     }
 
     getLinkCards(): (JSX.Element | null)[] {
-        return this.state.introLinks?.map((item, i) => {
+        return (this.state.introLinks || []).map((item, i) => {
             if (!item.enabled && !this.state.edit) {
                 return null;
             }
@@ -676,7 +874,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
         if (this.state.editLink) {
             return (
                 <EditIntroLinkDialog
-                    link={this.state.link}
+                    link={this.state.link as ItemElement}
                     socket={this.props.socket}
                     isNew={this.state.editLinkIndex === -1}
                     t={this.props.t}
@@ -780,7 +978,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
         const systemConfig = await this.props.socket.getSystemConfig(true);
         let changed = false;
         if (JSON.stringify(systemConfig.common.intro) !== JSON.stringify(this.state.deactivated)) {
-            systemConfig.common.intro = this.state.deactivated;
+            systemConfig.common.intro = this.state.deactivated || undefined;
             changed = true;
         }
         if (!changed && JSON.stringify(systemConfig.native.introLinks) !== JSON.stringify(this.state.introLinks)) {
@@ -849,7 +1047,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
 
         results.forEach(res => {
             hostsData[res.id] = Intro.preprocessHostData(res.data);
-            alive[res.id] = res.data.alive;
+            alive[res.id] = !!res.data.alive;
             timestampMap.set(res.id, currentTime);
         });
 
@@ -878,7 +1076,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
 
         const _urls: {
             url: string;
-            port: number;
+            port?: number;
             instance?: string;
         }[] = replaceLink(linkItem.link, common.name, instanceId, {
             instances,
@@ -900,36 +1098,52 @@ class Intro extends React.Component<IntroProps, IntroState> {
                     return currentPath === gp || currentPath.startsWith(gp);
                 }) || null;
         }
-        if (_urls.length === 1) {
+        // The same page can be served by more than one instance of another adapter: e.g., every web instance
+        // serves the pages of all onlyWWW adapters and of all web extensions. That is one and the same page,
+        // so the quick access shows only the URL of the first (lowest) of these instances. All other URLs are
+        // still listed on the "Instances" tab. See https://github.com/ioBroker/ioBroker.admin/issues/3602
+        if (_urls.length > 1) {
+            _urls.sort((a, b) => (a.instance || '').localeCompare(b.instance || '', undefined, { numeric: true }));
+            _urls.splice(1);
+        }
+
+        if (_urls.length) {
             instance.link = _urls[0].url;
             instance.port = _urls[0].port;
-            instance.link =
-                applyReverseProxyToLink(instance.link, instance.id, instances, webReverseProxyPath) || instance.link;
+
+            if (this.remoteAccess) {
+                // The admin was opened through the remote access, so an address inside the local
+                // network leads nowhere. The reverse proxy settings describe a different way into
+                // the installation and do not apply here.
+                const remoteLink = applyRemoteAccessToLink(instance.link, instance.port, this.remoteAccess);
+                if (remoteLink === null) {
+                    // keep the local link, the card shows it but does not offer it as a target
+                    instance.unreachable = true;
+                } else {
+                    instance.link = remoteLink;
+                }
+            } else {
+                instance.link =
+                    applyReverseProxyToLink(instance.link, instance.id, instances, webReverseProxyPath) ||
+                    instance.link;
+            }
 
             // if a link already exists => ignore
             const lll = introInstances.find(item => item.link === instance.link);
             if (!lll) {
                 introInstances.push(instance);
+            } else if (replacesExistingLink(instance.link, common.name, lll.id.split('.')[0])) {
+                // The card belongs to the adapter that serves the page. Without this, the card of
+                // e.g. the vis-2 runtime would get the name, the icon and the color of whichever
+                // vis-2 widget adapter links to the same page and was processed first.
+                introInstances[introInstances.indexOf(lll)] = instance;
             } else {
                 console.log(`Double links: "${instance.id}" and "${lll.id}"`);
             }
-        } else if (_urls.length > 1) {
-            _urls.forEach(url => {
-                const lll = introInstances.find(item => item.link === url.url);
-
-                if (!lll) {
-                    const item = { ...instance, link: url.url, port: url.port };
-                    item.link =
-                        applyReverseProxyToLink(item.link, instance.id, instances, webReverseProxyPath) || item.link;
-                    introInstances.push(item);
-                } else {
-                    console.log(`Double links: "${instance.id}" and "${lll.id}"`);
-                }
-            });
         }
     }
 
-    static getText(text: ioBroker.StringOrTranslated, lang: ioBroker.Languages): string {
+    static getText(text: ioBroker.StringOrTranslated | undefined, lang: ioBroker.Languages): string {
         if (!text) {
             return '';
         }
@@ -979,7 +1193,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
                         icon: string;
                     }
                  */
-                const compatibilityStructure: OldLinkStructure = instance.common.localLink as OldLinkStructure;
+                const compatibilityStructure: OldLinkStructure = instance.common.localLink;
                 if (compatibilityStructure.link) {
                     const item: LinkItem = {
                         ...defaultLink,
@@ -1005,9 +1219,10 @@ class Intro extends React.Component<IntroProps, IntroState> {
             }
         }
 
-        if (instance.common.localLinks && typeof instance.common.localLinks === 'object') {
-            Object.keys(instance.common.localLinks).forEach((linkName: string) => {
-                const linkItem: unknown = instance.common.localLinks[linkName];
+        const localLinks = instance.common.localLinks;
+        if (localLinks && typeof localLinks === 'object') {
+            Object.keys(localLinks).forEach((linkName: string) => {
+                const linkItem: unknown = localLinks[linkName];
                 if (typeof linkItem === 'string') {
                     result.push({
                         ...defaultLink,
@@ -1069,7 +1284,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
         if (instance.common.welcomeScreen && typeof instance.common.welcomeScreen === 'object') {
             const compatibilityStructureArr: OldLinkStructure[] = Array.isArray(instance.common.welcomeScreen)
                 ? (instance.common.welcomeScreen as OldLinkStructure[])
-                : [instance.common.welcomeScreen as OldLinkStructure];
+                : [instance.common.welcomeScreen];
 
             compatibilityStructureArr.forEach(compatibilityStructure => {
                 if (compatibilityStructure.link) {
@@ -1093,7 +1308,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
                     }
 
                     if (compatibilityStructure.localLinks) {
-                        const link: unknown = instance.common.localLinks[compatibilityStructure.localLinks];
+                        const link: unknown = instance.common.localLinks?.[compatibilityStructure.localLinks];
                         if (link && typeof link === 'string') {
                             item.link = link;
                         } else if (link && typeof link === 'object' && (link as any).link) {
@@ -1112,7 +1327,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
             if (instance.common.welcomeScreenPro && typeof instance.common.welcomeScreenPro === 'object') {
                 const _compatibilityStructureArr: OldLinkStructure[] = Array.isArray(instance.common.welcomeScreenPro)
                     ? (instance.common.welcomeScreenPro as OldLinkStructure[])
-                    : [instance.common.welcomeScreenPro as OldLinkStructure];
+                    : [instance.common.welcomeScreenPro];
 
                 _compatibilityStructureArr.forEach(compatibilityStructure => {
                     if (compatibilityStructure.link) {
@@ -1136,7 +1351,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
                         }
 
                         if (compatibilityStructure.localLinks) {
-                            const link: unknown = instance.common.localLinks[compatibilityStructure.localLinks];
+                            const link: unknown = instance.common.localLinks?.[compatibilityStructure.localLinks];
                             if (link && typeof link === 'string') {
                                 item.link = link;
                             } else if (link && typeof link === 'object' && (link as any).link) {
@@ -1244,7 +1459,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
         hosts: CompactHost[] | null,
         systemConfig: ioBroker.SystemConfigObject,
     ): Promise<{ instances: IntroInstanceItem[]; deactivated: string[] }> {
-        hosts = hosts || this.state.hosts;
+        hosts = hosts || this.state.hosts || [];
 
         const oHosts: Record<string, ioBroker.HostObject> = {};
         hosts.forEach(obj => (oHosts[obj._id] = obj as ioBroker.HostObject));
@@ -1261,13 +1476,15 @@ class Intro extends React.Component<IntroProps, IntroState> {
             // Array to the mapped object
             objects.forEach(obj => (instances[obj._id] = obj));
 
+            this.remoteAccess = detectRemoteAccess(instances, window.location);
+
             objects.forEach(obj => {
                 if (!obj) {
                     return;
                 }
                 const common = obj.common || null;
                 const objId = obj._id.split('.');
-                const instanceId: number = parseInt(objId.pop(), 10);
+                const instanceId: number = parseInt(objId.pop() || '', 10);
                 let name: string;
                 if (common?.name && typeof common.name === 'object') {
                     const commonName: ioBroker.Translated = common?.name;
@@ -1375,7 +1592,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
         const hostData = this.state.hostsData ? this.state.hostsData[id] : null;
 
         if (hostData && hostData.alive === false) {
-            return <div style={styles.hostOffline}>{this.props.t('Offline')}</div>;
+            return <Box sx={styles.hostOffline}>{this.props.t('Offline')}</Box>;
         }
 
         let nodeUpdate: string | JSX.Element = '';
@@ -1466,89 +1683,134 @@ class Intro extends React.Component<IntroProps, IntroState> {
         }
 
         return hostData && typeof hostData === 'object' ? (
-            <ul style={{ textTransform: 'none' }}>
-                <li>
-                    <span>
-                        <span style={styles.bold}>{this.t('Platform')}: </span>
-                        {hostData.Platform || '--'}
+            <Box sx={styles.hostStats}>
+                <Box sx={styles.hostStatLabel}>{this.t('Platform')}</Box>
+                <Box
+                    sx={styles.hostStatValue}
+                    title={hostData.Platform || ''}
+                >
+                    {hostData.Platform || '--'}
+                </Box>
+                <Box sx={styles.hostStatLabel}>{this.t('RAM')}</Box>
+                <Box sx={styles.hostStatValue}>{formatInfo.RAM(hostData.RAM)}</Box>
+                <Box sx={styles.hostStatLabel}>{this.t('Node.js')}</Box>
+                <Box sx={styles.hostStatValue}>
+                    <span style={nodeUpdate ? styles.updateExists : styles.updateNo}>
+                        {hostData['Node.js'] || '--'}
                     </span>
-                </li>
-                <li>
-                    <span>
-                        <span style={styles.bold}>{this.t('RAM')}: </span>
-                        {formatInfo.RAM(hostData.RAM)}
-                    </span>
-                </li>
-                <li>
-                    <span>
-                        <span style={styles.bold}>{this.t('Node.js')}: </span>
-                        <span style={nodeUpdate ? styles.updateExists : styles.updateNo}>
-                            {hostData['Node.js'] || '--'}
-                        </span>
-                        {nodeUpdate}
-                    </span>
-                </li>
-                <li>
-                    <span>
-                        <span style={styles.bold}>{this.t('NPM')}: </span>
-                        <span className={npmUpdate ? styles.updateExists : styles.updateNo}>
-                            {hostData.NPM || '--'}
-                        </span>
-                        {npmUpdate}
-                    </span>
-                </li>
-            </ul>
+                    {nodeUpdate}
+                </Box>
+                <Box sx={styles.hostStatLabel}>{this.t('NPM')}</Box>
+                <Box sx={styles.hostStatValue}>
+                    <span style={npmUpdate ? styles.updateExists : styles.updateNo}>{hostData.NPM || '--'}</span>
+                    {npmUpdate}
+                </Box>
+            </Box>
         ) : (
-            <ul>
+            <Box sx={styles.hostStats}>
+                <Skeleton width={60} />
                 <Skeleton />
+                <Skeleton width={60} />
                 <Skeleton />
+                <Skeleton width={60} />
                 <Skeleton />
+                <Skeleton width={60} />
                 <Skeleton />
-            </ul>
+            </Box>
         );
     }
 
+    /** The disk is not two numbers but one bar: how much of the disk is still free */
+    renderDiskRow(hostData: Record<string, any>): HostInfoRow {
+        const size: number = hostData['Disk size'];
+        const free: number = hostData['Disk free'];
+        const percent = size > 0 ? Math.max(0, Math.min(100, (free / size) * 100)) : 0;
+        const text = `${AdminUtils.formatBytes(free)} / ${AdminUtils.formatBytes(size)}`;
+        // the bar shows the free space, so an almost empty bar is the alarming one
+        const color = percent < 10 ? 'error' : percent < 25 ? 'warning' : 'success';
+
+        return {
+            name: 'Disk free',
+            text,
+            value: (
+                <Box sx={styles.diskValue}>
+                    <Tooltip
+                        title={`${Math.round(percent)}% ${this.t('Free')}`}
+                        slotProps={{ popper: { sx: styles.tooltip } }}
+                    >
+                        <LinearProgress
+                            variant="determinate"
+                            value={percent}
+                            color={color}
+                            sx={styles.diskBar}
+                        />
+                    </Tooltip>
+                    <Box
+                        component="span"
+                        sx={styles.diskText}
+                    >
+                        {text}
+                    </Box>
+                </Box>
+            ),
+        };
+    }
+
+    /** One line of the host info dialog: the value as it is shown and as it is copied to the clipboard */
+    renderHostInfoRow(name: string, hostData: Record<string, any>): HostInfoRow {
+        const value = hostData[name];
+
+        if (name === 'time') {
+            return { name, text: formatHostTime(value as number, hostData.timeOffset, this.props.lang) };
+        }
+        // "true"/"false" means nothing to a user
+        if (typeof value === 'boolean') {
+            return { name, text: value ? this.t('Yes') : this.t('No') };
+        }
+        if (formatInfo[name]) {
+            return { name, text: formatInfo[name](value as number, this.t) || '--' };
+        }
+        if (typeof value === 'object') {
+            return { name, text: JSON.stringify(value) };
+        }
+        return { name, text: value.toString() || '--' };
+    }
+
     getHostDescriptionAll(id: string): { el: JSX.Element; text: string } {
-        const hostData = this.state.hostsData ? this.state.hostsData[id] : null;
+        const hostData: Record<string, any> | null =
+            this.state.hostsData && typeof this.state.hostsData[id] === 'object' ? this.state.hostsData[id] : null;
+        const rows: HostInfoRow[] = [];
+
+        if (hostData) {
+            for (const name of Object.keys(hostData)) {
+                // the entries starting with "_" are the newest node.js and npm versions, they are shown on the card
+                if (name.startsWith('_') || hostData[name] === null || hostData[name] === undefined) {
+                    continue;
+                }
+                if (name === 'Disk size' && typeof hostData['Disk free'] === 'number') {
+                    rows.push(this.renderDiskRow(hostData));
+                } else if (name === 'Disk free' && typeof hostData['Disk size'] === 'number') {
+                    // already shown as a bar together with the disk size
+                    continue;
+                } else {
+                    rows.push(this.renderHostInfoRow(name, hostData));
+                }
+            }
+        }
 
         return {
             el: (
-                <ul style={{ textTransform: 'none' }}>
-                    {hostData &&
-                        typeof hostData === 'object' &&
-                        Object.keys(hostData)
-                            .filter(
-                                _id =>
-                                    !_id.startsWith('_') &&
-                                    (hostData as any)[_id] !== null &&
-                                    (hostData as any)[_id] !== undefined,
-                            )
-                            .map(value => (
-                                <li key={value}>
-                                    {hostData && typeof hostData === 'object' ? (
-                                        <span>
-                                            <span style={styles.bold}>{this.t(value)}: </span>
-                                            {formatInfo[value]
-                                                ? formatInfo[value]((hostData as any)[value] as number, this.t)
-                                                : (typeof (hostData as any)[value] === 'object'
-                                                      ? JSON.stringify((hostData as any)[value])
-                                                      : (hostData as any)[value].toString()) || '--'}
-                                        </span>
-                                    ) : (
-                                        <Skeleton />
-                                    )}
-                                </li>
-                            ))}
-                </ul>
+                <Box sx={styles.hostInfoStats}>
+                    {rows.map(row => (
+                        <React.Fragment key={row.name}>
+                            <Box sx={styles.hostInfoIcon}>{hostInfoIcon(row.name, hostData || {})}</Box>
+                            <Box sx={styles.hostStatLabel}>{capitalize(this.t(row.name))}</Box>
+                            <Box sx={styles.hostInfoValue}>{row.value ?? row.text}</Box>
+                        </React.Fragment>
+                    ))}
+                </Box>
             ),
-
-            text:
-                hostData && typeof hostData === 'object'
-                    ? Object.keys(hostData).reduce(
-                          (acom: string, item: string) =>
-                              `${acom}${this.t(item)}:${formatInfo[item] ? formatInfo[item]((hostData as any)[item] as number, this.t) : (typeof (hostData as any)[item] === 'object' ? JSON.stringify((hostData as any)[item]) : ((hostData as any)[item] as string)) || '--'}\n`,
-                      )
-                    : '',
+            text: rows.map(row => `${capitalize(this.t(row.name))}: ${row.text}`).join('\n'),
         };
     }
 
@@ -1593,7 +1855,10 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 // actually available to Installer/End User. Missing host/system
                 // metadata must not replace the overview with a second surface.
                 try {
-                    const fallbackConfig = { common: { intro: [] }, native: { introLinks: [] } } as unknown as ioBroker.SystemConfigObject;
+                    const fallbackConfig = {
+                        common: { intro: [] },
+                        native: { introLinks: [] },
+                    } as unknown as ioBroker.SystemConfigObject;
                     const data = await this.getInstances(update, [], fallbackConfig);
                     this.setState({
                         instances: data.instances,
@@ -1604,7 +1869,14 @@ class Intro extends React.Component<IntroProps, IntroState> {
                         alive: {},
                     } as unknown as IntroState);
                 } catch {
-                    this.setState({ instances: [], hosts: [], deactivated: [], introLinks: [], hostsData: {}, alive: {} } as unknown as IntroState);
+                    this.setState({
+                        instances: [],
+                        hosts: [],
+                        deactivated: [],
+                        introLinks: [],
+                        hostsData: {},
+                        alive: {},
+                    } as unknown as IntroState);
                 }
                 return;
             }
@@ -1633,12 +1905,27 @@ class Intro extends React.Component<IntroProps, IntroState> {
     private getOverviewRoleConfig(): { role: string; label: string; text: string; admin: boolean } {
         const role = String((window as any).NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
         if (role === 'installer' || role === 'installateur') {
-            return { role: 'installer', label: 'Installateur', text: 'Inbetriebnahme, Fehlersuche, Geräte- und EMS-Diagnose – mit deinen freigegebenen Installateurrechten.', admin: false };
+            return {
+                role: 'installer',
+                label: 'Installateur',
+                text: 'Inbetriebnahme, Fehlersuche, Geräte- und EMS-Diagnose – mit deinen freigegebenen Installateurrechten.',
+                admin: false,
+            };
         }
         if (role !== 'admin' && role !== 'service') {
-            return { role: 'enduser', label: 'Endkunde', text: 'Energie, Laden, Gebäude und die aktuellen EMS-Entscheidungen auf einen Blick.', admin: false };
+            return {
+                role: 'enduser',
+                label: 'Endkunde',
+                text: 'Energie, Laden, Gebäude und die aktuellen EMS-Entscheidungen auf einen Blick.',
+                admin: false,
+            };
         }
-        return { role: 'admin', label: 'Admin / Service', text: 'Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.', admin: true };
+        return {
+            role: 'admin',
+            label: 'Admin / Service',
+            text: 'Systemstatus, Module, Dienste und Anlagenzugänge in einer modernen Serviceübersicht.',
+            admin: true,
+        };
     }
 
     render(): JSX.Element {
@@ -1652,14 +1939,22 @@ class Intro extends React.Component<IntroProps, IntroState> {
                 overflow="visible"
             >
                 {this.renderCopiedToast()}
-                <section id="eos-native-overview-hero" className="eos-overview-hero eos-native-overview-hero" data-eos-native-react-overview="true">
+                <section
+                    id="eos-native-overview-hero"
+                    className="eos-overview-hero eos-native-overview-hero"
+                    data-eos-native-react-overview="true"
+                >
                     <div>
                         <span className="eos-overview-eyebrow">NexoWatt EOS</span>
                         <h1>Übersicht</h1>
                         <p>{this.getOverviewRoleConfig().text}</p>
                     </div>
-                    <div className="eos-overview-role" data-nexowatt-overview-role={this.getOverviewRoleConfig().role}>
-                        <span className="eos-overview-status-dot" />{this.getOverviewRoleConfig().label}
+                    <div
+                        className="eos-overview-role"
+                        data-nexowatt-overview-role={this.getOverviewRoleConfig().role}
+                    >
+                        <span className="eos-overview-status-dot" />
+                        {this.getOverviewRoleConfig().label}
                     </div>
                 </section>
                 {this.state.nodeUpdateDialog ? (
@@ -1669,7 +1964,14 @@ class Intro extends React.Component<IntroProps, IntroState> {
                         {...this.state.nodeUpdateDialog}
                     />
                 ) : null}
-                <div style={styles.viewModeDiv} className="eos-native-intro-grid">
+                {/* The cards are Grid items with a `size` prop, which MUI only resolves inside a
+                    Grid container - without it they fall back to content width. */}
+                <Grid
+                    container
+                    className="eos-native-intro-grid"
+                    spacing={2}
+                    sx={styles.cards}
+                >
                     {this.getInstancesCards()}
                     {this.getLinkCards()}
                     <NexoWattEmsOverview
@@ -1681,7 +1983,7 @@ class Intro extends React.Component<IntroProps, IntroState> {
                     {this.getOverviewRoleConfig().admin ? (
                         <div className="eos-overview-edit-controls">{this.getButtons()}</div>
                     ) : null}
-                </div>
+                </Grid>
                 {this.getOverviewRoleConfig().admin ? this.editLinkCard() : null}
             </TabContainer>
         );

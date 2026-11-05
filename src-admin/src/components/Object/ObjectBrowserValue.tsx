@@ -1,7 +1,7 @@
 import React, { Component, type JSX } from 'react';
 
 import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 import {
     Dialog,
@@ -17,7 +17,7 @@ import {
     MenuItem,
     FormControl,
     Select,
-    Grid2,
+    Grid,
     Fab,
     Typography,
     Switch,
@@ -34,13 +34,33 @@ import {
     Info as InfoIcon,
 } from '@mui/icons-material';
 
-import { type AdminConnection, type IobTheme, type ThemeType, type Translate } from '@iobroker/adapter-react-v5';
+import { type AdminConnection, type IobTheme, type ThemeType, type Translate } from '@iobroker/gui-components';
 
 import ObjectChart from './ObjectChart';
 import { localeMap } from './utils';
 import Editor from '../Editor';
+import { onCtrlEnter } from '@/helpers/ctrlEnter';
+import { getManualWritePolicy, type EditorType } from './eosObjectBrowserWrite';
 
-const styles: Record<string, any> = {
+function editorText(value: unknown): string {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    if (typeof value === 'string') {
+        return value;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+    try {
+        return JSON.stringify(value) || '';
+    } catch {
+        return '';
+    }
+}
+
+const styles = {
+    dialogForm: { margin: 0 },
     formControl: {
         minWidth: 100,
     },
@@ -74,7 +94,7 @@ const styles: Record<string, any> = {
         marginLeft: 4,
     },
     dialog: {
-        minHeight: (window as any).clientHeight - 50 > 500 ? 500 : (window as any).clientHeight - 50,
+        minHeight: Math.min(window.innerHeight - 50, 500),
     },
     tooltip: {
         pointerEvents: 'none',
@@ -94,10 +114,16 @@ interface ObjectBrowserValueProps {
     /** common.states */
     states: Record<string, string> | null;
     /** The state value */
-    value: any;
+    value: unknown;
     /** If expert mode is enabled */
     expertMode: boolean;
-    onClose: (newValue?: { val: ioBroker.StateValue; ack: boolean; q: number; expire: number | undefined; editorType?: string }) => void | Promise<void>;
+    onClose: (newValue?: {
+        val: ioBroker.StateValue;
+        ack: boolean;
+        q: ioBroker.STATE_QUALITY[keyof ioBroker.STATE_QUALITY];
+        expire: number | undefined;
+        editorType?: string;
+    }) => void | Promise<void>;
     /** Configured theme */
     themeType: ThemeType;
     theme: IobTheme;
@@ -113,7 +139,7 @@ interface ObjectBrowserValueProps {
 
 interface ObjectBrowserValueState {
     /** The state value */
-    targetValue: any;
+    targetValue: unknown;
     /** State type */
     type: 'states' | 'string' | 'number' | 'boolean' | 'json';
     chart: boolean;
@@ -131,7 +157,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     }
 
     /** The state value */
-    private readonly propsValue: any;
+    private readonly propsValue: unknown;
 
     /** Chart start date */
     private readonly chartFrom: number;
@@ -140,7 +166,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     private ack: boolean;
 
     /** TextField Ref */
-    private readonly inputRef = React.createRef<any>();
+    private readonly inputRef = React.createRef<HTMLInputElement>();
 
     /** State quality */
     private q: ioBroker.STATE_QUALITY[keyof ioBroker.STATE_QUALITY];
@@ -148,16 +174,15 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
     /** Expiration of the state */
     private expire: number;
 
+    private writePending = false;
+
     constructor(props: ObjectBrowserValueProps) {
         super(props);
 
-        const policy = (window as any).NEXOWATT_EOS_MANUAL_WRITE_POLICY;
+        const policy = getManualWritePolicy();
         const hasStatesOptions = ObjectBrowserValue.hasStatesOptions(this.props.states);
-        const prepared = policy?.prepareEditor
-            ? policy.prepareEditor(this.props.object, this.props.value)
-            : { editorType: hasStatesOptions ? 'states' : this.props.type || typeof this.props.value, value: this.props.value };
-
-        let type = (hasStatesOptions ? 'states' : prepared.editorType) as 'states' | 'string' | 'number' | 'boolean' | 'json';
+        const prepared = policy.prepareEditor(this.props.object, this.props.value);
+        const type: EditorType = hasStatesOptions ? 'states' : prepared.editorType;
         let value = prepared.value;
         this.propsValue = value;
 
@@ -174,8 +199,13 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             type,
             chart: false,
             chartEnabled:
-                ((window as any)._localStorage || window.localStorage).getItem('App.chartSetValue') !== 'false',
-            fullScreen: ((window as any)._localStorage || window.localStorage).getItem('App.fullScreen') === 'true',
+                ((window as Window & { _localStorage?: Storage })._localStorage || window.localStorage).getItem(
+                    'App.chartSetValue',
+                ) !== 'false',
+            fullScreen:
+                ((window as Window & { _localStorage?: Storage })._localStorage || window.localStorage).getItem(
+                    'App.fullScreen',
+                ) === 'true',
             targetValue: value,
             /** If input is invalid, set value button is disabled */
             valid: true,
@@ -234,13 +264,13 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         return false;
     }
 
-    async onUpdate(e: React.KeyboardEvent | React.MouseEvent): Promise<void> {
+    async onUpdate(e?: React.KeyboardEvent | React.MouseEvent | null): Promise<void> {
         if (e) {
             e.stopPropagation();
             e.preventDefault();
         }
 
-        if (this.state.writing) {
+        if (this.writePending || this.state.writing || !this.state.valid || this.state.jsonError) {
             return;
         }
         if (this.props.object.common?.write === false) {
@@ -249,10 +279,18 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         }
 
         try {
-            const policy = (window as any).NEXOWATT_EOS_MANUAL_WRITE_POLICY;
-            const value = policy?.parseEditorValue
-                ? policy.parseEditorValue(this.props.object, this.state.type, this.state.targetValue)
-                : this.state.targetValue;
+            const policy = getManualWritePolicy();
+            const behavior = policy.getWriteBehavior(
+                this.props.object._id,
+                this.props.object,
+                undefined,
+                this.props.expertMode,
+            );
+            if (behavior === 'readonly' || behavior === 'expert-only' || behavior === 'file') {
+                throw new Error('State writing is not permitted');
+            }
+            const value = policy.parseEditorValue(this.props.object, this.state.type, this.state.targetValue);
+            this.writePending = true;
 
             this.setState({ writing: true });
             await Promise.resolve(
@@ -260,15 +298,25 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     val: value,
                     ack: this.ack,
                     q: this.q,
-                    expire: parseInt(this.expire as any as string, 10) || undefined,
+                    expire: this.expire || undefined,
                     editorType: this.state.type,
                 }),
             );
         } catch (error) {
-            window.alert(`Cannot write state "${this.props.object._id}": ${error instanceof Error ? error.message : error}`);
+            window.alert(
+                `Cannot write state "${this.props.object._id}": ${error instanceof Error ? error.message : editorText(error)}`,
+            );
+            this.writePending = false;
             this.setState({ writing: false });
         }
     }
+
+    /** CTRL+ENTER triggers the same action as the "Set value" button */
+    onCtrlEnter = (): void => {
+        if (this.state.valid) {
+            void this.onUpdate();
+        }
+    };
 
     /**
      * Check if a number value is valid according to the objects common properties
@@ -284,7 +332,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
 
         const numVal = Number(typeof value === 'string' ? value.replace(',', '.') : value);
 
-        if (Number.isNaN(numVal)) {
+        if (!Number.isFinite(numVal)) {
             return false;
         }
 
@@ -305,7 +353,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                 dateAdapter={AdapterDateFns}
             >
                 <DatePicker
-                    value={Number(this.state.targetValue) as any as Date}
+                    value={new Date(Number(this.state.targetValue))}
                     onChange={value => {
                         if (!value) {
                             return;
@@ -315,7 +363,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                 />
 
                 <TimePicker
-                    value={Number(this.state.targetValue) as any as Date}
+                    value={new Date(Number(this.state.targetValue))}
                     views={['hours', 'minutes', 'seconds']}
                     onChange={value => {
                         if (!value) {
@@ -345,7 +393,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                 noToolbar
                 defaultHistory={this.props.defaultHistory}
                 customsInstances={[]}
-                objects={undefined}
+                objects={{}}
                 historyInstance={''}
             />
         );
@@ -364,9 +412,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
         return (
             <Editor
                 error={this.state.jsonError}
+                onCtrlEnter={this.onCtrlEnter}
                 editValueMode
                 themeType={this.props.themeType}
-                defaultValue={(this.state.targetValue ?? '').toString()}
+                defaultValue={editorText(this.state.targetValue)}
                 onChange={(newValue: string) =>
                     this.setState({
                         targetValue: newValue,
@@ -386,31 +435,34 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
             this.props.object.common.max !== undefined &&
             this.props.object.common.min !== undefined
         ) {
-            const options = Object.keys(this.props.states).map(key => ({
-                label: this.props.states[key],
+            const options = Object.keys(this.props.states || {}).map(key => ({
+                label: this.props.states?.[key],
                 value: key,
             }));
 
             const currentKey =
-                this.state.targetValue && typeof this.state.targetValue === 'object'
-                    ? (this.state.targetValue as any).value
+                this.state.targetValue &&
+                typeof this.state.targetValue === 'object' &&
+                'value' in this.state.targetValue
+                    ? this.state.targetValue.value
                     : this.state.targetValue;
             const selectedOption =
-                options.find(option => String(option.value) === String(currentKey ?? '')) ?? this.state.targetValue ?? '';
+                options.find(option => String(option.value) === editorText(currentKey)) ?? editorText(currentKey);
 
             return (
                 <Autocomplete
                     style={styles.formControl}
                     disablePortal
-                    value={selectedOption as any}
+                    value={selectedOption}
                     options={options}
                     noOptionsText=""
                     freeSolo
                     isOptionEqualToValue={(option, value) =>
-                        String(option?.value ?? option) === String((value as any)?.value ?? value)
+                        String(typeof option === 'string' ? option : option.value) ===
+                        String(typeof value === 'string' ? value : value.value)
                     }
                     getOptionLabel={option =>
-                        option?.label || (option !== undefined && option !== null ? option.toString() : '')
+                        typeof option === 'string' ? option : option.label || String(option.value)
                     }
                     onChange={(e, value) => this.setState({ targetValue: value })}
                     onInputChange={(e, value, reason) => {
@@ -440,18 +492,18 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     value={
                         this.state.targetValue == null
                             ? ''
-                            : typeof this.state.targetValue === 'object'
-                              ? ((this.state.targetValue as any).value ?? '')
-                              : String(this.state.targetValue)
+                            : typeof this.state.targetValue === 'object' && 'value' in this.state.targetValue
+                              ? editorText(this.state.targetValue.value)
+                              : editorText(this.state.targetValue)
                     }
                     onChange={e => this.setState({ targetValue: e.target.value })}
                 >
-                    {Object.keys(this.props.states).map((key, i) => (
+                    {Object.keys(this.props.states || {}).map((key, i) => (
                         <MenuItem
                             key={i}
                             value={key}
                         >
-                            {this.props.states[key]}
+                            {this.props.states?.[key]}
                         </MenuItem>
                     ))}
                 </Select>
@@ -503,7 +555,12 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     (this.state.chart && this.state.chartEnabled)
                 }
                 fullScreen={this.state.type === 'json' && this.state.fullScreen}
-                onClose={() => this.props.onClose()}
+                onClose={() => {
+                    if (!this.writePending) {
+                        void this.props.onClose();
+                    }
+                }}
+                onKeyDown={e => onCtrlEnter(e, this.onCtrlEnter)}
                 aria-labelledby="edit-value-dialog-title"
                 aria-describedby="edit-value-dialog-description"
                 sx={{
@@ -523,10 +580,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                             size="small"
                             color={this.state.chartEnabled ? 'primary' : 'default'}
                             onClick={() => {
-                                ((window as any)._localStorage || window.localStorage).setItem(
-                                    'App.chartSetValue',
-                                    this.state.chartEnabled ? 'false' : 'true',
-                                );
+                                (
+                                    (window as Window & { _localStorage?: Storage })._localStorage ||
+                                    window.localStorage
+                                ).setItem('App.chartSetValue', this.state.chartEnabled ? 'false' : 'true');
                                 this.setState({ chartEnabled: !this.state.chartEnabled });
                             }}
                         >
@@ -537,10 +594,10 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                         <IconButton
                             style={{ float: 'right' }}
                             onClick={() => {
-                                ((window as any)._localStorage || window.localStorage).setItem(
-                                    'App.fullScreen',
-                                    this.state.fullScreen ? 'false' : 'true',
-                                );
+                                (
+                                    (window as Window & { _localStorage?: Storage })._localStorage ||
+                                    window.localStorage
+                                ).setItem('App.fullScreen', this.state.fullScreen ? 'false' : 'true');
                                 this.setState({ fullScreen: !this.state.fullScreen });
                             }}
                         >
@@ -552,35 +609,41 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     <form
                         noValidate
                         autoComplete="off"
-                        onSubmit={() => false}
+                        // Without this, the browser submits the form - ENTER in a one line input or
+                        // CTRL+ENTER in a text area is enough - and as the form has no `action`, the
+                        // current address is requested anew: the whole GUI reloads. Returning false
+                        // from a react handler does not prevent anything.
+                        onSubmit={e => e.preventDefault()}
                         style={{ ...styles.dialogForm, height: '100%' }}
                     >
-                        <Grid2
+                        <Grid
                             container
                             direction="row"
                             spacing={2}
                             style={{ height: '100%' }}
                         >
-                            <Grid2
-                                size={{ xs: this.state.chart && this.state.chartEnabled ? 6 : 12 }}
+                            <Grid
+                                // the chart only exists from `md` upward, so below that the form gets
+                                // the full width instead of leaving half the dialog empty
+                                size={{ xs: 12, md: this.state.chart && this.state.chartEnabled ? 6 : 12 }}
                                 style={{ height: '100%' }}
                             >
-                                <Grid2
+                                <Grid
                                     container
-                                    direction="column"
                                     spacing={2}
                                     style={{ marginTop: 0, height: '100%' }}
+                                    sx={{ flexDirection: 'column' }}
                                 >
                                     {this.props.expertMode ? (
-                                        <Grid2>
-                                            <Grid2
+                                        <Grid>
+                                            <Grid
                                                 container
                                                 direction="row"
                                                 spacing={2}
                                                 style={{ marginTop: 0 }}
                                             >
                                                 {this.props.expertMode ? (
-                                                    <Grid2>
+                                                    <Grid>
                                                         <FormControl style={styles.formControl}>
                                                             <InputLabel style={{ marginTop: 10, marginLeft: -14 }}>
                                                                 {this.props.t('Value type')}
@@ -591,12 +654,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                                 onChange={e => {
                                                                     this.setState(
                                                                         {
-                                                                            type: e.target.value as
-                                                                                | 'states'
-                                                                                | 'string'
-                                                                                | 'number'
-                                                                                | 'boolean'
-                                                                                | 'json',
+                                                                            type: e.target.value,
                                                                             valid:
                                                                                 e.target.value === 'number'
                                                                                     ? ObjectBrowserValue.isNumberValid({
@@ -610,15 +668,14 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                                         () => {
                                                                             if (this.state.type === 'json') {
                                                                                 this.setState({
-                                                                                    targetValue: (
-                                                                                        this.state.targetValue || ''
-                                                                                    ).toString(),
+                                                                                    targetValue: editorText(
+                                                                                        this.state.targetValue,
+                                                                                    ),
                                                                                     jsonError:
                                                                                         ObjectBrowserValue.checkJsonError(
-                                                                                            (
-                                                                                                this.state
-                                                                                                    .targetValue || ''
-                                                                                            ).toString(),
+                                                                                            editorText(
+                                                                                                this.state.targetValue,
+                                                                                            ),
                                                                                         ),
                                                                                 });
                                                                             }
@@ -635,14 +692,16 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                                 ) : null}
                                                             </Select>
                                                         </FormControl>
-                                                    </Grid2>
+                                                    </Grid>
                                                 ) : null}
-                                                {this.state.type === 'json' ? <Grid2 flex={1}></Grid2> : null}
-                                            </Grid2>
-                                        </Grid2>
+                                                {this.state.type === 'json' ? <Grid sx={{ flex: 1 }}></Grid> : null}
+                                            </Grid>
+                                        </Grid>
                                     ) : null}
-                                    <Grid2
-                                        flex={this.state.type === 'json' && this.state.fullScreen ? 1 : undefined}
+                                    <Grid
+                                        sx={{
+                                            flex: this.state.type === 'json' && this.state.fullScreen ? 1 : undefined,
+                                        }}
                                         style={{ paddingTop: 0 }}
                                     >
                                         {this.state.type === 'boolean' ? (
@@ -663,26 +722,28 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                         : undefined
                                                 }
                                             >
-                                                <Grid2
+                                                <Grid
                                                     component="label"
                                                     container
-                                                    alignItems="center"
                                                     spacing={1}
+                                                    sx={{ alignItems: 'center' }}
                                                 >
-                                                    <Grid2 style={{ marginRight: 10 }}>{this.props.t('Value')}:</Grid2>
-                                                    <Grid2>FALSE</Grid2>
-                                                    <Grid2>
+                                                    <Grid style={{ marginRight: 10 }}>{this.props.t('Value')}:</Grid>
+                                                    <Grid>FALSE</Grid>
+                                                    <Grid>
                                                         <Switch
                                                             autoFocus
-                                                            checked={ObjectBrowserValue.parseBoolean(this.state.targetValue)}
+                                                            checked={ObjectBrowserValue.parseBoolean(
+                                                                this.state.targetValue,
+                                                            )}
                                                             onKeyUp={e => e.key === 'Enter' && this.onUpdate(e)}
                                                             onChange={e =>
                                                                 this.setState({ targetValue: e.target.checked })
                                                             }
                                                         />
-                                                    </Grid2>
-                                                    <Grid2>TRUE</Grid2>
-                                                </Grid2>
+                                                    </Grid>
+                                                    <Grid>TRUE</Grid>
+                                                </Grid>
                                             </Typography>
                                         ) : this.state.type === 'number' ? (
                                             <TextField
@@ -703,7 +764,7 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 helperText={this.props.t(
                                                     'Press ENTER to write the value, when focused',
                                                 )}
-                                                value={(this.state.targetValue ?? '').toString()}
+                                                value={editorText(this.state.targetValue)}
                                                 label={
                                                     this.props.t('Value') +
                                                     (this.props.object.common.min !== undefined ||
@@ -742,26 +803,26 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 label={this.props.t('Value')}
                                                 multiline
                                                 onKeyDown={e => e.ctrlKey && e.key === 'Enter' && this.onUpdate(e)}
-                                                defaultValue={this.propsValue.toString()}
+                                                defaultValue={editorText(this.propsValue)}
                                                 onChange={e => this.setState({ targetValue: e.target.value })}
                                             />
                                         )}
-                                    </Grid2>
+                                    </Grid>
 
                                     {(this.props.role === 'date' || this.props.role?.startsWith('date.')) &&
                                     this.state.type === 'number' ? (
-                                        <Grid2
+                                        <Grid
                                             style={{ display: 'flex', gap: '5px' }}
                                             size={{ xs: 6 }}
                                         >
                                             {this.renderTimePicker()}
-                                        </Grid2>
+                                        </Grid>
                                     ) : null}
 
-                                    {this.props.expertMode ? <Grid2>{ackCheckbox}</Grid2> : null}
+                                    {this.props.expertMode ? <Grid>{ackCheckbox}</Grid> : null}
 
                                     {this.props.expertMode ? (
-                                        <Grid2>
+                                        <Grid>
                                             <FormControl
                                                 variant="standard"
                                                 style={styles.quality}
@@ -820,20 +881,23 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                                                 defaultValue={this.expire}
                                                 onChange={e => (this.expire = Number(e.target.value))}
                                             />
-                                        </Grid2>
+                                        </Grid>
                                     ) : null}
-                                </Grid2>
-                            </Grid2>
+                                </Grid>
+                            </Grid>
                             {this.state.chart && this.state.chartEnabled && this.state.type !== 'json' ? (
-                                <Grid2
-                                    size={{ xs: 6 }}
+                                <Grid
+                                    size={{ xs: 12, md: 6 }}
                                     style={{ minHeight: 300 }}
-                                    sx={{ display: { sm: 'none', md: 'inline-block' } }}
+                                    // MUI breakpoints are min-width: without an `xs` entry the property
+                                    // stays unset below `sm` and the chart showed up on exactly the narrow
+                                    // screens it was meant to be hidden on.
+                                    sx={{ display: { xs: 'none', md: 'inline-block' } }}
                                 >
                                     {this.renderChart()}
-                                </Grid2>
+                                </Grid>
                             ) : null}
-                        </Grid2>
+                        </Grid>
                     </form>
                 </DialogContent>
                 <DialogActions sx={styles.wrapperButton}>
@@ -841,17 +905,35 @@ class ObjectBrowserValue extends Component<ObjectBrowserValueProps, ObjectBrowse
                     {!this.props.expertMode ? <div style={{ flexGrow: 1 }} /> : null}
                     <Button
                         variant="contained"
-                        disabled={!this.state.valid || !!this.state.jsonError || this.state.writing || this.props.object.common?.write === false}
+                        disabled={
+                            !this.state.valid ||
+                            !!this.state.jsonError ||
+                            this.state.writing ||
+                            this.props.object.common?.write === false
+                        }
                         onClick={e => this.onUpdate(e)}
                         color="primary"
                         startIcon={this.props.width !== 'xs' ? <IconCheck /> : undefined}
                         style={this.props.object.common?.write === false ? styles.readOnly : undefined}
                     >
-                        {this.props.width !== 'xs' ? (this.state.writing ? this.props.t('Please wait...') : this.props.t('Set value')) : <IconCheck fontSize="large" />}
+                        {this.props.width !== 'xs' ? (
+                            this.state.writing ? (
+                                this.props.t('Please wait...')
+                            ) : (
+                                this.props.t('Set value')
+                            )
+                        ) : (
+                            <IconCheck fontSize="large" />
+                        )}
                     </Button>
                     <Button
                         variant="contained"
-                        onClick={() => this.props.onClose()}
+                        disabled={this.state.writing}
+                        onClick={() => {
+                            if (!this.writePending) {
+                                void this.props.onClose();
+                            }
+                        }}
                         color="grey"
                         startIcon={this.props.width !== 'xs' ? <IconCancel /> : undefined}
                     >

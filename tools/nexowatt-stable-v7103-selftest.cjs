@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 'use strict';
+const { readModuleChunks, verifyFrontendManifest } = require('./nexowatt-frontend-artifacts.cjs');
+verifyFrontendManifest();
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -24,7 +26,7 @@ const css = read('adminWww/css/nexowatt-native-shell.css');
 const index = read('adminWww/index.html');
 const ems = read('adminWww/js/eos-ems-overview.js');
 const intro = read('src-admin/src/tabs/Intro.tsx');
-const bundle = read(`adminWww/assets/Intro-DkwRiz1n-${info.runtimeEntry}.js`);
+const bundle = readModuleChunks('src/tabs/Intro.tsx');
 const stable = read(`adminWww/static/js/nexowatt-stable-v${String(info.shellCacheTag || info.shellCacheVersion)}.js`);
 const autoBackend = read('src/lib/eosAutoUpdate.ts');
 const autoUi = read('adminWww/js/eos-auto-update.js');

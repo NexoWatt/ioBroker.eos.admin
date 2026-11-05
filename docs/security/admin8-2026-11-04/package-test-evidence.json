@@ -1,0 +1,72 @@
+{
+  "recordedAtUtc": "2026-11-04T21:45:34.863575+00:00",
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "Linux x86_64"
+  },
+  "scope": "Development-only explicit EOS package schema profile, not evidence of community repository acceptance or target installation.",
+  "commands": [
+    {
+      "command": "npm test",
+      "exit": 0,
+      "packagePass": 74,
+      "eosTests": 200,
+      "eosPass": 200,
+      "eosFail": 0,
+      "eosSkipped": 0,
+      "log": "package-and-security-npm-test.log"
+    },
+    {
+      "command": "npm run test:package",
+      "review": "independent final profile review",
+      "exit": 0,
+      "pass": 74,
+      "fail": 0,
+      "log": "package-profile-final-independent-review.log"
+    },
+    {
+      "command": "npm run lint-backend",
+      "exit": 0,
+      "log": "backend-full-lint-final.txt"
+    },
+    {
+      "command": "./node_modules/.bin/tsc --noEmit",
+      "exit": 0,
+      "log": "backend-typecheck-final.txt"
+    }
+  ],
+  "earlierFailuresRetained": {
+    "originalGenericValidator": "package-original-eight-failures.log",
+    "officialSchemaAfterOfflinePin": "package-profile-official-schema-failure.log",
+    "fullEmbeddedConfig": "package-embedded-config-failures.log"
+  },
+  "sha256": {
+    "admin/jsonConfig.json5": "c5b85f8791ddf7ebd7f7c2113bdf0b4e6bbb78a449b57363c9e425195e27cbce",
+    "docs/changelog-archive.json": "999b97429fc074e8dd307291c8a97eda76e67d38d2ab90bdd83987ac78218023",
+    "io-package.json": "e8d5fbfa311ad141f08fd061ef0795ab5dcac01ae5082f5a00da6dd58cf0cd2d",
+    "test/package.js": "f030abf10b47fdbd8fad598561df9ea94d4af5b2a77001fb12fd25f56726f41e",
+    "test/schemas/io-package-schema.LICENSE": "315fb419f7d7f93e32f19e78fb84dabe20e39a5e5b9fa1ed7f5abd2c30204780",
+    "test/schemas/io-package.json": "f35668bef709d34e75e70d5c0087ef7f27a8fc57908f6158fbbac6c5ccf3c75c",
+    "test/schemas/jsonConfig-schema.LICENSE": "4f1d8e2a6ad41e799b296288cf457da642ba75e1f2f04853b2e06fb2547236f9",
+    "test/schemas/jsonConfig.json": "05a4a663fe68af6b40ce41833965a6b33b37c6a266229a3746015b998a69015e",
+    "test/schemas/license-sources.json": "2e92b5533ee5ed8e4aa2778f66918770e283941ca296ce77443c09a00cc2065c",
+    "test/schemas/sources.json": "e7ff1ac9f0c077af64a44120c7ccaec380288018332bd4bbc2f7e635248a4dc7",
+    "tools/nexowatt-package-schema-profile.cjs": "ac6c986f17839718173711f48fb86a547177889b43f774d8e552df1aefff20bc",
+    "tools/vendor/iobroker-testing-package-files.cjs": "399ad2dc0e5f643faa8b0b6ca898c73129f858823fe453d1ca0d37fcdab33d9a",
+    "tools/vendor/package-profile-provenance.json": "a8fe7d0258fff3c294958abaf610b929dc69cc896739a68fc2c3da338248f3f0"
+  },
+  "logsSha256": {
+    "package-and-security-npm-test.log": "5ffb3f3e00658825605be5d2cad1051219df62515d46b1d295ab97574b48a81f",
+    "backend-full-lint-final.txt": "ea66900106538c2d40e7b2c789e4769587a3fc44912448d7ab85b1dd1b48dd23",
+    "backend-typecheck-final.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "package-original-eight-failures.log": "308c35f41521aeb9094a61525c0376fcc7434c5f9c0649af1764aff3f1ba4025",
+    "package-profile-official-schema-failure.log": "68c380c7c50b9d4bbc528286de9ca2c331295c1467db3aa37be0319d10f0e224",
+    "package-profile-final-independent-review.log": "bf7c8db8ede2fe25ab285c40b1fef4b4dc1423e608ed9a878e529a705a2d4fb8",
+    "package-embedded-config-failures.log": "ce2267630e81bd3ff40d538f0888b7592e1de2ffb421eceaf73824608dfb3f70"
+  },
+  "limitations": [
+    "No target ioBroker installation or Windows runtime is exercised by package validation.",
+    "The full npm test run preceded an additional same-commit schema-license provenance assertion; the independent final package review ran the complete resulting package test.",
+    "Package metadata and source files are frozen at this handoff; the later canonical root build/release receipt is authoritative for delivered artifacts."
+  ]
+}

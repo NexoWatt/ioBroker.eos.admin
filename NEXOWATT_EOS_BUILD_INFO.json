@@ -1,26 +1,33 @@
 {
-  "version": "7.10.12",
-  "channel": "integration-test",
-  "baseFrontend": "inherited v84 runtime with scoped security patch and cache-busted v85 module graph; no complete frontend rebuild",
-  "runtimeEntry": "v85",
-  "releaseType": "security-licensing-integration-candidate",
-  "release": "security-licensing-integration-candidate",
-  "label": "v7-10-12",
+  "version": "8.0.0",
+  "channel": "stable",
+  "baseFrontend": "Rebuilt from official Admin 8.3.5 sources plus reviewed EOS integration using React 19 and Vite; see source-bound frontend manifest.",
+  "runtimeEntry": "vite-manifest",
+  "releaseType": "admin8-native-migration",
+  "release": "admin8-native-migration",
+  "label": "v8-0-0",
   "notes": [
-    "Input archive was 7.10.9; no Admin 8 rebase performed.",
-    "License authority and consumer SDK implemented; current issuer keygen and other adapters not supplied.",
-    "No IEC certification or CRA conformity asserted. See docs/security and docs/cra."
+    "Own EOS version 8.0.0; upstream base 8.3.5. This is a real source migration and fresh build.",
+    "Retains NWL2 licensing, UUID binding, Home/Pro verification and encrypted local license storage.",
+    "Local validation does not constitute IEC certification, CRA conformity or target-device deployment acceptance."
   ],
   "changes": [
-    "Signed NWL2 license verification and AES-256-GCM storage",
-    "Server-side Home/Pro adapter authorization and short-lived leases",
-    "Unique account credentials, session and role boundary hardening"
+    "React 19/gui-components frontend with source-bound build receipt and role-gated startup",
+    "Strict TypeScript Admin 8 backend, bounded native instance proxy and session revocation",
+    "Reviewed ObjectBrowser write guards applied before bundling",
+    "Maintained OAuth implementation and targeted dependency security updates",
+    "No unattended npm installation from adapter startup"
   ],
   "brandingCacheVersion": 7109,
   "shellCacheVersion": 7109,
   "nativeShellVersion": 7109,
   "shellCacheTag": "7109",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v7-10-12.json",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v8-0-0.json",
   "autoUpdateCacheVersion": 7103,
-  "autoUpdateCacheTag": "7103"
+  "autoUpdateCacheTag": "7103",
+  "upstream": {
+    "project": "ioBroker/ioBroker.admin",
+    "version": "8.3.5",
+    "commit": "6f77eedf525813a7a61d79188d1ff05dffd05086"
+  }
 }

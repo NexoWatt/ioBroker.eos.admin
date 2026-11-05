@@ -22,7 +22,7 @@ import {
     type ThemeType,
     type IobTheme,
     type Translate,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import BaseSettingsSystem, { type SystemSettings } from '../components/BaseSettings/BaseSettingsSystem';
 import BaseSettingsMultihost, { type MultihostSettings } from '../components/BaseSettings/BaseSettingsMultihost';
@@ -65,12 +65,12 @@ interface BaseSettingsDialogState {
     loading: boolean;
     confirmExit: boolean;
     showRestart: boolean;
-    system: SystemSettings;
-    multihostService?: MultihostSettings;
-    objects?: SettingsObjects;
-    states: SettingsStates;
-    log: SettingsLog;
-    plugins: PluginsSettings;
+    system: SystemSettings | null;
+    multihostService?: MultihostSettings | null;
+    objects?: SettingsObjects | null;
+    states: SettingsStates | null;
+    log: SettingsLog | null;
+    plugins: PluginsSettings | null;
     dnsResolution: 'verbatim' | 'ipv4first';
     dataDir: string;
     saving: boolean;
@@ -186,7 +186,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
 
     async getSettings(host: string): Promise<void> {
         const settings = await this.props.socket.readBaseSettings(host || this.state.currentHost);
-        const answer = settings as { config?: ioBroker.IoBrokerJson; isActive?: boolean };
+        const answer = settings;
 
         if (answer?.config) {
             this.originalSettings = AdminUtils.clone(answer.config);
@@ -250,7 +250,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
         const name = 'system';
         return (
             <BaseSettingsSystem
-                settings={this.state[name]}
+                settings={this.state[name] || {}}
                 t={this.props.t}
                 currentHost={this.props.currentHost}
                 onChange={(settings: any) => this.updateSettings(name, settings)}
@@ -262,7 +262,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
         const name = 'multihostService';
         return (
             <BaseSettingsMultihost
-                settings={this.state[name]}
+                settings={this.state[name] || {}}
                 t={this.props.t}
                 socket={this.props.socket}
                 onChange={(settings: any) => this.updateSettings(name, settings)}
@@ -274,7 +274,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
         const name = 'objects';
         return (
             <BaseSettingsObjects
-                settings={this.state[name]}
+                settings={this.state[name] || {}}
                 t={this.props.t}
                 socket={this.props.socket}
                 currentHost={this.props.currentHost}
@@ -287,7 +287,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
         const name = 'states';
         return (
             <BaseSettingsStates
-                settings={this.state[name]}
+                settings={this.state[name] || {}}
                 t={this.props.t}
                 socket={this.props.socket}
                 currentHost={this.props.currentHost}
@@ -300,7 +300,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
         const name = 'log';
         return (
             <BaseSettingsLog
-                settings={this.state[name]}
+                settings={this.state[name] || {}}
                 t={this.props.t}
                 onChange={(settings: any) => this.updateSettings(name, settings)}
             />
@@ -311,7 +311,7 @@ export default class BaseSettingsDialog extends Component<BaseSettingsDialogProp
         const name = 'plugins';
         return (
             <BaseSettingsPlugins
-                settings={this.state[name]}
+                settings={this.state[name] || {}}
                 t={this.props.t}
                 themeType={this.props.themeType}
                 onChange={(settings: any) => this.updateSettings(name, settings)}

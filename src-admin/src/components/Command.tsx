@@ -1,11 +1,12 @@
 import React, { Component, type JSX } from 'react';
 
-import { Box, Grid2, LinearProgress, Paper, Switch, Typography } from '@mui/material';
+import { Box, Grid, LinearProgress, Paper, Switch, Typography } from '@mui/material';
+import type { Theme } from '@mui/material/styles';
 
-import { Router, type AdminConnection, type Translate } from '@iobroker/adapter-react-v5';
+import { Router, type AdminConnection, type Translate } from '@iobroker/gui-components';
 
 import type { CommandFile } from '@/types';
-import AdminUtils, { type Style } from '../helpers/AdminUtils';
+import AdminUtils from '../helpers/AdminUtils';
 
 const styles: Record<string, React.CSSProperties> = {
     log: {
@@ -65,7 +66,7 @@ interface CommandState {
 }
 
 export default class Command extends Component<CommandProps, CommandState> {
-    private readonly logRef: React.RefObject<HTMLDivElement>;
+    private readonly logRef: React.RefObject<HTMLDivElement | null>;
 
     private static pattern = ['error', 'warn', 'info'];
 
@@ -115,9 +116,12 @@ export default class Command extends Component<CommandProps, CommandState> {
     executeCommand(): void {
         this.setState({ init: true }, () => this.props.onSetCommandRunning && this.props.onSetCommandRunning(true));
 
-        this.props.socket.registerCmdStdoutHandler(this.cmdStdoutHandler.bind(this));
-        this.props.socket.registerCmdStderrHandler(this.cmdStderrHandler.bind(this));
-        this.props.socket.registerCmdExitHandler(this.cmdExitHandler.bind(this));
+        // the socket types the command id as string, but `cmdExec` echoes back the numeric id generated below
+        this.props.socket.registerCmdStdoutHandler((id, text) => this.cmdStdoutHandler(id as unknown as number, text));
+        this.props.socket.registerCmdStderrHandler((id, text) => this.cmdStderrHandler(id as unknown as number, text));
+        this.props.socket.registerCmdExitHandler((id, exitCode) =>
+            this.cmdExitHandler(id as unknown as number, exitCode),
+        );
 
         const activeCmdId = Math.floor(Math.random() * 0xffffffe) + 1;
 
@@ -127,13 +131,7 @@ export default class Command extends Component<CommandProps, CommandState> {
 
         // The 5th parameter `files` exists only in newer socket-client versions; cast the method so the
         // admin compiles against the currently installed typings. The controller feature is checked by the caller.
-        const cmdExec = this.props.socket.cmdExec.bind(this.props.socket) as (
-            host: string,
-            cmd: string,
-            cmdId: number,
-            cmdTimeout?: number,
-            files?: CommandFile[],
-        ) => Promise<void>;
+        const cmdExec = this.props.socket.cmdExec.bind(this.props.socket);
 
         cmdExec(
             host,
@@ -254,11 +252,26 @@ export default class Command extends Component<CommandProps, CommandState> {
             text = text.substring(0, maxLength);
         }
 
+        // Installers and build scripts colorize their output with ANSI escape sequences. Without
+        // this they were printed verbatim ("[32m> Cleaning release folder...[0m"). If the process
+        // brought its own colors, they win over the keyword heuristic below.
+        const ansi = AdminUtils.parseColorMessage(text);
+        if (typeof ansi === 'object') {
+            return ansi.parts.map((part, i) => (
+                <span
+                    key={i}
+                    style={part.style}
+                >
+                    {part.text}
+                </span>
+            ));
+        }
+
         if (text.search(this.regExp) !== -1) {
             const result = [];
 
             while (text.search(this.regExp) >= 0) {
-                const [match] = text.match(this.regExp);
+                const [match] = text.match(this.regExp) || [''];
                 const pos = text.search(this.regExp);
 
                 if (pos > 0) {
@@ -310,16 +323,14 @@ export default class Command extends Component<CommandProps, CommandState> {
                 result.push(
                     <span key={result.length}>
                         {typeof message === 'object'
-                            ? (message as { original: string; parts: { text: string; style: Style }[] }).parts.map(
-                                  (item, i) => (
-                                      <span
-                                          key={i}
-                                          style={item.style}
-                                      >
-                                          {item.text}
-                                      </span>
-                                  ),
-                              )
+                            ? message.parts.map((item, i) => (
+                                  <span
+                                      key={i}
+                                      style={item.style}
+                                  >
+                                      {item.text}
+                                  </span>
+                              ))
                             : message}
                     </span>,
                 );
@@ -332,31 +343,54 @@ export default class Command extends Component<CommandProps, CommandState> {
     }
 
     getLog(): JSX.Element[] {
-        return this.state.log.map((value, index) => (
-            <Typography
-                ref={index === this.state.log.length - 1 ? this.logRef : undefined}
-                key={index}
-                component="p"
-                variant="body2"
-            >
-                {this.colorize(value)}
-            </Typography>
-        ));
+        return this.state.log.map((value, index) => {
+            // The echoed command ("$ iobroker ...") is the input, everything else is output.
+            // It is marked by weight and a faint band, not by color: color is already taken by the
+            // severities (error/warn/info) and another one would read as just another severity.
+            const isCommand = value.startsWith('$ ');
+
+            return (
+                <Typography
+                    ref={index === this.state.log.length - 1 ? this.logRef : undefined}
+                    key={index}
+                    component="p"
+                    variant="body2"
+                    sx={
+                        isCommand
+                            ? (theme: Theme) => ({
+                                  fontWeight: 'bold',
+                                  backgroundColor:
+                                      theme.palette.mode === 'dark'
+                                          ? 'rgba(255, 255, 255, 0.08)'
+                                          : 'rgba(0, 0, 0, 0.06)',
+                                  borderRadius: '4px',
+                                  py: '2px',
+                                  px: '6px',
+                                  mx: '-6px',
+                                  mb: '6px',
+                              })
+                            : undefined
+                    }
+                >
+                    {this.colorize(value)}
+                </Typography>
+            );
+        });
     }
 
     render(): JSX.Element {
         return (
-            <Grid2
+            <Grid
                 style={this.props.noSpacing ? { height: '100%', width: '100%' } : {}}
                 container
-                direction="column"
                 spacing={this.props.noSpacing ? 0 : 2}
+                sx={{ flexDirection: 'column' }}
             >
                 {this.props.showElement === undefined || this.props.showElement === true ? (
-                    <Grid2>
+                    <Grid>
                         {!this.state.stopped && (
                             <LinearProgress
-                                style={this.props.commandError ? { backgroundColor: '#f44336' } : null}
+                                style={this.props.commandError ? { backgroundColor: '#f44336' } : undefined}
                                 variant={this.props.inBackground ? 'determinate' : 'indeterminate'}
                                 value={
                                     this.state.max && this.state.value
@@ -367,7 +401,7 @@ export default class Command extends Component<CommandProps, CommandState> {
                                 }
                             />
                         )}
-                    </Grid2>
+                    </Grid>
                 ) : null}
                 <div
                     style={{
@@ -430,12 +464,12 @@ export default class Command extends Component<CommandProps, CommandState> {
                         </div>
                     ) : null}
                 </div>
-                <Grid2 style={this.props.noSpacing ? { height: 'calc(100% - 45px)', width: '100%' } : {}}>
+                <Grid style={this.props.noSpacing ? { height: 'calc(100% - 45px)', width: '100%' } : {}}>
                     {this.state.moreChecked && (
                         <Paper style={this.props.noSpacing ? styles.logNoSpacing : styles.log}>{this.getLog()}</Paper>
                     )}
-                </Grid2>
-            </Grid2>
+                </Grid>
+            </Grid>
         );
     }
 }

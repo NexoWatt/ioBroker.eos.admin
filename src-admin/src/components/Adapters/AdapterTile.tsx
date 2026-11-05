@@ -1,11 +1,11 @@
 import React, { type JSX } from 'react';
 
-import { Box, Card, CardContent, CardMedia, Fab, Tooltip, Typography } from '@mui/material';
+import { Box, Card, CardContent, CardMedia, Fab, IconButton, Tooltip, Typography } from '@mui/material';
 
-import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { MoreVert as MoreVertIcon, Close as IconClose } from '@mui/icons-material';
 import { amber } from '@mui/material/colors';
 
-import { type IobTheme, Utils } from '@iobroker/adapter-react-v5';
+import { type IobTheme, Utils } from '@iobroker/gui-components';
 
 import IsVisible from '../IsVisible';
 import AdapterGeneric, {
@@ -15,7 +15,6 @@ import AdapterGeneric, {
     genericStyles,
 } from './AdapterGeneric';
 
-const boxShadow = '0 2px 2px 0 rgba(0, 0, 0, .14),0 3px 1px -2px rgba(0, 0, 0, .12),0 1px 5px 0 rgba(0, 0, 0, .2)';
 const boxShadowHover = '0 8px 17px 0 rgba(0, 0, 0, .2),0 6px 20px 0 rgba(0, 0, 0, .19)';
 
 const styles: Record<string, any> = {
@@ -23,7 +22,7 @@ const styles: Record<string, any> = {
     type: {
         color: 'tile',
     },
-    root: (theme: IobTheme) => ({
+    root: (_theme: IobTheme) => ({
         position: 'relative',
         m: '10px',
         width: 300,
@@ -39,7 +38,7 @@ const styles: Record<string, any> = {
             boxShadow: boxShadowHover,
         },
     }),
-    imageBlock: (theme: IobTheme) => ({
+    imageBlock: (_theme: IobTheme) => ({
         background: 'linear-gradient(135deg, rgba(0,255,136,.16), rgba(0,212,255,.11))',
         borderBottom: '1px solid rgba(0,255,136,.20)',
         minHeight: 60,
@@ -101,37 +100,13 @@ const styles: Record<string, any> = {
         flexDirection: 'column',
     },
     close: {
-        width: 20,
-        height: 20,
-        opacity: 0.9,
-        cursor: 'pointer',
-        position: 'relative',
-        marginLeft: 'auto',
-        mb: '10px',
-        transition: 'all 0.6s ease',
-        '&:hover': {
-            transform: 'rotate(90deg)',
-        },
-        '&:before': {
-            position: 'absolute',
-            left: 9,
-            content: '""',
-            height: 20,
-            width: 3,
-            backgroundColor: '#eaf9ff',
-            transform: 'rotate(45deg)',
-        },
-        '&:after': {
-            position: 'absolute',
-            left: 9,
-            content: '""',
-            height: 20,
-            width: 3,
-            backgroundColor: '#eaf9ff',
-            transform: 'rotate(-45deg)',
-        },
+        display: 'flex',
+        ml: 'auto',
+        mt: '-4px',
+        // the collapse panel is always silver, so the theme color would be too bright in the dark theme
+        color: '#eaf9ff',
     },
-    footerBlock: (theme: IobTheme) => ({
+    footerBlock: (_theme: IobTheme) => ({
         background: 'rgba(2, 9, 20, 0.90)',
         borderTop: '1px solid rgba(0,255,136,.22)',
         position: 'relative',
@@ -156,7 +131,7 @@ const styles: Record<string, any> = {
     adapterWithAgo: {
         width: 'calc(100% - 145px)',
     },
-    description: (theme: IobTheme) => ({
+    description: (_theme: IobTheme) => ({
         display: 'block',
         color: 'rgba(238, 247, 255, 0.94)',
         fontSize: 13.5,
@@ -233,11 +208,13 @@ class AdapterTile extends AdapterGeneric<AdapterGenericProps, AdapterTileState> 
             >
                 <CardContent style={this.styles.cardContent}>
                     <div style={this.styles.cardContentDiv}>
-                        <Box
-                            component="div"
+                        <IconButton
+                            size="small"
                             sx={this.styles.close}
                             onClick={() => this.setState({ openCollapse: !this.state.openCollapse })}
-                        />
+                        >
+                            <IconClose />
+                        </IconButton>
                     </div>
                     <Typography
                         gutterBottom
@@ -294,7 +271,10 @@ class AdapterTile extends AdapterGeneric<AdapterGenericProps, AdapterTileState> 
                     sx={Utils.getStyle(
                         this.props.context.theme,
                         this.styles.adapter,
-                        (available.stat || this.props.context.sortRecentlyUpdated) && this.styles.adapterWithAgo,
+                        (available.stat ||
+                            this.props.context.sortRecentlyUpdated ||
+                            this.props.context.sortRecentlyCreated) &&
+                            this.styles.adapterWithAgo,
                     )}
                 >
                     {this.props.adapterName}
@@ -305,7 +285,12 @@ class AdapterTile extends AdapterGeneric<AdapterGenericProps, AdapterTileState> 
                 {this.props.context.sortRecentlyUpdated ? (
                     <div style={this.styles.versionDate}>{this.props.cached.daysAgoText}</div>
                 ) : null}
-                {!this.props.context.sortPopularFirst && !this.props.context.sortRecentlyUpdated
+                {this.props.context.sortRecentlyCreated ? (
+                    <div style={this.styles.versionDate}>{this.props.cached.createdDaysAgoText}</div>
+                ) : null}
+                {!this.props.context.sortPopularFirst &&
+                !this.props.context.sortRecentlyUpdated &&
+                !this.props.context.sortRecentlyCreated
                     ? this.renderRating()
                     : null}
                 {!this.state.openCollapse ? (

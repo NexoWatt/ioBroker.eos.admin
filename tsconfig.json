@@ -1,26 +1,44 @@
 {
+    "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
-        "module": "esnext",
+        "strict": true,
+        "strictNullChecks": true,
+        "module": "node16",
         "target": "esnext",
-        "moduleResolution": "node",
-        "baseUrl": "./",
+        "moduleResolution": "node16",
         "allowSyntheticDefaultImports": true,
+        "allowJs": true,
         "checkJs": false,
         "noEmit": false,
+        "noEmitOnError": true,
         "outDir": "./build",
+        "rootDir": "./src",
         "sourceMap": true,
         "sourceRoot": "./src",
         "noImplicitAny": true,
         "skipLibCheck": true,
-        "lib": ["es2018", "DOM"],
+        "lib": [
+            "es2018",
+            "DOM"
+        ],
         "jsx": "react",
-        "types": ["@iobroker/types"],
+        "types": [
+            "@iobroker/types",
+            "node"
+        ],
         "paths": {
-            "@/*": ["./src/*"],
+            "@/*": [
+                "./src/*"
+            ]
         }
     },
-    "exclude": ["**/node_modules", "**/build", "adminWww/**"],
-    "include": ["**/*.js", "**/*.ts", "**/*.d.ts",
-        "eslint.config.mjs"
+    "exclude": [
+        "node_modules",
+        "build"
     ],
+    "include": [
+        "src/**/*.js",
+        "src/**/*.ts",
+        "src/**/*.d.ts"
+    ]
 }

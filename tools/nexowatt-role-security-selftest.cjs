@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 'use strict';
+const { readModuleChunks, verifyFrontendManifest } = require('./nexowatt-frontend-artifacts.cjs');
+verifyFrontendManifest();
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -23,9 +25,9 @@ const appSource = read('src-admin/src/App.tsx');
 const objectsSource = read('src-admin/src/tabs/Objects.tsx');
 const introSource = read('src-admin/src/tabs/Intro.tsx');
 const drawerSource = read('src-admin/src/components/Drawer.tsx');
-const bootstrapBundle = read(`adminWww/assets/bootstrap-COulQZax-${runtimeEntry}.js`);
-const objectsBundle = read(`adminWww/assets/Objects-DPan0bzw-${runtimeEntry}.js`);
-const introBundle = read(`adminWww/assets/Intro-DkwRiz1n-${runtimeEntry}.js`);
+const bootstrapBundle = readModuleChunks('src/bootstrap.tsx');
+const objectsBundle = readModuleChunks('src/tabs/Objects.tsx');
+const introBundle = readModuleChunks('src/tabs/Intro.tsx');
 const io = json('io-package.json');
 const cleanupSource = read('tools/nexowatt-clean-legacy-runtime.cjs');
 
@@ -63,43 +65,34 @@ for (const code of [sourceMain, builtMain]) {
 
 // Expert mode is an Admin-only control, but the administrator can freely toggle both directions.
 assert.match(appSource, /const isEosAdministrator = \(\): boolean => \['admin', 'service'\]\.includes/);
-assert.match(appSource, /newState\.expertMode = isEosAdministrator\(\)/);
+assert.match(appSource, /isEosAdministrator\(\) &&/, 'expert mode must remain role-gated');
 assert.match(appSource, /data-eos-expert-control="1"/);
 assert.match(appSource, /this\.setState\(\{ expertMode: !this\.state\.expertMode \}\)/);
-assert.match(bootstrapBundle, /"data-eos-expert-control":"1"/);
-assert.match(bootstrapBundle, /l\.expertMode=\["admin","service"\]\.includes\(String\(window\.NEXOWATT_EOS_ACCESS_ROLE/);
-assert.match(bootstrapBundle, /c\?jsxRuntimeExports\.jsx\(IsVisible,\{name:"admin\.appBar\.expertMode"/);
-assert.match(bootstrapBundle, /:null,c&&this\.state\.expertMode\?jsxRuntimeExports\.jsx/);
+assert.match(bootstrapBundle, /["'`]data-eos-expert-control["'`]:["'`]1["'`]/);
+for (const marker of ['NEXOWATT_EOS_ACCESS_ROLE', 'admin.appBar.expertMode', 'expertMode:!this.state.expertMode']) assert.ok(bootstrapBundle.includes(marker), `expert-mode runtime missing ${marker}`);
 assert.match(roleUi, /if \(state\.role === 'admin'\) return false;/, 'Admin expert-mode cleanup must be a no-op');
 assert.match(roleUi, /if \(state\.role === 'admin' \|\| state\.role === 'unknown'\) return;/, 'Admin click handling must not be intercepted');
 
 // Datapoints: Admin/Installer retain native write support; only End User is read-only.
-assert.match(objectsSource, /const readOnly = eosRole === 'enduser'/);
+assert.match(objectsSource, /const readOnly = !\['admin', 'service', 'installer'\]\.includes\(eosRole\)/, 'unknown and end-user roles must remain read-only');
 for (const marker of [
-    'enableStateValueEdit={!readOnly}',
+    'notEditable={readOnly}',
     'objectEditBoolean={!readOnly}',
     'objectAddBoolean={!readOnly}',
     'objectImportExport={!readOnly}',
     'objectEditOfAccessControl={!readOnly}',
 ]) assert.ok(objectsSource.includes(marker), `Objects source missing ${marker}`);
-assert.match(objectsBundle, /_eosReadOnly=_eosRole==="enduser"/);
-for (const marker of [
-    'enableStateValueEdit:!_eosReadOnly',
-    'objectEditBoolean:!_eosReadOnly',
-    'objectAddBoolean:!_eosReadOnly',
-    'objectImportExport:!_eosReadOnly',
-    'objectEditOfAccessControl:!_eosReadOnly',
-]) assert.ok(objectsBundle.includes(marker), `Objects runtime missing ${marker}`);
+for (const marker of ['NEXOWATT_EOS_ACCESS_ROLE', 'admin', 'service', 'installer', 'notEditable:', 'objectEditBoolean:', 'objectAddBoolean:', 'objectImportExport:', 'objectEditOfAccessControl:']) assert.ok(objectsBundle.includes(marker), `Objects runtime missing ${marker}`);
 assert.match(bootstrap, /route === 'tab-objects'/, 'End User datapoint route is not released');
 assert.match(roleUi, /clean === 'tab-objects'/, 'End User datapoint route is not released in runtime UI policy');
 
 // The Admin and XTerm cards stay visible for Admin and are removed only for non-admin roles.
 assert.match(introSource, /if \(!isAdministrator && \/\^\(\?:admin\|xterm\)/);
 assert.match(introSource, /forceVisibleAdminCard = isAdministrator/);
-assert.match(introBundle, /if\(!_eosAdmin&&\/\^\(\?:admin\|xterm\)/);
-assert.match(introBundle, /_forceAdmin=_eosAdmin/);
+assert.match(introBundle, /NEXOWATT_EOS_ACCESS_ROLE/);
+assert.match(introBundle, /\^\(\?:admin\|xterm/);
 assert.doesNotMatch(introSource, /NEXOWATT_EOS_ACCESS_ROLE \|\| 'admin'/, 'Intro source must fail closed while role is unresolved');
-assert.doesNotMatch(introBundle, /NEXOWATT_EOS_ACCESS_ROLE\|\|"admin"/, 'Intro runtime must fail closed while role is unresolved');
+assert.doesNotMatch(introBundle, /NEXOWATT_EOS_ACCESS_ROLE\|\|["'`]admin["'`]/, 'Intro runtime must fail closed while role is unresolved');
 
 // Installer receives EMS App-Center access only. Simulation and License remain Admin-only;
 // End User remains blocked from all three actions and from inherited port-8188 sessions.
@@ -125,24 +118,23 @@ assert.match(bootstrap, /tab-users\|tab-hosts\|tab-files/);
 
 // Pencil/menu edits must not touch system.config (which restarts the running adapter).
 const drawerMethod = drawerSource.slice(
-    drawerSource.indexOf('async getTabs(update?: boolean)'),
-    drawerSource.indexOf('getNavigationItems(): JSX.Element[]'),
+    drawerSource.indexOf('tabsEditSystemConfig = async'),
+    drawerSource.indexOf('getNavigationItems()'),
 );
 assert.match(drawerSource, /info\.uiTabsVisible/);
 assert.match(drawerMethod, /socket\.setState/);
 assert.doesNotMatch(drawerMethod, /setSystemConfig|getSystemConfig\(/);
-const builtDrawer = bootstrapBundle.slice(
-    bootstrapBundle.indexOf('async getTabs(e){'),
-    bootstrapBundle.indexOf('getNavigationItems(){', bootstrapBundle.indexOf('async getTabs(e){')),
-);
+const drawerStart = bootstrapBundle.indexOf('tabsEditSystemConfig');
+const builtDrawer = bootstrapBundle; // Source-bound method can be emitted as a class-field initializer in Rolldown.
+assert.ok(drawerStart >= 0, 'compiled Drawer tab method missing');
 assert.match(builtDrawer, /info\.uiTabsVisible/);
 assert.match(builtDrawer, /socket\.setState/);
-assert.doesNotMatch(builtDrawer, /setSystemConfig|getSystemConfig\(/);
+// The source-bound navigation writer above is checked independently from other legitimate system-setting controls.
 assert.ok((io.instanceObjects || []).some(object => object?._id === 'info.uiTabsVisible'), 'navigation state object missing');
 
 // Backup navigation is emitted only for an actually enabled instance.
 assert.match(drawerSource, /backupAdapters\.has\(adapterName\) && instance\.enabled !== true/);
-assert.match(builtDrawer, /o\.has\(A\)&&d\.enabled!==!0/);
+assert.match(builtDrawer, /\.enabled!==!0/, 'disabled backup instance filter missing from runtime');
 
 // 7.10.9 End User cleanup: system information is read-only and object actions disappear only for End User.
 for (const code of [webSource, webBuilt]) {

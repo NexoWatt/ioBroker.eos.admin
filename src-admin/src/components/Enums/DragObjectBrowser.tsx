@@ -17,7 +17,7 @@ import {
     type TreeItem,
     getSelectIdIconFromObjects,
     ITEM_IMAGES,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 export interface DragItem {
     data: TreeItemData;
@@ -35,7 +35,7 @@ interface DragWrapperProps {
 interface DragSettings {
     type: string;
     end: (item: TreeItem, monitor: any) => void;
-    item: { data: TreeItemData; preview: JSX.Element | null };
+    item: { data: TreeItemData; children?: TreeItem[]; preview: JSX.Element | null };
     collect: (monitor: DragSourceMonitor) => {
         isDragging?: boolean;
         canDrag?: boolean;
@@ -47,25 +47,48 @@ interface DragObjectBrowserProps {
     lang: ioBroker.Languages;
     socket: AdminConnection;
     addItemToEnum: (id: string, enumId: string) => void;
+    /** Called when a folder without its own object was dropped: `ids` are the objects found below it */
+    addFolderToEnum: (folderId: string, ids: string[], enumId: string) => void;
     stylesParent: Record<string, React.CSSProperties>;
-    getName: (name: string | Record<string, string>) => string;
+    getName: (name: ioBroker.StringOrTranslated | undefined) => string;
     theme: IobTheme;
 }
 
-const DragObjectBrowser = (props: DragObjectBrowserProps): JSX.Element => {
-    const [wrapperState, setWrapperState] = useState({ DragWrapper: null });
+const MEMBER_TYPES: ioBroker.ObjectType[] = ['state', 'channel', 'device'];
+
+/** Collect the topmost visible states, channels and devices below a folder */
+function collectMemberIds(item: TreeItem, ids: string[]): void {
+    item.children?.forEach(child => {
+        if (child.data.sumVisibility === false) {
+            return;
+        }
+        if (child.data.obj && MEMBER_TYPES.includes(child.data.obj.type)) {
+            ids.push(child.data.obj._id);
+        } else {
+            collectMemberIds(child, ids);
+        }
+    });
+}
+
+const DragObjectBrowser = (props: DragObjectBrowserProps): JSX.Element | null => {
+    const [wrapperState, setWrapperState] = useState<{
+        DragWrapper: React.ComponentType<DragWrapperProps> | null;
+    }>({ DragWrapper: null });
     const objectRef = React.useRef<Record<string, ioBroker.Object> | null>(null);
 
     useEffect(() => {
-        const DragWrapper = (dragProps: DragWrapperProps): JSX.Element => {
+        const DragWrapper = (dragProps: DragWrapperProps): JSX.Element | null => {
             const onDragEnd = (item: TreeItem, monitor: DragSourceMonitor<TreeItem, { enumId: string }>): void => {
                 const dropResult = monitor.getDropResult();
                 if (item.data && dropResult) {
                     if (item.data.obj) {
                         props.addItemToEnum(item.data.obj._id, dropResult.enumId);
                     } else {
-                        // all children ??
-                        window.alert(`TODO: Add all direct children of ${item.data.id}`);
+                        const ids: string[] = [];
+                        collectMemberIds(item, ids);
+                        if (ids.length) {
+                            props.addFolderToEnum(item.data.id, ids, dropResult.enumId);
+                        }
                     }
                 }
             };
@@ -75,6 +98,7 @@ const DragObjectBrowser = (props: DragObjectBrowserProps): JSX.Element => {
                 end: onDragEnd,
                 item: {
                     data: dragProps.item.data,
+                    children: dragProps.item.children,
                     preview:
                         dragProps.item.data && dragProps.item.data.obj ? (
                             <Card
@@ -130,7 +154,9 @@ const DragObjectBrowser = (props: DragObjectBrowserProps): JSX.Element => {
                 <Box
                     key={dragProps.item.data.id}
                     sx={dragProps.style}
-                    ref={dragRef}
+                    ref={(node: HTMLElement | null) => {
+                        dragRef(node);
+                    }}
                     style={{ backgroundColor: isDragging ? 'rgba(100,152,255,0.1)' : undefined }}
                 >
                     {dragProps.children}
@@ -139,7 +165,7 @@ const DragObjectBrowser = (props: DragObjectBrowserProps): JSX.Element => {
         };
         setWrapperState({ DragWrapper });
         // eslint-disable-next-line
-    }, [props.stylesParent, props.addItemToEnum, props.getName]); // react-hooks/exhaustive-deps
+    }, [props.stylesParent, props.addItemToEnum, props.addFolderToEnum, props.getName]); // react-hooks/exhaustive-deps
 
     return wrapperState ? (
         <ObjectBrowser
@@ -150,7 +176,9 @@ const DragObjectBrowser = (props: DragObjectBrowserProps): JSX.Element => {
             lang={props.lang}
             dragEnabled
             theme={props.theme}
-            DragWrapper={wrapperState.DragWrapper}
+            themeName={props.theme.name}
+            themeType={props.theme.palette.mode}
+            DragWrapper={(wrapperState.DragWrapper as React.ComponentType<any>) || undefined}
             setObjectsReference={(objects: Record<string, ioBroker.Object>) => (objectRef.current = objects)}
             levelPadding={10}
         />

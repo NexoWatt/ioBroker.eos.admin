@@ -1,0 +1,10 @@
+{
+  "utc": "2026-10-25T16:05:34.584974+00:00",
+  "files": {
+    "package.json": "48cccd244bdcedfb678f37333863172201a73bb96cb027c7ee8898c772161457",
+    "test/eos-direct-publish.test.cjs": "45888d212d696d5ad136a5a29801391f010823df812b43dabf788b91cbfcc195",
+    "tools/nexowatt-repair-lock-metadata.cjs": "74802194e9353882bb59d5c2115c097633a2bb6bcb6e729d75abd037bcc531fb",
+    "tools/nexowatt-lock-provenance-check.cjs": "205b9aca908598b2a2660a62952d8dc95789a6abeb15d9ee3d4e8026cbd64353",
+    "tools/nexowatt-security-inventory.cjs": "e1786a0a22110faa99290dada052fd47c72493856b38ed0f4dc62dc0997a357e"
+  }
+}

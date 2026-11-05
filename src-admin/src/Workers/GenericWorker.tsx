@@ -1,4 +1,4 @@
-import type { AdminConnection } from '@iobroker/adapter-react-v5';
+import type { AdminConnection } from '@iobroker/gui-components';
 import AdminUtils from '@/helpers/AdminUtils';
 
 export type EventType = 'new' | 'changed' | 'deleted';
@@ -75,7 +75,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
 
     private static isTransientConnectionError(error: unknown): boolean {
         return /notconnected|not connected|connectionerror|close_abnormal|closed_no_status|websocket|timeout|networkerror/i.test(
-            String(error || ''),
+            error instanceof Error ? error.message : typeof error === 'string' ? error : '',
         );
     }
 
@@ -115,7 +115,10 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
         return this.forceUpdate;
     }
 
-    objectChangeHandler = (id: GetRootFromType<T>, obj: GetObjectFromType<T> | null | undefined): void => {
+    // The socket delivers any object type, so the parameters are the wide ones and get narrowed here
+    objectChangeHandler = (_id: string, _obj: ioBroker.Object | null | undefined): void => {
+        const id = _id as GetRootFromType<T>;
+        const obj = _obj as GetObjectFromType<T> | null | undefined;
         this.objects = this.objects || {};
 
         // if our object
@@ -155,7 +158,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
                 cb([
                     {
                         id,
-                        obj,
+                        obj: obj || undefined,
                         type,
                         oldObj,
                     },
@@ -164,7 +167,14 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
         }
     };
 
-    getObjects(update?: boolean): Promise<null | Record<string, GetObjectFromType<T>>> {
+    /**
+     * Reads all objects of this type. A failed read resolves with `null`.
+     *
+     * @param update read the objects anew instead of taking them from the cache
+     * @param silent the caller handles a failed read itself (e.g. tries again later): no alert, and the
+     * failed read is not kept in the cache, so the next caller asks the server again
+     */
+    getObjects(update?: boolean, silent?: boolean): Promise<null | Record<string, GetObjectFromType<T>>> {
         update ||= this.forceUpdate;
         this.forceUpdate = false;
 
@@ -172,29 +182,39 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
             return this.promise;
         }
 
-        this.promise = this.socket
+        const promise: Promise<null | Record<string, GetObjectFromType<T>>> = this.socket
             .getObjectViewSystem(
                 this.objectType,
                 this.root ? `${this.root}.` : '',
                 this.root ? `${this.root}.\u9999` : '\u9999',
             )
             .then(objects => {
-                this.objects = objects as Record<string, GetObjectFromType<T>>;
+                const result = objects as Record<string, GetObjectFromType<T>>;
+                this.objects = result;
                 if (this.objectType === 'adapter' || this.objectType === 'instance') {
-                    Object.keys(this.objects).forEach(id => AdminUtils.fixAdminUI(this.objects[id]));
+                    Object.keys(result).forEach(id => AdminUtils.fixAdminUI(result[id]));
                 }
 
-                return this.objects;
+                return result;
             })
             .catch((e: unknown): null => {
-                this.reportConnectionError(
-                    `Cannot get objects of type ${this.objectType}, with root "${this.root}"`,
-                    e,
-                );
+                const text = `Cannot get objects of type ${this.objectType}, with root "${this.root}": ${e as Error}`;
+                if (silent) {
+                    console.warn(text);
+                    if (this.promise === promise) {
+                        this.promise = null;
+                    }
+                } else {
+                    this.reportConnectionError(
+                        `Cannot get objects of type ${this.objectType}, with root "${this.root}"`,
+                        e,
+                    );
+                }
                 return null;
             });
 
-        return this.promise;
+        this.promise = promise;
+        return promise;
     }
 
     // eslint-disable-next-line class-methods-use-this
@@ -211,9 +231,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
                         // read all hosts anew and inform about it
                         void this.getObjects(true).then(objects => {
                             if (objects) {
-                                Object.keys(objects).forEach(id =>
-                                    this.objectChangeHandler(id as GetRootFromType<T>, objects[id]),
-                                );
+                                Object.keys(objects).forEach(id => this.objectChangeHandler(id, objects[id]));
                             }
                         });
                     })
@@ -238,9 +256,7 @@ export class GenericWorker<T extends ioBroker.ObjectType> {
                             // read all hosts anew and inform about it
                             void this.getObjects(true).then(objects => {
                                 if (objects) {
-                                    Object.keys(objects).forEach(id =>
-                                        this.objectChangeHandler(id as GetRootFromType<T>, objects[id]),
-                                    );
+                                    Object.keys(objects).forEach(id => this.objectChangeHandler(id, objects[id]));
                                 }
                             });
                         }

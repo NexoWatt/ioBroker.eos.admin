@@ -1,0 +1,2 @@
+Command: ./node_modules/.bin/eslint src/main.ts src/types.d.ts src/lib/logSearch.ts src/lib/eosUiSessionRegistry.ts src/lib/objectFixes.ts src/lib/utils.ts src/lib/eosFileTransferSecurity.js src/lib/eosHttpsClient.js src/lib/eosLicenseCore.js src/lib/eosLicenseHttp.js src/lib/eosLicenseService.js src/lib/eosRequestSecurity.ts src/lib/eosSessionSecurity.js src/lib/eosUploadGuard.js src/lib/eosWebResources.js
+Exit: 0

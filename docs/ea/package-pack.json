@@ -1,0 +1,166 @@
+[
+  {
+    "id": "@iobroker/admin-component-easy-access@3.0.8",
+    "name": "@iobroker/admin-component-easy-access",
+    "version": "3.0.8",
+    "size": 1984580,
+    "unpackedSize": 8655184,
+    "shasum": "00a8a4f8f7d4bed190a3b06d0c5ebb4cb50cff7c",
+    "integrity": "sha512-o4YD74pwz+pnk/AZivRgS7MNXjhRIVgoBgz+qn07p1XZf+9F14SUg4NdOfZYZSyIVW9wtJtnyNovRflIpYa8+Q==",
+    "filename": "iobroker-admin-component-easy-access-3.0.8.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1099,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 2871,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+        "size": 6962279,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+        "size": 1392095,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+        "size": 181321,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+        "size": 5471,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/Components-I39zZDnw.js",
+        "size": 1967,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/hostInit-CExI67Q9.js",
+        "size": 2572,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/index-PfxLVs-2.js",
+        "size": 1354,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/lib-BR4qb34w.js",
+        "size": 23338,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/mf-entry-bootstrap-0-5d5a409e.js",
+        "size": 1566,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/rolldown-runtime-C0FnF6B9.js",
+        "size": 1291,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+        "size": 1140,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+        "size": 18108,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/virtualExposes-31pkFC9v.js",
+        "size": 139,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/assets/vite-preload-helper-B7qeedMF.js",
+        "size": 1243,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/customComponents.js",
+        "size": 978,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/de.json",
+        "size": 111,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/en.json",
+        "size": 106,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/es.json",
+        "size": 120,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/fr.json",
+        "size": 118,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/it.json",
+        "size": 105,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/nl.json",
+        "size": 113,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/pl.json",
+        "size": 115,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/pt.json",
+        "size": 116,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/ru.json",
+        "size": 162,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/i18n/zh-cn.json",
+        "size": 107,
+        "mode": 420
+      },
+      {
+        "path": "admin/custom/mf-manifest.json",
+        "size": 4433,
+        "mode": 420
+      },
+      {
+        "path": "img/component.png",
+        "size": 48365,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 2381,
+        "mode": 420
+      }
+    ],
+    "entryCount": 30,
+    "bundled": []
+  }
+]

@@ -1,0 +1,86 @@
+{
+    "package": "@iobroker/gui-components",
+    "version": "10.3.14",
+    "patches": [
+        {
+            "file": "renderLeaf.js",
+            "sha256": "fc83f88782dff6c9be96a7a23bcf708b91dc506f7c1eec3f9ee80f7c3b154908",
+            "replacements": [
+                {
+                    "before": "export function renderColumnValue(that, id, item, narrowStyleWithDetails) {\n    const obj = item.data.obj;\n    if (!obj || !that.states) {",
+                    "after": "export function renderColumnValue(that, id, item, narrowStyleWithDetails) {\n    const obj = item.data.obj;\n    if (!obj || obj.type !== 'state' || !that.states) {"
+                },
+                {
+                    "before": "    let valueEditable = !that.props.notEditable && itemType === 'state' && (that.state.filter.expertMode || common?.write !== false);",
+                    "after": "    const eosBehavior = eosWriteBehavior(that, id, item);\n    let valueEditable = eosCanEditValue(that, id, item);"
+                },
+                {
+                    "before": "    if (!that.state.filter.expertMode) {\n        if (item.data.button) {",
+                    "after": "    const eosBehavior = eosWriteBehavior(that, id, item);\n    if (!that.state.filter.expertMode) {\n        if (eosBehavior === 'button') {"
+                },
+                {
+                    "before": "        else if (item.data.switch) {",
+                    "after": "        else if (eosBehavior === 'switch') {"
+                },
+                {
+                    "before": "checked: !!that.states[id].val",
+                    "after": "checked: eosSwitchChecked(obj, that.states[id].val)"
+                },
+                {
+                    "before": "    /** Open the value editor - used by the value cell and by the edit button of the narrow details view */\n    const editValue = () => {\n        if (!obj || !that.states) {\n            return;\n        }\n        if (common?.type === 'file') {\n            that.setState({ viewFileDialog: id });\n            return;\n        }\n        that.edit = {\n            val: that.states[id] ? that.states[id].val : '',\n            q: that.states[id] ? that.states[id].q || 0 : 0,\n            ack: false,\n            id,\n        };\n        that.setState({ updateOpened: true });\n    };\n    let colValue = showValueCell ? (React.createElement(\"div\", { style: {\n            ...styles.cellValue,\n            width: that.width !== 'xs' ? colWidth('val') : '100%',\n            // An empty inline-block has no height, so a state without a value would offer nothing\n            // to tap on in the narrow details view.\n            minHeight: narrowStyleWithDetails ? 20 : undefined,\n            cursor: valueEditable\n                ? common?.type === 'file'\n                    ? 'zoom-in'\n                    : item.data.button\n                        ? 'grab'\n                        : 'text'\n                : 'default',\n        }, onClick: e => {\n            if (valueEditable) {\n                if (!obj || !that.states) {\n                    // return;\n                }\n                else if (common?.type === 'file') {\n                    editValue();\n                }\n                else if (item.data.url && e.ctrlKey) {\n                    if (that.states[id]?.val && typeof that.states[id].val === 'string') {\n                        if (common?.role === 'url.self') {\n                            window.location.href = that.states[id].val;\n                        }\n                        else {\n                            const opened = window.open(that.states[id].val, '_blank');\n                            opened?.focus();\n                        }\n                    }\n                }\n                else if (!that.state.filter.expertMode && item.data.button) {\n                    // in non-expert mode control button directly\n                    that.props.socket\n                        .setState(id, true)\n                        .catch(e => window.alert(`Cannot write state \"${id}\": ${e}`));\n                }\n                else if (!that.state.filter.expertMode && item.data.switch) {\n                    // in non-expert mode control switch directly\n                    that.props.socket\n                        .setState(id, !that.states[id].val)\n                        .catch(e => window.alert(`Cannot write state \"${id}\": ${e}`));\n                }\n                else {\n                    editValue();\n                }\n            }\n            else if (common?.role === 'url' || (common?.role === 'url.blank' && e.ctrlKey)) {\n                if (that.states[id]?.val && typeof that.states[id].val === 'string') {\n                    window.open(that.states[id].val, '_blank');\n                }\n            }\n            else if (common?.role === 'url.self' && e.ctrlKey) {\n                if (that.states[id]?.val && typeof that.states[id].val === 'string') {\n                    window.location.href = that.states[id].val;\n                }\n            }\n        } }, columnValue)) : null;\n",
+                    "after": "    // EOS Admin 8: one reviewed handler for mouse, keyboard and direct controls.\n    const editValue = () => eosOpenValue(that, id, item);\n    let colValue = showValueCell ? React.createElement(\"div\", {\n        ...eosValueCellProps(that, id, item),\n        style: {\n            ...styles.cellValue,\n            width: that.width !== 'xs' ? colWidth('val') : '100%',\n            minHeight: narrowStyleWithDetails ? 20 : undefined,\n            cursor: valueEditable ? (common?.type === 'file' ? 'zoom-in' : 'pointer') : 'default',\n        },\n    }, columnValue || (valueEditable && common?.type !== 'file' ? 'Wert setzen \u2026' : null)) : null;\n"
+                },
+                {
+                    "before": "onMouseDown: e => {\n            that.onSelect(id);",
+                    "after": "onMouseDown: e => {\n            if (e.target instanceof Element && e.target.closest('[data-eos-object-value-cell]')) return;\n            that.onSelect(id);"
+                },
+                {
+                    "before": "detailsLine('value', that.texts.value, columnValue ? colValue : null, [",
+                    "after": "detailsLine('value', that.texts.value, colValue, ["
+                }
+            ]
+        },
+        {
+            "file": "ObjectBrowserClass.js",
+            "sha256": "9035748c6c46abec2651801928d856d0ac0e29cd29d22519d461a883277b278c",
+            "replacements": [
+                {
+                    "before": "    onUpdate(valAck) {\n        this.props.socket\n            .setState(this.edit.id, {\n            val: valAck.val,\n            ack: valAck.ack,\n            q: valAck.q || 0,\n            expire: valAck.expire || undefined,\n        })\n            .catch(e => this.showError(`Cannot write value: ${e}`));\n    }\n",
+                    "after": "    async onUpdate(valAck) {\n        // Return the write promise: the dialog stays open when the write fails.\n        await eosUpdateValue(this, valAck);\n    }\n"
+                }
+            ]
+        },
+        {
+            "file": "dialogs.js",
+            "sha256": "1e23d7ad1d81414bfa3e4692728119d62cf46f62841f61f48346e88d1a3b103d",
+            "replacements": [
+                {
+                    "before": "if (!that.state.updateOpened || !that.props.objectBrowserValue) {",
+                    "after": "if (!that.state.updateOpened || !that.props.objectBrowserValue || !eosCanEditValue(that, that.edit.id)) {"
+                },
+                {
+                    "before": "onClose: (res) => {\n            that.setState({ updateOpened: false });\n            if (res) {\n                that.onUpdate(res);\n            }\n        }",
+                    "after": "onClose: async (res) => {\n            if (res) {\n                await that.onUpdate(res);\n            }\n            that.setState({ updateOpened: false });\n        }"
+                },
+                {
+                    "before": "states: Utils.getStates(that.objects[that.edit.id])",
+                    "after": "states: eosEditorStates(that.objects[that.edit.id], Utils.getStates(that.objects[that.edit.id]))"
+                }
+            ]
+        },
+        {
+            "file": "contextMenu.js",
+            "sha256": "12391212f23035fbf3455f3cfca6a6161b0bb6d48f813f4eb5f6c514a2abf460",
+            "replacements": [
+                {
+                    "before": "            visibility: !!(that.states &&\n                !that.props.notEditable &&\n                obj &&\n                obj.type === 'state' &&\n                // deprecated from js-controller 6\n                obj.common?.type !== 'file' &&\n                (that.state.filter.expertMode || obj.common.write !== false)),\n",
+                    "after": "            visibility: eosCanEditValue(that, id, item),\n"
+                },
+                {
+                    "before": "            onClick: () => {\n                that.edit = {\n                    val: that.states[id] ? that.states[id].val : '',\n                    q: that.states[id]?.q || 0,\n                    ack: false,\n                    id,\n                };\n                that.setState({ updateOpened: true, showContextMenu: null });\n            },",
+                    "after": "            onClick: () => {\n                eosOpenValue(that, id, item);\n                that.setState({ showContextMenu: null });\n            },"
+                }
+            ]
+        }
+    ]
+}

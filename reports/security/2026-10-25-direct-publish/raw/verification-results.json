@@ -1,0 +1,42 @@
+[
+  {
+    "command": [
+      "npm",
+      "run",
+      "seal:eos-prebuilt-release"
+    ],
+    "exitCode": 0,
+    "seconds": 0.427,
+    "utc": "2026-10-25T16:05:53.906082+00:00"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "security:inventory"
+    ],
+    "exitCode": 0,
+    "seconds": 0.417,
+    "utc": "2026-10-25T16:05:54.322958+00:00"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check:eos-package"
+    ],
+    "exitCode": 0,
+    "seconds": 0.897,
+    "utc": "2026-10-25T16:05:55.219826+00:00"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check:eos-stability"
+    ],
+    "exitCode": 0,
+    "seconds": 22.526,
+    "utc": "2026-10-25T16:06:17.746416+00:00"
+  }
+]

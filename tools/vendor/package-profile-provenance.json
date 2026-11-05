@@ -1,0 +1,17 @@
+{
+  "package": "@iobroker/testing",
+  "version": "6.3.1",
+  "originalPath": "build/tests/packageFiles/index.js",
+  "originalSha256": "6c894734d8e8549790c8661c5ec4b1ad05084021ae11a0b6c6784b92099fc2b8",
+  "reviewedFile": "iobroker-testing-package-files.cjs",
+  "reviewedSha256": "399ad2dc0e5f643faa8b0b6ca898c73129f858823fe453d1ca0d37fcdab33d9a",
+  "license": "MIT",
+  "purpose": "Development package validation for proprietary EOS npm/source ZIP; all product files are validated unchanged.",
+  "modifications": [
+    "Use immutable official schemas with verified SHA-256 instead of mutable network master/main downloads.",
+    "Validate optional repository honestly for a proprietary distribution with no supplied EOS Git URL; never substitute upstream origin.",
+    "Explicit strict EOS schema additions for established vendor metadata, upstream Admin systemConfig schema and proprietary/offline license references; no wildcard relaxation."
+  ],
+  "profileFile": "tools/nexowatt-package-schema-profile.cjs",
+  "profileSha256": "ac6c986f17839718173711f48fb86a547177889b43f774d8e552df1aefff20bc"
+}

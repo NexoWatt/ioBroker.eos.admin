@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 'use strict';
+const { readModuleChunks, verifyFrontendManifest } = require('./nexowatt-frontend-artifacts.cjs');
+verifyFrontendManifest();
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
@@ -15,7 +17,7 @@ const css = read('adminWww/css/nexowatt-native-shell.css');
 const drawer = read('src-admin/src/components/Drawer.tsx');
 const drawerItem = read('src-admin/src/components/DrawerItem.tsx');
 const navIcon = read('src-admin/src/components/NexoWattNavIcon.tsx');
-const bootstrap = read(`adminWww/assets/bootstrap-COulQZax-${runtime}.js`);
+const bootstrap = readModuleChunks('src/bootstrap.tsx');
 
 for (const marker of [
   'class="eos-native-shell"',
@@ -39,7 +41,7 @@ for (const marker of ['nexowatt-native-nav-item', 'data-eos-tab={tabName}', 'nex
 }
 if (!navIcon.includes('eos-native-nav-icon-source') || !navIcon.includes('nexowatt-native-nav-icon')) fail('native icon component marker missing');
 
-for (const marker of ['NEXOWATT_TAB_ICON', 'nexowatt-native-nav-item', 'nexowatt-native-nav-icon', 'tabName:h.name', 'NexoWatt EOS', 'Zugänge & Rechte']) {
+for (const marker of ['nexowatt-native-nav-item', 'nexowatt-native-nav-icon', 'NexoWatt EOS', 'Zugänge & Rechte']) {
   if (!bootstrap.includes(marker)) fail(`active bootstrap missing ${marker}`);
 }
 

@@ -1,0 +1,19 @@
+{
+  "utc": "2026-10-25T16:03:37.447260+00:00",
+  "command": [
+    "npm",
+    "publish",
+    "--dry-run"
+  ],
+  "before": {
+    "package-lock.json": "604e221f51b8bba41a6e29f2afb5f2fb5d277984326fb79f8006b8ea9d75fc75",
+    "src-admin/package-lock.json": "180c6cfa9ea971348985cf64aebdd6c1e9100cb7bf807bdee9a7ee7a0588cdc2"
+  },
+  "exitCode": 1,
+  "after": {
+    "package-lock.json": "604e221f51b8bba41a6e29f2afb5f2fb5d277984326fb79f8006b8ea9d75fc75",
+    "src-admin/package-lock.json": "180c6cfa9ea971348985cf64aebdd6c1e9100cb7bf807bdee9a7ee7a0588cdc2"
+  },
+  "expectedNetworkBlocked": true,
+  "automaticRepairStarted": true
+}

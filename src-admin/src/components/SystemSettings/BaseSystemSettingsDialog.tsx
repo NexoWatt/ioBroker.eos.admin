@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { type AdminConnection, type Translate, type ThemeType, type ThemeName } from '@iobroker/adapter-react-v5';
+import { type AdminConnection, type Translate, type ThemeType, type ThemeName } from '@iobroker/gui-components';
 
 import type { AdminGuiConfig } from '@/types';
 
@@ -20,10 +20,14 @@ export interface BaseSystemSettingsDialogProps {
     activeRep?: string[];
     repoInfo?: Record<string, ioBroker.RepoInfo>;
     histories?: string[];
+    /** Icons of the history instances by instance ID, e.g. `influxdb.0` */
+    historyIcons?: Record<string, string>;
     themeName?: ThemeName;
     themeType?: ThemeType;
     host?: string;
     socket?: AdminConnection;
+    /** The admin instance that serves this page, e.g. `admin.0` */
+    instance?: string;
 }
 
 abstract class BaseSystemSettingsDialog<P = undefined, S extends object = object> extends React.Component<

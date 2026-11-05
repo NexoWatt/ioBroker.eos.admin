@@ -1,0 +1,65 @@
+[
+  {
+    "label": "version-sync",
+    "command": [
+      "node",
+      "tools/nexowatt-sync-release-version.cjs"
+    ],
+    "utc": "2026-10-25T15:52:07.755126+00:00",
+    "exit": 0,
+    "seconds": 0.094
+  },
+  {
+    "label": "inventory",
+    "command": [
+      "node",
+      "tools/nexowatt-security-inventory.cjs"
+    ],
+    "utc": "2026-10-25T15:52:07.849620+00:00",
+    "exit": 0,
+    "seconds": 0.328
+  },
+  {
+    "label": "seal",
+    "command": [
+      "node",
+      "tools/nexowatt-prebuilt-release-selftest.cjs",
+      "--write"
+    ],
+    "utc": "2026-10-25T15:52:08.177783+00:00",
+    "exit": 0,
+    "seconds": 0.294
+  },
+  {
+    "label": "package",
+    "command": [
+      "node",
+      "tools/nexowatt-validate-package.cjs"
+    ],
+    "utc": "2026-10-25T15:52:08.471468+00:00",
+    "exit": 0,
+    "seconds": 0.11
+  },
+  {
+    "label": "stability",
+    "command": [
+      "npm",
+      "run",
+      "check:eos-stability"
+    ],
+    "utc": "2026-10-25T15:52:08.581990+00:00",
+    "exit": 0,
+    "seconds": 22.617
+  },
+  {
+    "label": "publish-dry-run",
+    "command": [
+      "npm",
+      "publish",
+      "--dry-run"
+    ],
+    "utc": "2026-10-25T15:52:31.198774+00:00",
+    "exit": 1,
+    "seconds": 0.876
+  }
+]

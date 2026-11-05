@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-04T21:24:54.922Z",
+  "scope": "Exact npm release gitHead -> GitHub repository license source; UTF-8 bytes verified against Git blob SHA, plus SHA-256. size-sensor release contains only an ISC declaration in README, not full license terms.",
+  "records": [
+    {
+      "name": "@react-dnd/invariant",
+      "version": "4.0.2",
+      "relative": "_react-dnd_invariant-4.0.2/LICENSE.upstream",
+      "url": "https://github.com/react-dnd/react-dnd/blob/641fd36c130e42c3cf08987924151efa1452bca7/LICENSE",
+      "gitBlobSha": "af2353dca4ed9d421d1a124482e63977b28e895f",
+      "kind": "EXACT_RELEASE_REPOSITORY_LICENSE",
+      "sha256": "10c8da64ecfa3067cf9231e0ba19b8d7730e7fed3ac5eaa37ccb97c3c5e71336",
+      "bytes": 1078,
+      "registryGitHead": "641fd36c130e42c3cf08987924151efa1452bca7",
+      "tarballIntegrity": "sha512-xKCTqAK/FFauOM9Ta2pswIyT3D8AQlfrYdOi/toTPEhqCuAs1v5tcJ3Y08Izh1cJ5Jchwy9SeAXmMg6zrKs2iw==",
+      "registryMetadataSha256": "4be39ac15350c169387e7adea72bada654eda59bd600e7bd286ef67e5c4a3ace"
+    },
+    {
+      "name": "@react-dnd/shallowequal",
+      "version": "4.0.2",
+      "relative": "_react-dnd_shallowequal-4.0.2/LICENSE.upstream",
+      "url": "https://github.com/react-dnd/react-dnd/blob/641fd36c130e42c3cf08987924151efa1452bca7/LICENSE",
+      "gitBlobSha": "af2353dca4ed9d421d1a124482e63977b28e895f",
+      "kind": "EXACT_RELEASE_REPOSITORY_LICENSE",
+      "sha256": "10c8da64ecfa3067cf9231e0ba19b8d7730e7fed3ac5eaa37ccb97c3c5e71336",
+      "bytes": 1078,
+      "registryGitHead": "641fd36c130e42c3cf08987924151efa1452bca7",
+      "tarballIntegrity": "sha512-/RVXdLvJxLg4QKvMoM5WlwNR9ViO9z8B/qPcc+C0Sa/teJY7QG7kJ441DwzOjMYEY7GmU4dj5EcGHIkKZiQZCA==",
+      "registryMetadataSha256": "a105e36e651b5612f0c95b0ab0e09eff8fdd76e8ca589f5294b6de4c35675c08"
+    },
+    {
+      "name": "qrcode-generator",
+      "version": "2.0.4",
+      "relative": "qrcode-generator-2.0.4/LICENSE.upstream",
+      "url": "https://github.com/kazuhikoarase/qrcode-generator/blob/83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8/LICENSE",
+      "gitBlobSha": "150770c0fc2994865ccdbef6662735cc083e780d",
+      "kind": "EXACT_RELEASE_REPOSITORY_LICENSE",
+      "sha256": "3a850fa5f08101db6f40676c2786e10bd2cd5fff7b12ffdf1e0c434d4e49d90c",
+      "bytes": 1071,
+      "registryGitHead": "83b7e8fe3fddd3b0368dbafd6ce56995bd25e3c8",
+      "tarballIntegrity": "sha512-mZSiP6RnbHl4xL2Ap5HfkjLnmxfKcPWpWe/c+5XxCuetEenqmNFf1FH/ftXPCtFG5/TDobjsjz6sSNL0Sr8Z9g==",
+      "registryMetadataSha256": "a741dca712782a44a5a52a94dad7841ccb1fc8945c5a42a6c12aa5861fbc513d"
+    },
+    {
+      "name": "react-dnd-preview",
+      "version": "9.0.0",
+      "relative": "react-dnd-preview-9.0.0/LICENSE.upstream",
+      "url": "https://github.com/LouisBrunner/dnd-multi-backend/blob/26978652a5d707fdd4ce0903acc966f661337b9b/LICENSE",
+      "gitBlobSha": "69b917d2f5efa9aea06475d769d40c11c7482044",
+      "kind": "EXACT_RELEASE_REPOSITORY_LICENSE",
+      "sha256": "4b8cb29bfb6eaab0bf73d1eb61b75fba6eeca044758168a8fd77371e200c3051",
+      "bytes": 1075,
+      "registryGitHead": "26978652a5d707fdd4ce0903acc966f661337b9b",
+      "tarballIntegrity": "sha512-WZTbrrNDlCGYJGrITHN/obI2kpdaKV3AY6Il2LLZcA9ApzG5bbDXBlWSFwuw8eTCMjmCXs5Wcv+p2QCMxX1Afw==",
+      "registryMetadataSha256": "bd393620afd23041a488c7077087f6c38c2ba300b410a87c97e9d052952b187c"
+    },
+    {
+      "name": "size-sensor",
+      "version": "1.0.2",
+      "relative": "size-sensor-1.0.2/README.upstream.md",
+      "url": "https://github.com/hustcc/size-sensor/blob/e5cbb27b591af7e4695f0b63600c548d08c9f732/README.md",
+      "gitBlobSha": "e73a93089581c6baae400c6ecaaf6431fc6844aa",
+      "kind": "UPSTREAM_LICENSE_DECLARATION_ONLY",
+      "sha256": "0cc47c9efd776d5d2ba6d305085438b9613e17e6ceb686a00097abd9c7e2132e",
+      "bytes": 2589,
+      "registryGitHead": "e5cbb27b591af7e4695f0b63600c548d08c9f732",
+      "tarballIntegrity": "sha512-2NCmWxY7A9pYKGXNBfteo4hy14gWu47rg5692peVMst6lQLPKrVjhY+UTEsPI5ceFRJSl3gVgMYaUi/hKuaiKw==",
+      "registryMetadataSha256": "b8f426f0678d05c5b10a138b216a2ed2e9e7c049749ad0d4547bb2f8199fac42"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "test/eos-direct-publish.test.cjs"
+  ],
+  "utc": "2026-10-25T16:04:48.041565+00:00",
+  "exit": 0,
+  "seconds": 5.675,
+  "scope": "Actual npm publish --dry-run lifecycle in isolated temporary fixtures with real lock repair, inventory and admission functions; injected registry metadata; no actual upload or live registry request"
+}

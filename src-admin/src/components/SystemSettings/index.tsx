@@ -15,7 +15,19 @@ import {
     CircularProgress,
 } from '@mui/material';
 
-import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
+import {
+    AutoAwesome as AiIcon,
+    BarChart as StatisticsIcon,
+    CardMembership as LicensesIcon,
+    Check as CheckIcon,
+    Close as CloseIcon,
+    Https as LetsEncryptIcon,
+    Inventory2 as RepositoriesIcon,
+    Key as CredentialsIcon,
+    LockPerson as AclIcon,
+    Settings as SystemIcon,
+    VerifiedUser as CertificatesIcon,
+} from '@mui/icons-material';
 
 import {
     DialogConfirm,
@@ -26,7 +38,7 @@ import {
     type AdminConnection,
     type ThemeType,
     type ThemeName,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import type { AdminGuiConfig, ioBrokerObject } from '@/types';
 import AdminUtils from '@/helpers/AdminUtils';
@@ -36,6 +48,9 @@ import LicensesDialog from './LicensesDialog';
 import CertificatesDialog from './CertificatesDialog';
 import CredentialsDialog from './CredentialsDialog';
 import { CREDENTIALS_PREFIX } from './credentialTypes';
+import AiSettingsDialog from './AiSettingsDialog';
+import { AI_SETTINGS_TAB } from './aiProviders';
+import { CHAT_SETTINGS_OBJECT_ID } from '../Chat/chatTypes';
 import SSLDialog from './SSLDialog';
 import ACLDialog from './ACLDialog';
 import StatisticsDialog from './StatisticsDialog';
@@ -47,21 +62,44 @@ import '../../assets/css/style.css';
 
 const SOME_PASSWORD = '__SOME_PASSWORD__';
 
+/** The tab opened last is opened again, if the URL does not name a tab */
+const TAB_STORAGE_KEY = 'SystemSettings.tab';
+
 const styles: Record<string, any> = {
-    tabPanel: (theme: IobTheme) => ({
-        width: '100%',
-        height: `calc(100% - ${theme.mixins.toolbar.minHeight}px)`,
+    tabPanel: {
+        flex: 1,
+        minWidth: 0,
+        height: '100%',
         overflow: 'hidden',
+    },
+    body: {
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+    },
+    verticalTabs: (theme: IobTheme) => ({
+        flexShrink: 0,
+        borderRight: `1px solid ${theme.palette.divider}`,
+        '& .MuiTab-root': {
+            justifyContent: 'flex-start',
+            textAlign: 'left',
+            minHeight: 44,
+        },
     }),
-    tab: {
-        // backgroundColor:'#FFF',
-        // color:lightBlue[500]
+    horizontalTabs: {
+        flex: 1,
+        minWidth: 0,
+        '& .MuiTab-root': {
+            minHeight: 48,
+        },
     },
     dialogTitle: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        gap: 8,
         padding: '0 0 0 20px',
+        minHeight: 56,
     },
     dialog: {
         width: '100%',
@@ -70,6 +108,8 @@ const styles: Record<string, any> = {
     },
     content: {
         padding: '0 !important',
+        display: 'flex',
+        flexDirection: 'column',
     },
     selected: (theme: IobTheme) => ({
         color: theme.palette.mode === 'dark' ? '#FFF !important' : '#222 !important',
@@ -96,18 +136,24 @@ interface SystemSettingsDialogProps {
 interface SystemSettingsDialogState {
     loading: boolean;
     confirmExit: boolean;
-    systemConfig: ioBroker.SystemConfigObject;
-    systemCertificates: ioBroker.Object;
-    systemCredentials: ioBroker.Object[];
-    systemRepositories: ioBroker.RepositoryObject;
-    systemLicenses: ioBroker.Object;
+    systemConfig: ioBroker.SystemConfigObject | null;
+    systemCertificates: ioBroker.Object | null;
+    systemCredentials: ioBroker.Object[] | null;
+    systemRepositories: ioBroker.RepositoryObject | null;
+    systemLicenses: ioBroker.Object | null;
+    /** `system.ai`: the AI provider, credential and model of the system */
+    systemAi: ioBroker.Object | null;
     multipleRepos: boolean;
     licenseManager: boolean;
     host: string;
+    /** The admin instance that serves this page, e.g. `admin.0` */
+    instance: string;
     repoInfo: Record<string, ioBroker.RepoInfo>;
     users?: ioBroker.UserObject[];
     groups?: ioBroker.GroupObject[];
     histories?: string[];
+    /** Icons of the history instances by instance ID, e.g. `influxdb.0` */
+    historyIcons?: Record<string, string>;
     diagData?: any;
     saving?: boolean;
 }
@@ -115,6 +161,7 @@ interface SystemSettingsDialogState {
 interface SystemSettingsDialogTab {
     id: number;
     title: string;
+    icon: JSX.Element;
     component: React.FC<BaseSystemSettingsDialogProps>;
     data: string;
     name: string;
@@ -124,15 +171,17 @@ interface SystemSettingsDialogTab {
 }
 
 class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSettingsDialogState> {
-    originalCertificates: string;
+    originalCertificates = '';
 
-    originalConfig: string;
+    originalConfig = '';
 
-    originalRepositories: string;
+    originalRepositories = '';
 
-    originalLicenses: string;
+    originalLicenses = '';
 
-    originalCredentials: string;
+    originalCredentials = '';
+
+    originalAi = '';
 
     /** The unchanged credential objects (with still encrypted values) by ID, as they were loaded */
     originalCredentialObjects: Record<string, ioBroker.Object> = {};
@@ -147,9 +196,11 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             systemCredentials: null,
             systemRepositories: null,
             systemLicenses: null,
+            systemAi: null,
             multipleRepos: false,
             licenseManager: false,
             host: '',
+            instance: '',
             repoInfo: {},
         };
         this.getSettings(/* this.state.currentHost */).catch(e => window.alert(`Cannot read settings: ${e}`));
@@ -162,7 +213,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
         const obj = (await this.props.socket.getObject(
             `system.adapter.${namespace}`,
         )) as any as ioBroker.InstanceObject;
-        this.setState({ host: obj.common.host, multipleRepos, licenseManager });
+        this.setState({ host: obj.common.host, instance: namespace, multipleRepos, licenseManager });
     }
 
     async getSettings(): Promise<void> {
@@ -171,15 +222,16 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             let systemRepositories = await this.props.socket.getObject('system.repositories');
             systemRepositories = AdminUtils.clone(systemRepositories);
             systemRepositories = (systemRepositories || {}) as ioBroker.RepositoryObject;
-            systemRepositories.native = (systemRepositories.native || {}) as ioBroker.RepositoryObject['native'];
+            systemRepositories.native = systemRepositories.native || {};
             systemRepositories.native.repositories = systemRepositories.native.repositories || {};
-            newState.repoInfo = {};
+            const repoInfo: Record<string, any> = {};
+            newState.repoInfo = repoInfo;
 
             Object.keys(systemRepositories.native.repositories).forEach(repo => {
                 if (systemRepositories.native.repositories[repo]) {
                     if (systemRepositories.native.repositories[repo].json) {
-                        newState.repoInfo[repo] = systemRepositories.native.repositories[repo].json._repoInfo;
-                        delete systemRepositories.native.repositories[repo].json;
+                        repoInfo[repo] = systemRepositories.native.repositories[repo].json._repoInfo;
+                        delete (systemRepositories.native.repositories[repo] as Record<string, any>).json;
                     }
                     if (systemRepositories.native.repositories[repo].hash) {
                         delete systemRepositories.native.repositories[repo].hash;
@@ -212,16 +264,29 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             newState.users = await this.props.socket.getUsers();
             newState.groups = await this.props.socket.getGroups();
             const instances = await this.props.socket.getAdapterInstances(true);
-            newState.histories = Object.values(instances)
-                .filter(instance => instance.common.getHistory)
-                .map(instance => {
-                    const id = instance._id.split('.');
-                    return `${id[id.length - 2]}.${id[id.length - 1]}`;
-                });
+            const histories: string[] = [];
+            const historyIcons: Record<string, string> = {};
+            for (const instance of Object.values(instances)) {
+                if (!instance.common.getHistory) {
+                    continue;
+                }
+                const parts = instance._id.split('.');
+                const id = `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+                histories.push(id);
+                let icon = instance.common.icon;
+                if (icon && !icon.startsWith('data:image') && !icon.includes('/')) {
+                    icon = `adapter/${instance.common.name}/${icon}`;
+                }
+                if (icon) {
+                    historyIcons[id] = icon;
+                }
+            }
+            newState.histories = histories;
+            newState.historyIcons = historyIcons;
 
             const systemCertificates = await this.props.socket.getObject('system.certificates');
             this.originalCertificates = JSON.stringify(systemCertificates);
-            newState.systemCertificates = systemCertificates;
+            newState.systemCertificates = systemCertificates || null;
 
             // Load all credentials and mask the encrypted values, so they never stay decrypted in the frontend
             const credentialObjects = await this.props.socket.getObjectViewSystem(
@@ -234,7 +299,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                 .filter(obj => !!obj)
                 .sort((a, b) => a._id.localeCompare(b._id))
                 .map(obj => {
-                    this.originalCredentialObjects[obj._id] = AdminUtils.clone(obj) as ioBroker.Object;
+                    this.originalCredentialObjects[obj._id] = AdminUtils.clone(obj);
                     const masked = AdminUtils.clone(obj) as ioBroker.Object;
                     const encryptedFields: string[] = masked.native?.encryptedFields || [];
                     encryptedFields.forEach(field => {
@@ -246,7 +311,27 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                 });
             this.originalCredentials = JSON.stringify(systemCredentials);
             newState.systemCredentials = systemCredentials;
-            let systemLicenses: ioBroker.Object = await this.props.socket.getObject('system.licenses');
+
+            // Only the reference to the credential is stored here, never a key
+            let systemAi: ioBroker.Object | null | undefined = null;
+            try {
+                systemAi = await this.props.socket.getObject(CHAT_SETTINGS_OBJECT_ID);
+            } catch {
+                // not created yet
+            }
+            systemAi = systemAi
+                ? AdminUtils.clone(systemAi)
+                : ({
+                      _id: CHAT_SETTINGS_OBJECT_ID,
+                      type: 'config',
+                      common: { name: 'AI settings', expert: true },
+                      native: {},
+                  } as unknown as ioBroker.Object);
+            systemAi.native = systemAi.native || {};
+            this.originalAi = JSON.stringify(systemAi);
+            newState.systemAi = systemAi;
+            let systemLicenses: ioBroker.Object | null | undefined =
+                await this.props.socket.getObject('system.licenses');
             systemLicenses =
                 systemLicenses ||
                 ({
@@ -289,24 +374,39 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
 
     onSave(): void {
         let repoChanged = false;
+        // everything below is only reachable once the settings were loaded
+        const stateSystemConfig = this.state.systemConfig;
+        const stateSystemCertificates = this.state.systemCertificates;
+        const stateSystemCredentials = this.state.systemCredentials;
+        const stateSystemRepositories = this.state.systemRepositories;
+        const stateSystemLicenses = this.state.systemLicenses;
+        if (
+            !stateSystemConfig ||
+            !stateSystemCertificates ||
+            !stateSystemCredentials ||
+            !stateSystemRepositories ||
+            !stateSystemLicenses
+        ) {
+            return;
+        }
         this.setState({ saving: true }, async () => {
             try {
                 let systemConfig = await this.props.socket.getSystemConfig(true);
                 systemConfig = systemConfig || ({} as ioBroker.SystemConfigObject);
-                if (JSON.stringify(systemConfig.common) !== JSON.stringify(this.state.systemConfig.common)) {
-                    await this.props.socket.setSystemConfig(this.state.systemConfig);
+                if (JSON.stringify(systemConfig.common) !== JSON.stringify(stateSystemConfig.common)) {
+                    await this.props.socket.setSystemConfig(stateSystemConfig);
                 }
-                await this.props.socket.setObject('system.certificates', this.state.systemCertificates);
+                await this.props.socket.setObject('system.certificates', stateSystemCertificates);
 
                 // save credentials
-                if (JSON.stringify(this.state.systemCredentials) !== this.originalCredentials) {
+                if (JSON.stringify(stateSystemCredentials) !== this.originalCredentials) {
                     // delete removed credentials
                     for (const id of Object.keys(this.originalCredentialObjects)) {
-                        if (!this.state.systemCredentials.find(credential => credential._id === id)) {
+                        if (!stateSystemCredentials.find(credential => credential._id === id)) {
                             await this.props.socket.delObject(id);
                         }
                     }
-                    for (const credential of this.state.systemCredentials) {
+                    for (const credential of stateSystemCredentials) {
                         const newObj = AdminUtils.clone(credential);
                         const original = this.originalCredentialObjects[newObj._id];
                         const encryptedFields: string[] = newObj.native?.encryptedFields || [];
@@ -326,11 +426,27 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                     }
                 }
 
+                // after the credentials: a key that was created in the AI tab exists now
+                const stateSystemAi = this.state.systemAi;
+                if (stateSystemAi && JSON.stringify(stateSystemAi) !== this.originalAi) {
+                    let storedAi: ioBroker.Object | null | undefined = null;
+                    try {
+                        storedAi = await this.props.socket.getObject(CHAT_SETTINGS_OBJECT_ID);
+                    } catch {
+                        // not created yet
+                    }
+                    // merged, so what the assistant keeps there besides (e.g. `hideFab`) is not lost
+                    await this.props.socket.setObject(CHAT_SETTINGS_OBJECT_ID, {
+                        ...(storedAi || stateSystemAi),
+                        native: { ...(storedAi?.native || {}), ...stateSystemAi.native },
+                    } as ioBroker.Object);
+                }
+
                 let systemRepositories = await this.props.socket.getObject('system.repositories');
                 systemRepositories = systemRepositories || ({} as ioBroker.RepositoryObject);
                 systemRepositories.native = systemRepositories.native || ({} as ioBroker.RepositoryObject['native']);
                 systemRepositories.native.repositories = systemRepositories.native.repositories || {};
-                const newRepo = JSON.parse(JSON.stringify(this.state.systemRepositories.native.repositories));
+                const newRepo = JSON.parse(JSON.stringify(stateSystemRepositories.native.repositories));
 
                 // merge new and existing info
                 Object.keys(newRepo).forEach(repo => {
@@ -346,7 +462,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                         }
                     }
                 });
-                if (JSON.stringify(this.state.systemRepositories.native.repositories) !== JSON.stringify(newRepo)) {
+                if (JSON.stringify(stateSystemRepositories.native.repositories) !== JSON.stringify(newRepo)) {
                     systemRepositories.native.repositories = newRepo;
                     repoChanged = true;
                     await this.props.socket.setObject('system.repositories', systemRepositories);
@@ -365,43 +481,40 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                 const currentPassword = systemLicenses.native.password ? SOME_PASSWORD : '';
 
                 if (
-                    this.state.systemLicenses.native.password !== currentPassword ||
-                    systemLicenses.native.login !== this.state.systemLicenses.native.login
+                    stateSystemLicenses.native.password !== currentPassword ||
+                    systemLicenses.native.login !== stateSystemLicenses.native.login
                 ) {
-                    systemLicenses.native.login = this.state.systemLicenses.native.login;
+                    systemLicenses.native.login = stateSystemLicenses.native.login;
 
-                    if (
-                        this.state.systemLicenses.native.password !== SOME_PASSWORD &&
-                        this.state.systemLicenses.native.password
-                    ) {
+                    if (stateSystemLicenses.native.password !== SOME_PASSWORD && stateSystemLicenses.native.password) {
                         // encode it
                         try {
                             systemLicenses.native.password = await this.props.socket.encrypt(
-                                this.state.systemLicenses.native.password,
+                                stateSystemLicenses.native.password,
                             );
                         } catch (error) {
-                            window.alert(this.props.t('Cannot update licenses: %s', error));
+                            window.alert(this.props.t('Cannot update licenses: %s', (error as Error).toString()));
                         }
-                    } else if (!this.state.systemLicenses.native.password) {
+                    } else if (!stateSystemLicenses.native.password) {
                         systemLicenses.native.password = '';
                     }
                     try {
                         await this.props.socket.setObject('system.licenses', systemLicenses);
-                        await this.props.socket.updateLicenses(null, null);
+                        await this.props.socket.updateLicenses('', '');
                     } catch (error) {
-                        window.alert(this.props.t('Cannot update licenses: %s', error));
+                        window.alert(this.props.t('Cannot update licenses: %s', (error as Error).toString()));
                     }
                 }
 
                 // this.getSettings();
                 alert(this.props.t('Settings saved'));
                 this.props.onClose(repoChanged);
-                if (this.state.systemConfig.common.expertMode !== JSON.parse(this.originalConfig).common.expertMode) {
-                    this.props.expertModeFunc(this.state.systemConfig.common.expertMode);
+                if (stateSystemConfig.common.expertMode !== JSON.parse(this.originalConfig).common.expertMode) {
+                    this.props.expertModeFunc(!!stateSystemConfig.common.expertMode);
                 }
                 if (
-                    this.state.systemConfig.common.language !== JSON.parse(this.originalConfig).common.language ||
-                    JSON.stringify(this.state.systemConfig.common.activeRepo) !==
+                    stateSystemConfig.common.language !== JSON.parse(this.originalConfig).common.language ||
+                    JSON.stringify(stateSystemConfig.common.activeRepo) !==
                         JSON.stringify(JSON.parse(this.originalConfig).common.activeRepo)
                 ) {
                     window.location.reload();
@@ -418,72 +531,91 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             {
                 id: 0,
                 title: 'System settings',
+                icon: <SystemIcon />,
                 component: MainSettingsDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemConfig',
                 name: 'tabConfig',
                 dataAux: 'systemRepositories',
-                handle: null,
+                handle: undefined,
             },
             {
                 id: 1,
                 title: 'Repositories',
+                icon: <RepositoriesIcon />,
                 component: RepositoriesDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemRepositories',
                 name: 'tabRepositories',
                 dataAux: 'systemConfig',
-                handle: null,
+                handle: undefined,
                 socket: this.props.socket,
             },
             {
                 id: 2,
                 title: 'Licenses',
+                icon: <LicensesIcon />,
                 component: LicensesDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemLicenses',
                 name: 'tabLicenses',
-                dataAux: null,
-                handle: null,
+                dataAux: '',
+                handle: undefined,
                 socket: this.props.socket,
             },
             {
                 id: 3,
                 title: 'Certificates',
+                icon: <CertificatesIcon />,
                 component: CertificatesDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemCertificates',
                 name: 'tabCertificates',
-                dataAux: null,
-                handle: null,
+                dataAux: '',
+                handle: undefined,
             },
             {
                 id: 4,
                 title: 'Credentials',
+                icon: <CredentialsIcon />,
                 component: CredentialsDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemCredentials',
                 name: 'tabCredentials',
-                dataAux: null,
-                handle: null,
+                dataAux: '',
+                handle: undefined,
                 socket: this.props.socket,
             },
             {
                 id: 5,
-                title: "Let's encrypt SSL",
-                component: SSLDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
-                data: 'systemCertificates',
-                name: 'tabLetsEncrypt',
-                dataAux: null,
-                handle: null,
+                title: 'AI',
+                icon: <AiIcon />,
+                component: AiSettingsDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
+                data: 'systemAi',
+                name: AI_SETTINGS_TAB,
+                // the API key comes from the credentials, and a new one is added to them
+                dataAux: 'systemCredentials',
+                handle: undefined,
             },
             {
                 id: 6,
-                title: 'Default ACL',
-                component: ACLDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
-                data: 'systemConfig',
-                name: 'tabDefaultACL',
-                dataAux: null,
-                handle: null,
+                title: "Let's encrypt SSL",
+                icon: <LetsEncryptIcon />,
+                component: SSLDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
+                data: 'systemCertificates',
+                name: 'tabLetsEncrypt',
+                dataAux: '',
+                handle: undefined,
             },
             {
                 id: 7,
+                title: 'Default ACL',
+                icon: <AclIcon />,
+                component: ACLDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
+                data: 'systemConfig',
+                name: 'tabDefaultACL',
+                dataAux: '',
+                handle: undefined,
+            },
+            {
+                id: 8,
                 title: 'Statistics',
+                icon: <StatisticsIcon />,
                 component: StatisticsDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemConfig',
                 dataAux: 'diagData',
@@ -494,13 +626,17 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
     }
 
     onChangeDiagType = (type: 'none' | 'extended' | 'no-city'): void => {
+        const systemConfig = this.state.systemConfig;
+        if (!systemConfig) {
+            return;
+        }
         void this.props.socket.getDiagData(this.props.currentHost, type).then(diagData =>
             this.setState({
                 diagData,
                 systemConfig: {
-                    ...this.state.systemConfig,
+                    ...systemConfig,
                     common: {
-                        ...this.state.systemConfig.common,
+                        ...systemConfig.common,
                         diag: type,
                     },
                 },
@@ -508,15 +644,26 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
         );
     };
 
-    getDialogContent(tabsList: SystemSettingsDialogTab[]): JSX.Element {
+    /** The tab named in the URL, else the tab opened last */
+    getCurrentTabId(tabsList: SystemSettingsDialogTab[]): string {
+        const id =
+            this.props.currentTab.id || (window._localStorage || window.localStorage).getItem(TAB_STORAGE_KEY) || '';
+        return tabsList.find(tab => tab.name === id) ? id : tabsList[0]?.name || 'tabConfig';
+    }
+
+    getDialogContent(tabsList: SystemSettingsDialogTab[], currentTabId: string): JSX.Element {
         if (this.state.loading) {
-            return <LinearProgress />;
+            return (
+                <Box sx={styles.tabPanel}>
+                    <LinearProgress />
+                </Box>
+            );
         }
 
-        const tab = tabsList.find(t => t.name === this.props.currentTab.id) || tabsList[0];
+        const tab = tabsList.find(t => t.name === currentTabId) || tabsList[0];
 
         const MyComponent: React.FC<BaseSystemSettingsDialogProps> = tab.component;
-        const { groups, users, histories } = this.state;
+        const { groups, users, histories, historyIcons } = this.state;
         return (
             <Box
                 component="div"
@@ -533,21 +680,24 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                     users={users}
                     groups={groups}
                     multipleRepos={this.state.multipleRepos}
-                    activeRepo={this.state.systemConfig.common.activeRepo}
+                    activeRepo={this.state.systemConfig?.common.activeRepo}
                     repoInfo={this.state.repoInfo}
                     histories={histories}
+                    historyIcons={historyIcons}
                     themeName={this.props.themeName}
                     themeType={this.props.themeType}
                     host={this.state.host}
                     t={this.props.t}
                     socket={this.props.socket}
-                    saving={this.state.saving}
+                    instance={this.state.instance}
+                    saving={!!this.state.saving}
                 />
             </Box>
         );
     }
 
     static onTabChanged = (newTab: string): void => {
+        (window._localStorage || window.localStorage).setItem(TAB_STORAGE_KEY, newTab);
         Router.doNavigate(null, 'system', newTab);
     };
 
@@ -575,49 +725,80 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
     }
 
     render(): JSX.Element {
-        const changed = !(
-            JSON.stringify(this.state.systemRepositories) === this.originalRepositories &&
-            JSON.stringify(this.state.systemConfig) === this.originalConfig &&
-            JSON.stringify(this.state.systemCertificates) === this.originalCertificates &&
-            JSON.stringify(this.state.systemCredentials) === this.originalCredentials &&
-            JSON.stringify({
-                login: this.state.systemLicenses.native.login,
-                password: this.state.systemLicenses.native.password,
-            }) === this.originalLicenses
-        );
-
-        let tabError = false;
-        if (this.props.currentTab.id === 'tabRepositories') {
-            tabError = SystemSettingsDialog.ifRepoError(this.state.systemRepositories);
-        }
+        // nothing can be changed before everything is loaded - the originals are still empty until then
+        const changed =
+            !this.state.loading &&
+            !(
+                JSON.stringify(this.state.systemRepositories) === this.originalRepositories &&
+                JSON.stringify(this.state.systemConfig) === this.originalConfig &&
+                JSON.stringify(this.state.systemCertificates) === this.originalCertificates &&
+                JSON.stringify(this.state.systemCredentials) === this.originalCredentials &&
+                JSON.stringify(this.state.systemAi) === this.originalAi &&
+                JSON.stringify({
+                    login: this.state.systemLicenses?.native.login,
+                    password: this.state.systemLicenses?.native.password,
+                }) === this.originalLicenses
+            );
 
         const tabsList = this.getTabs().filter(tab => {
             if (!this.state.licenseManager && tab.name === 'tabLicenses') {
                 return false;
             }
-            return (this.props.adminGuiConfig.admin.settings as { [id: string]: boolean })[tab.name] !== false;
+            const settings = this.props.adminGuiConfig.admin?.settings;
+            return settings?.[tab.name as keyof typeof settings] !== false;
         });
+        const currentTabId = this.getCurrentTabId(tabsList);
 
-        console.log(`get state: ${tabError}`);
+        let tabError = false;
+        if (currentTabId === 'tabRepositories') {
+            tabError =
+                !!this.state.systemRepositories && SystemSettingsDialog.ifRepoError(this.state.systemRepositories);
+        }
+
         const tabs = tabsList.map(tab => (
             <Tab
                 key={tab.title}
                 label={this.props.t(tab.title)}
+                icon={tab.icon}
+                iconPosition="start"
                 value={tab.name}
-                disabled={tabError && tab.name !== (this.props.currentTab.id || 'tabConfig')}
+                disabled={tabError && tab.name !== currentTabId}
                 sx={{ '&.Mui-selected': styles.selected }}
             />
         ));
+
+        // There are too many tabs for one row: they stand on the left, only a phone keeps them on top,
+        // where there is no width to spare for a column
+        const narrow = this.props.width === 'xs' || this.props.width === 'sm';
+        const fullScreen = this.props.width === 'xs';
+        const tabsElement = (
+            <Tabs
+                orientation={narrow ? 'horizontal' : 'vertical'}
+                indicatorColor="secondary"
+                value={currentTabId}
+                onChange={(_event, newTab: string) => SystemSettingsDialog.onTabChanged(newTab)}
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+                sx={narrow ? styles.horizontalTabs : styles.verticalTabs}
+            >
+                {tabs}
+            </Tabs>
+        );
 
         return (
             <Dialog
                 sx={{
                     '&.MuiDialog-root': styles.dialog,
-                    '& .MuiDialog-paper': {
-                        height: 'calc(100% - 64px)',
-                        width: 'calc(100% - 64px)',
-                        maxWidth: 'calc(100% - 64px)',
-                    },
+                    ...(fullScreen
+                        ? {}
+                        : {
+                              '& .MuiDialog-paper': {
+                                  height: 'calc(100% - 64px)',
+                                  width: 'calc(100% - 64px)',
+                                  maxWidth: 'calc(100% - 64px)',
+                              },
+                          }),
                 }}
                 open={!0}
                 onClose={(_e, reason) => {
@@ -630,7 +811,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                     }
                 }}
                 fullWidth
-                fullScreen={false}
+                fullScreen={fullScreen}
                 aria-labelledby="system-settings-dialog-title"
             >
                 <DialogContent style={styles.content}>
@@ -639,19 +820,11 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                         color="default"
                     >
                         <div style={styles.dialogTitle}>
-                            {this.props.width !== 'xs' && this.props.width !== 'sm' && (
+                            {narrow ? (
+                                tabsElement
+                            ) : (
                                 <Typography className="dialogName">{this.props.t('Base settings')}</Typography>
                             )}
-                            <Tabs
-                                style={styles.tab}
-                                indicatorColor="secondary"
-                                value={this.props.currentTab.id || 'tabConfig'}
-                                onChange={(_event, newTab: string) => SystemSettingsDialog.onTabChanged(newTab)}
-                                variant="scrollable"
-                                scrollButtons="auto"
-                            >
-                                {tabs}
-                            </Tabs>
                             <IconButton
                                 size="large"
                                 disabled={this.state.saving}
@@ -664,7 +837,10 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                             </IconButton>
                         </div>
                     </AppBar>
-                    {this.getDialogContent(tabsList)}
+                    <Box style={styles.body}>
+                        {narrow ? null : tabsElement}
+                        {this.getDialogContent(tabsList, currentTabId)}
+                    </Box>
                     {this.renderDialogConfirm()}
                 </DialogContent>
                 <DialogActions>

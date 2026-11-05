@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 
-import { type AdminConnection, I18n } from '@iobroker/adapter-react-v5';
+import { type AdminConnection, I18n } from '@iobroker/gui-components';
 
 interface NodeUpdateDialogProps {
     /** Called when user closes dialog */
@@ -125,7 +125,7 @@ export default class NodeUpdateDialog extends React.Component<NodeUpdateDialogPr
         this.setState({
             inProgress: false,
             success: res.success,
-            error: res.error,
+            error: res.error || '',
             finished: true,
         });
     }

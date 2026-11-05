@@ -7,7 +7,7 @@ import {
     Checkbox,
     CircularProgress,
     FormControlLabel,
-    Grid2,
+    Grid,
     IconButton,
     Link,
     Paper,
@@ -17,7 +17,9 @@ import {
 
 import { Visibility } from '@mui/icons-material';
 
-import { type IobTheme, I18n, Connection } from '@iobroker/adapter-react-v5';
+import { type IobTheme, I18n, Connection } from '@iobroker/gui-components';
+
+import { adminHref } from '@/helpers/utils';
 
 export interface OAuth2Response {
     access_token: string;
@@ -101,6 +103,8 @@ declare global {
             start: (account: string) => Promise<boolean> | boolean;
             check?: (account: string) => Promise<boolean> | boolean;
         };
+        /** Public path of this admin instance, injected by the server */
+        socketPath?: string;
     }
 }
 
@@ -118,7 +122,7 @@ interface LoginState {
 }
 
 export default class Login extends Component<object, LoginState> {
-    private readonly passwordRef: React.RefObject<HTMLInputElement>;
+    private readonly passwordRef: React.RefObject<HTMLInputElement | null>;
 
     private firstLoginCheckTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -148,7 +152,11 @@ export default class Login extends Component<object, LoginState> {
         this.passwordRef = React.createRef();
     }
 
-    static async processTokenAnswer(stayLoggedIn: boolean, response: Response): Promise<boolean> {
+    static async processTokenAnswer(
+        stayLoggedIn: boolean,
+        response: Response,
+        usedRefreshToken?: string,
+    ): Promise<boolean> {
         if (response.ok) {
             const data: OAuth2Response = await response.json();
 
@@ -156,34 +164,50 @@ export default class Login extends Component<object, LoginState> {
                 // Save expiration time of access token and refresh token
                 // Next loaded page with socket will take the ownership of the tokens
                 Connection.saveTokensStatic(data, stayLoggedIn);
-
-                // Get href from origin
-                // Extract from the URL like "http://localhost:8084/login?href=http://localhost:63342/ioBroker.socketio/example/index.html?_ijt=nqn3c1on9q44elikut4rgr23j8&_ij_reload=RELOAD_ON_SAVE" the href
-                const urlObj = new URL(window.location.href);
-                const href = urlObj.searchParams.get('href');
-                let origin;
-                if (href) {
-                    origin = href;
-                    if (origin.startsWith('#')) {
-                        origin = `./${origin}`;
-                    }
-                } else {
-                    origin = './';
-                }
-                window.location.href = origin;
+                Login.redirectBack();
                 return true;
             }
         }
+
+        // A refresh token can be used only once. When the refresh failed because another tab has renewed
+        // the tokens in the meantime, the stored ones are fresh and must not be thrown away - that would
+        // log out every tab although the user is signed in.
+        if (usedRefreshToken) {
+            const current = Connection.readTokens();
+            if (current?.refresh_token && current.refresh_token !== usedRefreshToken) {
+                Login.redirectBack();
+                return true;
+            }
+        }
+
         Connection.deleteTokensStatic();
 
         return false;
+    }
+
+    /** Go back to the page the user came from */
+    private static redirectBack(): void {
+        // Get href from origin
+        // Extract from the URL like "http://localhost:8084/login?href=http://localhost:63342/ioBroker.socketio/example/index.html?_ijt=nqn3c1on9q44elikut4rgr23j8&_ij_reload=RELOAD_ON_SAVE" the href
+        const urlObj = new URL(window.location.href);
+        const href = urlObj.searchParams.get('href');
+        let origin;
+        if (href) {
+            origin = href;
+            if (origin.startsWith('#')) {
+                origin = `./${origin}`;
+            }
+        } else {
+            origin = './';
+        }
+        window.location.href = origin;
     }
 
     private authenticateWithRefreshToken(): boolean {
         const tokens = Connection.readTokens();
 
         if (tokens?.refresh_token) {
-            void fetch('../oauth/token', {
+            void fetch(adminHref('oauth/token'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -191,7 +215,7 @@ export default class Login extends Component<object, LoginState> {
                 body: `grant_type=refresh_token&refresh_token=${tokens.refresh_token}&stayloggedin=${tokens.stayLoggedIn}&client_id=ioBroker`,
             })
                 .then(async response => {
-                    if (!(await Login.processTokenAnswer(tokens.stayLoggedIn, response))) {
+                    if (!(await Login.processTokenAnswer(tokens.stayLoggedIn, response, tokens.refresh_token))) {
                         this.setState({
                             inProcess: false,
                             loggingIn: false,
@@ -214,7 +238,10 @@ export default class Login extends Component<object, LoginState> {
     }
 
     private getManagedFirstLoginAccount(): string {
-        return this.state.username.trim().toLowerCase().replace(/^system\.user\./, '');
+        return this.state.username
+            .trim()
+            .toLowerCase()
+            .replace(/^system\.user\./, '');
     }
 
     private isManagedFirstLoginAccount(): boolean {
@@ -295,7 +322,7 @@ export default class Login extends Component<object, LoginState> {
 
     onLogin(): void {
         this.setState({ inProcess: true, error: '' }, async () => {
-            const response = await fetch('../oauth/token', {
+            const response = await fetch(adminHref('oauth/token'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -315,8 +342,7 @@ export default class Login extends Component<object, LoginState> {
     }
 
     render(): JSX.Element {
-        const link =
-            window.loginLink && window.loginLink !== '@@loginLink@@' ? window.loginLink : '#';
+        const link = window.loginLink && window.loginLink !== '@@loginLink@@' ? window.loginLink : '#';
         const motto =
             window.loginMotto && window.loginMotto !== '@@loginMotto@@' ? window.loginMotto : 'Energy Operation System';
 
@@ -355,10 +381,9 @@ export default class Login extends Component<object, LoginState> {
                     }`}
                     sx={styles.paper}
                 >
-                    <Grid2
+                    <Grid
                         container
-                        direction="column"
-                        alignItems="center"
+                        sx={{ flexDirection: 'column', alignItems: 'center' }}
                     >
                         {window.loginLogo && window.loginLogo !== '@@loginLogo@@' ? (
                             <Box
@@ -449,7 +474,11 @@ export default class Login extends Component<object, LoginState> {
                                 )
                             }
                             onKeyUp={e => {
-                                if (e.key === 'Enter' && this.state.username && (this.state.password || this.isManagedFirstLogin())) {
+                                if (
+                                    e.key === 'Enter' &&
+                                    this.state.username &&
+                                    (this.state.password || this.isManagedFirstLogin())
+                                ) {
                                     this.onLoginAction();
                                 }
                             }}
@@ -478,7 +507,10 @@ export default class Login extends Component<object, LoginState> {
                             id="password"
                             autoComplete="current-password"
                         />
-                        <div className="eos-login-first-status eos-login-first-status-native" aria-live="polite" />
+                        <div
+                            className="eos-login-first-status eos-login-first-status-native"
+                            aria-live="polite"
+                        />
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -495,7 +527,11 @@ export default class Login extends Component<object, LoginState> {
                         />
                         <Button
                             type="submit"
-                            disabled={this.state.inProcess || !this.state.username || (!this.state.password && !this.isManagedFirstLogin())}
+                            disabled={
+                                this.state.inProcess ||
+                                !this.state.username ||
+                                (!this.state.password && !this.isManagedFirstLogin())
+                            }
                             onClick={() => this.onLoginAction()}
                             fullWidth
                             variant="contained"
@@ -507,7 +543,9 @@ export default class Login extends Component<object, LoginState> {
                         {window.ssoActive === 'true' ? (
                             <Button
                                 onClick={() => {
-                                    window.location.href = `/sso?redirectUrl=${encodeURIComponent(`${window.origin}/#tab-intro`)}&method=login`;
+                                    window.location.href = adminHref(
+                                        `sso?redirectUrl=${encodeURIComponent(`${window.origin}${adminHref('#tab-intro')}`)}&method=login`,
+                                    );
                                 }}
                                 fullWidth
                                 variant="contained"
@@ -516,7 +554,7 @@ export default class Login extends Component<object, LoginState> {
                                 {I18n.t('Use Single-Sign On')}
                             </Button>
                         ) : null}
-                    </Grid2>
+                    </Grid>
                     <Box style={styles.marginTop}>
                         <Typography
                             variant="body2"

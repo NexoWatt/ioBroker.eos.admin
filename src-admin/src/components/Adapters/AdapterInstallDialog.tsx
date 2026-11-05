@@ -1,7 +1,7 @@
 import React, { Component, type JSX } from 'react';
 import semver from 'semver';
 
-import { type Translate, type AdminConnection, type ThemeType, type IobTheme, I18n } from '@iobroker/adapter-react-v5';
+import { type Translate, type AdminConnection, type ThemeType, type IobTheme, I18n } from '@iobroker/gui-components';
 
 import { checkCondition, type CompactInstanceInfo } from './AdapterUpdateDialog';
 
@@ -12,7 +12,7 @@ import type { InstancesWorker } from '@/Workers/InstancesWorker';
 import type { HostsWorker } from '@/Workers/HostsWorker';
 import type { RatingDialogRepository } from '@/dialogs/RatingDialog';
 import type { HostAdapterWorker } from '@/Workers/HostAdapterWorker';
-import { extractUrlLink, type RepoAdapterObject } from './Utils';
+import { extractLicenseTextUrl, type RepoAdapterObject } from './Utils';
 import type { CommandFile } from '@/types';
 
 // TODO: Placed here from @iobroker/js-controller-common-db/build/esm/lib/common/tools
@@ -64,7 +64,7 @@ export interface AdapterInformation {
 
 export type AdapterRating = {
     rating?: { r: number; c: number };
-    [version: string]: { r: number; c: number };
+    [version: string]: { r: number; c: number } | undefined;
 };
 export type AdapterRatingInfo = AdapterRating & { title: string };
 
@@ -77,6 +77,12 @@ export type AdapterInformationEx = AdapterInformation & {
 export type InstalledInfo = { [adapterName: string]: AdapterInformationEx } & {
     hosts?: { [hostName: string]: ioBroker.HostCommon & { host: string; runningVersion: string } };
 };
+
+/**
+ * For each adapter name the installed version on every host (host name => version).
+ * Used to report which hosts do not fulfill a global dependency in a multihost setup.
+ */
+export type InstalledHostsInfo = { [adapterName: string]: { [hostName: string]: string } };
 
 export type AdaptersContext = {
     expertMode: boolean;
@@ -97,6 +103,8 @@ export type AdaptersContext = {
     installed: InstalledInfo;
     /** Information about all installed adapters on all hosts */
     installedGlobal: InstalledInfo;
+    /** Installed version of every adapter per host (adapter name => host name => version) */
+    installedGlobalHosts: InstalledHostsInfo;
     /** very compact information about instances */
     compactInstances: Record<string, CompactInstanceInfo>;
     /** Information about installed adapters */
@@ -121,11 +129,22 @@ export type AdaptersContext = {
     descHidden: boolean;
     sortPopularFirst: boolean;
     sortRecentlyUpdated: boolean;
+    sortRecentlyCreated: boolean;
     isTileView: boolean;
     updateRating: (adapter: string, rating: RatingDialogRepository) => void;
     setAdminUpgradeTo: (version: string) => void;
     hostAdapterWorker: HostAdapterWorker;
 };
+
+/**
+ * Everything {@link AdapterInstallDialog.getDependencies} needs to judge the dependencies of an
+ * adapter. It is a part of the context, so that the adapters tab can pass its state directly and
+ * both the dependency list and the enabled state of the update button come from the same place.
+ */
+export type DependenciesContext = Pick<
+    AdaptersContext,
+    'repository' | 'installed' | 'installedGlobal' | 'installedGlobalHosts' | 'nodeJsVersion'
+>;
 
 export interface AdapterInstallDialogProps {
     noTranslation: boolean;
@@ -169,6 +188,7 @@ export default abstract class AdapterInstallDialog<
             <LicenseDialog
                 licenseType={this.state.showLicenseDialog.licenseType}
                 url={this.state.showLicenseDialog.url}
+                link={context.repository[this.state.showLicenseDialog.adapterName]?.licenseInformation?.link}
                 onClose={result => {
                     const showLicenseDialog = result ? this.state.showLicenseDialog : null;
                     this.setState({ showLicenseDialog: null, showDialog: false }, () => {
@@ -187,6 +207,11 @@ export default abstract class AdapterInstallDialog<
         );
     }
 
+    /**
+     * Installs an adapter (`url`) or creates an instance (`add`).
+     *
+     * @returns true if the command was executed successfully
+     */
     async addInstance(options: {
         adapterName: string;
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
@@ -198,7 +223,7 @@ export default abstract class AdapterInstallDialog<
         host?: string;
         /** Optional files (base64) to send along with the command (e.g. a .tgz to install on a remote host) */
         files?: CommandFile[];
-    }): Promise<void> {
+    }): Promise<boolean> {
         if (!options.customUrl) {
             const adapterObject = options.context.repository[options.adapterName];
 
@@ -216,7 +241,7 @@ export default abstract class AdapterInstallDialog<
                     addInstanceHostName: options.context.currentHost.replace(/^system\.host\./, ''),
                     addInstanceId: options.instance || 'auto',
                 });
-                return;
+                return false;
             }
 
             if (options.instance) {
@@ -226,7 +251,7 @@ export default abstract class AdapterInstallDialog<
                     window.alert(
                         options.context.t('Instance %s already exists', `${options.adapterName}.${options.instance}`),
                     );
-                    return;
+                    return false;
                 }
             }
         }
@@ -235,6 +260,15 @@ export default abstract class AdapterInstallDialog<
             /^system\.host\./,
             '',
         );
+
+        if (!options.customUrl) {
+            // the host would refuse it anyway, but only with the output of the CLI (#3677)
+            const refusal = await AdapterInstallDialog.getSingletonRefusal(options.adapterName, host, options.context);
+            if (refusal) {
+                window.alert(refusal);
+                return false;
+            }
+        }
 
         try {
             await new Promise<void>((resolve, reject) => {
@@ -250,26 +284,143 @@ export default abstract class AdapterInstallDialog<
             });
         } catch (e) {
             window.alert(`${I18n.t('Cannot install')}: ${e}`);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Whether the adapter allows only one instance in the whole system (`common.singleton`) and has it
+     * already, so another one cannot be added
+     *
+     * @param adapterName the adapter name, e.g. `alias-workbench`
+     * @param context the adapters context
+     */
+    static isSingletonInstalled(adapterName: string, context: AdaptersContext): boolean {
+        if (!context.adapters[`system.adapter.${adapterName}`]?.common?.singleton) {
+            return false;
+        }
+        const prefix = `system.adapter.${adapterName}.`;
+        return Object.keys(context.compactInstances).some(id => id.startsWith(prefix));
+    }
+
+    /**
+     * Why the host would refuse another instance of the adapter: it allows only one instance in the
+     * system (`common.singleton`) or on one host (`common.singletonHost`) and has it already
+     *
+     * @param adapterName the adapter name, e.g. `alias-workbench`
+     * @param host the host the instance should run on, without `system.host.`
+     * @param context the adapters context
+     * @returns the text for the user, or `null` if the instance may be added
+     */
+    static async getSingletonRefusal(
+        adapterName: string,
+        host: string,
+        context: AdaptersContext,
+    ): Promise<string | null> {
+        const common = context.adapters[`system.adapter.${adapterName}`]?.common;
+        if (!common?.singleton && !common?.singletonHost) {
+            return null;
+        }
+        const instances = (await context.instancesWorker.getObjects().catch((): null => null)) || {};
+        const prefix = `system.adapter.${adapterName}.`;
+        const existing = Object.values(instances).filter(obj => obj?._id.startsWith(prefix));
+        if (common.singleton && existing.length) {
+            return context.t(
+                'Adapter "%s" allows only one instance, and %s exists already',
+                adapterName,
+                existing[0]._id.substring('system.adapter.'.length),
+            );
+        }
+        const onHost = existing.find(obj => obj.common.host === host);
+        if (common.singletonHost && onHost) {
+            return context.t(
+                'Adapter "%s" allows only one instance per host, and %s exists already on host "%s"',
+                adapterName,
+                onHost._id.substring('system.adapter.'.length),
+                host,
+            );
+        }
+        return null;
+    }
+
+    /**
+     * Creates the first instance of an adapter, but only if it does not have any instance yet.
+     *
+     * The `url` command (installation from npm, GitHub, an URL or a `.tgz` file) only installs the adapter
+     * and does not create an instance, so this is called afterwards if the user did not opt out.
+     */
+    static async createInstanceIfNotExists(options: {
+        adapterName: string;
+        context: AdaptersContext;
+        /** Explicit target host (with or without the `system.host.` prefix). Default is the current host */
+        host?: string;
+        debug?: boolean;
+    }): Promise<void> {
+        const { adapterName, context } = options;
+        const host = (options.host || context.currentHost).replace(/^system\.host\./, '');
+
+        // The adapter object is written by the installer, so give the controller some time to create it
+        let adapterObject: ioBroker.Object | null | undefined;
+        for (let attempt = 0; attempt < 5 && !adapterObject; attempt++) {
+            await new Promise<void>(resolve => setTimeout(resolve, 500));
+            try {
+                adapterObject = await context.socket.getObject(`system.adapter.${adapterName}`);
+            } catch {
+                // ignore, as the object could be not created yet
+            }
+        }
+
+        if (!adapterObject) {
+            // The installation delivered something else than expected, so we do not know what to create
+            console.warn(`Cannot create an instance: adapter "${adapterName}" not found after the installation`);
+            return;
+        }
+
+        const instances = await context.instancesWorker.getObjects(true);
+        if (instances && Object.keys(instances).find(id => id.startsWith(`system.adapter.${adapterName}.`))) {
+            // At least one instance exists already
+            return;
+        }
+
+        try {
+            await new Promise<void>((resolve, reject) => {
+                context.executeCommand(
+                    `add ${adapterName} --host ${host} ${options.debug || context.expertMode ? '--debug' : ''}`,
+                    host,
+                    exitCode =>
+                        !exitCode ? resolve() : reject(new Error(`The process returned an exit code of ${exitCode}`)),
+                );
+            });
+        } catch (e) {
+            window.alert(`${I18n.t('Cannot create instance')}: ${e}`);
         }
     }
 
-    static getDependencies(adapterName: string, context: AdaptersContext): AdapterDependencies[] {
+    static getDependencies(adapterName: string, context: DependenciesContext): AdapterDependencies[] {
         const adapter = context.repository[adapterName];
         const result: AdapterDependencies[] = [];
 
         if (adapter) {
-            if (adapter.dependencies && !Array.isArray(adapter.dependencies)) {
-                adapter.dependencies = [adapter.dependencies];
-            }
-
-            if (adapter.globalDependencies && !Array.isArray(adapter.globalDependencies)) {
-                adapter.globalDependencies = [adapter.globalDependencies];
-            }
+            // An old repository may deliver a single object instead of a list. It is normalized here
+            // and not written back, because this runs for every adapter of the list while it is
+            // rendered, and the repository of the state must not be changed on the way.
+            const dependencies = adapter.dependencies
+                ? Array.isArray(adapter.dependencies)
+                    ? adapter.dependencies
+                    : [adapter.dependencies]
+                : [];
+            const globalDependencies = adapter.globalDependencies
+                ? Array.isArray(adapter.globalDependencies)
+                    ? adapter.globalDependencies
+                    : [adapter.globalDependencies]
+                : [];
 
             const nodeVersion = adapter.node;
 
-            if (adapter.dependencies?.length) {
-                for (const dependency of adapter.dependencies) {
+            if (dependencies.length) {
+                for (const dependency of dependencies) {
                     const entry: AdapterDependencies = {
                         name: '',
                         version: null,
@@ -280,7 +431,7 @@ export default abstract class AdapterInstallDialog<
 
                     const checkVersion = typeof dependency !== 'string';
                     const keys = Object.keys(dependency);
-                    entry.name = !checkVersion ? dependency : keys ? keys[0] : null;
+                    entry.name = (!checkVersion ? dependency : keys ? keys[0] : '') || '';
                     entry.version = checkVersion ? dependency[entry.name] : null;
 
                     if (entry.name) {
@@ -291,7 +442,9 @@ export default abstract class AdapterInstallDialog<
                         try {
                             entry.rightVersion = installed
                                 ? checkVersion
-                                    ? semver.satisfies(installed.version, entry.version, { includePrerelease: true })
+                                    ? semver.satisfies(installed.version, entry.version || '*', {
+                                          includePrerelease: true,
+                                      })
                                     : true
                                 : false;
                         } catch {
@@ -303,8 +456,8 @@ export default abstract class AdapterInstallDialog<
                 }
             }
 
-            if (adapter.globalDependencies?.length) {
-                for (const dependency of adapter.globalDependencies) {
+            if (globalDependencies.length) {
+                for (const dependency of globalDependencies) {
                     const entry: AdapterDependencies = {
                         name: '',
                         version: null,
@@ -315,7 +468,7 @@ export default abstract class AdapterInstallDialog<
 
                     const checkVersion = typeof dependency !== 'string';
                     const keys = Object.keys(dependency);
-                    entry.name = !checkVersion ? dependency : keys ? keys[0] : null;
+                    entry.name = (!checkVersion ? dependency : keys ? keys[0] : '') || '';
                     entry.version = checkVersion ? dependency[entry.name] : null;
 
                     if (entry.name) {
@@ -323,14 +476,42 @@ export default abstract class AdapterInstallDialog<
 
                         entry.installed = !!installed;
                         entry.installedVersion = installed ? installed.version : null;
-                        try {
-                            entry.rightVersion = installed
-                                ? checkVersion
-                                    ? semver.satisfies(installed.version, entry.version, { includePrerelease: true })
-                                    : true
-                                : false;
-                        } catch {
-                            entry.rightVersion = true;
+
+                        // A global dependency must be fulfilled on EVERY host in a multihost setup.
+                        // Collect all hosts that do not fulfill the required version, so the error
+                        // message can point the user to the exact host(s) that must be updated.
+                        // Only relevant for multihost setups (more than one host has the adapter);
+                        // for a single host the concise default message below is used.
+                        const perHost = context.installedGlobalHosts?.[entry.name];
+                        if (checkVersion && perHost && Object.keys(perHost).length > 1) {
+                            const wrongHosts: { host: string; installedVersion: string }[] = [];
+                            for (const [hostName, hostVersion] of Object.entries(perHost)) {
+                                let ok: boolean;
+                                try {
+                                    ok = semver.satisfies(hostVersion, entry.version || '*', {
+                                        includePrerelease: true,
+                                    });
+                                } catch {
+                                    ok = true;
+                                }
+                                if (!ok) {
+                                    wrongHosts.push({ host: hostName, installedVersion: hostVersion });
+                                }
+                            }
+                            entry.wrongHosts = wrongHosts;
+                            entry.rightVersion = installed ? !wrongHosts.length : false;
+                        } else {
+                            try {
+                                entry.rightVersion = installed
+                                    ? checkVersion
+                                        ? semver.satisfies(installed.version, entry.version || '*', {
+                                              includePrerelease: true,
+                                          })
+                                        : true
+                                    : false;
+                            } catch {
+                                entry.rightVersion = true;
+                            }
                         }
                     }
 
@@ -338,14 +519,14 @@ export default abstract class AdapterInstallDialog<
                 }
             }
 
-            const dependencies: Record<string, string> = adapter.ifInstalledDependencies as Record<string, string>;
+            const ifInstalledDependencies: Record<string, string> = adapter.ifInstalledDependencies || {};
 
-            if (dependencies && typeof dependencies === 'object' && !Array.isArray(dependencies)) {
-                const adapters = Object.keys(dependencies);
+            if (typeof ifInstalledDependencies === 'object' && !Array.isArray(ifInstalledDependencies)) {
+                const adapters = Object.keys(ifInstalledDependencies);
                 for (const a of adapters) {
                     const entry: AdapterDependencies = {
                         name: a,
-                        version: dependencies[a],
+                        version: ifInstalledDependencies[a],
                         installed: false,
                         installedVersion: null,
                         rightVersion: false,
@@ -358,7 +539,9 @@ export default abstract class AdapterInstallDialog<
                         entry.installedVersion = installed ? installed.version : null;
                         try {
                             entry.rightVersion = installed
-                                ? semver.satisfies(installed.version, entry.version, { includePrerelease: true })
+                                ? semver.satisfies(installed.version, entry.version || '*', {
+                                      includePrerelease: true,
+                                  })
                                 : true;
                         } catch {
                             entry.rightVersion = true;
@@ -451,7 +634,7 @@ export default abstract class AdapterInstallDialog<
     // eslint-disable-next-line react/no-unused-class-component-methods
     onAddInstance(adapterName: string, context: AdaptersContext): void {
         const adapter = context.repository[adapterName];
-        const url = extractUrlLink(adapter);
+        const url = extractLicenseTextUrl(adapter);
         const licenseType = adapter.licenseInformation?.license || adapter.license;
 
         if (

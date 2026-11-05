@@ -9,12 +9,15 @@ import {
     DialogTitle,
     FormControlLabel,
     TextField,
+    Tooltip,
 } from '@mui/material';
 
 // Icons
 import { Close, Check } from '@mui/icons-material';
 
-import { type Translate, Utils, type IobTheme, type Connection, SelectID } from '@iobroker/adapter-react-v5';
+import { type Translate, Utils, type IobTheme, type Connection, SelectID } from '@iobroker/gui-components';
+
+import { onCtrlEnter } from '@/helpers/ctrlEnter';
 
 interface ObjectEditDialogProps {
     expertMode: boolean;
@@ -112,7 +115,7 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                 // Try to find all instances with common.getHistory flag
                 if (
                     Object.keys(obj.common.custom).find(
-                        key => instances.includes(key) && !obj.common.custom[key].aliasId,
+                        key => instances.includes(key) && !obj.common.custom?.[key].aliasId,
                     )
                 ) {
                     withHistory.push(obj._id);
@@ -126,6 +129,27 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
         return true;
     }
 
+    /** CTRL+ENTER triggers the same action as the "Rename"/"Replace" button */
+    onCtrlEnter = async (): Promise<void> => {
+        // the sub-dialogs are rendered inside this dialog, so their events end up here too
+        if (this.state.showParentDialog || this.state.showHistoryWarning) {
+            return;
+        }
+        const newID = `${this.state.parentId}.${this.state.name}`;
+        if (!this.state.name || newID === this.props.id) {
+            return;
+        }
+        if (await this.checkHistory()) {
+            await this.renameCopyObject(
+                this.props.id,
+                newID,
+                !!this.props.childrenIds.length && this.state.renameAllChildren,
+                false,
+            );
+            this.props.onClose();
+        }
+    };
+
     showHistoryWarning(): React.JSX.Element | null {
         if (!this.state.showHistoryWarning) {
             return null;
@@ -134,6 +158,7 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
             <Dialog
                 open={!0}
                 onClose={() => this.setState({ showHistoryWarning: false })}
+                onKeyDown={e => onCtrlEnter(e, () => void this.onConfirmHistoryWarning())}
             >
                 <DialogTitle>{this.props.t('Found states with history')}</DialogTitle>
                 <DialogContent>
@@ -143,23 +168,16 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                     <div>{this.props.t('move_states_with_history_warning')}</div>
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={async () => {
-                            const newID = `${this.state.parentId}.${this.state.name}`;
-                            await this.renameCopyObject(
-                                this.props.id,
-                                newID,
-                                this.props.childrenIds.length && this.state.renameAllChildren,
-                                false,
-                            );
-                            this.props.onClose();
-                        }}
-                        startIcon={<Check />}
-                    >
-                        {this.props.t('Confirm')}
-                    </Button>
+                    <Tooltip title={this.props.t('Press CTRL+ENTER to confirm')}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => void this.onConfirmHistoryWarning()}
+                            startIcon={<Check />}
+                        >
+                            {this.props.t('Confirm')}
+                        </Button>
+                    </Tooltip>
                     <Button
                         color="grey"
                         variant="contained"
@@ -173,6 +191,17 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
         );
     }
 
+    /** The user confirmed that the history of the states is lost */
+    onConfirmHistoryWarning = async (): Promise<void> => {
+        await this.renameCopyObject(
+            this.props.id,
+            `${this.state.parentId}.${this.state.name}`,
+            !!this.props.childrenIds.length && this.state.renameAllChildren,
+            false,
+        );
+        this.props.onClose();
+    };
+
     async renameCopyObject(oldId: string, newId: string, withChildren: boolean, copy: boolean): Promise<void> {
         if (oldId === newId) {
             return;
@@ -185,7 +214,7 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
         }
         let state: ioBroker.State | undefined;
         if (obj?.type === 'state') {
-            state = await this.props.socket.getState(oldId);
+            state = (await this.props.socket.getState(oldId)) || undefined;
         }
         if (withChildren) {
             for (const id of this.props.childrenIds) {
@@ -276,7 +305,7 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                     if (!objects[id]) {
                         return Promise.resolve(true);
                     }
-                    if (objects[id].type === 'state') {
+                    if (objects[id]?.type === 'state') {
                         return Promise.resolve(false);
                     }
                     if (id.startsWith('system.')) {
@@ -285,12 +314,12 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                     return Promise.resolve(true);
                 }}
                 onClose={() => this.setState({ showParentDialog: false })}
-                onOk={(_id: string[] | string) => {
+                onOk={(_id: string | string[] | undefined) => {
                     let parentId: string;
                     if (Array.isArray(_id)) {
                         parentId = _id[0];
                     } else {
-                        parentId = _id;
+                        parentId = _id || '';
                     }
                     if (parentId && parentId.split('.').length > 1) {
                         this.setState({ parentId });
@@ -309,6 +338,7 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                 maxWidth="md"
                 fullWidth
                 onClose={() => this.props.onClose()}
+                onKeyDown={e => onCtrlEnter(e, () => void this.onCtrlEnter())}
             >
                 {this.renderParentSelectorDialog()}
                 {this.showHistoryWarning()}
@@ -385,7 +415,7 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                             await this.renameCopyObject(
                                 this.props.id,
                                 newID,
-                                this.props.childrenIds.length && this.state.renameAllChildren,
+                                !!this.props.childrenIds.length && this.state.renameAllChildren,
                                 true,
                             );
                             this.props.onClose();
@@ -393,26 +423,20 @@ class ObjectMoveRenameDialog extends Component<ObjectEditDialogProps, ObjectEdit
                     >
                         {this.props.t('Create a copy')}
                     </Button>
-                    <Button
-                        disabled={!this.state.name || newID === this.props.id}
-                        color="primary"
-                        variant="contained"
-                        onClick={async () => {
-                            if (await this.checkHistory()) {
-                                await this.renameCopyObject(
-                                    this.props.id,
-                                    newID,
-                                    this.props.childrenIds.length && this.state.renameAllChildren,
-                                    false,
-                                );
-                                this.props.onClose();
-                            }
-                        }}
-                    >
-                        {newID !== this.props.id && this.state.newExists
-                            ? this.props.t('Replace')
-                            : this.props.t('Rename')}
-                    </Button>
+                    <Tooltip title={this.props.t('Press CTRL+ENTER to confirm')}>
+                        <span>
+                            <Button
+                                disabled={!this.state.name || newID === this.props.id}
+                                color="primary"
+                                variant="contained"
+                                onClick={() => void this.onCtrlEnter()}
+                            >
+                                {newID !== this.props.id && this.state.newExists
+                                    ? this.props.t('Replace')
+                                    : this.props.t('Rename')}
+                            </Button>
+                        </span>
+                    </Tooltip>
                     <Button
                         variant="contained"
                         color="grey"

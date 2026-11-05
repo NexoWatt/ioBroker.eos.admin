@@ -1,7 +1,7 @@
 import React, { type JSX } from 'react';
-import { Grid2, Tooltip, Typography } from '@mui/material';
+import { Grid, Tooltip, Typography } from '@mui/material';
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, any> = {
     nowrap: {
         flexFlow: 'nowrap',
         overflow: 'hidden',
@@ -12,6 +12,8 @@ const styles: Record<string, React.CSSProperties> = {
     },
     tooltip: {
         pointerEvents: 'none',
+        // a tooltip can list several lines, e.g. all resources an instance occupies
+        '& .MuiTooltip-tooltip': { whiteSpace: 'pre-line' },
     },
 };
 
@@ -23,25 +25,25 @@ interface InstanceInfoProps {
 }
 
 const InstanceInfo = (props: InstanceInfoProps): JSX.Element => (
-    <Grid2
+    <Grid
         container
         title={props.icon ? '' : props.tooltip || ''}
-        alignItems="center"
         direction="row"
         spacing={1}
         style={styles.nowrap}
+        sx={{ alignItems: 'center' }}
     >
         {props.icon && (
-            <Grid2 style={{ minWidth: 24 }}>
+            <Grid style={{ minWidth: 24 }}>
                 <Tooltip
                     title={props.tooltip || ''}
                     slotProps={{ popper: { sx: styles.tooltip } }}
                 >
                     {props.icon}
                 </Tooltip>
-            </Grid2>
+            </Grid>
         )}
-        <Grid2 style={styles.width}>
+        <Grid style={styles.width}>
             <Tooltip
                 title={props.tooltip || ''}
                 slotProps={{ popper: { sx: styles.tooltip } }}
@@ -53,8 +55,8 @@ const InstanceInfo = (props: InstanceInfoProps): JSX.Element => (
                     {props.children}
                 </Typography>
             </Tooltip>
-        </Grid2>
-    </Grid2>
+        </Grid>
+    </Grid>
 );
 
 export default InstanceInfo;

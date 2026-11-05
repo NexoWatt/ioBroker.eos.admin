@@ -13,10 +13,15 @@ import {
     FileBrowser,
     type FileBrowserClass,
     type MetaObject,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import FileEditor from '../components/FileEditor';
 import FileEditOfAccessControl from '../dialogs/FileEditOfAccessControl';
+
+/** Modes of the file browser in the URL (`#tab-files/<mode>/<id>`). Other names there, e.g. "system", are dialogs of the App */
+const FILE_BROWSER_MODES = ['select', 'view'];
+
+type FilesNavigation = { mode: 'select' | 'view'; id: string };
 
 interface FilesProps {
     t: Translate;
@@ -28,12 +33,15 @@ interface FilesProps {
     theme: IobTheme;
 }
 
-class Files extends Component<FilesProps> {
+export default class Files extends Component<FilesProps> {
     private readonly t: Translate;
 
     private readonly wordCache: Record<string, string>;
 
     private objects: Record<string, ioBroker.Object>;
+
+    /** The last navigation target from the URL, it is kept while a dialog of the App is open */
+    private navigateTo: FilesNavigation | null = null;
 
     constructor(props: FilesProps) {
         super(props);
@@ -44,6 +52,12 @@ class Files extends Component<FilesProps> {
 
     componentDidMount(): void {
         void this.props.socket.getObjects(true, true).then(objects => (this.objects = objects));
+    }
+
+    /** The URL shows a dialog of the App (e.g., the system settings) and not a route of the file browser */
+    private static isAppDialogOpen(): boolean {
+        const dialog = Router.getLocation().dialog;
+        return !!dialog && !FILE_BROWSER_MODES.includes(dialog);
     }
 
     translate = (word: string, arg1?: any, arg2?: any): string => {
@@ -82,7 +96,8 @@ class Files extends Component<FilesProps> {
                         ]);
                     }
                 }}
-                applyChangesToFile={async (adapter: string, file: string, data: Partial<ioBroker.FileACL>) => {
+                applyChangesToFile={async (adapter: string, file: string, _data?: Partial<ioBroker.FileACL>) => {
+                    const data = _data || {};
                     let result: ioBroker.ChownFileResult[] | undefined;
                     if ((data.owner || data.ownerGroup) && data.permissions) {
                         await this.props.socket.chownFile(adapter, file, {
@@ -141,25 +156,34 @@ class Files extends Component<FilesProps> {
             return <LinearProgress />;
         }
 
-        // Derive the browser's navigation from the URL hash `#tab-files/<mode>/<encoded-id>`.
-        // File IDs contain "/" (e.g. "email.admin/custom/assets/x.js"), so the id segment is
-        // URL-encoded (the Router decodes it again in getLocation). The FileBrowser stays URL-agnostic.
-        const location = Router.getLocation();
-        const navigateTo =
-            location.tab === 'tab-files' && location.id
-                ? { mode: location.dialog === 'view' ? 'view' : 'select', id: location.id }
-                : null;
+        // Derive the browser's navigation from the URL hash `#tab-files/<mode>/<id>`.
+        // File IDs contain "/" (e.g. "email.admin/custom/assets/x.js"); the Router encodes the id
+        // segment and decodes it again in getLocation. The FileBrowser stays URL-agnostic.
+        // A dialog of the App (e.g., the system settings) replaces the route of the browser in the URL.
+        // Meanwhile, the last target is kept and nothing is reported, otherwise the browser would write
+        // its selection back into the URL and close the dialog immediately.
+        if (!Files.isAppDialogOpen()) {
+            const location = Router.getLocation();
+            this.navigateTo =
+                location.tab === 'tab-files' && location.id
+                    ? { mode: location.dialog === 'view' ? 'view' : 'select', id: location.id }
+                    : null;
+        }
+        const navigateTo = this.navigateTo;
 
         return (
             <TabContainer>
                 <TabContent overflow="auto">
                     <FileBrowser
                         navigateTo={navigateTo}
-                        onNavigateTo={(nav: { mode: 'select' | 'view'; id: string } | null) => {
+                        onNavigateTo={(nav: FilesNavigation | null) => {
+                            if (Files.isAppDialogOpen()) {
+                                return;
+                            }
                             if (!nav?.id) {
                                 Router.doNavigate('tab-files');
                             } else {
-                                Router.doNavigate('tab-files', nav.mode, encodeURIComponent(nav.id));
+                                Router.doNavigate('tab-files', nav.mode, nav.id);
                             }
                         }}
                         showViewTypeButton
@@ -184,5 +208,3 @@ class Files extends Component<FilesProps> {
         );
     }
 }
-
-export default Files;

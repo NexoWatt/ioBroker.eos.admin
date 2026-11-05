@@ -1,5 +1,5 @@
 import React, { Component, type JSX } from 'react';
-import MarkdownView from 'react-showdown';
+import SafeMarkdownView, { safeDocumentationUrl } from './SafeMarkdownView';
 import semver from 'semver';
 
 import {
@@ -10,6 +10,7 @@ import {
     List,
     ListItem,
     IconButton,
+    Button,
     Table,
     TableBody,
     TableCell,
@@ -23,7 +24,7 @@ import { MdClose as IconClose, MdMenu as IconMenu, MdExpandMore as IconExpandMor
 
 import { FaGithub as IconGithub } from 'react-icons/fa';
 
-import { type AdminConnection, type IobTheme, type ThemeName, I18n, Loader, Utils } from '@iobroker/adapter-react-v5';
+import { type AdminConnection, type IobTheme, type ThemeName, I18n, Loader, Utils } from '@iobroker/gui-components';
 
 import IconGlobe from '../assets/globe.svg';
 import IconLink from '../assets/link.svg';
@@ -36,7 +37,9 @@ import MDUtils, {
     type MarkdownPart,
 } from './MDUtils';
 import type { Repository } from '@iobroker/socket-client';
-// import { Page404 } from '@iobroker/adapter-react-v5';
+import { readRepository } from '@/helpers/repository';
+import { DocumentationFetchError, fetchDocumentation } from '@/helpers/documentationFetch';
+// import { Page404 } from '@iobroker/gui-components';
 
 const styles: Record<string, any> = {
     root: {
@@ -361,17 +364,6 @@ const styles: Record<string, any> = {
     },
 };
 
-const CONVERTER_OPTIONS = {
-    emoji: true,
-    underline: true,
-    strikethrough: true,
-    simplifiedAutoLink: true,
-    parseImgDimensions: true,
-    splitAdjacentBlockquotes: true,
-    openLinksInNewWindow: true,
-    backslashEscapesHTMLTags: true,
-};
-
 const ADAPTER_CARD = ['version', 'authors', 'keywords', 'mode', 'materialize', 'compact'];
 
 interface MarkdownProps {
@@ -394,6 +386,7 @@ interface MarkdownState {
     parts: MarkdownPart[];
     title: string;
     loadTimeout: boolean;
+    documentError: string;
     header: MarkdownHeader;
     content: Record<string, MarkdownContent>;
     license: string;
@@ -402,32 +395,17 @@ interface MarkdownState {
     text: string;
     notFound: boolean;
     affiliate: any;
-    adapterNews: Record<string, ioBroker.StringOrTranslated>;
+    adapterNews: Record<string, ioBroker.StringOrTranslated> | null;
     hideContent: boolean;
 }
 
 class Markdown extends Component<MarkdownProps, MarkdownState> {
-    private readonly contentRef: React.RefObject<HTMLDivElement>;
+    private readonly contentRef: React.RefObject<HTMLDivElement | null>;
 
     private mounted: boolean;
-
-    private readonly customLink: ({ text, link }: { text: string; link: string }) => JSX.Element;
-
-    private readonly customH: ({
-        text,
-        id,
-        level,
-        prefix,
-    }: {
-        text: string;
-        id: string;
-        level: string;
-        prefix: string;
-    }) => JSX.Element;
-
-    private readonly meta: (_props: any) => JSX.Element;
-
-    private readonly link: () => JSX.Element;
+    private documentRequest: AbortController | undefined;
+    private documentLoadingTimer: ReturnType<typeof setTimeout> | undefined;
+    private documentUrl: string | undefined;
 
     constructor(props: MarkdownProps) {
         super(props);
@@ -436,6 +414,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
             parts: [],
             title: '',
             loadTimeout: false,
+            documentError: '',
             header: {},
             content: {},
             license: '',
@@ -452,149 +431,77 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
 
         this.mounted = false;
 
-        if (!this.state.text) {
-            this.load();
-
-            // Give 300ms to load the page. After that show the loading indicator.
-            setTimeout(() => !this.state.parts.length && this.setState({ loadTimeout: true }), 300);
-        } else {
-            this.parseText();
-        }
-
         this.contentRef = React.createRef();
-
-        this.customLink = ({ text, link }) => (
-            <Box
-                component="a"
-                className="md-link"
-                sx={styles.mdLink}
-                onClick={() => {
-                    if (link) {
-                        if (link.startsWith('#')) {
-                            Markdown.onNavigate(MDUtils.text2link(link.substring(1)));
-                        } else {
-                            let href = link;
-                            if (!href.match(/^https?:\/\//)) {
-                                const parts = (this.props.path || '').split('/');
-                                // const fileName = parts.pop();
-                                const prefix = `${parts.join('/')}/`;
-
-                                href = prefix + link;
-                            }
-
-                            Markdown.onNavigate(null, href);
-                        }
-                    }
-                }}
-                title={link}
-            >
-                {text}
-            </Box>
-        );
-
-        /*
-        if (reactObj && (reactObj.type === 'h1' || reactObj.type === 'h2' || reactObj.type === 'h3' || reactObj.type === 'h3')) {
-            reactObj.props.children[0] = (<span>{reactObj.props.children[0]}<a
-                href={prefix + '?' + reactObj.props.id}
-                style={styles.mdHeaderLink + ' md-h-link'}>
-            </a></span>);
-        }
-         */
-        this.customH = ({ text, id, level, prefix }) => {
-            const _level = parseInt(level, 10);
-
-            if (_level === 1) {
-                return (
-                    <h1 id={id}>
-                        <span>{text}</span>
-                        <Box
-                            component="a"
-                            href={`${prefix}?${id}`}
-                            sx={styles.mdHeaderLink}
-                            className="md-h-link"
-                        />
-                    </h1>
-                );
-            }
-            if (_level === 2) {
-                return (
-                    <h2 id={id}>
-                        <span>{text}</span>
-                        <Box
-                            component="a"
-                            href={`${prefix}?${id}`}
-                            sx={styles.mdHeaderLink}
-                            className="md-h-link"
-                        />
-                    </h2>
-                );
-            }
-            if (_level === 3) {
-                return (
-                    <h3 id={id}>
-                        <span>{text}</span>
-                        <Box
-                            component="a"
-                            href={`${prefix}?${id}`}
-                            sx={styles.mdHeaderLink}
-                            className="md-h-link"
-                        />
-                    </h3>
-                );
-            }
-            if (_level === 4) {
-                return (
-                    <h4 id={id}>
-                        <span>{text}</span>
-                        <Box
-                            component="a"
-                            href={`${prefix}?${id}`}
-                            sx={styles.mdHeaderLink}
-                            className="md-h-link"
-                        />
-                    </h4>
-                );
-            }
-            if (_level === 5) {
-                return (
-                    <h5 id={id}>
-                        <span>{text}</span>
-                        <Box
-                            component="a"
-                            href={`${prefix}?${id}`}
-                            sx={styles.mdHeaderLink}
-                            className="md-h-link"
-                        />
-                    </h5>
-                );
-            }
-            return (
-                <h6 id={id}>
-                    <span>{text}</span>
-                    <Box
-                        component="a"
-                        href={`${prefix}?${id}`}
-                        sx={styles.mdHeaderLink}
-                        className="md-h-link"
-                    />
-                </h6>
-            );
-        };
-        this.meta = () => <span>meta</span>; // text, id, level, prefix,
-
-        this.link = () => <div>linkAAAAA</div>; // text, id, level, prefix,
     }
 
     componentDidMount(): void {
         this.mounted = true;
         if (this.state.text) {
             this.parseText(this.state.text);
+        } else {
+            this.load();
         }
-        void this.props.socket?.getRepository(this.props.currentHost, {}).then((repo: Repository): void =>
-            this.setState({
-                adapterNews: repo[this.props.adapter]?.news as Record<string, ioBroker.StringOrTranslated>,
-            }),
-        );
+        if (this.props.socket && this.props.adapter) {
+            // only the entry of this adapter, which brings its news also if it is not installed
+            readRepository(this.props.socket, this.props.currentHost, {
+                lang: I18n.getLanguage(),
+                adapters: [this.props.adapter],
+            })
+                .then((repo: Repository): void =>
+                    this.setState({
+                        adapterNews: repo[this.props.adapter]?.news as Record<string, ioBroker.StringOrTranslated>,
+                    }),
+                )
+                .catch(e => console.warn(`Cannot read the news of "${this.props.adapter}": ${e}`));
+        }
+    }
+
+    componentWillUnmount(): void {
+        this.mounted = false;
+        this.cancelDocumentLoad();
+    }
+
+    private cancelDocumentLoad(): void {
+        this.documentRequest?.abort();
+        this.documentRequest = undefined;
+        clearTimeout(this.documentLoadingTimer);
+        this.documentLoadingTimer = undefined;
+    }
+
+    private async loadDocument(url: string): Promise<void> {
+        this.cancelDocumentLoad();
+        if (!this.mounted) {
+            return;
+        }
+        const request = new AbortController();
+        this.documentRequest = request;
+        this.documentUrl = url;
+        this.setState({ documentError: '', loadTimeout: false, notFound: false, parts: [] });
+        this.documentLoadingTimer = setTimeout(() => {
+            if (this.mounted && this.documentRequest === request) {
+                this.setState({ loadTimeout: true });
+            }
+        }, 300);
+        try {
+            const text = await fetchDocumentation(url, window.location.href, request.signal);
+            if (this.mounted && this.documentRequest === request && !request.signal.aborted) {
+                this.setState({ text }, () => this.parseText(text));
+            }
+        } catch (error) {
+            if (this.mounted && this.documentRequest === request && !request.signal.aborted) {
+                const message =
+                    error instanceof DocumentationFetchError && error.code === 'TIMEOUT'
+                        ? I18n.t('Documentation request timed out')
+                        : error instanceof DocumentationFetchError && error.code === 'TOO_LARGE'
+                          ? I18n.t('Documentation exceeds the size limit')
+                          : I18n.t('Documentation could not be loaded');
+                this.setState({ documentError: message, loadTimeout: false });
+            }
+        } finally {
+            if (this.documentRequest === request) {
+                this.cancelDocumentLoad();
+            }
+        }
     }
 
     UNSAFE_componentWillReceiveProps(nextProps: MarkdownProps /* , nextContext */): void {
@@ -604,6 +511,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
             }
             this.load(nextProps.path);
         } else if (this.props.text !== nextProps.text) {
+            this.cancelDocumentLoad();
             this.setState({ text: nextProps.text });
             if (!nextProps.text) {
                 if (this.props.path !== nextProps.path) {
@@ -619,7 +527,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
             if (this.mounted) {
                 this.setState({ notFound: false, parts: [] });
             }
-            this.load(null, nextProps.language);
+            this.load(undefined, nextProps.language);
         }
     }
 
@@ -631,9 +539,12 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         }
     } */
 
-    static onNavigate(id: string, link?: string): void {
+    static onNavigate(id: string | null, link?: string): void {
         if (link && link.match(/^https?:\/\//)) {
-            Utils.openLink(link);
+            const safe = safeDocumentationUrl(link, window.location.href);
+            if (safe) {
+                window.open(safe, '_blank', 'noopener,noreferrer');
+            }
         } else if (id) {
             const el = window.document.getElementById(id) || window.document.getElementById(id.replace('nbsp', ''));
             if (el) {
@@ -682,7 +593,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
     static parseChangeLog(changeLog: string): Record<string, MarkdownEntry> {
         const lines = changeLog.split('\n');
         const entries: Record<string, MarkdownEntry> = {};
-        let oneEntry: MarkdownEntry;
+        let oneEntry: MarkdownEntry | null = null;
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line.startsWith('##')) {
@@ -693,9 +604,11 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                 // ### 3.0.5 (2020-10-30) or ### 3.0.5 [2020-10-30] or ### 3.0.5
                 const [version, date] = line.replace(/^#+\s?/, '').split(/[\s([]+/);
                 if (version) {
-                    oneEntry = { lines: [] } as MarkdownEntry;
-                    oneEntry.version = version.trim();
-                    oneEntry.date = (date || '').trim().replace(/\)/, '');
+                    oneEntry = {
+                        version: version.trim(),
+                        date: (date || '').trim().replace(/\)/, ''),
+                        lines: [],
+                    };
                 }
             } else if (line.trim() && oneEntry) {
                 // extract author
@@ -745,16 +658,18 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
             }
         }
 
-        let _changeLog: Record<string, MarkdownEntry>;
+        let _changeLog: Record<string, MarkdownEntry> | undefined;
         // try to add missing news
         if (changeLog) {
             // split news
-            _changeLog = Markdown.parseChangeLog(changeLog);
-            if (_changeLog && typeof _changeLog === 'object' && this.state.adapterNews) {
+            const changeLogEntries = Markdown.parseChangeLog(changeLog);
+            _changeLog = changeLogEntries;
+            const allNews = this.state.adapterNews;
+            if (typeof changeLogEntries === 'object' && allNews) {
                 const lang: ioBroker.Languages = I18n.getLanguage();
-                Object.keys(this.state.adapterNews).forEach(version => {
-                    if (!_changeLog[version]) {
-                        const adapterNews = this.state.adapterNews[version];
+                Object.keys(allNews).forEach(version => {
+                    if (!changeLogEntries[version]) {
+                        const adapterNews = allNews[version];
                         let news: string;
                         if (typeof adapterNews === 'object') {
                             news = adapterNews[lang] || adapterNews.en || '';
@@ -762,7 +677,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                             news = adapterNews;
                         }
 
-                        _changeLog[version] = { version, lines: news.split('\\n') };
+                        changeLogEntries[version] = { version, lines: news.split('\\n') };
                     }
                 });
             }
@@ -789,9 +704,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         path = path || this.props.path;
         language = language || this.props.language;
         if (path && language) {
-            void fetch(`${language}${path[0] === '/' ? path : `/${path}`}`)
-                .then(res => res.text())
-                .then(text => this.parseText(text));
+            void this.loadDocument(`${language}${path[0] === '/' ? path : `/${path}`}`);
         }
     }
 
@@ -844,8 +757,8 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         };
     }
 
-    formatAuthors(text: string): JSX.Element[] {
-        const parts = text
+    formatAuthors(text: string | undefined): JSX.Element[] {
+        const parts = (text || '')
             .split(',')
             .map(t => t.trim())
             .filter(t => t);
@@ -898,13 +811,9 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                     sx={styles.headerTranslated}
                     onClick={() => {
                         if (this.props.onNavigate) {
-                            this.props.onNavigate(this.state.header.translatedFrom);
+                            this.props.onNavigate(this.state.header.translatedFrom || '');
                         } else {
-                            // read this.props.link
-                            fetch(this.props.link)
-                                .then(res => res.text())
-                                .then(text => this.setState({ text }, () => this.parseText()))
-                                .catch(e => window.alert(`Cannot fetch "${this.props.link}": ${e}`));
+                            void this.loadDocument(this.props.link);
                         }
                     }}
                     title={I18n.t('Go to original')}
@@ -942,7 +851,12 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                         size="large"
                         key="github"
                         title={I18n.t('Open repository')}
-                        onClick={() => Utils.openLink(link)}
+                        onClick={() => {
+                            const safe = safeDocumentationUrl(link, window.location.href);
+                            if (safe) {
+                                window.open(safe, '_blank', 'noopener,noreferrer');
+                            }
+                        }}
                     >
                         <IconGithub />
                     </IconButton>,
@@ -1021,7 +935,11 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                                 ) : null,
                                 <img
                                     key={`img${i}`}
-                                    src={(this.state.header as Record<string, string>)[attr]}
+                                    src={safeDocumentationUrl(
+                                        (this.state.header as Record<string, string>)[attr],
+                                        this.props.link || window.location.href,
+                                        true,
+                                    )}
                                     alt={attr.substring(6)}
                                 />,
                             ])}
@@ -1066,7 +984,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                         <li key={link || i}>
                             <Box
                                 component="span"
-                                onClick={() => Markdown.onNavigate(item, link)}
+                                onClick={() => Markdown.onNavigate(item, link || undefined)}
                                 sx={styles.contentLinks}
                             >
                                 {this.state.content[item].title}
@@ -1116,7 +1034,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         );
     }
 
-    renderContent(): JSX.Element {
+    renderContent(): JSX.Element | null {
         const links = Object.keys(this.state.content);
         if (!links.length) {
             return null;
@@ -1155,7 +1073,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                                 >
                                     <Box
                                         component="span"
-                                        onClick={() => Markdown.onNavigate(item, link)}
+                                        onClick={() => Markdown.onNavigate(item, link || undefined)}
                                         className={styles.contentLinks}
                                     >
                                         {title}
@@ -1176,8 +1094,6 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         if (!this.state.license) {
             return null;
         }
-        const CustomLink = this.customLink;
-        const CustomH = this.customH;
         return (
             <Accordion>
                 <AccordionSummary
@@ -1186,13 +1102,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                 >
                     {I18n.t('License')} <span style={styles.license}> {this.state.header.license}</span>
                 </AccordionSummary>
-                <AccordionActions>
-                    <MarkdownView
-                        markdown={this.state.license}
-                        options={CONVERTER_OPTIONS}
-                        components={{ CustomLink, CustomH }}
-                    />
-                </AccordionActions>
+                <AccordionActions>{this.renderMarkdown(this.state.license)}</AccordionActions>
             </Accordion>
         );
     }
@@ -1212,9 +1122,9 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         }
 
         try {
-            versions.sort(semver.gt as any);
+            versions.sort((left, right) => semver.rcompare(left, right));
         } catch (e) {
-            console.warn(`Cannot semver: ${e}`);
+            console.warn(`Cannot semver: ${e instanceof Error ? e.message : String(e)}`);
         }
         if (pos1 !== -1) {
             versions.unshift('**WORK');
@@ -1275,8 +1185,6 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         if (!this.state.changeLog) {
             return null;
         }
-        const CustomLink = this.customLink;
-        const CustomH = this.customH;
         return (
             <Accordion>
                 <AccordionSummary
@@ -1286,15 +1194,9 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                     {I18n.t('Changelog')}
                 </AccordionSummary>
                 <AccordionActions style={styles.changeLogAccordion}>
-                    {typeof this.state.changeLog === 'string' ? (
-                        <MarkdownView
-                            markdown={this.state.changeLog}
-                            options={CONVERTER_OPTIONS}
-                            components={{ CustomLink, CustomH }}
-                        />
-                    ) : (
-                        this.renderChangeLogLines()
-                    )}
+                    {typeof this.state.changeLog === 'string'
+                        ? this.renderMarkdown(this.state.changeLog)
+                        : this.renderChangeLogLines()}
                 </AccordionActions>
             </Accordion>
         );
@@ -1323,114 +1225,16 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         );
     }
 
-    replaceHref(line: string): string {
-        if (!line) {
-            return '';
-        }
-        const m = line.match(/\[.*]\(#[^)]+\)/g);
-        if (m) {
-            m.forEach(link => {
-                const pos = link.lastIndexOf('](');
-                const text = link.substring(0, pos).replace(/^\[/, '');
-                const href = link.substring(pos + 2).replace(/\)$/, '');
-                line = line.replace(link, `<CustomLink text="${text}" link="${href}" />`);
-            });
-        }
-        const mm = line.match(/!?\[.*]\([^)]+\)/g);
-        if (mm) {
-            // https://raw.githubusercontent.com/ioBroker/ioBroker.iot/master/README.md
-            //                https://github.com/ioBroker/ioBroker.iot/blob/master/README.md
-            const prefixHttp = this.props.link
-                .substring(0, this.props.link.lastIndexOf('/'))
-                .replace('https://raw.githubusercontent.com/', 'https://github.com/')
-                .replace(/\/master$/, '/blob/master')
-                .replace(/\/main$/, '/blob/main');
-
-            const prefixImage = this.props.link.substring(0, this.props.link.lastIndexOf('/'));
-            mm.forEach(link => {
-                const isImage = link.startsWith('!');
-                link = link.replace(/^!/, '');
-                const pos = link.lastIndexOf('](');
-                const text = link.substring(0, pos).replace(/^\[/, '');
-                const href = link.substring(pos + 2).replace(/\)$/, '');
-                if (!href.startsWith('http')) {
-                    if (isImage) {
-                        line = line.replace(link, `[${text}](${prefixImage}/${href})`);
-                    } else {
-                        // <a href="http://www.google.com" target="blank">google</a>
-                        line = line.replace(link, `<a href="${prefixHttp}/${href}" target="blank">${text}</a>`);
-                    }
-                } else if (!isImage) {
-                    line = line.replace(link, `<a href="${href}" target="blank">${text}</a>`);
-                }
-            });
-        }
-        return line;
-
-        /* const parts = (this.props.path || '').split('/');
-        // const fileName = parts.pop();
-        const prefix = parts.join('/') + '/';
-
-        if (reactObj && reactObj.props && reactObj.props.children) {
-            reactObj.props.children.forEach((item, i) => {
-                if (item && item.type === 'a') {
-                    let link = item.props.href;
-                    if (link) {
-                        if (link.startsWith('#')) {
-                            link = Utils.text2link(link.substring(1));
-                            reactObj.props.children[i] = (<div
-                                key={'link' + i}
-                                style={styles.mdLink + ' md-link'}
-                                title={link}
-                                onClick={() => Markdown.onNavigate(link)}>
-                                {item.props.children ? item.props.children[0] : ''}
-                            </div>);
-                        } else {
-                            const oldLink = link;
-                            if (!link.match(/^https?:\/\//)) {
-                                link = prefix + link;
-                            }
-
-                            reactObj.props.children[i] = (<div
-                                key={'link' + i}
-                                style={styles.mdLink + ' md-link'}
-                                title={oldLink}
-                                onClick={() => Markdown.onNavigate(null, link)}>
-                                {item.props.children ? item.props.children[0] : ''}
-                            </div>);
-                        }
-                    }
-                }
-
-                if (typeof item === 'object') {
-                    this.replaceHref(item);
-                }
-            });
-        } */
-    }
-
-    static makeHeadersAsLink(line: string, prefix: string): string {
-        if (!line) {
-            return '';
-        }
-        const mm = line.match(/^#+\s.+/g);
-        if (mm) {
-            mm.forEach(header => {
-                const level = header.match(/^(#+)\s/)[1].length;
-                const text = header.substring(level + 1);
-                line = line.replace(
-                    header,
-                    `<CustomH text="${text}" id="${MDUtils.text2link(text)}" level="${level}" prefix="${prefix}" />`,
-                );
-            });
-        }
-        return line;
-        /* if (reactObj && (reactObj.type === 'h1' || reactObj.type === 'h2' || reactObj.type === 'h3' || reactObj.type === 'h3')) {
-            reactObj.props.children[0] = (<span>{reactObj.props.children[0]}<a
-                href={prefix + '?' + reactObj.props.id}
-                style={styles.mdHeaderLink + ' md-h-link'}>
-            </a></span>);
-        } */
+    renderMarkdown(markdown: string): JSX.Element {
+        return (
+            <SafeMarkdownView
+                markdown={markdown}
+                baseUrl={this.props.link || window.location.href}
+                headingId={MDUtils.text2link}
+                onAnchor={id => Markdown.onNavigate(id)}
+                headingPrefix={window.location.hash.split('?')[0]}
+            />
+        );
     }
 
     renderTable(lines: string[], key: string): JSX.Element {
@@ -1438,8 +1242,6 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
             .replace(/^\||\|$/g, '')
             .split('|')
             .map(h => h.trim());
-        const CustomLink = this.customLink;
-        const CustomH = this.customH;
 
         const rows = [];
         for (let i = 2; i < lines.length; i++) {
@@ -1450,14 +1252,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
 
             const cells = [];
             for (let j = 0; j < header.length; j++) {
-                parts[j] = this.replaceHref(parts[j]);
-                const crt = (
-                    <MarkdownView
-                        markdown={parts[j] || ''}
-                        options={CONVERTER_OPTIONS}
-                        components={{ CustomLink, CustomH }}
-                    />
-                );
+                const crt = this.renderMarkdown(parts[j] || '');
                 cells.push(
                     <TableCell
                         sx={styles.tableCell}
@@ -1490,11 +1285,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                                 sx={styles.tableCellHead}
                                 key={`header${i}`}
                             >
-                                <MarkdownView
-                                    markdown={h}
-                                    options={CONVERTER_OPTIONS}
-                                    components={{ CustomLink, CustomH }}
-                                />
+                                {this.renderMarkdown(h)}
                             </TableCell>
                         ))}
                     </TableRow>
@@ -1505,6 +1296,25 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
     }
 
     render(): JSX.Element | null {
+        if (this.state.documentError) {
+            return (
+                <Box
+                    role="alert"
+                    sx={styles.warn}
+                >
+                    {this.state.documentError}
+                    <Button
+                        onClick={() => {
+                            if (this.documentUrl) {
+                                void this.loadDocument(this.documentUrl);
+                            }
+                        }}
+                    >
+                        {I18n.t('Retry')}
+                    </Button>
+                </Box>
+            );
+        }
         if (this.state.notFound) {
             return null; // <Page404 style={styles.root} language={this.props.language}/>;
         }
@@ -1512,13 +1322,6 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
         if (this.state.loadTimeout && !this.state.parts.length) {
             return <Loader themeName={this.props.themeName} />;
         }
-
-        const prefix = window.location.hash.split('?')[0];
-
-        const CustomLink = this.customLink;
-        const CustomH = this.customH;
-        const meta = this.meta;
-        const link = this.link;
 
         const reactElements = this.state.parts.map((part, i) => {
             if (part.type === 'table') {
@@ -1534,32 +1337,7 @@ class Markdown extends Component<MarkdownProps, MarkdownState> {
                 line = trimmed;
             }
 
-            // find all "[text](#link)" and replace it with <link text="text" link="link"/>
-            // Detect "[iobroker repo \[repoName\]](#iobroker-repo)"
-
-            line = this.replaceHref(line);
-            line = Markdown.makeHeadersAsLink(line, prefix);
-
-            // replace <- with &lt;
-            line = line.replace(/<-/g, '&lt;-');
-            line = line.replace(/<\/ br>/g, '<br />');
-
-            const rct = (
-                <MarkdownView
-                    markdown={line}
-                    options={CONVERTER_OPTIONS}
-                    components={{
-                        CustomLink,
-                        CustomH,
-                        meta,
-                        link,
-                    }}
-                />
-            );
-            /* cconst rct = <ReactMarkdown
-                    children={line}
-                    components={{ CustomLink, CustomH }}
-                />; */
+            const rct = this.renderMarkdown(line);
 
             if (part.type === 'warn') {
                 return (

@@ -1,0 +1,17 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "subject": [
+    {
+      "name": "pkg:npm/%40iobroker/admin-component-easy-access@3.0.8",
+      "digest": {
+        "sha512": "a38603ef8a70cfea6793f0198af4604bb30d5e3851215828060cfeaa7d3ba755d97fef45d7849483835d39f658652c88556f70b49b67c8da2f45f948a586bcf9"
+      }
+    }
+  ],
+  "predicateType": "https://github.com/npm/attestation/tree/main/specs/publish/v0.1",
+  "predicate": {
+    "name": "@iobroker/admin-component-easy-access",
+    "version": "3.0.8",
+    "registry": "https://registry.npmjs.org"
+  }
+}

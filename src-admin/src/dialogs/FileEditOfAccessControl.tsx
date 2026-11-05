@@ -12,7 +12,7 @@ import {
     type Folders,
     type MetaACL,
     type MetaObject,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import AdminUtils from '../helpers/AdminUtils';
 import CustomModal from '../components/CustomModal';
@@ -78,7 +78,18 @@ const ObjectRights: React.FC<ObjectRightsProps> = ({
         }
     }, [differentValues, applyToChildren, setMask, value]);
 
+    // Decompose `value` into its individual permission bits up front. Doing this inline while
+    // rendering would mutate a variable captured from the enclosing scope, which React forbids.
+    const checkedValues = new Set<number>();
     let newSelected = value;
+    for (const el of readWriteArray) {
+        for (const obj of el[Object.keys(el)[0]]) {
+            if (newSelected - obj.valueNum >= 0) {
+                newSelected -= obj.valueNum;
+                checkedValues.add(obj.valueNum);
+            }
+        }
+    }
 
     return (
         <div
@@ -125,14 +136,9 @@ const ObjectRights: React.FC<ObjectRightsProps> = ({
                             }}
                         >
                             {el[name].map((obj, idx) => {
-                                let bool = false;
+                                const bool = checkedValues.has(obj.valueNum);
 
                                 const masked = mask & obj.valueNum;
-
-                                if (newSelected - obj.valueNum >= 0) {
-                                    newSelected -= obj.valueNum;
-                                    bool = true;
-                                }
 
                                 return (
                                     <div
@@ -359,7 +365,7 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
         let _differentGroup = false;
         let _stateOwnerUser: string | null = null;
         let _stateOwnerGroup: string | null = null;
-        let _valueFileAccessControl: number = null;
+        let _valueFileAccessControl: number | null = null;
         const _ids: (MetaObject | FolderOrFileItem)[] = [];
         let count = 0;
 
@@ -421,24 +427,24 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                         ) {
                             _valueFileAccessControl = (keyFolder.acl as ioBroker.EvaluatedFileACL).permissions;
                         }
-                        if (_stateOwnerUser === null && keyFolder.acl.owner !== undefined) {
-                            _stateOwnerUser = keyFolder.acl.owner;
+                        if (_stateOwnerUser === null && keyFolder.acl?.owner !== undefined) {
+                            _stateOwnerUser = keyFolder.acl?.owner;
                         }
-                        if (_stateOwnerGroup === null && keyFolder.acl.ownerGroup !== undefined) {
-                            _stateOwnerGroup = keyFolder.acl.ownerGroup;
+                        if (_stateOwnerGroup === null && keyFolder.acl?.ownerGroup !== undefined) {
+                            _stateOwnerGroup = keyFolder.acl?.ownerGroup;
                         }
 
                         if (
                             !differentOwner &&
-                            _stateOwnerUser !== keyFolder.acl.owner &&
-                            keyFolder.acl.owner !== undefined
+                            _stateOwnerUser !== keyFolder.acl?.owner &&
+                            keyFolder.acl?.owner !== undefined
                         ) {
                             _differentOwner = true;
                         }
                         if (
                             !differentGroup &&
-                            _stateOwnerGroup !== keyFolder.acl.ownerGroup &&
-                            keyFolder.acl.ownerGroup !== undefined
+                            _stateOwnerGroup !== keyFolder.acl?.ownerGroup &&
+                            keyFolder.acl?.ownerGroup !== undefined
                         ) {
                             _differentGroup = true;
                         }
@@ -459,9 +465,9 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
             Object.keys(objects).forEach(_id => {
                 const obj = objects[_id];
                 if (_id.startsWith('system.group.') && obj?.type === 'group') {
-                    _groups.push(obj as ioBroker.GroupObject);
+                    _groups.push(obj);
                 } else if (_id.startsWith('system.user.') && obj?.type === 'user') {
-                    _users.push(obj as ioBroker.UserObject);
+                    _users.push(obj);
                 }
             });
 
@@ -493,6 +499,9 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [objects, selected]);
 
+    // TODO: the owner/group selection could be derived from `applyToChildren` while rendering. The
+    // effect is convergent (every write is guarded by an equality check), so it is correct as it
+    // stands; converting it is deferred until the dialog can be tested against a live controller.
     useEffect(() => {
         if (applyToChildren) {
             if (differentOwner && stateOwnerUser !== DIFFERENT) {
@@ -532,21 +541,21 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
 
                     if (!applyToChildren) {
                         const parts = object.id.split('/');
-                        const adapter = parts.shift();
+                        const adapter = parts.shift() || '';
                         const path = parts.join('/');
                         const newAcl: Partial<ioBroker.FileACL> = {};
                         let changed = false;
                         if (!object.folder) {
                             if ((object.acl as ioBroker.EvaluatedFileACL)?.permissions !== valueFileAccessControl) {
-                                newAcl.permissions = valueFileAccessControl;
+                                newAcl.permissions = valueFileAccessControl ?? undefined;
                                 changed = true;
                             }
                             if (object.acl?.owner !== stateOwnerUser) {
-                                newAcl.owner = stateOwnerUser;
+                                newAcl.owner = stateOwnerUser ?? undefined;
                                 changed = true;
                             }
                             if (object.acl?.ownerGroup !== stateOwnerGroup) {
-                                newAcl.ownerGroup = stateOwnerGroup;
+                                newAcl.ownerGroup = stateOwnerGroup ?? undefined;
                                 changed = true;
                             }
                             if (changed) {
@@ -557,17 +566,17 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                             const obj = objects[object.id] as MetaObject;
                             if (obj.acl?.file !== valueFileAccessControl) {
                                 obj.acl = obj.acl || ({} as MetaACL);
-                                obj.acl.file = valueFileAccessControl;
+                                obj.acl.file = valueFileAccessControl ?? 0;
                                 changed = true;
                             }
                             if (obj.acl?.owner !== stateOwnerUser) {
                                 obj.acl = obj.acl || ({} as MetaACL);
-                                obj.acl.owner = stateOwnerUser;
+                                obj.acl.owner = stateOwnerUser ?? '';
                                 changed = true;
                             }
                             if (obj.acl?.ownerGroup !== stateOwnerGroup) {
                                 obj.acl = obj.acl || ({} as MetaACL);
-                                obj.acl.ownerGroup = stateOwnerGroup;
+                                obj.acl.ownerGroup = stateOwnerGroup ?? '';
                                 changed = true;
                             }
                             if (changed) {
@@ -586,7 +595,7 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                                 // it is an object
                                 const permissions = newValueAccessControl(
                                     itemAsObject.acl?.file || defaultAclFile,
-                                    valueFileAccessControl,
+                                    valueFileAccessControl ?? 0,
                                     _maskObject,
                                 );
                                 if (permissions !== itemAsObject.acl?.file) {
@@ -596,12 +605,12 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                                 }
                                 if (stateOwnerUser !== DIFFERENT && stateOwnerUser !== itemAsObject.acl?.owner) {
                                     itemAsObject.acl = itemAsObject.acl || ({} as MetaACL);
-                                    itemAsObject.acl.owner = stateOwnerUser;
+                                    itemAsObject.acl.owner = stateOwnerUser ?? '';
                                     changed = true;
                                 }
                                 if (stateOwnerGroup !== DIFFERENT && stateOwnerGroup !== itemAsObject.acl?.ownerGroup) {
                                     itemAsObject.acl = itemAsObject.acl || ({} as MetaACL);
-                                    itemAsObject.acl.ownerGroup = stateOwnerGroup;
+                                    itemAsObject.acl.ownerGroup = stateOwnerGroup ?? '';
                                     changed = true;
                                 }
 
@@ -616,7 +625,7 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                                 const newAcl: Partial<ioBroker.FileACL> = {};
                                 const permissions = newValueAccessControl(
                                     (itemAsItem.acl as ioBroker.EvaluatedFileACL)?.permissions || defaultAclFile,
-                                    valueFileAccessControl,
+                                    valueFileAccessControl ?? 0,
                                     _maskObject,
                                 );
                                 if (permissions !== (itemAsItem.acl as ioBroker.EvaluatedFileACL)?.permissions) {
@@ -624,16 +633,16 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                                     changed = true;
                                 }
                                 if (stateOwnerUser !== DIFFERENT && stateOwnerUser !== itemAsItem.acl?.owner) {
-                                    newAcl.owner = stateOwnerUser;
+                                    newAcl.owner = stateOwnerUser ?? undefined;
                                     changed = true;
                                 }
                                 if (stateOwnerGroup !== DIFFERENT && stateOwnerGroup !== itemAsItem.acl?.ownerGroup) {
-                                    newAcl.ownerGroup = stateOwnerGroup;
+                                    newAcl.ownerGroup = stateOwnerGroup ?? undefined;
                                     changed = true;
                                 }
                                 if (changed) {
                                     const parts = itemAsItem.id.split('/');
-                                    const adapter = parts.shift();
+                                    const adapter = parts.shift() || '';
                                     const path = parts.join('/');
                                     try {
                                         await applyChangesToFile(adapter, path, newAcl);
@@ -666,7 +675,7 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                         style={{ marginRight: 10 }}
                         label={t('Owner user')}
                         lang={lang}
-                        list={users as ioBroker.Object[]}
+                        list={users}
                         t={t}
                         disabled={progress}
                         value={stateOwnerUser || undefined}
@@ -682,7 +691,7 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                         fullWidth
                         label={t('Owner group')}
                         lang={lang}
-                        list={groups as ioBroker.Object[]}
+                        list={groups}
                         t={t}
                         disabled={progress}
                         value={stateOwnerGroup || undefined}
@@ -740,7 +749,7 @@ const FileEditOfAccessControl: React.FC<FileEditOfAccessControlProps> = ({
                                 setValueFileAccessControl(e);
                                 setDisabledButton(false);
                             }}
-                            value={valueFileAccessControl}
+                            value={valueFileAccessControl ?? 0}
                         />
                     </div>
                 </div>

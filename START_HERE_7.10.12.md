@@ -1,5 +1,12 @@
 # EOS Admin 7.10.12 – Sicherheitskorrektur vom 25.10.2026
 
+**Nachtrag zur npm-Veröffentlichung:** In VS Code den Repositoryordner öffnen
+und im integrierten Terminal wie bisher `npm publish` ausführen. Fehlende
+Registry-Metadaten werden jetzt automatisch kontrolliert ergänzt, danach laufen
+Inventarisierung und Sicherheitsprüfungen. Node 24.x und direkter HTTPS-Zugriff
+auf die npm-Registry sind erforderlich. Details: `NPM_PUBLISH_FIX_7.10.12.md`.
+Der nachfolgend beschriebene Sicherheitsstand des Produktcodes bleibt erhalten.
+
 Ausgangsstand ist das vollständige EOS-Admin-7.10.11-Repository vom 30.09.2026.
 Dies bleibt der Admin-7-Zweig. Die aktuell auf einer Anlage installierte Fassung
 wurde nicht ausgelesen und es wurde kein Gerät verändert.
@@ -50,8 +57,9 @@ Lückenfreiheit oder IEC-/CRA-Konformität.
 
 Der reguläre vollständige Abhängigkeits-/TypeScript-/Frontend-Build konnte nicht
 belegt werden: 563 Backend-Lockeinträge besitzen weiterhin keine vollständigen
-Herkunfts-/Integritätsangaben. Ein lokaler Produktions-Publish bricht deshalb
-ab. Die mitgelieferte Backendfassung wurde gezielt erzeugt und geprüft, die
+Herkunfts-/Integritätsangaben. Der lokale Publish ergänzt diese Angaben jetzt
+automatisch; bei fehlgeschlagenem Registryabgleich stoppt er vor dem Upload.
+Die mitgelieferte Backendfassung wurde gezielt erzeugt und geprüft, die
 bestehende Browserfassung gezielt korrigiert. Das Verfahren steht in den
 Buildnachweisen und ersetzt keinen normalen Build.
 

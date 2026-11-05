@@ -1,10 +1,10 @@
 import React, { type JSX } from 'react';
 
-import { Box, Card, CardContent, CardMedia, Fab, Typography } from '@mui/material';
+import { Box, Card, CardContent, CardMedia, Fab, IconButton, Tooltip, Typography } from '@mui/material';
 
-import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { MoreVert as MoreVertIcon, Close as IconClose, Error as ErrorIcon } from '@mui/icons-material';
 
-import { Utils, type IobTheme } from '@iobroker/adapter-react-v5';
+import { Utils, type IobTheme } from '@iobroker/gui-components';
 
 import InstanceGeneric, {
     type InstanceGenericProps,
@@ -23,7 +23,7 @@ const styles: Record<string, any> = {
         height: 40,
         right: 20,
     },
-    collapse: (theme: IobTheme) => ({
+    collapse: (_theme: IobTheme) => ({
         height: '100%',
         background: 'linear-gradient(180deg, rgba(8, 29, 47, 0.985), rgba(4, 14, 25, 0.975))',
         color: '#eef7ff',
@@ -44,37 +44,11 @@ const styles: Record<string, any> = {
         height: 0,
     },
     close: {
-        width: 20,
-        height: 20,
-        opacity: 0.9,
-        cursor: 'pointer',
-        position: 'relative',
-        marginLeft: 'auto',
-        mb: '10px',
-        transition: 'all 0.6s ease',
-        '&:hover': {
-            transform: 'rotate(90deg)',
-        },
-        '&:before': {
-            position: 'absolute',
-            left: 9,
-            content: '""',
-            height: 20,
-            width: 3,
-            backgroundColor: '#eaf9ff',
-            transform: 'rotate(45deg)',
-        },
-        '&:after': {
-            position: 'absolute',
-            left: 9,
-            content: '""',
-            height: 20,
-            width: 3,
-            backgroundColor: '#eaf9ff',
-            transform: 'rotate(-45deg)',
-        },
+        display: 'flex',
+        ml: 'auto',
+        mt: '-4px',
     },
-    footerBlock: (theme: IobTheme) => ({
+    footerBlock: (_theme: IobTheme) => ({
         background: 'rgba(2, 9, 20, 0.90)',
         borderTop: '1px solid rgba(0,255,136,.22)',
         p: '10px',
@@ -82,6 +56,10 @@ const styles: Record<string, any> = {
         justifyContent: 'space-between',
     }),
     versionDate: {
+        alignSelf: 'center',
+    },
+    adapterMissingIcon: {
+        ...genericStyles.red,
         alignSelf: 'center',
     },
     adapter: {
@@ -111,7 +89,7 @@ const styles: Record<string, any> = {
     overflowAuto: {
         overflow: 'auto',
     },
-    collapseIcon: (theme: IobTheme) => ({
+    collapseIcon: (_theme: IobTheme) => ({
         position: 'sticky',
         right: 0,
         top: 0,
@@ -178,7 +156,7 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
         this.state = Object.assign(this.getDefaultState(props), { mouseOver: false });
     }
 
-    renderSecondCardInfo(): JSX.Element {
+    renderSecondCardInfo(): JSX.Element | null {
         if (this.props.deleting || !this.state.expanded) {
             return null;
         }
@@ -198,8 +176,8 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
                         component="div"
                         sx={styles.collapseIcon}
                     >
-                        <Box
-                            component="div"
+                        <IconButton
+                            size="small"
                             sx={styles.close}
                             onClick={() => {
                                 if (this.state.openDialog) {
@@ -209,7 +187,9 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
                                     this.props.context.onToggleExpanded(this.props.id, false),
                                 );
                             }}
-                        />
+                        >
+                            <IconClose />
+                        </IconButton>
                     </Box>
                     <Typography
                         gutterBottom
@@ -222,13 +202,21 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
 
                         {this.renderMemoryUsage()}
 
+                        {item.port && !item.usedResources.length ? (
+                            <div style={styles.displayFlex}>{this.renderPort()}</div>
+                        ) : null}
+                        {this.renderUsedResources()}
+
                         {item.running && this.props.context.expertMode && (
                             <div style={styles.displayFlex}>{this.renderInputOutput()}</div>
                         )}
 
-                        {this.props.context.expertMode && <div style={styles.displayFlex}>{this.renderRamLimit()}</div>}
+                        {/* Node.js only -- see InstanceItem.isPython. */}
+                        {this.props.context.expertMode && !item.isPython && (
+                            <div style={styles.displayFlex}>{this.renderRamLimit()}</div>
+                        )}
 
-                        {this.props.context.expertMode && <div style={styles.displayFlex}>{this.renderLogLevel()}</div>}
+                        <div style={styles.displayFlex}>{this.renderLogLevel()}</div>
 
                         {item.modeSchedule && <div style={styles.displayFlex}>{this.renderSchedule()}</div>}
 
@@ -236,9 +224,11 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
                             <div style={styles.displayFlex}>{this.renderRestartSchedule()}</div>
                         )}
 
-                        {this.props.context.expertMode && item.checkCompact && item.compact && item.supportCompact && (
-                            <div style={styles.displayFlex}>{this.renderCompactGroup()}</div>
-                        )}
+                        {this.props.context.expertMode &&
+                            !item.isPython &&
+                            item.checkCompact &&
+                            item.compact &&
+                            item.supportCompact && <div style={styles.displayFlex}>{this.renderCompactGroup()}</div>}
 
                         {this.props.context.expertMode && <div style={styles.displayFlex}>{this.renderTier()}</div>}
 
@@ -277,7 +267,7 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
                         <div style={styles.displayFlex}>{this.renderSentry()}</div>
                     )}
 
-                    {item.supportCompact && this.props.context.expertMode && item.checkCompact && (
+                    {item.supportCompact && !item.isPython && this.props.context.expertMode && item.checkCompact && (
                         <div style={styles.displayFlex}>{this.renderCompactGroupEnabled()}</div>
                     )}
                 </Box>
@@ -287,6 +277,8 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
 
     render(): JSX.Element {
         const { item, instance } = this.props;
+        // The adapter runs as a web-extension (inside a web instance) and has no own process
+        const runsAsWebExtension = item.stoppedWhenWebExtension !== undefined;
 
         return (
             <Card
@@ -302,19 +294,23 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
                     sx={Utils.getStyle(
                         this.props.context.theme,
                         styles.imageBlock,
-                        (!item.running || instance.mode !== 'daemon' || item.stoppedWhenWebExtension !== undefined) &&
+                        !runsAsWebExtension &&
+                            (!item.running || instance.mode !== 'daemon') &&
                             styles.instanceStateNotEnabled1,
-                        item.running &&
+                        runsAsWebExtension && styles.instanceStateAliveAndConnectedWebExtension1,
+                        !runsAsWebExtension &&
+                            item.running &&
                             instance.mode === 'daemon' &&
-                            item.stoppedWhenWebExtension === undefined &&
                             (!item.connectedToHost || !item.alive) &&
                             styles.instanceStateNotAlive1,
-                        item.running &&
+                        !runsAsWebExtension &&
+                            item.running &&
                             item.connectedToHost &&
                             item.alive &&
                             item.connected === false &&
                             styles.instanceStateAliveNotConnected1,
-                        item.running &&
+                        !runsAsWebExtension &&
+                            item.running &&
                             item.connectedToHost &&
                             item.alive &&
                             item.connected !== false &&
@@ -327,6 +323,17 @@ class InstanceCard extends InstanceGeneric<InstanceGenericProps, InstanceCardSta
                         image={instance.image || 'img/no-image.svg'}
                     />
                     <div style={styles.adapter}>{instance.id}</div>
+                    {/* The adapter is missing on the host of this instance. A tile says nothing else
+                        about it before it is unfolded, and the colour of this block only tells that the
+                        instance is not alive - like every stopped one */}
+                    {item.adapterMissing ? (
+                        <Tooltip
+                            title={this.props.context.t('The adapter is not installed on host "%s"', item.host)}
+                            slotProps={{ popper: { sx: styles.tooltip } }}
+                        >
+                            <ErrorIcon style={styles.adapterMissingIcon} />
+                        </Tooltip>
+                    ) : null}
                     <div style={styles.versionDate}>
                         {/* {expertMode && item.checkCompact && <Tooltip title={t('compact groups')}>
                     <ViewCompactIcon color="action" style={{ margin: 10 }} />

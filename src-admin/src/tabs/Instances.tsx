@@ -1,6 +1,6 @@
 import React, { Component, createRef, type JSX } from 'react';
 
-import { IconButton, LinearProgress, Tooltip, Paper, InputAdornment, TextField, Box } from '@mui/material';
+import { IconButton, LinearProgress, Tooltip, Paper, InputAdornment, TextField, Box, alpha } from '@mui/material';
 
 import {
     PlayArrow as PlayArrowIcon,
@@ -17,6 +17,8 @@ import {
     Folder as FolderIcon,
     FolderOpen as FolderOpenIcon,
     List as ListIcon,
+    Storage as StorageIcon,
+    Memory as MemoryIcon,
 } from '@mui/icons-material';
 import { FaFilter as FilterListIcon } from 'react-icons/fa';
 
@@ -31,12 +33,21 @@ import {
     type ThemeType,
     TabHeader,
     type Translate,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import type { HostInfo } from '@iobroker/socket-client';
 
 import AdminUtils from '@/helpers/AdminUtils';
-import { replaceLink, applyReverseProxyToLink, type ReverseProxyItem } from '@/helpers/utils';
+import {
+    replaceLink,
+    applyReverseProxyToLink,
+    applyRemoteAccessToLink,
+    detectRemoteAccess,
+    getInstalledAdaptersPerHost,
+    isAdapterMissing,
+    type InstalledAdaptersPerHost,
+    type ReverseProxyItem,
+} from '@/helpers/utils';
 import type { InstancesWorker } from '@/Workers/InstancesWorker';
 import type { InstanceLink } from '@/components/Instances/LinksDialog';
 import Config from './Config';
@@ -50,8 +61,22 @@ import InstanceRow from '../components/Instances/InstanceRow';
 import CustomSelectButton from '../components/CustomSelectButton';
 import InstanceFilterDialog from '../components/Instances/InstanceFilterDialog';
 import InstanceCategory from '../components/Instances/InstanceCategory';
+import {
+    collectUsedResources,
+    readUsedResourceStates,
+    USED_RESOURCES_PATTERN,
+    type HostUsedResource,
+} from '../helpers/usedResources';
 
-const EOS_CORE_PROTECTED_ADAPTERS = new Set(['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui']);
+const EOS_CORE_PROTECTED_ADAPTERS = new Set([
+    'admin',
+    'eos-admin',
+    'backitup',
+    'nexowatt-devices',
+    'nexowatt-device',
+    'nexowatt-dev',
+    'nexowatt-ui',
+]);
 
 const parseEosAdapterTarget = (value: string): { adapter: string; instance?: string } => {
     const raw = String(value || '')
@@ -107,6 +132,47 @@ const styles: Record<string, any> = {
     grow: {
         flexGrow: 1,
     },
+    hostInfo: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        whiteSpace: 'nowrap',
+    },
+    usage: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+    },
+    usageIcon: {
+        fontSize: 20,
+        opacity: 0.8,
+    },
+    usageBar: (theme: IobTheme) => ({
+        position: 'relative',
+        width: 80,
+        height: 18,
+        borderRadius: '4px',
+        overflow: 'hidden',
+        backgroundColor: theme.palette.action.hover,
+        border: `1px solid ${theme.palette.divider}`,
+    }),
+    usageBarFill: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        transition: 'width 0.5s',
+    },
+    usageBarText: {
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 12,
+        fontWeight: 'bold',
+        lineHeight: 1,
+    },
 };
 
 interface InstancesProps {
@@ -135,9 +201,13 @@ interface InstancesProps {
 
     configStored: (allStored: boolean) => void;
     handleNavigation: (tab: string, subTab?: string, param?: string) => void;
+    /** Host selector, built by the app - sits at the right end of the header on every host tab */
+    hostSelector?: JSX.Element;
+    /** Keep the upper left corner of the toolbar free for the floating menu button */
+    menuButtonSpace?: boolean;
 }
 
-type SortColumn = 'name' | 'status' | 'memory' | 'id' | 'host' | 'loglevel';
+type SortColumn = 'name' | 'status' | 'memory' | 'id' | 'host' | 'loglevel' | 'port';
 type SortDirection = 'asc' | 'desc';
 
 interface InstancesState {
@@ -169,6 +239,8 @@ interface InstancesState {
     sortColumn: SortColumn | null;
     sortDirection: SortDirection;
     reverseProxy?: ReverseProxyItem[] | null;
+    /** The resources each instance registered on its host, by instance (`mqtt.0`) */
+    usedResources: Record<string, HostUsedResource[]>;
 }
 
 // every tab should get their data itself from server
@@ -181,7 +253,8 @@ class Instances extends Component<InstancesProps, InstancesState> {
 
     private states: Record<string, ioBroker.State>;
 
-    private adapters: ioBroker.AdapterObject[];
+    /** Which adapters are really installed, per host - see `InstanceItem.adapterMissing` */
+    private installedPerHost: InstalledAdaptersPerHost = {};
 
     private statesUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -193,11 +266,13 @@ class Instances extends Component<InstancesProps, InstancesState> {
 
     private readonly t: Translate;
 
-    private readonly inputRef: React.RefObject<HTMLInputElement>;
+    private readonly inputRef: React.RefObject<HTMLInputElement | null>;
 
-    private readonly refTabContent: React.RefObject<HTMLDivElement>;
+    private readonly refTabContent: React.RefObject<HTMLDivElement | null>;
 
     private subscribed: boolean = false;
+
+    private unmounted: boolean = false;
 
     private _cacheList: InstanceItem[] | null = null;
 
@@ -234,7 +309,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
         let expandedFolder = [];
         if (this.localStorage.getItem('Instances.expandedFolder')) {
             try {
-                expandedFolder = JSON.parse(this.localStorage.getItem('Instances.expandedFolder'));
+                expandedFolder = JSON.parse(this.localStorage.getItem('Instances.expandedFolder') || '[]');
             } catch {
                 // ignore
             }
@@ -279,16 +354,11 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 ? filterStatusStr === 'null'
                     ? null
                     : (filterStatusStr as
-                          | 'none'
-                          | 'disabled'
-                          | 'not_alive'
-                          | 'alive_not_connected'
-                          | 'alive_no_device'
-                          | 'ok'
-                          | null)
+                          'none' | 'disabled' | 'not_alive' | 'alive_not_connected' | 'alive_no_device' | 'ok' | null)
                 : null,
             sortColumn: (this.localStorage.getItem('Instances.sortColumn') as SortColumn) || null,
             sortDirection: (this.localStorage.getItem('Instances.sortDirection') as SortDirection) || 'asc',
+            usedResources: {},
         };
 
         // this.columns = {
@@ -304,7 +374,6 @@ class Instances extends Component<InstancesProps, InstancesState> {
         // };
 
         this.states = {};
-        this.adapters = [];
         this.statesUpdateTimer = null;
         this.wordCache = {};
 
@@ -328,7 +397,16 @@ class Instances extends Component<InstancesProps, InstancesState> {
     async componentDidMount(): Promise<void> {
         this.instancesUnmounted = false;
         this.props.instancesWorker.registerHandler(this.getInstances);
-        // Load reverse proxy configuration first so link generation can map immediately
+        await this.updateData();
+        void this.subscribeUsedResources();
+        const deleteCustomSupported = await this.props.socket.checkFeatureSupported('DEL_INSTANCE_CUSTOM');
+        if (deleteCustomSupported) {
+            this.setState({ deleteCustomSupported });
+        }
+    }
+
+    /** Reads the reverse proxy configuration of this admin: the links of the instances are mapped with it */
+    async readReverseProxy(): Promise<void> {
         try {
             const adminObj = await this.props.socket.getObject(`system.adapter.${this.props.adminInstance}`);
             const reverseProxy = adminObj?.native?.reverseProxy || [];
@@ -336,17 +414,20 @@ class Instances extends Component<InstancesProps, InstancesState> {
         } catch (e) {
             console.warn('Cannot read reverseProxy config for Instances page:', e);
         }
-        await this.updateData();
-        const deleteCustomSupported = await this.props.socket.checkFeatureSupported('DEL_INSTANCE_CUSTOM');
-        if (deleteCustomSupported) {
-            this.setState({ deleteCustomSupported });
-        }
     }
 
+    /**
+     * Reads everything the list needs and shows it.
+     *
+     * Only the states and the reverse proxy configuration are waited for. The compact mode of the host
+     * and the host information come later on their own: each of them is a message to the host, and the
+     * list stood empty for seconds while they were read one after another.
+     */
     async updateData(): Promise<void> {
-        await this.getParamsLocalAndPanel();
-        await this.getData();
-        await this.getHostsData();
+        this.getParamsLocalAndPanel();
+        void this.readCompactMode();
+        void this.getHostsData();
+        await Promise.all([this.getData(), this.readReverseProxy()]);
         await this.getInstances();
     }
 
@@ -356,8 +437,62 @@ class Instances extends Component<InstancesProps, InstancesState> {
             clearTimeout(this.instancesRetryTimer);
             this.instancesRetryTimer = null;
         }
+        this.unmounted = true;
         this.subscribeStates(true);
+        this.props.socket.unsubscribeState(USED_RESOURCES_PATTERN, this.onUsedResourcesChange);
         this.props.instancesWorker.unregisterHandler(this.getInstances);
+    }
+
+    /** The `usedResources` states of all hosts, as far as read or reported */
+    private usedResourcesStates: Record<string, ioBroker.State | null | undefined> = {};
+
+    /** Read the registered resources of all hosts */
+    async readUsedResources(): Promise<void> {
+        try {
+            const states = await readUsedResourceStates(
+                this.props.socket,
+                this.props.hosts.map(host => host._id),
+            );
+            // what already arrived through the subscription is newer than the read
+            this.usedResourcesStates = { ...states, ...this.usedResourcesStates };
+            this.updateUsedResources();
+        } catch (e) {
+            console.warn(`Cannot read the used resources: ${e}`);
+        }
+    }
+
+    /** Read the registered resources and follow their changes */
+    async subscribeUsedResources(): Promise<void> {
+        await this.readUsedResources();
+        if (!this.unmounted) {
+            await this.props.socket.subscribeState(USED_RESOURCES_PATTERN, this.onUsedResourcesChange);
+        }
+    }
+
+    componentDidUpdate(prevProps: InstancesProps): void {
+        // a host that only appears now brings its own registry states, and reading them by id
+        // requires its name - the subscription alone would wait for the next change
+        if (prevProps.hosts.map(host => host._id).join(',') !== this.props.hosts.map(host => host._id).join(',')) {
+            void this.readUsedResources();
+        }
+    }
+
+    onUsedResourcesChange = (id: string, state: ioBroker.State | null | undefined): void => {
+        this.usedResourcesStates = { ...this.usedResourcesStates, [id]: state };
+        this.updateUsedResources();
+    };
+
+    updateUsedResources(): void {
+        if (this.unmounted) {
+            return;
+        }
+        const usedResources: Record<string, HostUsedResource[]> = {};
+        for (const resource of collectUsedResources(this.usedResourcesStates)) {
+            usedResources[resource.instance] ||= [];
+            usedResources[resource.instance].push(resource);
+        }
+        this._cacheList = null;
+        this.setState({ usedResources });
     }
 
     getStates(update?: boolean): Promise<Record<string, ioBroker.State>> {
@@ -398,28 +533,8 @@ class Instances extends Component<InstancesProps, InstancesState> {
         this.instancesRetryAttempt = 0;
         instances = Object.values(instancesFromWorker);
 
-        let memRssId = `${this.state.currentHost}.memRss`;
-        this.states[memRssId] = this.states[memRssId] || (await this.props.socket.getState(memRssId));
-
-        const host = this.states[memRssId];
-        let processes = 1;
-        let mem: number = host ? parseFloat(host.val as string) || 0 : 0;
         const hosts: Record<string, ioBroker.HostObject> = {};
         this.props.hosts.forEach(_host => (hosts[_host._id] = _host));
-
-        for (let i = 0; i < instances.length; i++) {
-            const inst = instances[i];
-            if (!inst || !inst.common || inst.common.host !== this.props.currentHostName) {
-                continue;
-            }
-            if (inst.common.enabled && inst.common.mode === 'daemon' && !InstanceGeneric.isCompact(inst)) {
-                memRssId = `${inst._id}.memRss`;
-                this.states[memRssId] = this.states[memRssId] || (await this.props.socket.getState(memRssId));
-                const m = this.states[memRssId];
-                mem += m ? parseFloat(m.val as string) || 0 : 0;
-                processes++;
-            }
-        }
 
         const formatted: Record<string, InstanceEntry> = {};
 
@@ -444,7 +559,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
         for (let i = 0; i < instances.length; i++) {
             const obj = instances[i];
             const common = obj.common || null;
-            const instanceId = parseInt(obj._id.split('.').pop(), 10);
+            const instanceId = parseInt(obj._id.split('.').pop() || '', 10);
 
             if (
                 common.compactGroup &&
@@ -463,20 +578,24 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 image: common.icon ? `adapter/${common.name}/${common.icon}` : 'img/no-image.svg',
                 enabled: common.enabled,
                 canStart: !common.onlyWWW,
-                config: common.adminUI.config !== 'none',
-                jsonConfig: common.adminUI.config === 'json',
-                materialize: common.adminUI.config === 'materialize',
+                config: common.adminUI?.config !== 'none',
+                jsonConfig: common.adminUI?.config === 'json',
+                materialize: common.adminUI?.config === 'materialize',
                 compactMode: common.runAsCompactMode || false,
                 mode: common.mode || null,
                 schedule: common.schedule === undefined || common.schedule === null ? null : common.schedule,
-                loglevel: common.loglevel || null,
-                adapter: common.name || null,
-                version: common.version || null,
+                loglevel: common.loglevel || 'info',
+                adapter: common.name || '',
+                version: common.version || '',
+                // The adapter runs as a web-extension (inside a web instance) and therefore has no own process.
+                // Detect this purely via the configuration (common.webExtension + native.webInstance).
+                // Only enabled instances count as "running as web-extension"; disabled ones stay grey.
                 stoppedWhenWebExtension:
-                    obj.common.mode === 'daemon'
-                        ? obj.common.webExtension !== undefined
-                            ? !!obj.common.webExtension
-                            : undefined
+                    obj.common.mode === 'daemon' &&
+                    obj.common.enabled &&
+                    !!obj.common.webExtension &&
+                    !!obj.native.webInstance
+                        ? true
                         : undefined,
                 links: [],
             };
@@ -487,7 +606,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
             if (rawLinks && typeof rawLinks === 'string') {
                 links = { _default: rawLinks };
             } else if (rawLinks && typeof rawLinks === 'object') {
-                links = rawLinks as Record<string, string>;
+                links = rawLinks;
             }
 
             const names = links ? Object.keys(links) : [];
@@ -495,11 +614,11 @@ class Instances extends Component<InstancesProps, InstancesState> {
             names.forEach(linkName => {
                 instance.links ||= [];
                 let link: InstanceLink;
-                const linkObject = links[linkName];
+                const linkObject = links?.[linkName];
                 if (typeof linkObject === 'string') {
                     link = { link: linkObject };
                 } else {
-                    link = linkObject;
+                    link = linkObject as InstanceLink;
                 }
 
                 const urls =
@@ -538,8 +657,21 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 }
             });
 
-            // Reverse proxy mapping (similar to Intro) applied after links prepared
-            if (instance.links?.length && this.state.reverseProxy?.length) {
+            // The admin was opened through the remote access of ioBroker Cloud/Pro: an address inside
+            // the local network leads nowhere there. The reverse proxy settings describe a different
+            // way into the installation and do not apply in that case.
+            const remoteAccess = detectRemoteAccess(instancesFromWorker, window.location);
+            if (instance.links?.length && remoteAccess) {
+                instance.links.forEach(l => {
+                    const remoteLink = applyRemoteAccessToLink(l.link, l.port, remoteAccess);
+                    if (remoteLink === null) {
+                        // keep the local address, it is shown but no longer offered as a target
+                        l.unreachable = true;
+                    } else {
+                        l.link = remoteLink;
+                    }
+                });
+            } else if (instance.links?.length && this.state.reverseProxy?.length) {
                 const currentPath = window.location.pathname;
                 const proxyConfig =
                     this.state.reverseProxy.find(p => {
@@ -571,26 +703,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 }
             }
 
-            if (instance.stoppedWhenWebExtension) {
-                const eId =
-                    this.states[`${instance.id}.info.extension`] ||
-                    (await this.props.socket.getState(`${instance.id}.info.extension`));
-                instance.stoppedWhenWebExtension = eId ? !!eId.val : undefined;
-            }
-
             formatted[obj._id] = instance;
-        }
-
-
-        for (let c = 1; c <= maxCompactGroupNumber; c++) {
-            const compactGroupMemRssId = `${this.state.currentHost}.compactgroup${c}.memRss`;
-            this.states[compactGroupMemRssId] =
-                this.states[compactGroupMemRssId] || (await this.props.socket.getState(compactGroupMemRssId));
-            const m = this.states[compactGroupMemRssId];
-            if (m) {
-                mem += m ? parseFloat(m.val as string) || 0 : 0;
-                processes++;
-            }
         }
 
         if (this.state.deleting && !formatted[`system.adapter.${this.state.deleting}`]) {
@@ -598,15 +711,72 @@ class Instances extends Component<InstancesProps, InstancesState> {
         }
 
         newState.maxCompactGroupNumber = maxCompactGroupNumber;
-        newState.processes = processes;
-        newState.mem = Math.round(mem);
         newState.instances = formatted;
 
         this._cacheList = null;
         this.setState(newState as InstancesState);
+
+        // only for the header: the list does not wait for it
+        void this.readMemoryUsage(instances, maxCompactGroupNumber);
     };
 
-    getParamsLocalAndPanel = async (): Promise<void> => {
+    /**
+     * Sums up the memory of the host and of all processes of the instances on the current host.
+     *
+     * The states that the read at the start did not bring (the host and the compact groups are not
+     * `system.adapter.*`) are read in one go.
+     */
+    async readMemoryUsage(instances: ioBroker.InstanceObject[], maxCompactGroupNumber: number): Promise<void> {
+        const processIds = [
+            `${this.state.currentHost}.memRss`,
+            ...instances
+                .filter(
+                    inst =>
+                        inst?.common?.host === this.props.currentHostName &&
+                        inst.common.enabled &&
+                        inst.common.mode === 'daemon' &&
+                        !InstanceGeneric.isCompact(inst),
+                )
+                .map(inst => `${inst._id}.memRss`),
+        ];
+        const compactGroupIds: string[] = [];
+        for (let c = 1; c <= maxCompactGroupNumber; c++) {
+            compactGroupIds.push(`${this.state.currentHost}.compactgroup${c}.memRss`);
+        }
+
+        const missing = [...processIds, ...compactGroupIds].filter(id => !this.states[id]);
+        if (missing.length) {
+            try {
+                const states = await this.props.socket.getForeignStates(missing);
+                for (const id of missing) {
+                    if (states[id]) {
+                        this.states[id] = states[id];
+                    }
+                }
+            } catch (e) {
+                console.warn(`Cannot read the memory usage: ${e as Error}`);
+            }
+            if (this.unmounted) {
+                return;
+            }
+        }
+
+        const memOf = (id: string): number => parseFloat(this.states[id]?.val as string) || 0;
+        let mem = processIds.reduce((sum, id) => sum + memOf(id), 0);
+        let processes = processIds.length;
+        // a compact group counts only if it runs
+        compactGroupIds
+            .filter(id => this.states[id])
+            .forEach(id => {
+                mem += memOf(id);
+                processes++;
+            });
+
+        this.setState({ processes, mem: Math.round(mem) });
+    }
+
+    /** Reads from the host whether it runs the adapters in compact mode */
+    async readCompactMode(): Promise<void> {
         let compact = false;
         try {
             const baseSettings = await this.props.socket.readBaseSettings(this.state.currentHost);
@@ -614,18 +784,24 @@ class Instances extends Component<InstancesProps, InstancesState> {
         } catch (error) {
             window.alert(`Cannot read compact mode by host "${this.state.currentHost}": ${error}`);
         }
+        if (!this.unmounted && compact !== this.state.compact) {
+            this._cacheList = null;
+            this.setState({ compact });
+        }
+    }
 
+    getParamsLocalAndPanel(): void {
         let playArrow: 0 | 1 | 2 = 0;
         let filterCompactGroup: string | number = 'All';
         try {
-            playArrow = JSON.parse(this.localStorage.getItem('Instances.playArrow')) as 0 | 1 | 2;
+            playArrow = JSON.parse(this.localStorage.getItem('Instances.playArrow') || '0') as 0 | 1 | 2;
             // back compatibility
             if (playArrow.toString() === 'true') {
                 playArrow = 1;
             } else if (playArrow.toString() === 'false') {
                 playArrow = 0;
             }
-            filterCompactGroup = JSON.parse(this.localStorage.getItem('Instances.filterCompactGroup'));
+            filterCompactGroup = JSON.parse(this.localStorage.getItem('Instances.filterCompactGroup') || '"All"');
         } catch {
             // ignore
         }
@@ -641,25 +817,24 @@ class Instances extends Component<InstancesProps, InstancesState> {
         this._cacheList = null;
         this.setState({
             filterCompactGroup,
-            compact,
             onlyCurrentHost,
             playArrow,
             viewMode,
             viewCategory,
         });
-    };
+    }
 
     async getData(update?: boolean): Promise<void> {
         try {
-            const adapters = this.props.socket.getAdapters(update);
-            const statesProm = this.getStates();
-
-            const [states, _adapters] = await Promise.all([statesProm, adapters]);
-            this.adapters = _adapters || [];
-            this.states = states || {};
+            this.states = (await this.getStates()) || {};
         } catch (error) {
             console.log(error);
         }
+
+        // Deliberately not awaited: a host reads its `node_modules` to answer this and can take seconds
+        // for it, and nobody should look at an empty instance list meanwhile. The marks appear as soon
+        // as the answers are there
+        void this.readInstalledPerHost(update);
 
         if (!this.states) {
             return;
@@ -671,9 +846,33 @@ class Instances extends Component<InstancesProps, InstancesState> {
         }
     }
 
-    onStateChange = (id: string, state: ioBroker.State | null): void => {
+    /**
+     * Reads which adapters are really installed on which host and shows the instances anew.
+     *
+     * It renders in any case, also because the reload button of the toolbar has nothing else behind
+     * it: at the start `getInstances` follows, but a reload only read into the fields of the class
+     * and the list kept showing what was read before.
+     */
+    async readInstalledPerHost(update?: boolean): Promise<void> {
+        let installedPerHost: InstalledAdaptersPerHost = {};
+        try {
+            installedPerHost = await getInstalledAdaptersPerHost(this.props.socket, this.props.hosts, { update });
+        } catch (e) {
+            console.warn(`Cannot read the installed adapters: ${e as Error}`);
+        }
+
+        if (this.unmounted) {
+            return;
+        }
+
+        this.installedPerHost = installedPerHost;
+        this._cacheList = null;
+        this.forceUpdate();
+    }
+
+    onStateChange = (id: string, state: ioBroker.State | null | undefined): void => {
         const oldState = this.states[id];
-        this.states[id] = state;
+        this.states[id] = state as ioBroker.State;
         if ((!oldState && state) || (oldState && !state) || (oldState && state && oldState.val !== state.val)) {
             if (this.state.dialog === 'config' && this.state.dialogProp) {
                 if (this.statesUpdateTimer) {
@@ -726,11 +925,9 @@ class Instances extends Component<InstancesProps, InstancesState> {
             const alive = this.states[`${obj._id}.alive`];
             const connected = this.states[`${obj._id}.connected`];
             const connection = this.states[`${obj._id.replace('system.adapter.', '')}.info.connection`];
+            // The adapter runs as a web-extension inside a web instance => it has no own process, treat it as running
             if (common.webExtension && obj.native.webInstance) {
-                const extension = this.states[`${obj._id.replace('system.adapter.', '')}.info.extension`];
-                if (extension) {
-                    return extension.val ? 'green' : 'red';
-                }
+                return 'green';
             }
 
             if (!connected?.val || !alive?.val) {
@@ -745,11 +942,6 @@ class Instances extends Component<InstancesProps, InstancesState> {
 
         return status;
     };
-
-    isCompactGroupCheck(id: string): boolean {
-        const obj = this.adapters.find(({ _id }) => _id === `system.adapter.${id}`);
-        return obj?.common?.compact || false;
-    }
 
     getName(obj: ioBroker.InstanceObject): string {
         if (!obj?.common) {
@@ -787,10 +979,9 @@ class Instances extends Component<InstancesProps, InstancesState> {
     }
 
     getConnected(id: string): boolean | string | null {
-        const instance = this.state.instances[id];
-        return this.states[`${instance.id}.info.connection`]
-            ? this.isAlive(id) && (this.states[`${instance.id}.info.connection`].val as string | boolean)
-            : null;
+        const instance = this.state.instances?.[id];
+        const connState = instance && this.states[`${instance.id}.info.connection`];
+        return connState ? this.isAlive(id) && (connState.val as string | boolean) : null;
     }
 
     static getStatusFilter(value: string): InstanceStatusType {
@@ -829,7 +1020,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
         return null;
     }
 
-    onDeleteInstance = (instance: InstanceEntry, deleteCustom: boolean, deleteAdapter: boolean): void => {
+    onDeleteInstance = (instance: InstanceEntry, deleteCustom: boolean, deleteAdapter?: boolean): void => {
         const deleteTarget = deleteAdapter ? instance.id.split('.')[0] : instance.id;
         if (isEosProtectedInstance(deleteTarget)) {
             window.alert('Dieser Dienst ist ein geschütztes NexoWatt-EOS-Systemmodul und darf nicht gelöscht werden.');
@@ -849,13 +1040,15 @@ class Instances extends Component<InstancesProps, InstancesState> {
     cacheInstances(): InstanceItem[] {
         const currentHostNoPrefix = this.state.currentHost.replace(/^system.host./, '');
 
-        this._cacheList = Object.keys(this.state.instances).map(id => {
-            const instance = this.state.instances[id];
+        const stateInstances = this.state.instances || {};
+        this._cacheList = Object.keys(stateInstances).map(id => {
+            const instance = stateInstances[id];
             const running = InstanceGeneric.isRunning(instance.obj);
             const compactGroup = InstanceGeneric.isCompactGroup(instance.obj);
-            const checkCompact = this.isCompactGroupCheck(instance.adapter) && this.state.compact;
             const compact = InstanceGeneric.isCompact(instance.obj);
+            // `common.compact` comes from the io-package of the adapter, the instance carries it like the adapter object
             const supportCompact = instance.compact || false;
+            const checkCompact = supportCompact && this.state.compact;
             const alive = this.isAlive(id);
             const connectedToHost = this.isConnectedToHost(id);
             const connected: string | boolean | null = this.getConnected(id);
@@ -867,14 +1060,28 @@ class Instances extends Component<InstancesProps, InstancesState> {
             const inputOutput = this.getInputOutput(id);
             const modeSchedule = InstanceGeneric.isModeSchedule(instance.obj);
             const memoryLimitMB = InstanceGeneric.getMemoryLimitMB(instance.obj);
+            // Case-insensitively, as js-controller compares it: `platform` is hand-written in every
+            // io-package.json and already carries the wrong case in the wild.
+            const isPython = instance.obj.common.platform?.toLowerCase() === 'python';
 
             const checkSentry = InstanceGeneric.getSentrySettings(instance.obj); // is it possible to enable/disable sentry for this adapter
             const currentSentry = this.isSentry(id);
+
+            // the port the instance registered on its host says what it really listens on; the
+            // configuration only what it was told to
+            const usedResources = this.state.usedResources[instance.id] || [];
+            const registeredPort = usedResources.find(r => r.type === 'tcpPort' || r.type === 'udpPort')?.data.port;
+            const rawPort = registeredPort ?? instance.obj.native?.port;
+            const port: number | null =
+                rawPort === undefined || rawPort === null || rawPort === ''
+                    ? null
+                    : parseInt(String(rawPort), 10) || null;
 
             const item: InstanceItem = {
                 id,
                 running,
                 host: instance.host,
+                adapterMissing: isAdapterMissing(instance.obj, this.installedPerHost),
                 nameId: instance.id,
                 compactGroup,
                 checkCompact,
@@ -893,9 +1100,13 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 tier,
                 loglevelIcon,
                 inputOutput,
+                memRss: (this.states[`${id}.memRss`]?.val as number) || 0,
                 modeSchedule,
                 checkSentry,
                 memoryLimitMB,
+                isPython,
+                port,
+                usedResources,
                 stoppedWhenWebExtension: instance.stoppedWhenWebExtension,
                 allowInstanceSettings: this.props.repository[instance.adapter]
                     ? this.props.repository[instance.adapter].allowInstanceSettings
@@ -921,18 +1132,18 @@ class Instances extends Component<InstancesProps, InstancesState> {
         }
 
         if (this.state.playArrow) {
-            this._cacheList = this._cacheList.filter(({ running }) =>
+            this._cacheList = (this._cacheList || []).filter(({ running }) =>
                 this.state.playArrow === 1 ? running : !running,
             );
         }
 
         if (this.state.onlyCurrentHost) {
-            this._cacheList = this._cacheList.filter(({ host }) => host === currentHostNoPrefix);
+            this._cacheList = (this._cacheList || []).filter(({ host }) => host === currentHostNoPrefix);
         }
 
         if (this.state.filterText) {
             const filterText = this.state.filterText.toLowerCase();
-            this._cacheList = this._cacheList.filter(
+            this._cacheList = (this._cacheList || []).filter(
                 ({ name, nameId }) =>
                     name.toLowerCase().includes(filterText) || nameId.toLowerCase().includes(filterText),
             );
@@ -943,7 +1154,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
             (this.state.filterCompactGroup || this.state.filterCompactGroup === 0) &&
             this.state.compact
         ) {
-            this._cacheList = this._cacheList.filter(
+            this._cacheList = (this._cacheList || []).filter(
                 ({ compactGroup }) =>
                     compactGroup === this.state.filterCompactGroup ||
                     this.state.filterCompactGroup === 'All' ||
@@ -952,16 +1163,16 @@ class Instances extends Component<InstancesProps, InstancesState> {
             );
         }
         if (this.state.filterMode) {
-            this._cacheList = this._cacheList.filter(item => item.mode === this.state.filterMode);
+            this._cacheList = (this._cacheList || []).filter(item => item.mode === this.state.filterMode);
         }
         if (this.state.filterStatus) {
             const status = Instances.getStatusFilter(this.state.filterStatus);
-            this._cacheList = this._cacheList.filter(item => status === item.status);
+            this._cacheList = (this._cacheList || []).filter(item => status === item.status);
         }
 
         // Apply sorting
         if (this.state.sortColumn) {
-            this._cacheList = this._cacheList.sort((a, b) => {
+            this._cacheList = (this._cacheList || []).sort((a, b) => {
                 let comparison = 0;
 
                 switch (this.state.sortColumn) {
@@ -998,6 +1209,15 @@ class Instances extends Component<InstancesProps, InstancesState> {
                         comparison = (logOrder[a.logLevel] || 0) - (logOrder[b.logLevel] || 0);
                         break;
                     }
+                    case 'port': {
+                        // Instances without a port go to the end (ascending)
+                        if (a.port === null || b.port === null) {
+                            comparison = a.port === b.port ? 0 : a.port === null ? 1 : -1;
+                        } else {
+                            comparison = a.port - b.port;
+                        }
+                        break;
+                    }
                     default: {
                         comparison = 0;
                     }
@@ -1007,7 +1227,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
             });
         }
 
-        return this._cacheList;
+        return this._cacheList || [];
     }
 
     clearAllFilters(): void {
@@ -1055,6 +1275,10 @@ class Instances extends Component<InstancesProps, InstancesState> {
             this.cacheInstances();
         }
 
+        // If at least one shown instance has a port or registered a resource, the resources column is
+        // displayed and all rows (even the empty ones) must reserve a placeholder to keep the columns aligned
+        const hasAnyResource = (this._cacheList || []).some(item => item.port !== null || !!item.usedResources.length);
+
         const context = {
             adminInstance: this.props.adminInstance,
             onDeleteInstance: this.onDeleteInstance,
@@ -1072,11 +1296,12 @@ class Instances extends Component<InstancesProps, InstancesState> {
             getInstanceStatus: this.getInstanceStatus,
             theme: this.props.theme,
             onRegisterClose: this.onRegisterClose,
+            hasAnyResource,
         };
 
-        const list = this._cacheList.map((item, idx) => {
+        const list = (this._cacheList || []).map((item, idx) => {
             const id = item.id;
-            const instance = this.state.instances[id];
+            const instance = (this.state.instances || {})[id];
 
             if (this.state.viewMode) {
                 return {
@@ -1179,10 +1404,11 @@ class Instances extends Component<InstancesProps, InstancesState> {
     }
 
     onToggleExpanded = (panel: string, expanded: boolean): void => {
-        if (this.expanded !== panel && expanded && this.closeCommands[this.expanded]) {
-            this.closeCommands[this.expanded]();
+        const closeCommand = this.closeCommands[this.expanded];
+        if (this.expanded !== panel && expanded && closeCommand) {
+            closeCommand();
         }
-        this.expanded = expanded ? panel : null;
+        this.expanded = expanded ? panel : '';
     };
 
     async getHostsData(): Promise<void> {
@@ -1200,9 +1426,22 @@ class Instances extends Component<InstancesProps, InstancesState> {
             });
 
         let memState;
-        const memAvailable = await this.props.socket.getState(`${this.state.currentHost}.memAvailable`);
-        const freemem = await this.props.socket.getState(`${this.state.currentHost}.freemem`);
-        const object = await this.props.socket.getObject(`${this.state.currentHost}`);
+        let memAvailable: ioBroker.State | null | undefined;
+        let freemem: ioBroker.State | null | undefined;
+        let object: ioBroker.Object | null | undefined;
+        try {
+            [memAvailable, freemem, object] = await Promise.all([
+                this.props.socket.getState(`${this.state.currentHost}.memAvailable`),
+                this.props.socket.getState(`${this.state.currentHost}.freemem`),
+                this.props.socket.getObject(`${this.state.currentHost}`),
+            ]);
+        } catch (e) {
+            console.warn(`Cannot read the memory of "${this.state.currentHost}": ${e as Error}`);
+            return;
+        }
+        if (this.unmounted) {
+            return;
+        }
 
         if (memAvailable) {
             memState = memAvailable;
@@ -1219,6 +1458,38 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 memFree: memState.val as number,
             });
         }
+    }
+
+    /** Render a small bar with the used percent written on it and the exact numbers in the tooltip */
+    static renderUsageBar(icon: JSX.Element, usedPercent: number, tooltip: JSX.Element): JSX.Element {
+        const used = Math.min(100, Math.max(0, usedPercent));
+        const color = used >= 90 ? 'error' : used >= 75 ? 'warning' : 'success';
+
+        return (
+            <Tooltip
+                title={tooltip}
+                slotProps={{ popper: { sx: styles.tooltip } }}
+            >
+                <Box sx={styles.usage}>
+                    {icon}
+                    <Box sx={styles.usageBar}>
+                        <Box
+                            sx={theme => ({
+                                ...styles.usageBarFill,
+                                width: `${used}%`,
+                                backgroundColor: alpha(theme.palette[color].main, 0.6),
+                            })}
+                        />
+                        <Box
+                            component="span"
+                            sx={styles.usageBarText}
+                        >
+                            {used}%
+                        </Box>
+                    </Box>
+                </Box>
+            </Tooltip>
+        );
     }
 
     changeStartedStopped = (): void => {
@@ -1268,8 +1539,8 @@ class Instances extends Component<InstancesProps, InstancesState> {
                 onClose={newState => {
                     if (newState) {
                         this._cacheList = null;
-                        this.localStorage.setItem('Instances.filterMode', newState.filterMode);
-                        this.localStorage.setItem('Instances.filterStatus', newState.filterStatus);
+                        this.localStorage.setItem('Instances.filterMode', newState.filterMode || '');
+                        this.localStorage.setItem('Instances.filterStatus', newState.filterStatus || '');
 
                         // Handle sorting state
                         if (newState.sortColumn) {
@@ -1370,20 +1641,64 @@ class Instances extends Component<InstancesProps, InstancesState> {
             }
         }
 
-        const hostInfo = this.state.hostInfo
-            ? `${
-                  this.state.hostInfo['Disk free']
-                      ? `${this.t('Disk free')}: ${Math.round(this.state.hostInfo['Disk free'] / (this.state.hostInfo['Disk size'] / 100))}%, `
-                      : ''
-              }${this.t('Total RAM usage')}: ${this.state.mem} Mb / ` +
-              `${this.t('Free')}: ${this.state.percent}% = ${this.state.memFree} Mb ` +
-              `[${this.t('Host')}: ${this.props.currentHostName} - ${this.state.processes} ${this.state.processes === 1 ? this.t('process') : this.t('processes')}]`
-            : null;
+        let hostInfo: JSX.Element | null = null;
+        if (this.state.hostInfo) {
+            const diskFree = this.state.hostInfo['Disk free'];
+            const diskSize = this.state.hostInfo['Disk size'];
+            const diskFreePercent = diskFree && diskSize ? Math.round(diskFree / (diskSize / 100)) : null;
+            const memTotal =
+                this.state.percent && this.state.memFree !== null
+                    ? Math.round((this.state.memFree * 100) / this.state.percent)
+                    : null;
+
+            hostInfo = (
+                <Box sx={styles.hostInfo}>
+                    {diskFreePercent !== null
+                        ? Instances.renderUsageBar(
+                              <StorageIcon sx={styles.usageIcon} />,
+                              100 - diskFreePercent,
+                              <>
+                                  <div>
+                                      {this.t('Disk free')}: {diskFreePercent}% = {AdminUtils.formatBytes(diskFree)}
+                                  </div>
+                                  <div>
+                                      {this.t('Disk size')}: {AdminUtils.formatBytes(diskSize)}
+                                  </div>
+                              </>,
+                          )
+                        : null}
+                    {this.state.percent !== null
+                        ? Instances.renderUsageBar(
+                              <MemoryIcon sx={styles.usageIcon} />,
+                              100 - this.state.percent,
+                              <>
+                                  <div>
+                                      {this.t('Total RAM usage')}: {this.state.mem} Mb
+                                  </div>
+                                  <div>
+                                      {this.t('Free')}: {this.state.percent}% = {this.state.memFree} Mb
+                                  </div>
+                                  {memTotal ? (
+                                      <div>
+                                          {this.t('RAM')}: {memTotal} Mb
+                                      </div>
+                                  ) : null}
+                              </>,
+                          )
+                        : null}
+                    <span>
+                        [{this.t('Host')}: {this.props.currentHostName} - {this.state.processes}{' '}
+                        {this.state.processes === 1 ? this.t('process') : this.t('processes')}]
+                    </span>
+                </Box>
+            );
+        }
 
         return (
             <TabContainer>
                 {this.renderFilterDialog()}
                 <TabHeader>
+                    {this.props.menuButtonSpace ? <Box sx={{ width: 40, flexShrink: 0 }} /> : null}
                     <Tooltip
                         title={this.t('Show / hide List')}
                         slotProps={{ popper: { sx: styles.tooltip } }}
@@ -1430,7 +1745,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
                                     onClick={() => {
                                         // all folders
                                         const expandedFolder: string[] = [];
-                                        this._cacheList.forEach(
+                                        (this._cacheList || []).forEach(
                                             ({ category }) =>
                                                 !expandedFolder.includes(category) && expandedFolder.push(category),
                                         );
@@ -1506,7 +1821,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
                             onClick={() => this.changeStartedStopped()}
                         >
                             <PlayArrowIcon
-                                style={this.state.playArrow === 2 ? { color: 'red' } : null}
+                                style={this.state.playArrow === 2 ? { color: 'red' } : undefined}
                                 color={this.state.playArrow === 1 ? 'primary' : 'inherit'}
                             />
                         </IconButton>
@@ -1581,7 +1896,9 @@ class Instances extends Component<InstancesProps, InstancesState> {
                                             tabIndex={-1}
                                             size="small"
                                             onClick={() => {
-                                                this.inputRef.current.value = '';
+                                                if (this.inputRef.current) {
+                                                    this.inputRef.current.value = '';
+                                                }
                                                 this._cacheList = null;
                                                 this.setState({ filterText: '' });
                                                 this.localStorage.setItem('instances.filter', '');
@@ -1601,6 +1918,7 @@ class Instances extends Component<InstancesProps, InstancesState> {
                     >
                         {hostInfo}
                     </Box>
+                    <Box sx={{ ml: 'auto', pl: 1 }}>{this.props.hostSelector}</Box>
                 </TabHeader>
                 <TabContent overflow="auto">
                     <div

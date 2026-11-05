@@ -1,4 +1,4 @@
-import React, { useState, type JSX, useEffect } from 'react';
+import React, { useState, type JSX, useMemo } from 'react';
 
 import {
     Button,
@@ -26,10 +26,22 @@ import {
     Close as CloseIcon,
 } from '@mui/icons-material';
 
-import { I18n, type ThemeType, type IobTheme, type AdminConnection, type ThemeName } from '@iobroker/adapter-react-v5';
+import {
+    I18n,
+    getSelectIdIcon,
+    type ThemeType,
+    type IobTheme,
+    type AdminConnection,
+    type ThemeName,
+} from '@iobroker/gui-components';
 
 import type { BackEndCommandGeneric } from '@iobroker/json-config';
-import NotificationMessage, { type Message, type Severity } from '../components/NotificationMessage';
+import NotificationMessage, {
+    type Message,
+    type Severity,
+    compareSeverity,
+    normalizeSeverity,
+} from '../components/NotificationMessage';
 
 export interface BackEndCommandOpenLink extends BackEndCommandGeneric {
     command: 'link';
@@ -146,6 +158,9 @@ interface StatusOptions {
 }
 
 function Status({ severity, isDark, ...props }: StatusOptions): JSX.Element {
+    // the same normalisation the sorting uses, so icon and position always agree
+    severity = normalizeSeverity(severity);
+
     if (severity === 'notify') {
         return (
             <BellIcon
@@ -228,6 +243,26 @@ interface MessagesPerScope {
     [scope: string]: Record<string, Message & { host: string }>;
 }
 
+/**
+ * Text of a translated name or description in the language of the GUI.
+ *
+ * Scopes and categories are described by every adapter in its own io-package, so a translation can be
+ * missing for the current language or be no object at all. English is the fallback, and if even that is
+ * missing, the name of the category is still more helpful than "undefined".
+ *
+ * @param text translated text as it came with the notification
+ * @param fallback text to show if no translation exists
+ */
+function getTranslation(text: ioBroker.StringOrTranslated | undefined, fallback = ''): string {
+    if (!text) {
+        return fallback;
+    }
+    if (typeof text === 'string') {
+        return text;
+    }
+    return text[I18n.getLanguage()] || text.en || fallback;
+}
+
 function onLink(linkCommand: BackEndCommandOpenLink, instanceId: string, onClose: () => void): void {
     let target;
     let url = '';
@@ -289,15 +324,14 @@ const NotificationsDialog = ({
     isFloatComma,
     socket,
 }: NotificationDialogOptions): JSX.Element => {
-    const [panel, setPanel] = useState('');
+    const [selectedPanel, setSelectedPanel] = useState('');
     const [disabled, setDisabled] = useState<string[]>([]);
     const [expanded, setExpanded] = useState('');
     const [autoCollapse, setAutoCollapse] = useState(true);
-    const [messages, setMessages] = useState<MessagesPerScope>({});
 
     const handleChange = (_event: React.SyntheticEvent, newValue: string): void => {
         setAutoCollapse(true);
-        setPanel(newValue);
+        setSelectedPanel(newValue);
         setExpanded('');
     };
 
@@ -310,9 +344,8 @@ const NotificationsDialog = ({
         instance => instance.common.name === 'notification-manager',
     );
 
-    useEffect(() => {
+    const messages: MessagesPerScope = useMemo(() => {
         const _messages: MessagesPerScope = {};
-        let firstKey = '';
 
         for (const [host, hostDetails] of Object.entries(notifications)) {
             for (const [scope, scopeDetails] of Object.entries(hostDetails.result)) {
@@ -326,30 +359,42 @@ const NotificationsDialog = ({
                 }
             }
         }
+        return _messages;
+    }, [notifications]);
 
-        Object.keys(_messages).map(scope =>
-            Object.keys(_messages[scope]).map(name => (firstKey = firstKey || `${scope}--${name}`)),
-        );
+    /**
+     * All categories of all scopes in one list, most important first (alert > notify > info).
+     *
+     * Sorting within a scope is not enough: the scopes are appended in the order they arrive, so a
+     * warning of a later scope ended up behind the notifications of an earlier one.
+     */
+    const tabs = useMemo(
+        () =>
+            Object.keys(messages)
+                .flatMap(scope =>
+                    Object.keys(messages[scope]).map(name => ({ scope, name, entry: messages[scope][name] })),
+                )
+                .sort((a, b) => compareSeverity(a.entry.severity, b.entry.severity)),
+        [messages],
+    );
 
-        // if a panel does not exist, set it to the first one
-        if (panel) {
-            const [scope, name] = panel.split('--');
-            if (!_messages[scope]) {
-                setPanel(firstKey);
-            } else if (!_messages[scope][name]) {
-                // take the first message in this scope
-                const key = Object.keys(_messages[scope])[0];
-                if (key) {
-                    setPanel(`${scope}--${key}`);
-                } else {
-                    setPanel(firstKey);
-                }
-            }
-        } else {
-            setPanel(firstKey);
+    const firstKey: string = tabs.length ? `${tabs[0].scope}--${tabs[0].name}` : '';
+
+    // The selected panel can disappear when the notifications change, so the effective panel is
+    // derived instead of being repaired in an effect.
+    let panel = selectedPanel;
+    if (!panel) {
+        panel = firstKey;
+    } else {
+        const [scope, name] = panel.split('--');
+        if (!messages[scope]) {
+            panel = firstKey;
+        } else if (!messages[scope][name]) {
+            // take the first message in this scope
+            const key = Object.keys(messages[scope])[0];
+            panel = key ? `${scope}--${key}` : firstKey;
         }
-        setMessages(_messages);
-    }, [instances, notifications, panel]);
+    }
 
     const [currentScope, currentName] = panel.split('--');
     const currentKey = currentScope && currentName ? `${currentScope}--${currentName}` : '';
@@ -405,28 +450,25 @@ const NotificationsDialog = ({
                             indicatorColor={black ? 'primary' : 'secondary'}
                             textColor={black ? 'primary' : 'secondary'}
                         >
-                            {Object.keys(messages).map(scope =>
-                                Object.keys(messages[scope]).map((name, idx) => {
-                                    const entry = messages[scope][name];
-                                    const key = `${scope}--${name}`;
+                            {tabs.map(({ scope, name, entry }, idx) => {
+                                const key = `${scope}--${name}`;
 
-                                    return (
-                                        <Tab
-                                            disabled={disabled.includes(key)}
-                                            key={key}
-                                            value={key}
-                                            label={`${entry.name[I18n.getLanguage()]}`}
-                                            icon={
-                                                <Status
-                                                    severity={entry.severity}
-                                                    isDark={black}
-                                                />
-                                            }
-                                            {...a11yProps(idx)}
-                                        />
-                                    );
-                                }),
-                            )}
+                                return (
+                                    <Tab
+                                        disabled={disabled.includes(key)}
+                                        key={key}
+                                        value={key}
+                                        label={getTranslation(entry.name, name)}
+                                        icon={
+                                            <Status
+                                                severity={entry.severity}
+                                                isDark={black}
+                                            />
+                                        }
+                                        {...a11yProps(idx)}
+                                    />
+                                );
+                            })}
                         </Tabs>
                     </AppBar>
                     {entry ? (
@@ -441,13 +483,13 @@ const NotificationsDialog = ({
                                 sx={styles.headerText}
                                 style={{ fontWeight: 'bold' }}
                             >
-                                {entry.name[I18n.getLanguage()]}
+                                {getTranslation(entry.name, currentName)}
                             </Box>
                             <Box
                                 component="div"
                                 sx={styles.descriptionHeaderText}
                             >
-                                {entry.description[I18n.getLanguage()]}
+                                {getTranslation(entry.description)}
                             </Box>
                             <div>
                                 {entry.instances
@@ -459,10 +501,11 @@ const NotificationsDialog = ({
                                           }
 
                                           const currentInstance = instances && instances[nameInst];
-                                          let icon = 'img/no-image.svg';
-                                          if (currentInstance?.common?.icon && currentInstance?.common?.name) {
-                                              icon = `adapter/${currentInstance.common.name}/${currentInstance.common.icon}`;
-                                          }
+                                          // getSelectIdIcon correctly handles base64 (data:image/...) icons,
+                                          // otherwise the "adapter/name/icon" path would break for embedded icons
+                                          const icon =
+                                              (currentInstance && getSelectIdIcon(currentInstance)) ||
+                                              'img/no-image.svg';
 
                                           return (
                                               <Accordion
@@ -488,6 +531,7 @@ const NotificationsDialog = ({
                                                           <Box
                                                               component="div"
                                                               sx={styles.textStyle}
+                                                              style={{ marginLeft: 8 }}
                                                           >
                                                               {nameInst.replace(/^system\.adapter\./, '')}
                                                           </Box>

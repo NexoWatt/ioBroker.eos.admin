@@ -12,7 +12,7 @@ import {
     Public as WorldIcon,
 } from '@mui/icons-material';
 
-import { I18n, type IobTheme, Utils } from '@iobroker/adapter-react-v5';
+import { I18n, type IobTheme, Utils } from '@iobroker/gui-components';
 import type { CompactAdapterInfo } from '@/types';
 import type { CompactInstanceInfo } from '@/components/Adapters/AdapterUpdateDialog';
 
@@ -170,6 +170,8 @@ interface Context {
     instances: Record<string, CompactInstanceInfo>;
     nodeVersion: string;
     npmVersion: string;
+    /** Installed js-controller version (core infrastructure, not a regular adapter) */
+    jsControllerVersion: string;
     os: string;
     activeRepo: string[] | string;
     uuid?: string;
@@ -251,7 +253,17 @@ export const checkMessages = (messages: Message[], lastMessageId: string, contex
                     const adapter = context.adapters[adapters[a]];
                     const condition = message.conditions[adapters[a]];
                     if (condition) {
-                        if (!adapter && condition !== '!installed') {
+                        if (adapters[a] === 'js-controller') {
+                            // js-controller is core infrastructure (always installed and active) and
+                            // not a regular adapter, so its version comes from the installed controller.
+                            if (condition === '!installed' || condition === '!active') {
+                                conditionResult = false;
+                            } else if (condition === 'installed' || condition === 'active') {
+                                conditionResult = true;
+                            } else if (context.jsControllerVersion) {
+                                conditionResult = checkConditions(condition, context.jsControllerVersion);
+                            }
+                        } else if (!adapter && condition !== '!installed') {
                             conditionResult = false;
                         } else if (adapter && condition === '!installed') {
                             conditionResult = false;
@@ -316,9 +328,9 @@ export const checkMessages = (messages: Message[], lastMessageId: string, contex
                     created: message.created,
                     link: message.link,
                     linkTitle:
-                        typeof message.linkTitle === 'object'
+                        (typeof message.linkTitle === 'object'
                             ? message.linkTitle[context.lang] || message.linkTitle.en
-                            : message.linkTitle,
+                            : message.linkTitle) || '',
                     img: message.img,
                 });
             }
@@ -336,36 +348,36 @@ function NewsAdminDialog({
     onSetLastNewsId,
 }: {
     newsArr: ShowMessage[];
-    current: string;
+    current: string | undefined;
     onSetLastNewsId: (id?: string) => void;
 }): JSX.Element {
-    const [id, setId] = useState(current);
-    const [last, setLast] = useState(false);
-    const [indexArr, setIndexArr] = useState(0);
+    // Start at the first entry the user has not seen yet. `-1` means everything was already read.
+    const [startIndex] = useState(() => {
+        const item = newsArr.find(el => el.id === current);
+        if (!item) {
+            return 0;
+        }
+        const index = newsArr.indexOf(item);
+        return index + 1 < newsArr.length ? index + 1 : -1;
+    });
+    const [indexArr, setIndexArr] = useState(startIndex < 0 ? 0 : startIndex);
 
     useEffect(() => {
-        const item = newsArr.find(el => el.id === id);
-        if (item) {
-            const index = newsArr.indexOf(item);
-            if (index + 1 < newsArr.length) {
-                const newId = newsArr[index + 1].id;
-                if (newId) {
-                    setId(newId);
-                    setIndexArr(index + 1);
-                }
-            } else {
-                onSetLastNewsId();
-            }
-        } else {
-            setId(newsArr[0].id);
+        if (startIndex < 0) {
+            onSetLastNewsId();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [last]);
+    }, []);
 
+    // Advancing is triggered by closing the current entry, so it belongs into the handler and not
+    // into an effect that synchronizes state with itself.
     const onClose = (): void => {
-        // setOpen(false);
-        setLast(!last);
-        onSetLastNewsId(id);
+        onSetLastNewsId(newsArr[indexArr].id);
+        if (indexArr + 1 < newsArr.length) {
+            setIndexArr(indexArr + 1);
+        } else {
+            onSetLastNewsId();
+        }
     };
 
     const lang = I18n.getLanguage();

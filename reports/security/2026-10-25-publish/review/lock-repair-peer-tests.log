@@ -1,0 +1,18 @@
+✔ exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks (8.428965ms)
+✔ dry run and already complete locks do not mutate inputs or fetch unnecessary metadata (3.730594ms)
+✔ aliases use actual package name, not installation directory (0.478962ms)
+✔ network failure leaves every input unchanged and never writes a success report (2.58828ms)
+✔ wrong package/version, weak or malformed digest and foreign tarball are rejected before writing (7.05646ms)
+✔ existing conflicting or malformed metadata is never overwritten (1.499071ms)
+✔ concurrent package or lock changes are preserved and stop repair (1.262015ms)
+✔ second-lock commit failure restores both original locks and records rollback evidence (3.271271ms)
+✔ rollback preserves a concurrent developer edit and reports that backup review is required (3.294979ms)
+✔ registry transport has fixed five-second budget, TLS validation and no redirect/retry (0.308362ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.89822

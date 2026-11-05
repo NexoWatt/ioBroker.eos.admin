@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "acorn",
+  "version": "8.17.0",
+  "license": "MIT",
+  "registryTarball": "https://registry.npmjs.org/acorn/-/acorn-8.17.0.tgz",
+  "registryIntegrity": "sha512-xRQbDb9BnwDafYNn6Vwl839DYVjqXYb1XVGtWAZ1kcDc6iwAL4hg3B1dZlRiuENFeO2H53gFG3in621AdERVAg==",
+  "sourceFiles": {
+    "acorn.cjs": "dist/acorn.js",
+    "LICENSE": "LICENSE"
+  },
+  "sha256": {
+    "acorn.cjs": "b373ccd10e9deb63654289f73216eeefcaf0405d9ee24289aabf596b91b4c318",
+    "LICENSE": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7"
+  },
+  "purpose": "Standalone release-validation parser; not adapter runtime. Exact audited locked distribution copied without modification."
+}

@@ -1,13 +1,15 @@
 import React, { Component, type JSX } from 'react';
-import MonacoEditor from 'react-monaco-editor';
-import type { editor as MonacoEditorType } from 'monaco-editor';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-clouds_midnight';
+import 'ace-builds/src-noconflict/theme-chrome';
 
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
 // Icons
 import { Close as CloseIcon, Check as CheckIcon } from '@mui/icons-material';
 
-import { type Translate, type ThemeName } from '@iobroker/adapter-react-v5';
+import { Utils, type Translate, type ThemeName } from '@iobroker/gui-components';
 import type { ioBrokerObject } from '@/types';
 
 const styles: Record<string, React.CSSProperties> = {
@@ -43,15 +45,6 @@ export default class ObjectEditDialog extends Component<ObjectEditDialogProps, O
         };
     }
 
-    static editorDidMount(editor: MonacoEditorType.IStandaloneCodeEditor /* , monaco */): void {
-        console.log('editorDidMount', editor);
-        editor.focus();
-    }
-
-    static onChange(newValue: string, e: MonacoEditorType.IModelContentChangedEvent): void {
-        console.log('onChange', newValue, e);
-    }
-
     onSave(): void {
         this.props.onClose();
     }
@@ -70,17 +63,17 @@ export default class ObjectEditDialog extends Component<ObjectEditDialogProps, O
                     {this.props.t('Edit object: %s', this.props.obj._id)}
                 </DialogTitle>
                 <DialogContent style={styles.content}>
-                    <MonacoEditor
+                    <AceEditor
                         width="100%"
                         height="100%"
-                        language="json"
-                        theme={this.props.themeName === 'dark' ? 'vs-dark' : 'vs-light'}
+                        mode="json"
+                        //  knows every dark theme, a comparison against the name
+                        // would show a bright editor in e.g. 'modernDark'
+                        theme={Utils.getThemeType(this.props.themeName) === 'dark' ? 'clouds_midnight' : 'chrome'}
                         value={this.state.code}
-                        options={{ selectOnLineNumbers: true }}
-                        onChange={(newValue, e) => ObjectEditDialog.onChange(newValue, e)}
-                        editorDidMount={(editor /* , monaco */) =>
-                            ObjectEditDialog.editorDidMount(editor /* , monaco */)
-                        }
+                        name="eos-object-edit-json"
+                        onLoad={editor => editor.focus()}
+                        onChange={code => this.setState({ code, changed: true })}
                     />
                 </DialogContent>
                 <DialogActions>

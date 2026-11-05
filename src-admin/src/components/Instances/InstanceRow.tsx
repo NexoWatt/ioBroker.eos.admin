@@ -1,6 +1,6 @@
 import React, { type JSX } from 'react';
 
-import { Accordion, AccordionDetails, AccordionSummary, Avatar, Grid2, Tooltip, Typography, Box } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Avatar, Grid, Tooltip, Typography, Box } from '@mui/material';
 
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
@@ -67,6 +67,18 @@ const styles: Record<string, any> = {
             display: 'none !important',
         },
     },
+    visible1400: {
+        display: 'none',
+        '@media screen and (max-width: 1400px)': {
+            display: 'flex !important',
+        },
+    },
+    hidden1400: {
+        display: 'flex',
+        '@media screen and (max-width: 1400px)': {
+            display: 'none !important',
+        },
+    },
     hidden800: {
         display: 'flex',
         '@media screen and (max-width: 800px)': {
@@ -92,6 +104,10 @@ const styles: Record<string, any> = {
         },
     },
     hidden1230: {
+        // fixed width, so the icons after the host name stay aligned under each other
+        width: 150,
+        minWidth: 150,
+        overflow: 'hidden',
         '@media screen and (max-width: 1300px)': {
             display: 'none !important',
         },
@@ -183,6 +199,10 @@ const styles: Record<string, any> = {
     },
     rowGridLine: {
         marginTop: -2,
+        overflow: 'hidden',
+        // Takes the whole width of the row. Sized by its content, a row without a port was narrower, as the
+        // empty resources column gave nothing to it: that column and the RAM shrank and stood out of line
+        flexGrow: 1,
     },
 };
 
@@ -202,43 +222,41 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
 
         return (
             <AccordionDetails>
-                <Grid2
+                <Grid
                     container
                     direction="row"
                 >
-                    <Grid2
+                    <Grid
                         container
                         direction="row"
                         size={{ xs: 10 }}
                     >
-                        <Grid2
+                        <Grid
                             container
-                            direction="column"
                             size={{ xs: 12, sm: 6, md: 4 }}
+                            sx={{ flexDirection: 'column' }}
                         >
                             {this.renderInfo(true)}
-                        </Grid2>
-                        <Grid2
+                        </Grid>
+                        <Grid
                             container
-                            direction="column"
                             size={{ xs: 12, sm: 6, md: 4 }}
+                            sx={{ flexDirection: 'column' }}
                         >
                             {this.renderVersion()}
-                        </Grid2>
-                        <Grid2
+                        </Grid>
+                        <Grid
                             container
-                            direction="column"
                             size={{ xs: 12, sm: 6, md: 4 }}
                             style={styles.paddingRight200}
+                            sx={{ flexDirection: 'column' }}
                         >
-                            {this.props.context.expertMode && (
-                                <Box
-                                    component="div"
-                                    sx={{ ...styles.displayFlex, ...styles.maxWidth300, ...styles.editButton }}
-                                >
-                                    {this.renderLogLevel()}
-                                </Box>
-                            )}
+                            <Box
+                                component="div"
+                                sx={{ ...styles.displayFlex, ...styles.maxWidth300, ...styles.editButton }}
+                            >
+                                {this.renderLogLevel()}
+                            </Box>
                             {item.running && this.props.context.expertMode && (
                                 <Box
                                     component="div"
@@ -247,7 +265,13 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                                     {this.renderInputOutput()}
                                 </Box>
                             )}
-                            <Grid2 sx={styles.visible1050}>{this.renderMemoryUsage()}</Grid2>
+                            <Grid sx={styles.visible1050}>{this.renderMemoryUsage()}</Grid>
+                            {/* the resources below say the same and more, so the port stands on its
+                                own line only if the host keeps no registry */}
+                            {item.port && !item.usedResources.length ? (
+                                <Grid sx={styles.visible1400}>{this.renderPort()}</Grid>
+                            ) : null}
+                            {this.renderUsedResources()}
                             {item.modeSchedule && (
                                 <Box
                                     component="div"
@@ -264,7 +288,10 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                                     {this.renderRestartSchedule()}
                                 </Box>
                             )}
-                            {this.props.context.expertMode && (
+                            {/* Not for a Python instance: the limit becomes --max-old-space-size,
+                                which never reaches the interpreter. The wrapper goes with it --
+                                it has a minimum height, so leaving it would be a blank band. */}
+                            {this.props.context.expertMode && !item.isPython && (
                                 <Box
                                     component="div"
                                     sx={{ ...styles.displayFlex, ...styles.maxWidth300, ...styles.editButton }}
@@ -273,6 +300,7 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                                 </Box>
                             )}
                             {this.props.context.expertMode &&
+                                !item.isPython &&
                                 item.checkCompact &&
                                 item.compact &&
                                 item.supportCompact && (
@@ -308,8 +336,8 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                                     {this.renderHostWithButton()}
                                 </Box>
                             ) : null}
-                        </Grid2>
-                    </Grid2>
+                        </Grid>
+                    </Grid>
                     <div style={styles.displayFlex}>
                         <IsVisible
                             config={item}
@@ -360,7 +388,7 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                             {this.renderCompactGroupEnabled()}
                         </Box>
                     </div>
-                </Grid2>
+                </Grid>
             </AccordionDetails>
         );
     }
@@ -371,24 +399,37 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
 
         const stateTooltip = this.renderTooltip();
 
+        // The adapter runs as a web-extension (inside a web instance) and has no own process
+        const runsAsWebExtension = item.stoppedWhenWebExtension !== undefined;
+
         const rootStyle = {
             ...styles.row,
-            ...((!item.running || instance.mode !== 'daemon' || item.stoppedWhenWebExtension !== undefined) &&
-                (this.props.idx % 2 === 0 ? styles.instanceStateNotEnabled1 : styles.instanceStateNotEnabled2)),
-            ...(item.running &&
+            // grey - disabled or non-daemon stopped
+            ...(!runsAsWebExtension && (!item.running || instance.mode !== 'daemon')
+                ? this.props.idx % 2 === 0
+                    ? styles.instanceStateNotEnabled1
+                    : styles.instanceStateNotEnabled2
+                : undefined),
+            // green (slightly different opacity) - runs as web-extension
+            ...(runsAsWebExtension
+                ? this.props.idx % 2 === 0
+                    ? styles.instanceStateAliveAndConnectedWebExtension1
+                    : styles.instanceStateAliveAndConnectedWebExtension2
+                : undefined),
+            ...(!runsAsWebExtension &&
+            item.running &&
             instance.mode === 'daemon' &&
-            item.stoppedWhenWebExtension === undefined &&
             (!item.connectedToHost || !item.alive)
                 ? this.props.idx % 2 === 0
                     ? styles.instanceStateNotAlive1
                     : styles.instanceStateNotAlive2
                 : undefined),
-            ...(item.running && item.connectedToHost && item.alive && item.connected === false
+            ...(!runsAsWebExtension && item.running && item.connectedToHost && item.alive && item.connected === false
                 ? this.props.idx % 2 === 0
                     ? styles.instanceStateAliveNotConnected1
                     : styles.instanceStateAliveNotConnected2
                 : undefined),
-            ...(item.running && item.connectedToHost && item.alive && item.connected !== false
+            ...(!runsAsWebExtension && item.running && item.connectedToHost && item.alive && item.connected !== false
                 ? this.props.idx % 2 === 0
                     ? styles.instanceStateAliveAndConnected1
                     : styles.instanceStateAliveAndConnected2
@@ -421,19 +462,24 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
             >
                 <AccordionSummary
                     sx={{
-                        '&.MuiAccordionSummary-root': rootStyle,
-                        '& .MuiAccordionSummary-content': this.desktop ? styles.desktopRowContent : undefined,
+                        // ButtonBase centers its content: a row wider than the page would overflow on both sides,
+                        // and the status on the left would be cut off where no scrollbar can reach it
+                        '&.MuiAccordionSummary-root': { ...rootStyle, justifyContent: 'flex-start' },
+                        '& .MuiAccordionSummary-content': {
+                            minWidth: 0,
+                            ...(this.desktop ? styles.desktopRowContent : undefined),
+                        },
                     }}
                     expandIcon={<ExpandMoreIcon style={this.desktop ? styles.desktopButton : undefined} />}
                 >
                     {this.renderDialogs()}
-                    <Grid2
+                    <Grid
                         container
                         spacing={1}
-                        alignItems="center"
                         direction="row"
                         wrap="nowrap"
                         style={styles.rowGridLine}
+                        sx={{ alignItems: 'center' }}
                     >
                         <Box
                             component="div"
@@ -525,21 +571,24 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                                 {this.renderInputOutput()}
                             </Box>
                         )}
-                        {this.props.context.expertMode && (
-                            <Tooltip
-                                title={
-                                    item.logLevelObject === item.logLevel
-                                        ? `${this.props.context.t('loglevel')} ${item.logLevel}`
-                                        : `${this.props.context.t('saved:')} ${item.logLevelObject} / ${this.props.context.t('actual:')} ${item.logLevel}`
-                                }
-                                slotProps={{ popper: { sx: styles.tooltip } }}
-                            >
-                                <Avatar sx={{ ...styles.smallAvatar, ...styles.hidden380, ...styles[item.logLevel] }}>
-                                    {item.loglevelIcon}
-                                </Avatar>
-                            </Tooltip>
-                        )}
-                        <Grid2
+                        <Tooltip
+                            title={
+                                item.logLevelObject === item.logLevel
+                                    ? `${this.props.context.t('loglevel')} ${item.logLevel}`
+                                    : `${this.props.context.t('saved:')} ${item.logLevelObject} / ${this.props.context.t('actual:')} ${item.logLevel}`
+                            }
+                            slotProps={{ popper: { sx: styles.tooltip } }}
+                        >
+                            <Avatar sx={{ ...styles.smallAvatar, ...styles.hidden380, ...styles[item.logLevel] }}>
+                                {item.loglevelIcon}
+                            </Avatar>
+                        </Tooltip>
+                        {this.props.context.hasAnyResource ? (
+                            <Grid sx={{ ...styles.hidden1400, flex: '0 1 150px', minWidth: 0, overflow: 'hidden' }}>
+                                {this.renderResourcesColumn()}
+                            </Grid>
+                        ) : null}
+                        <Grid
                             sx={{
                                 ...styles.hidden1050,
                                 ...styles.width150,
@@ -547,19 +596,21 @@ class InstanceRow extends InstanceGeneric<InstanceGenericProps, InstanceGenericS
                             }}
                         >
                             {this.renderMemoryUsage()}
-                        </Grid2>
+                        </Grid>
                         {this.props.context.hosts.length > 1 ||
                         (this.props.context.hosts.length &&
                             this.props.context.hosts[0].common?.name !== instance.host) ? (
-                            <Grid2 sx={styles.hidden1230}>{this.renderHost()}</Grid2>
+                            <Grid sx={styles.hidden1230}>{this.renderHost()}</Grid>
                         ) : null}
-                    </Grid2>
-                    {this.props.context.expertMode && item.checkSentry && (
+                    </Grid>
+                    {this.props.context.expertMode && (
                         <Box
                             component="div"
-                            sx={styles.hidden570}
+                            // reserve the place, even if the adapter does not support sentry,
+                            // so the compact icon stays aligned too
+                            sx={{ ...styles.hidden570, minWidth: 34 }}
                         >
-                            {this.renderSentry()}
+                            {item.checkSentry ? this.renderSentry() : null}
                         </Box>
                     )}
                     <Box

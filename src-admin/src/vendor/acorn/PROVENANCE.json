@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "name": "acorn",
+  "version": "8.17.0",
+  "license": "MIT",
+  "registryTarball": "https://registry.npmjs.org/acorn/-/acorn-8.17.0.tgz",
+  "registryIntegrity": "sha512-xRQbDb9BnwDafYNn6Vwl839DYVjqXYb1XVGtWAZ1kcDc6iwAL4hg3B1dZlRiuENFeO2H53gFG3in621AdERVAg==",
+  "sourceFiles": {
+    "acorn.mjs": "dist/acorn.mjs",
+    "acorn.d.mts": "dist/acorn.d.mts",
+    "LICENSE": "LICENSE"
+  },
+  "sha256": {
+    "acorn.mjs": "1cbcbf252a5800e496dc505c706f309a9dd4e1789392e12963c77ae9497ff6f7",
+    "acorn.d.mts": "402b3b3436cdcf865edbef6af24bfcb27dba79865d680f6d103376449edf9f92",
+    "LICENSE": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7"
+  },
+  "purpose": "Bounded syntax-only alias validation; parser never evaluates code. Reuse of exact reviewed Acorn8.17.0 distribution, no additional npm dependency."
+}

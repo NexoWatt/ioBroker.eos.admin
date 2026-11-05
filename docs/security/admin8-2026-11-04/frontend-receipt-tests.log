@@ -1,0 +1,12 @@
+✔ graph parser distinguishes actual imports from translations and never executes emitted code (18.34467ms)
+✔ receipt permits the real federation asset entry but rejects missing dependencies, changed asset bytes and unsafe paths (8.150505ms)
+✔ manifest cleanup removes old versioned and hashed modules while retaining current entry, federation and source assets (6.206632ms)
+✔ prepared release parser works without installed packages and rejects altered vendor bytes before loading them (179.328076ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 313.092813

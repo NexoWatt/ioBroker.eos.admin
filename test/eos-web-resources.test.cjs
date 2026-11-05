@@ -154,13 +154,30 @@ test('upload parser receives actual total/file/part limits and private temporary
         await enter(fixture.api, pair, options => {
             assert.equal(options.limits.fileSize, 200 * 1024 * 1024); assert.equal(options.limits.files, 1);
             assert.equal(options.limits.fields, 4); assert.equal(options.limits.parts, 5); assert.equal(options.uploadTimeout, 30000);
-            assert.equal(fs.statSync(options.tempFileDir).mode & 0o777, 0o700);
+            // POSIX mode bits are not a Windows ACL attestation. Parser limits
+            // and real temporary-file behavior remain tested on both hosts.
+            if (process.platform !== 'win32') assert.equal(fs.statSync(options.tempFileDir).mode & 0o777, 0o700);
             return (_req, _res, next) => next();
         });
         pair.req.destroy(); await drained();
     } finally { await fixture.cleanup(); }
 });
-test('restore storage does not follow existing destination symlink and persists restrictive permissions', async () => {
+test('restore storage replaces an existing regular file without modifying unrelated data', async () => {
+    const fixture = await uploadFixture(); const pair = uploadRequest();
+    try {
+        await enter(fixture.api, pair);
+        const source = path.join(fixture.api.getUploadDirectory(pair.req), 'source');
+        const outside = path.join(fixture.temporary, 'unrelated'); const target = path.join(fixture.temporary, 'restore.iob');
+        await fsp.writeFile(source, 'restoredata'); await fsp.writeFile(outside, 'untouched'); await fsp.writeFile(target, 'old-restore');
+        await fixture.api.storeRestoreUpload(pair.req, source, target);
+        assert.equal(await fsp.readFile(outside, 'utf8'), 'untouched'); assert.equal(await fsp.readFile(target, 'utf8'), 'restoredata');
+        if (process.platform !== 'win32') assert.equal((await fsp.stat(target)).mode & 0o777, 0o600);
+        pair.req.destroy(); await drained();
+    } finally { await fixture.cleanup(); }
+});
+test('POSIX restore storage replaces a destination symlink and persists restrictive permissions', {
+    skip: process.platform === 'win32' ? 'Real POSIX symlink/mode test; ordinary restore-copy and policy tests still run on Windows' : false,
+}, async () => {
     const fixture = await uploadFixture(); const pair = uploadRequest();
     try {
         await enter(fixture.api, pair);

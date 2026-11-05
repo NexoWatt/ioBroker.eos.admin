@@ -17,7 +17,7 @@ import {
 
 import { ExpandMore as ExpandMoreIcon, Description as DescriptionIcon, Close as CloseIcon } from '@mui/icons-material';
 
-import { I18n, Utils, IconCopy, type IobTheme } from '@iobroker/adapter-react-v5';
+import { I18n, Utils, IconCopy, type IobTheme } from '@iobroker/gui-components';
 import { CONTROLLER_CHANGELOG_URL } from '@/helpers/utils';
 
 const styles: Record<string, any> = {
@@ -238,7 +238,7 @@ const JsControllerDialog = ({ socket, hostId, version, onClose }: JsControllerDi
 
     const renderReadme = (): JSX.Element => (
         <>
-            {readme.map((text, i) =>
+            {readme?.map((text, i) =>
                 typeof text === 'object' ? (
                     text
                 ) : (
@@ -265,7 +265,7 @@ const JsControllerDialog = ({ socket, hostId, version, onClose }: JsControllerDi
                                 <Box
                                     component="code"
                                     sx={styles.code}
-                                    ref={ref as React.RefObject<HTMLElement>}
+                                    ref={ref}
                                     {...props}
                                 >
                                     {children}

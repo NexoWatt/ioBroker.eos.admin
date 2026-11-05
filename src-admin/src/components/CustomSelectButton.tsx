@@ -2,7 +2,7 @@ import React, { useState, type JSX } from 'react';
 
 import { Button, Menu, MenuItem, Tooltip } from '@mui/material';
 
-import type { Translate } from '@iobroker/adapter-react-v5';
+import type { Translate } from '@iobroker/gui-components';
 import MaterialDynamicIcon from '../helpers/MaterialDynamicIcon';
 
 const styles: Record<string, React.CSSProperties> = {
@@ -41,7 +41,7 @@ function CustomSelectButton({
     noTranslation,
 }: CustomSelectButtonProps): JSX.Element {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    translateSuffix = translateSuffix || '';
+    const suffix = translateSuffix || '';
 
     return (
         <>
@@ -62,7 +62,7 @@ function CustomSelectButton({
                                 style={styles.icon}
                             />
                         ))}
-                    {typeof value === 'number' ? value : noTranslation ? value : t(value + translateSuffix)}
+                    {typeof value === 'number' ? value : noTranslation ? value : t(value + suffix)}
                 </Button>
             </Tooltip>
             <Menu
@@ -105,7 +105,7 @@ function CustomSelectButton({
                                 style={styles.icon}
                             />
                         )}
-                        {typeof name === 'number' ? name : noTranslation ? name : t(name + translateSuffix)}
+                        {typeof name === 'number' ? name : noTranslation ? name : t(name + suffix)}
                     </MenuItem>
                 ))}
             </Menu>

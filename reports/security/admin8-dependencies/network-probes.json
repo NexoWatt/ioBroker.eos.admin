@@ -1,0 +1,17 @@
+{
+  "utc": "2026-11-04T20:56:26.847916+00:00",
+  "results": [
+    {
+      "label": "native-https",
+      "exit": 1,
+      "seconds": 5.096,
+      "stdout": "ERR_PROXY_TUNNEL"
+    },
+    {
+      "label": "fresh-npm-cache",
+      "exit": 0,
+      "seconds": 4.142,
+      "stdout": "{\n  \"name\": \"typescript\",\n  \"version\": \"6.0.3\"\n}"
+    }
+  ]
+}

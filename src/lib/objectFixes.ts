@@ -1,12 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import * as semver from 'semver';
 
 import { controllerDir } from '@iobroker/adapter-core';
 
 // this function re-check if the common objects like '0_userdata.0' exist
 export async function checkCommonObjects(adapter: ioBroker.Adapter): Promise<void> {
     // try to find js-controller directory
-    let objects: ioBroker.Object[];
+    let objects: ioBroker.Object[] | undefined;
     try {
         const dir = require.resolve('iobroker.js-controller/io-package.json').replace(/\\/g, '/');
         // dir is something like ./node_modules/iobroker.js-controller/build/cjs/main.js
@@ -64,12 +66,13 @@ export async function checkCommonObjects(adapter: ioBroker.Adapter): Promise<voi
                     type: 'meta.user',
                     dontDelete: true,
                 },
+                native: {},
                 acl: {
                     owner: 'system.user.admin',
                     ownerGroup: 'system.group.administrator',
                     object: 1604,
                 },
-            } as ioBroker.MetaObject;
+            };
 
             await adapter.setForeignObject(userData._id, userData);
         }
@@ -100,7 +103,7 @@ export async function validateUserData0(adapter: ioBroker.Adapter): Promise<void
                 }
             }
         } catch (e) {
-            adapter.log.error(`Cannot read ${controllerDir}/io-package.json: ${e}`);
+            adapter.log.error(`Cannot read ${controllerDir}/io-package.json: ${(e as Error).toString()}`);
         }
     }
 }
@@ -142,5 +145,50 @@ export async function updateDevicesObject(adapter: ioBroker.Adapter): Promise<vo
                 await adapter.setForeignObjectAsync(obj._id, obj);
             }
         }
+    }
+}
+
+// This function checks if js-controller 7.2.2 is installed and if adapter-core 3.4.1 is available.
+// If not, it will try to reinstall adapter-core@3.4.1
+export async function verifyAdapterCore(adapter: ioBroker.Adapter): Promise<void> {
+    try {
+        const packController: unknown = JSON.parse(await readFile(join(controllerDir, 'package.json'), 'utf8'));
+        if (
+            !packController ||
+            typeof packController !== 'object' ||
+            !('version' in packController) ||
+            typeof packController.version !== 'string' ||
+            !semver.valid(packController.version)
+        ) {
+            throw new Error('Invalid controller package version');
+        }
+
+        // The fix is only relevant (and possible) with js-controller >= 7.2.2
+        if (!semver.gte(packController.version, '7.2.2')) {
+            return;
+        }
+
+        // Read the version of the installed @iobroker/adapter-core (located next to the js-controller in node_modules)
+        const adapterCorePack = join(controllerDir, '..', '@iobroker', 'adapter-core', 'package.json');
+        let adapterCoreVersion: string | undefined;
+        if (existsSync(adapterCorePack)) {
+            try {
+                adapterCoreVersion = JSON.parse(readFileSync(adapterCorePack).toString('utf8')).version;
+            } catch {
+                // package.json of @iobroker/adapter-core cannot be read
+            }
+        }
+
+        // Nothing to do if adapter-core 3.4.1 or newer is already available
+        if (adapterCoreVersion && semver.gte(adapterCoreVersion, '3.4.1')) {
+            return;
+        }
+
+        adapter.log.warn(
+            `js-controller ${packController.version} uses an outdated or missing shared @iobroker/adapter-core. ` +
+                'Update the controller environment through the approved maintenance process. EOS does not install packages at runtime.',
+        );
+    } catch (e) {
+        adapter.log.warn(`Cannot verify @iobroker/adapter-core: ${(e as Error).toString()}`);
     }
 }

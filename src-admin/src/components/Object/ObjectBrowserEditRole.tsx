@@ -1,10 +1,20 @@
 import React, { Component, type JSX } from 'react';
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Autocomplete } from '@mui/material';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Button,
+    Autocomplete,
+    Tooltip,
+} from '@mui/material';
 
 import { Close as IconCancel, Check as IconCheck } from '@mui/icons-material';
-import type { AdminConnection, Translate } from '@iobroker/adapter-react-v5';
+import type { AdminConnection, Translate } from '@iobroker/gui-components';
 import { DEFAULT_ROLES } from '@/components/Object/ObjectBrowserEditObject';
+import { onCtrlEnter } from '@/helpers/ctrlEnter';
 
 interface ObjectBrowserEditRoleProps {
     roleArray: { role: string; type: ioBroker.CommonType }[];
@@ -37,18 +47,29 @@ class ObjectBrowserEditRole extends Component<ObjectBrowserEditRoleProps, Object
     componentDidMount(): void {
         void this.props.socket
             .getObject(this.props.id)
-            .then((obj: ioBroker.Object) => {
-                this.object = obj;
-                const value = obj?.common?.role || null;
+            .then(obj => {
+                this.object = (obj as ioBroker.Object) || null;
+                const value = obj?.common?.role || '';
                 this.setState({ role: value, initRole: value, roleInput: value });
             })
             .catch((e: string) => console.error(e));
     }
 
+    /** CTRL+ENTER triggers the same action as the "Apply" button */
+    onCtrlEnter = (): void => {
+        if (this.state.initRole !== this.state.roleInput) {
+            this.onUpdate();
+        }
+    };
+
     onUpdate(): void {
-        this.object.common = this.object.common || ({} as ioBroker.ObjectCommon);
-        this.object.common.role = this.state.roleInput;
-        void this.props.socket.setObject(this.object._id, this.object).then(() => this.props.onClose(this.object));
+        const object = this.object;
+        if (!object) {
+            return;
+        }
+        object.common = object.common || ({} as ioBroker.ObjectCommon);
+        object.common.role = this.state.roleInput || undefined;
+        void this.props.socket.setObject(object._id, object).then(() => this.props.onClose(object));
     }
 
     static filterRoles(roleArray: { role: string; type: ioBroker.CommonType }[], type: ioBroker.CommonType): string[] {
@@ -77,6 +98,7 @@ class ObjectBrowserEditRole extends Component<ObjectBrowserEditRoleProps, Object
                 maxWidth="sm"
                 fullWidth
                 onClose={() => this.props.onClose()}
+                onKeyDown={e => onCtrlEnter(e, this.onCtrlEnter)}
                 aria-labelledby="edit-role-dialog-title"
                 aria-describedby="edit-role-dialog-description"
             >
@@ -101,15 +123,19 @@ class ObjectBrowserEditRole extends Component<ObjectBrowserEditRoleProps, Object
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        disabled={this.state.initRole === this.state.roleInput}
-                        variant="contained"
-                        onClick={() => this.onUpdate()}
-                        color="primary"
-                        startIcon={<IconCheck />}
-                    >
-                        {this.props.t('Apply')}
-                    </Button>
+                    <Tooltip title={this.props.t('Press CTRL+ENTER to confirm')}>
+                        <span>
+                            <Button
+                                disabled={this.state.initRole === this.state.roleInput}
+                                variant="contained"
+                                onClick={() => this.onUpdate()}
+                                color="primary"
+                                startIcon={<IconCheck />}
+                            >
+                                {this.props.t('Apply')}
+                            </Button>
+                        </span>
+                    </Tooltip>
                     <Button
                         variant="contained"
                         onClick={() => this.props.onClose()}

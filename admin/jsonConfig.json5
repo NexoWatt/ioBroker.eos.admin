@@ -164,7 +164,7 @@
                     type: 'checkbox',
                     newLine: true,
                     label: 'EOS Assist deaktivieren',
-                    sx: 12,
+                    xs: 12,
                 }
             },
         },

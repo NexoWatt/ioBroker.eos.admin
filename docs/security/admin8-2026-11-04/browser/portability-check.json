@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "scope": "Portable harness rerun after relocation; unchanged product artifact",
+  "testedOn": "Linux x64, Node.js 24, Playwright 1.62.1, Chromium 153.0.8010.0",
+  "verifiedInterfaces": [
+    "default repository path from documentation location",
+    "explicit --root",
+    "explicit --output",
+    "EOS_BROWSER_OUTPUT_ROOT",
+    "EOS_PLAYWRIGHT_MODULE",
+    "normal require(playwright) through NODE_PATH",
+    "EOS_BROWSER_EXECUTABLE",
+    "EOS_BROWSER_PROFILE=sparticuz"
+  ],
+  "fixtureSha256": {
+    "browser-smoke.cjs": "47cdeacea37f637c729a15719dc8036fbdef3490b14dbdc4ada831da3376bb80",
+    "overview-fixture.cjs": "fb073eb9295dc1d70ca4cdec06d1f11a61844acc2485c3ca90ce9240d3e1466e"
+  },
+  "checks": [
+    {
+      "view": "login",
+      "status": "PASS",
+      "artifactManifestSha256": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9",
+      "pageErrors": 0,
+      "consoleWarningsOrErrors": 0,
+      "missingResources": 0,
+      "externalRequests": 0,
+      "uiChecks": {
+        "expertControls": 0,
+        "userTab": 0,
+        "userTabVisible": false,
+        "objectTab": 0,
+        "nativeHero": 0,
+        "legacyHero": 0
+      }
+    },
+    {
+      "view": "overview",
+      "status": "PASS",
+      "artifactManifestSha256": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9",
+      "pageErrors": 0,
+      "consoleWarningsOrErrors": 0,
+      "missingResources": 0,
+      "externalRequests": 0,
+      "uiChecks": {
+        "expertControls": 1,
+        "userTab": 1,
+        "userTabVisible": true,
+        "objectTab": 1,
+        "nativeHero": 1,
+        "legacyHero": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# This release includes byte-sealed sources, builds and upstream evidence.
+# Preserve original bytes on add/checkout, including fixtures with CRLF.
+# -text disables line-ending conversion; ordinary text diffs remain available.
+* -text

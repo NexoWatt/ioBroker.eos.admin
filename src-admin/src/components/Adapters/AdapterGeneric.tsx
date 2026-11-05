@@ -9,7 +9,7 @@ import {
     Tooltip,
     Typography,
     Rating,
-    Grid2,
+    Grid,
     Link,
     TextField,
     InputAdornment,
@@ -37,9 +37,10 @@ import {
     DeleteForever as DeleteForeverIcon,
     AddToPhotos as AddToPhotosIcon,
     Build as BuildIcon,
+    SettingsBackupRestore as SettingsBackupRestoreIcon,
 } from '@mui/icons-material';
 
-import { type IobTheme, Utils } from '@iobroker/adapter-react-v5';
+import { type IobTheme, Utils } from '@iobroker/gui-components';
 
 import AdapterUpdateDialog from '@/components/Adapters/AdapterUpdateDialog';
 import CustomModal from '@/components/CustomModal';
@@ -56,18 +57,27 @@ import AdapterInstallDialog, {
 import AutoUpgradeConfigDialog, { ICONS } from '@/dialogs/AutoUpgradeConfigDialog';
 
 import IsVisible from '../IsVisible';
-import { extractUrlLink, type RepoInfo } from './Utils';
+import { extractLicenseTextUrl, extractUrlLink, type RepoInfo } from './Utils';
 import sentryIcon from '../../assets/sentry.svg';
 
-const EOS_CORE_PROTECTED_ADAPTERS = new Set(['admin', 'eos-admin', 'backitup', 'nexowatt-devices', 'nexowatt-device', 'nexowatt-dev', 'nexowatt-ui']);
+const EOS_CORE_PROTECTED_ADAPTERS = new Set([
+    'admin',
+    'eos-admin',
+    'backitup',
+    'nexowatt-devices',
+    'nexowatt-device',
+    'nexowatt-dev',
+    'nexowatt-ui',
+]);
 
-const normalizeEosAdapterName = (value: string): string => String(value || '')
-    .toLowerCase()
-    .replace(/^system\.adapter\./, '')
-    .replace(/^iobroker\./, '')
-    .replace(/^@nexowatt\/iobroker\./, '')
-    .replace(/^@nexowatt\//, '')
-    .replace(/\.\d+$/, '');
+const normalizeEosAdapterName = (value: string): string =>
+    String(value || '')
+        .toLowerCase()
+        .replace(/^system\.adapter\./, '')
+        .replace(/^iobroker\./, '')
+        .replace(/^@nexowatt\/iobroker\./, '')
+        .replace(/^@nexowatt\//, '')
+        .replace(/\.\d+$/, '');
 
 const isEosProtectedAdapter = (adapterName: string): boolean => {
     const adapter = normalizeEosAdapterName(adapterName);
@@ -132,6 +142,9 @@ export const genericStyles: Record<string, any> = {
     updateAvailable: {
         color: green[700],
     },
+    repositoryVersionAvailable: {
+        color: amber[800],
+    },
     currentVersion: (theme: IobTheme) => ({
         cursor: 'pointer',
         mb: '6px',
@@ -187,8 +200,10 @@ export type AdapterCacheEntry = {
     rightOs: boolean;
     sentry: boolean;
     daysAgo: number;
+    createdDaysAgo: number;
     stat: number;
     daysAgoText: string;
+    createdDaysAgoText: string;
 };
 
 export interface AdapterGenericProps extends AdapterInstallDialogProps {
@@ -204,12 +219,14 @@ export interface AdapterGenericProps extends AdapterInstallDialogProps {
 export interface AdapterGenericState extends AdapterInstallDialogState {
     autoUpgradeDialogOpen: boolean;
     showUpdateDialog: boolean;
+    /** The update dialog installs the repository version instead of a newer one (downgrade or reinstall) */
+    installRepositoryVersion: boolean;
     adapterDeletionDialog: boolean;
     adapterInstallSpecificVersion: string;
     showInstallVersion: boolean;
     showSetRating: {
         version: string;
-        rating: AdapterRatingInfo;
+        rating?: AdapterRatingInfo;
     } | null;
 }
 
@@ -233,6 +250,7 @@ export default abstract class AdapterGeneric<
         Object.assign(this.state, {
             autoUpgradeDialogOpen: false,
             showUpdateDialog: false,
+            installRepositoryVersion: false,
             adapterDeletionDialog: false,
             adapterInstallSpecificVersion: '',
             showInstallVersion: false,
@@ -243,7 +261,7 @@ export default abstract class AdapterGeneric<
     static renderImage(imageProps: ImageProps): JSX.Element {
         const { style, alt, ...other } = imageProps;
 
-        const img = style.backgroundImage.substring(5, style.backgroundImage.length - 2);
+        const img = style.backgroundImage?.substring(5, style.backgroundImage.length - 2);
 
         return (
             <img
@@ -266,7 +284,12 @@ export default abstract class AdapterGeneric<
             : true;
 
         return (
-            <IsVisible value={allowAdapterInstall}>
+            <IsVisible
+                value={
+                    allowAdapterInstall !== false &&
+                    !AdapterInstallDialog.isSingletonInstalled(this.props.adapterName, this.props.context)
+                }
+            >
                 <Tooltip
                     title={this.props.context.t('Add instance')}
                     slotProps={{ popper: { sx: this.styles.tooltip } }}
@@ -299,7 +322,7 @@ export default abstract class AdapterGeneric<
         }
 
         // 'none' | 'patch' | 'minor' | 'major'
-        const autoUpgrade: ioBroker.AutoUpgradePolicy = adapterObj.common?.automaticUpgrade;
+        const autoUpgrade: ioBroker.AutoUpgradePolicy | undefined = adapterObj.common?.automaticUpgrade;
 
         return (
             <Tooltip
@@ -308,7 +331,11 @@ export default abstract class AdapterGeneric<
             >
                 <IconButton
                     size="small"
-                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ autoUpgradeDialogOpen: true, showDialog: true }); }}
+                    onClick={event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.setState({ autoUpgradeDialogOpen: true, showDialog: true });
+                    }}
                 >
                     {!autoUpgrade || autoUpgrade === 'none' ? <KeyboardArrowUp /> : ICONS[autoUpgrade]}
                 </IconButton>
@@ -329,7 +356,11 @@ export default abstract class AdapterGeneric<
                 >
                     <IconButton
                         size="small"
-                        onClick={event => { event.preventDefault(); event.stopPropagation(); this.openInfoDialog(); }}
+                        onClick={event => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            this.openInfoDialog();
+                        }}
                     >
                         <HelpIcon />
                     </IconButton>
@@ -345,7 +376,9 @@ export default abstract class AdapterGeneric<
 
         if (
             this.props.context.isTileView &&
-            (this.props.context.sortPopularFirst || this.props.context.sortRecentlyUpdated)
+            (this.props.context.sortPopularFirst ||
+                this.props.context.sortRecentlyUpdated ||
+                this.props.context.sortRecentlyCreated)
         ) {
             return null;
         }
@@ -380,7 +413,7 @@ export default abstract class AdapterGeneric<
         );
     }
 
-    renderConnectionType(): JSX.Element {
+    renderConnectionType(): JSX.Element | null {
         const connectionType = this.props.context.repository[this.props.adapterName]?.connectionType;
         return connectionType === 'cloud' ? (
             <Tooltip
@@ -445,12 +478,10 @@ export default abstract class AdapterGeneric<
                 href={link}
                 target="_blank"
                 rel="noopener"
-                sx={
-                    ((theme: IobTheme) => ({
-                        color: theme.palette.mode === 'dark' ? 'white' : 'black',
-                        '&:hover': { color: theme.palette.mode === 'dark' ? 'white' : 'black' },
-                    })) as any
-                }
+                sx={theme => ({
+                    color: theme.palette.mode === 'dark' ? 'white' : 'black',
+                    '&:hover': { color: theme.palette.mode === 'dark' ? 'white' : 'black' },
+                })}
             >
                 {adapter.licenseInformation?.type === 'paid' ? (
                     <Tooltip
@@ -513,9 +544,19 @@ export default abstract class AdapterGeneric<
         for (const adapter of dependencies) {
             if (!adapter.installedVersion) {
                 array.push(this.props.context.t('No version of %s', adapter.name, adapter.name));
+            } else if (adapter.wrongHosts?.length) {
+                // Global dependency of a multihost system: name the hosts that still run a too old version,
+                // because the version shown for the adapter itself may well fulfill the requirement.
+                array.push(
+                    `${this.props.context.t(
+                        'The following hosts do not fulfill the required version %s of %s:',
+                        adapter.version || 'unknown',
+                        adapter.name,
+                    )} ${adapter.wrongHosts.map(h => `${h.host} (${h.installedVersion})`).join(', ')}`,
+                );
             } else if (!adapter.rightVersion) {
                 array.push(
-                    `${this.props.context.t('Invalid version of %s. Required %s. Current ', adapter.name, adapter.version)}${adapter.installedVersion}`,
+                    `${this.props.context.t('Invalid version of %s. Required %s. Current ', adapter.name, adapter.version || 'unknown')}${adapter.installedVersion}`,
                 );
             }
         }
@@ -548,13 +589,46 @@ export default abstract class AdapterGeneric<
             return <span style={this.styles.wrongDependencies}>{this.props.context.t('not maintained')}</span>;
         }
 
+        if (!this.props.commandRunning && allowAdapterUpdate !== false && this.isRepositoryVersionInstallable()) {
+            return (
+                <Tooltip
+                    title={this.props.context.t('Install version %s from repository', adapterVersion)}
+                    slotProps={{ popper: { sx: this.styles.tooltip } }}
+                >
+                    <div
+                        onClick={() =>
+                            this.setState({ showUpdateDialog: true, showDialog: true, installRepositoryVersion: true })
+                        }
+                        style={{
+                            ...this.styles.buttonUpdate,
+                            ...(this.props.cached.rightDependencies
+                                ? this.styles.repositoryVersionAvailable
+                                : undefined),
+                        }}
+                    >
+                        <IconButton
+                            style={this.styles.buttonUpdateIcon}
+                            size="small"
+                        >
+                            <SettingsBackupRestoreIcon />
+                        </IconButton>
+                        {adapterVersion}
+                    </div>
+                </Tooltip>
+            );
+        }
+
         return !this.props.commandRunning && this.props.cached.updateAvailable && allowAdapterUpdate !== false ? (
             <Tooltip
                 title={this.props.context.t('Update')}
                 slotProps={{ popper: { sx: this.styles.tooltip } }}
             >
                 <div
-                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ showUpdateDialog: true, showDialog: true }); }}
+                    onClick={event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.setState({ showUpdateDialog: true, showDialog: true, installRepositoryVersion: false });
+                    }}
                     style={{
                         ...this.styles.buttonUpdate,
                         ...(this.props.cached.rightDependencies ? this.styles.updateAvailable : undefined),
@@ -579,6 +653,32 @@ export default abstract class AdapterGeneric<
                 </span>
             </Tooltip>
         );
+    }
+
+    /**
+     * Whether the installed version was not installed from the current repository and the repository version
+     * can be installed instead, e.g., after switching from the "latest" to the "stable" repository (downgrade)
+     * or after installing a version from GitHub, npm or a file.
+     */
+    isRepositoryVersionInstallable(): boolean {
+        const repositoryVersion = this.props.context.repository[this.props.adapterName]?.version;
+        const installedVersion = this.props.context.installed[this.props.adapterName]?.version;
+        // a newer version in the repository is offered as a normal update
+        if (!repositoryVersion || !installedVersion || this.props.cached.updateAvailable) {
+            return false;
+        }
+        if (repositoryVersion !== installedVersion) {
+            // only a downgrade: an older installed version without an update means the update was ignored
+            return AdminUtils.updateAvailable(
+                repositoryVersion,
+                installedVersion,
+                `adapter "${this.props.adapterName}"`,
+            );
+        }
+        // the same version, but installed not from npm (e.g., from GitHub)
+        const installedFrom =
+            this.props.context.adapters[`system.adapter.${this.props.adapterName}`]?.common?.installedFrom;
+        return !!installedFrom && !installedFrom.startsWith(`iobroker.${this.props.adapterName}@`);
     }
 
     /**
@@ -625,22 +725,22 @@ export default abstract class AdapterGeneric<
             const installedCount = installed?.count;
 
             return (
-                <Grid2
+                <Grid
                     container
                     wrap="nowrap"
-                    alignItems="center"
                     spacing={1}
+                    sx={{ alignItems: 'center' }}
                 >
                     {this.installedVersion ? (
-                        <Grid2>
+                        <Grid>
                             {displayVersion +
                                 (installedCount
                                     ? ` (${installedCount}${installedCount !== enabledCount ? '~' : ''})`
                                     : '')}
-                        </Grid2>
+                        </Grid>
                     ) : null}
                     {isGitHubInstall && (
-                        <Grid2 container>
+                        <Grid container>
                             <Tooltip
                                 title={`${this.props.context.t('Non-NPM-Version')}: ${installedFrom}`}
                                 slotProps={{ popper: { sx: this.styles.tooltip } }}
@@ -650,9 +750,9 @@ export default abstract class AdapterGeneric<
                                     style={this.styles.versionWarn}
                                 />
                             </Tooltip>
-                        </Grid2>
+                        </Grid>
                     )}
-                </Grid2>
+                </Grid>
             );
         }
 
@@ -690,7 +790,11 @@ export default abstract class AdapterGeneric<
                     size="small"
                     disabled={this.props.commandRunning}
                     data-eos-adapter-action="upload"
-                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.onUpload(); }}
+                    onClick={event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.onUpload();
+                    }}
                 >
                     <PublishIcon />
                 </IconButton>
@@ -711,7 +815,11 @@ export default abstract class AdapterGeneric<
                         size="small"
                         disabled={this.props.commandRunning}
                         data-eos-adapter-action="delete"
-                        onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ adapterDeletionDialog: true, showDialog: true }); }}
+                        onClick={event => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            this.setState({ adapterDeletionDialog: true, showDialog: true });
+                        }}
                     >
                         <DeleteForeverIcon />
                     </IconButton>
@@ -721,24 +829,25 @@ export default abstract class AdapterGeneric<
     }
 
     renderInstallSpecificVersionButton(): JSX.Element | null {
-        return (
-            this.props.context.expertMode &&
-            this.installedVersion && (
-                <Tooltip
-                    title={this.props.context.t('Install a specific version')}
-                    slotProps={{ popper: { sx: this.styles.tooltip } }}
+        return this.props.context.expertMode && this.installedVersion ? (
+            <Tooltip
+                title={this.props.context.t('Install a specific version')}
+                slotProps={{ popper: { sx: this.styles.tooltip } }}
+            >
+                <IconButton
+                    disabled={this.props.commandRunning}
+                    size="small"
+                    data-eos-adapter-action="install-specific-version"
+                    onClick={event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.setState({ showInstallVersion: true, showDialog: true });
+                    }}
                 >
-                    <IconButton
-                        disabled={this.props.commandRunning}
-                        size="small"
-                        data-eos-adapter-action="install-specific-version"
-                        onClick={event => { event.preventDefault(); event.stopPropagation(); this.setState({ showInstallVersion: true, showDialog: true }); }}
-                    >
-                        <AddToPhotosIcon />
-                    </IconButton>
-                </Tooltip>
-            )
-        );
+                    <AddToPhotosIcon />
+                </IconButton>
+            </Tooltip>
+        ) : null;
     }
 
     renderRebuildButton(): JSX.Element | null {
@@ -751,7 +860,11 @@ export default abstract class AdapterGeneric<
                     size="small"
                     disabled={this.props.commandRunning}
                     data-eos-adapter-action="rebuild"
-                    onClick={event => { event.preventDefault(); event.stopPropagation(); this.rebuild(); }}
+                    onClick={event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.rebuild();
+                    }}
                 >
                     <BuildIcon />
                 </IconButton>
@@ -773,15 +886,40 @@ export default abstract class AdapterGeneric<
         );
     }
 
+    async ignoreVersion(ignoreVersion: string): Promise<void> {
+        const obj = await this.props.context.socket.getObject(`system.adapter.${this.props.adapterName}`);
+        if (obj?.common) {
+            (obj.common as ioBroker.AdapterCommon).ignoreVersion = ignoreVersion;
+            this.props.context.socket
+                .setObject(obj._id, obj)
+                .catch((error: unknown): void => window.alert(`Cannot write object: ${error as Error}`));
+        } else {
+            window.alert(`Adapter "${this.props.adapterName}" does not exist!`);
+        }
+        this.props.context.removeUpdateAvailable(this.props.adapterName);
+    }
+
     renderUpdateAdapterDialog(): JSX.Element | null {
         if (!this.state.showUpdateDialog) {
             return null;
         }
 
         this.installedVersion = this.props.context.installed[this.props.adapterName]?.version;
+        const repositoryVersion = this.props.context.repository[this.props.adapterName]?.version;
 
         return (
             <AdapterUpdateDialog
+                textTitle={
+                    this.state.installRepositoryVersion
+                        ? this.props.context.t(
+                              'Install "%s" v%s from repository instead of v%s',
+                              this.props.adapterName,
+                              repositoryVersion,
+                              this.installedVersion,
+                          )
+                        : undefined
+                }
+                textUpdate={this.state.installRepositoryVersion ? this.props.context.t('Install') : undefined}
                 adapter={this.props.adapterName}
                 adapterObject={this.props.context.repository[this.props.adapterName]}
                 t={this.props.context.t}
@@ -795,33 +933,14 @@ export default abstract class AdapterGeneric<
                     this.setState({ showUpdateDialog: false, showDialog: false }, () => this.update(version))
                 }
                 isStable={(this.props.context.repository._repoInfo as unknown as RepoInfo).stable}
-                onIgnore={ignoreVersion =>
-                    this.setState({ showUpdateDialog: false, showDialog: false }, () =>
-                        this.props.context.socket
-                            .getObject(`system.adapter.${this.props.adapterName}`)
-                            .then(
-                                (
-                                    obj:
-                                        | ioBroker.AdapterObject
-                                        | ioBroker.StateObject
-                                        | ioBroker.InstanceObject
-                                        | null
-                                        | undefined,
-                                ): void => {
-                                    if (obj?.common) {
-                                        (obj.common as ioBroker.AdapterCommon).ignoreVersion = ignoreVersion;
-                                        this.props.context.socket
-                                            .setObject(obj._id, obj)
-                                            .catch((error: unknown): void =>
-                                                window.alert(`Cannot write object: ${error as Error}`),
-                                            );
-                                    } else {
-                                        window.alert(`Adapter "${this.props.adapterName}" does not exist!`);
-                                    }
-                                },
-                            )
-                            .then(() => this.props.context.removeUpdateAvailable(this.props.adapterName)),
-                    )
+                onIgnore={
+                    this.state.installRepositoryVersion
+                        ? undefined
+                        : ignoreVersion =>
+                              this.setState(
+                                  { showUpdateDialog: false, showDialog: false },
+                                  () => void this.ignoreVersion(ignoreVersion),
+                              )
                 }
                 onClose={() => this.setState({ showUpdateDialog: false, showDialog: false })}
                 instances={this.props.context.compactInstances}
@@ -854,8 +973,8 @@ export default abstract class AdapterGeneric<
         if (!this.state.showInstallVersion) {
             return null;
         }
-        let stableVersion: string;
-        let latestVersion: string;
+        let stableVersion: string | undefined;
+        let latestVersion: string | undefined;
         const repoInfo: RepoInfo = this.props.context.repository._repoInfo as unknown as RepoInfo;
         if (repoInfo?.stable) {
             stableVersion = this.props.context.repository[this.props.adapterName]?.version;
@@ -936,7 +1055,7 @@ export default abstract class AdapterGeneric<
                                             `https://www.npmjs.com/package/iobroker.${this.props.adapterName}?activeTab=versions`,
                                             this.props.adapterName,
                                         )
-                                        .focus();
+                                        ?.focus();
                                 }}
                             >
                                 <LinkIcon />
@@ -1018,7 +1137,7 @@ export default abstract class AdapterGeneric<
                 version={this.state.showSetRating.version}
                 adapter={this.props.adapterName}
                 currentRating={this.state.showSetRating.rating}
-                onClose={(update: RatingDialogRepository) => {
+                onClose={(update?: RatingDialogRepository | null) => {
                     if (update) {
                         this.props.context.updateRating(this.props.adapterName, update);
                     }
@@ -1064,12 +1183,12 @@ export default abstract class AdapterGeneric<
                 try {
                     if (semver.gt(version, installed.version) || all) {
                         let text: string;
-                        if (typeof adapter.news[version] === 'object') {
+                        if (typeof adapter.news![version] === 'object') {
                             text = this.props.noTranslation
-                                ? adapter.news[version].en
-                                : adapter.news[version][this.props.context.lang] || adapter.news[version].en;
+                                ? adapter.news![version].en
+                                : adapter.news![version][this.props.context.lang] || adapter.news![version].en;
                         } else {
-                            text = adapter.news[version] as any as string;
+                            text = adapter.news![version];
                         }
 
                         news.push({
@@ -1091,7 +1210,7 @@ export default abstract class AdapterGeneric<
 
     onUpload(): void {
         const adapter = this.props.context.repository[this.props.adapterName];
-        const url = extractUrlLink(adapter);
+        const url = extractLicenseTextUrl(adapter);
         const licenseType = adapter.licenseInformation?.license || adapter.license;
 
         if (
@@ -1126,7 +1245,7 @@ export default abstract class AdapterGeneric<
         );
     }
 
-    async update(version: string): Promise<void> {
+    update(version: string): void {
         // NexoWatt EOS v34: The standalone eos-admin adapter is updated via the normal
         // ioBroker upgrade command. The original admin webserver self-update path is unreliable
         // for a separate adapter and can leave the UI hanging.

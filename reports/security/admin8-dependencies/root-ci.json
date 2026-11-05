@@ -1,0 +1,15 @@
+{
+  "command": [
+    "npm",
+    "ci",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--fetch-timeout=5000",
+    "--fetch-retries=0"
+  ],
+  "cwd": "admin",
+  "exit": 0,
+  "seconds": 23.806,
+  "utc": "2026-11-04T21:01:21.062235+00:00"
+}

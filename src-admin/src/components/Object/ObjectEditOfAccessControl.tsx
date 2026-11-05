@@ -1,7 +1,7 @@
 import React, { useEffect, useState, type JSX } from 'react';
 import { Checkbox, FormControl, InputLabel, LinearProgress, MenuItem, Select, Switch } from '@mui/material';
 
-import { I18n, Icon, type IobTheme, type ThemeType, type Translate, Utils } from '@iobroker/adapter-react-v5';
+import { I18n, Icon, type IobTheme, type ThemeType, type Translate, Utils } from '@iobroker/gui-components';
 
 import CustomModal from '@/components/CustomModal';
 
@@ -97,7 +97,18 @@ const ObjectRights: React.FC<ObjectRightsProps> = ({
         }
     }, [differentValues, applyToChildren, setMask, value]);
 
+    // Decompose `value` into its individual permission bits up front. Doing this inline while
+    // rendering would mutate a variable captured from the enclosing scope, which React forbids.
+    const checkedValues = new Set<number>();
     let newSelected = value;
+    for (const el of readWriteArray) {
+        for (const obj of el[Object.keys(el)[0]]) {
+            if (newSelected - obj.valueNum >= 0) {
+                newSelected -= obj.valueNum;
+                checkedValues.add(obj.valueNum);
+            }
+        }
+    }
 
     return (
         <div
@@ -143,11 +154,7 @@ const ObjectRights: React.FC<ObjectRightsProps> = ({
                             }}
                         >
                             {el[name].map((obj, idx) => {
-                                let bool = false;
-                                if (newSelected - obj.valueNum >= 0) {
-                                    newSelected -= obj.valueNum;
-                                    bool = true;
-                                }
+                                const bool = checkedValues.has(obj.valueNum);
                                 const masked = mask & obj.valueNum;
                                 return (
                                     <div
@@ -229,19 +236,19 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
     themeType,
     theme,
 }) => {
-    const [stateOwnerUser, setStateOwnerUser] = useState<AccessControlUser>(null);
-    const [stateOwnerGroup, setStateOwnerGroup] = useState<AccessControlGroup>(null);
+    const [stateOwnerUser, setStateOwnerUser] = useState<AccessControlUser | undefined>(undefined);
+    const [stateOwnerGroup, setStateOwnerGroup] = useState<AccessControlGroup | undefined>(undefined);
     const [ownerUsers, setOwnerUsers] = useState<AccessControlUser[]>([]);
     const [ownerGroups, setOwnerGroups] = useState<AccessControlGroup[]>([]);
     const [applyToChildren, setApplyToChildren] = useState(false);
     const [checkState, setCheckState] = useState(false);
     const [childrenCount, setChildrenCount] = useState(0);
-    const [valueObjectAccessControl, setValueObjectAccessControl] = useState<number>(null);
-    const [valueStateAccessControl, setValueStateAccessControl] = useState<number>(null);
+    const [valueObjectAccessControl, setValueObjectAccessControl] = useState<number | null>(null);
+    const [valueStateAccessControl, setValueStateAccessControl] = useState<number | null>(null);
     const [differentOwner, setDifferentOwner] = useState(false);
     const [differentGroup, setDifferentGroup] = useState(false);
-    const [differentState, setDifferentState] = useState([]);
-    const [differentObject, setDifferentObject] = useState([]);
+    const [differentState, setDifferentState] = useState<number[]>([]);
+    const [differentObject, setDifferentObject] = useState<number[]>([]);
     const [maskState, setMaskState] = useState(0);
     const [maskObject, setMaskObject] = useState(0);
     const [ids, setIds] = useState<string[]>([]);
@@ -251,6 +258,11 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
 
     const different = t('different');
 
+    // TODO: both effects below derive state from `objects`/`selected` and from the `applyToChildren`
+    // toggle, and should become `useMemo` / event handlers. They are convergent (every write is
+    // guarded by an equality check) and therefore correct as they stand; converting them is deferred
+    // until the dialogs can be exercised against a live controller - getting ACL handling subtly
+    // wrong is worse than the extra render pass.
     useEffect(() => {
         let count = 0;
         const _differentState: number[] = [];
@@ -266,10 +278,10 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
 
         let _differentOwner = false;
         let _differentGroup = false;
-        let _stateOwnerUser: string = null;
-        let _stateOwnerGroup: string = null;
-        let _valueObjectAccessControl: number = null;
-        let _valueStateAccessControl: number = null;
+        let _stateOwnerUser: string | null = null;
+        let _stateOwnerGroup: string | null = null;
+        let _valueObjectAccessControl: number | null = null;
+        let _valueStateAccessControl: number | null = null;
         const _ids: string[] = [];
 
         for (let k = 0; k < keys.length; k++) {
@@ -282,38 +294,38 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                     continue;
                 }
 
-                if (_valueObjectAccessControl === null && obj.acl.object !== undefined) {
-                    _valueObjectAccessControl = obj.acl.object;
+                if (_valueObjectAccessControl === null && obj.acl?.object !== undefined) {
+                    _valueObjectAccessControl = obj.acl?.object;
                 }
-                if (_valueStateAccessControl === null && (obj as ioBroker.StateObject).acl.state !== undefined) {
-                    _valueStateAccessControl = (obj as ioBroker.StateObject).acl.state;
+                if (_valueStateAccessControl === null && (obj as ioBroker.StateObject).acl?.state !== undefined) {
+                    _valueStateAccessControl = (obj as ioBroker.StateObject).acl?.state ?? null;
                 }
-                if (_stateOwnerUser === null && obj.acl.owner !== undefined) {
-                    _stateOwnerUser = obj.acl.owner;
+                if (_stateOwnerUser === null && obj.acl?.owner !== undefined) {
+                    _stateOwnerUser = obj.acl?.owner;
                 }
-                if (_stateOwnerGroup === null && obj.acl.ownerGroup !== undefined) {
-                    _stateOwnerGroup = obj.acl.ownerGroup;
+                if (_stateOwnerGroup === null && obj.acl?.ownerGroup !== undefined) {
+                    _stateOwnerGroup = obj.acl?.ownerGroup;
                 }
 
-                if (!differentOwner && _stateOwnerUser !== obj.acl.owner && obj.acl.owner !== undefined) {
+                if (!differentOwner && _stateOwnerUser !== obj.acl?.owner && obj.acl?.owner !== undefined) {
                     _differentOwner = true;
                 }
-                if (!differentGroup && _stateOwnerGroup !== obj.acl.ownerGroup && obj.acl.ownerGroup !== undefined) {
+                if (!differentGroup && _stateOwnerGroup !== obj.acl?.ownerGroup && obj.acl?.ownerGroup !== undefined) {
                     _differentGroup = true;
                 }
                 if (
-                    (obj as ioBroker.StateObject).acl.state !== undefined &&
-                    _valueStateAccessControl !== (obj as ioBroker.StateObject).acl.state &&
-                    !_differentState.includes((obj as ioBroker.StateObject).acl.state)
+                    (obj as ioBroker.StateObject).acl?.state !== undefined &&
+                    _valueStateAccessControl !== (obj as ioBroker.StateObject).acl?.state &&
+                    !_differentState.includes((obj as ioBroker.StateObject).acl?.state as number)
                 ) {
-                    _differentState.push((obj as ioBroker.StateObject).acl.state);
+                    _differentState.push((obj as ioBroker.StateObject).acl?.state as number);
                 }
                 if (
-                    obj.acl.object !== undefined &&
-                    _valueObjectAccessControl !== obj.acl.object &&
-                    !_differentObject.includes(obj.acl.object)
+                    obj.acl?.object !== undefined &&
+                    _valueObjectAccessControl !== obj.acl?.object &&
+                    !_differentObject.includes(obj.acl?.object)
                 ) {
-                    _differentObject.push(obj.acl.object);
+                    _differentObject.push(obj.acl?.object);
                 }
                 if (obj.type === 'state') {
                     _checkState = true;
@@ -384,7 +396,7 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
     useEffect(() => {
         if (applyToChildren) {
             if (differentGroup) {
-                if (stateOwnerGroup.value !== 'different') {
+                if (stateOwnerGroup?.value !== 'different') {
                     setStateOwnerGroup({ name: different, value: 'different' });
                 }
                 if (!ownerGroups.find(item => item.value === 'different')) {
@@ -414,10 +426,10 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
             }
         } else {
             if (stateOwnerUser && stateOwnerUser.value === 'different') {
-                setStateOwnerUser(objects[selected].acl.owner as unknown as AccessControlUser);
+                setStateOwnerUser(objects[selected].acl?.owner as unknown as AccessControlUser);
             }
             if (stateOwnerGroup && stateOwnerGroup.value === 'different') {
-                setStateOwnerGroup(objects[selected].acl.ownerGroup as unknown as AccessControlGroup);
+                setStateOwnerGroup(objects[selected].acl?.ownerGroup as unknown as AccessControlGroup);
             }
             // remove different from a list
             setOwnerGroups(el => el.filter(({ value }) => value !== 'different'));
@@ -452,12 +464,12 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                 setTimeout((): void => {
                     if (!applyToChildren) {
                         const newAcl: AccessControlObject['acl'] = Utils.clone(objects[selected].acl || {});
-                        newAcl.object = valueObjectAccessControl;
+                        newAcl.object = valueObjectAccessControl ?? 0;
                         newAcl.owner = stateOwnerUser ? stateOwnerUser.value : 'system.user.admin';
                         newAcl.ownerGroup = stateOwnerGroup ? stateOwnerGroup.value : 'system.group.administrator';
 
                         if (objects[selected].type === 'state') {
-                            newAcl.state = valueStateAccessControl;
+                            newAcl.state = valueStateAccessControl ?? 0;
                         }
                         extendObject(selected, { acl: newAcl } as Partial<ioBroker.Object>);
                     } else {
@@ -471,7 +483,11 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                             const key = ids[i];
                             const obj = objects[key];
                             const newAcl: AccessControlObject['acl'] = Utils.clone(obj.acl || {});
-                            newAcl.object = newValueAccessControl(obj.acl.object, valueObjectAccessControl, _maskState);
+                            newAcl.object = newValueAccessControl(
+                                obj.acl?.object ?? 0,
+                                valueObjectAccessControl ?? 0,
+                                _maskState,
+                            );
                             if (stateOwnerUser && stateOwnerUser.value !== 'different') {
                                 newAcl.owner = stateOwnerUser.value;
                             }
@@ -480,8 +496,8 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                             }
                             if (obj.type === 'state') {
                                 newAcl.state = newValueAccessControl(
-                                    obj.acl.state,
-                                    valueStateAccessControl,
+                                    (obj.acl as ioBroker.StateACL)?.state ?? 0,
+                                    valueStateAccessControl ?? 0,
                                     _maskObject,
                                 );
                             }
@@ -633,7 +649,7 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                         color: 'silver',
                     }}
                 >
-                    <div style={!applyToChildren ? { color: 'green' } : null}>{t('to apply one item')}</div>
+                    <div style={!applyToChildren ? { color: 'green' } : undefined}>{t('to apply one item')}</div>
                     <Switch
                         disabled={progress || !!modalEmptyId || childrenCount === 1}
                         checked={!!modalEmptyId || applyToChildren}
@@ -643,7 +659,7 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                         }}
                         color="primary"
                     />
-                    <div style={applyToChildren ? { color: 'green' } : null}>
+                    <div style={applyToChildren ? { color: 'green' } : undefined}>
                         {t('to apply with children')}{' '}
                         {modalEmptyId || childrenCount > 1 ? `(${childrenCount} ${t('object(s)')})` : ''}
                     </div>
@@ -665,7 +681,7 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                                 setValueObjectAccessControl(e);
                                 setDisabledButton(false);
                             }}
-                            value={valueObjectAccessControl}
+                            value={valueObjectAccessControl ?? 0}
                         />
                     </div>
                     {checkState && (
@@ -682,7 +698,7 @@ const ObjectEditOfAccessControl: React.FC<ObjectEditOfAccessControlProps> = ({
                                     setValueStateAccessControl(e);
                                     setDisabledButton(false);
                                 }}
-                                value={valueStateAccessControl}
+                                value={valueStateAccessControl ?? 0}
                             />
                         </div>
                     )}

@@ -50,7 +50,8 @@ test('HTTP credential query guard rejects bearer/password forms and preserves no
  assert.equal(security.hasEosUrlCredentials({user:'account-selector',code:'one-time-authorization-code',state:'csrf-state'}),false);
  const src=fs.readFileSync(path.join(root,'src/lib/web.ts'),'utf8');
  assert.ok(src.indexOf('hasEosUrlCredentials(req.query')<src.indexOf('this.oauth2Model = createOAuth2Server'));
- assert.ok(code.indexOf('hasEosUrlCredentials)(req.query')<code.indexOf('this.oauth2Model = (0, _webserver.createOAuth2Server)'));
+ const guard = /hasEosUrlCredentials[^\n;]*req\.query/.exec(code);
+ assert.ok(guard && guard.index < code.indexOf('this.oauth2Model ='), 'shipped URL credential rejection precedes OAuth registration');
 });
 
 test('EOS token readers no longer accept query credentials but preserve cookie and Authorization',async()=>{
@@ -75,10 +76,12 @@ test('file identity guard rejects anonymous and pending-password users and passe
 test('SSO remains denied before OAuth and DB file routes have their own identity guard',()=>{
  const src=fs.readFileSync(path.join(root,'src/lib/web.ts'),'utf8');
  for(const text of [src,code]){
-  assert.ok(text.includes("this.server.app.all(['/sso', '/sso-callback']"));
-  assert.ok(text.indexOf("this.server.app.all(['/sso', '/sso-callback']")<text.indexOf('this.adapter.eosSessionSecurity.bindOAuthModel'));
-  assert.ok(text.includes("this.server.app.use('/files/', this.eosAuthenticatedRouteGuard()"));
-  assert.ok(text.includes("this.server.app.use('/adapter/', this.eosAuthenticatedRouteGuard()"));
+  const block = /this\.server\.app\.all\(\[([^\]]+)\]/.exec(text);
+  assert.ok(block, 'SSO deny routes must exist');
+  for(const route of ['/sso', '/sso-callback', '/sso-token']) assert.ok(block[1].includes(`'${route}'`), route);
+  assert.ok(block.index < text.indexOf('this.adapter.eosSessionSecurity.bindOAuthModel'));
+  assert.match(text, /this\.server\.app\.use\(\s*'\/files\/'\s*,\s*this\.eosAuthenticatedRouteGuard\(\)/);
+  assert.match(text, /this\.server\.app\.use\(\s*'\/adapter\/'\s*,\s*this\.eosAuthenticatedRouteGuard\(\)/);
   assert.ok(!text.includes("pathName.endsWith('.ico')"));
   assert.ok(!text.includes("pathName.endsWith('manifest.json')"));
   assert.ok(!text.includes('readFolderRecursive'));

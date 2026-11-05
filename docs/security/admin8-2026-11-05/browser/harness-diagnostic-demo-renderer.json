@@ -1,0 +1,533 @@
+{
+  "environment": {
+    "node": "v24.22.1",
+    "scope": "Real EOS Admin frontend plus actual shipped EasyAccess remote and vendor bundles; synthetic authenticated fixture/socket; no live controller",
+    "browser": "153.0.8010.0"
+  },
+  "errors": [
+    "page.evaluate: Error: Minified React error #527; visit https://react.dev/errors/527?args[]=19.3.1&args[]=19.2.8 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at http://eos-preview.test/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js:9:35348\n    at http://eos-preview.test/custom/assets/rolldown-runtime-C0FnF6B9.js:1:268\n    at http://eos-preview.test/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js:9:37110\n    at http://eos-preview.test/custom/assets/rolldown-runtime-C0FnF6B9.js:1:268\n    at http://eos-preview.test/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js:9:37191\n    at /workspace/scratch/c16def314bc5/admin8-followup/browser-review/easyaccess-browser.cjs:73:29"
+  ],
+  "console": [],
+  "requests": [
+    "/",
+    "/css/leaflet.css",
+    "/css/nexowatt-native-shell.css",
+    "/css/eos-ems-overview.css",
+    "/css/eos-auto-update.css",
+    "/js/eos-manual-write-policy.js",
+    "/js/eos-role-bootstrap.js",
+    "/js/eos-policy-client.js",
+    "/js/eos-branding-sanitizer.js",
+    "/js/nexowatt-native-shell.js",
+    "/js/eos-native-security.js",
+    "/js/eos-basic-settings.js",
+    "/js/eos-role-ui.js",
+    "/js/eos-auto-update.js",
+    "/js/eos-account-management.js",
+    "/js/eos-ems-overview.js",
+    "/js/eos-assistant.js",
+    "/static/js/nexowatt-stable-login.js",
+    "/static/js/nexowatt-stable-v7109.js",
+    "/js/eos-license-link.js",
+    "/nexowatt/security/context",
+    "/nexowatt/security/context",
+    "/nexowatt/security/context",
+    "/assets/mf-entry-bootstrap-0-a6a54377.js",
+    "/assets/hostInit-2xIZYDSq.js",
+    "/assets/vite-preload-helper-BbbETgeG.js",
+    "/assets/helpers-DBoACUHw.js",
+    "/assets/loadShare-eager-CRNcc8D7.js",
+    "/assets/rolldown-runtime-sJBDdmOt.js",
+    "/remoteEntry-eos-8.0.0.js",
+    "/assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js",
+    "/assets/pendingShares-CuQbFsaK.js",
+    "/assets/index-BZifaJHi.js",
+    "/assets/bootstrap-Bs4TZ7iA.js",
+    "/assets/AccessTime-Dpa6PKHY.js",
+    "/assets/prod-ChPGnyiA.js",
+    "/assets/en-US-BjjaEI6N.js",
+    "/assets/setYear-DurmWw03.js",
+    "/assets/AdminUtils-DDT_kD8H.js",
+    "/assets/AceEditor-DTzNaeVy.js",
+    "/assets/ctrlEnter-CruFIPb_.js",
+    "/assets/bootstrap-BxGG6BRn.css",
+    "/lib/js/socket.io.js",
+    "/assets/Intro-DsfrPrWv.js",
+    "/assets/Apps-C8LE9l6Z.js",
+    "/assets/Computer-DFIUq-fL.js",
+    "/assets/Timer-Be9yF62g.js",
+    "/assets/Extension-DU1jqvic.js",
+    "/assets/InfoOutlined-l86Si1qa.js",
+    "/assets/Schedule-BMMrgd7j.js",
+    "/assets/Storage-COo2RkS1.js",
+    "/assets/classPrivateFieldGet2-CBZxMSQ4.js",
+    "/img/eos/eos-logo.svg",
+    "/img/eos/nexowatt-eos-brand-wide.png",
+    "/adapter/nexowatt-backup/eos-fixture.svg",
+    "/adapter/nexowatt-ui/eos-fixture.svg",
+    "/img/no-image.svg",
+    "/custom/customComponents.js",
+    "/custom/assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+    "/custom/assets/vite-preload-helper-B7qeedMF.js",
+    "/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+    "/custom/assets/rolldown-runtime-C0FnF6B9.js",
+    "/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+    "/custom/assets/virtualExposes-31pkFC9v.js",
+    "/custom/assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+    "/custom/assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+    "/custom/assets/Components-I39zZDnw.js",
+    "/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js"
+  ],
+  "external": [],
+  "missing": [],
+  "socket": [
+    {
+      "name": "authenticate",
+      "args": []
+    },
+    {
+      "name": "getCompactSystemConfig",
+      "args": []
+    },
+    {
+      "name": "subscribeObjects",
+      "args": [
+        [
+          "system.adapter.*"
+        ]
+      ]
+    },
+    {
+      "name": "requireLog",
+      "args": [
+        true
+      ]
+    },
+    {
+      "name": "getVersion",
+      "args": []
+    },
+    {
+      "name": "getCurrentInstance",
+      "args": []
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.adapter.eos-admin.0"
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.adapter.eos-admin.0.guiSettings"
+      ]
+    },
+    {
+      "name": "getIsEasyModeStrict",
+      "args": []
+    },
+    {
+      "name": "setObject",
+      "args": [
+        "system.adapter.eos-admin.0.guiSettings",
+        {
+          "_id": "",
+          "type": "state",
+          "common": {
+            "name": "Admin settings",
+            "type": "boolean",
+            "read": true,
+            "write": false,
+            "role": "state"
+          },
+          "native": {
+            "localStorage": {},
+            "sessionStorage": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.adapter.eos-admin.0.guiSettings"
+      ]
+    },
+    {
+      "name": "getState",
+      "args": [
+        "system.adapter.eos-admin.0.guiSettings"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getState",
+      "args": [
+        "system.adapter.eos-admin.0.guiSettings"
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.adapter.eos-admin.0"
+      ]
+    },
+    {
+      "name": "getCompactHosts",
+      "args": []
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getState",
+      "args": [
+        "system.host.eos-demo.alive"
+      ]
+    },
+    {
+      "name": "getCompactRepository",
+      "args": [
+        "system.host.eos-demo"
+      ]
+    },
+    {
+      "name": "getCompactInstalled",
+      "args": [
+        "system.host.eos-demo"
+      ]
+    },
+    {
+      "name": "getCompactAdapters",
+      "args": []
+    },
+    {
+      "name": "subscribeObjects",
+      "args": [
+        [
+          "system.repositories"
+        ]
+      ]
+    },
+    {
+      "name": "subscribeObjects",
+      "args": [
+        [
+          "system.config"
+        ]
+      ]
+    },
+    {
+      "name": "subscribeObjects",
+      "args": [
+        [
+          "system.adapter.*"
+        ]
+      ]
+    },
+    {
+      "name": "subscribeObjects",
+      "args": [
+        [
+          "system.host.*"
+        ]
+      ]
+    },
+    {
+      "name": "subscribe",
+      "args": [
+        [
+          "system.host.*.notifications.*"
+        ]
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.host.*.notifications.*"
+      ]
+    },
+    {
+      "name": "authEnabled",
+      "args": []
+    },
+    {
+      "name": "getObjectView",
+      "args": [
+        "system",
+        "adapter",
+        {
+          "startkey": "system.adapter.",
+          "endkey": "system.adapter.香"
+        }
+      ]
+    },
+    {
+      "name": "getObjectView",
+      "args": [
+        "system",
+        "host",
+        {
+          "startkey": "system.host.",
+          "endkey": "system.host.香"
+        }
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.user.admin"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getForeignObjects",
+      "args": [
+        "system.group.*",
+        "group"
+      ]
+    },
+    {
+      "name": "subscribe",
+      "args": [
+        [
+          "system.adapter.discovery.0.alive"
+        ]
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        [
+          "system.adapter.discovery.0.alive"
+        ]
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.discovery"
+      ]
+    },
+    {
+      "name": "subscribeObjects",
+      "args": [
+        [
+          "system.discovery"
+        ]
+      ]
+    },
+    {
+      "name": "getCompactInstances",
+      "args": []
+    },
+    {
+      "name": "getState",
+      "args": [
+        "system.host.eos-demo.alive"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getObjectView",
+      "args": [
+        "system",
+        "instance",
+        {
+          "startkey": "system.adapter.",
+          "endkey": "system.adapter.香"
+        }
+      ]
+    },
+    {
+      "name": "sendToHost",
+      "args": [
+        "system.host.eos-demo",
+        "getNotifications",
+        {
+          "category": ""
+        }
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getState",
+      "args": [
+        "eos-admin.0.info.uiTabsVisible"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.adapter.eos-admin.0"
+      ]
+    },
+    {
+      "name": "checkFeatureSupported",
+      "args": [
+        "CONTROLLER_OS_PACKAGE_UPGRADE"
+      ]
+    },
+    {
+      "name": "getObject",
+      "args": [
+        "system.config"
+      ]
+    },
+    {
+      "name": "getAdapterInstances",
+      "args": [
+        ""
+      ]
+    },
+    {
+      "name": "getState",
+      "args": [
+        "system.host.eos-demo.alive"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "nexowatt-ui.*.info.adminOverview.*"
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.adapter.nexowatt-ui.*.alive"
+      ]
+    },
+    {
+      "name": "sendToHost",
+      "args": [
+        "system.host.eos-demo",
+        "getHostInfo",
+        null
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.host.eos-demo.versions.*"
+      ]
+    },
+    {
+      "name": "subscribe",
+      "args": [
+        [
+          "system.host.*.alive"
+        ]
+      ]
+    },
+    {
+      "name": "getForeignStates",
+      "args": [
+        "system.host.*.alive"
+      ]
+    },
+    {
+      "name": "sendToHost",
+      "args": [
+        "system.host.eos-demo",
+        "getLogs",
+        200
+      ]
+    }
+  ],
+  "hostReady": true,
+  "artifact": {
+    "customComponents.js": "3473e9d623e145c9fd94238133783e5014945cfd13c6ce28665a798ea84fde46",
+    "mf-manifest.json": "9663909905b837985eed4c4e17ebff85f347cadb00be2bede3d0b4d2220b7541"
+  }
+}

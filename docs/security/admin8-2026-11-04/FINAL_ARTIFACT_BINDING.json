@@ -1,0 +1,40 @@
+{
+  "productVersion": "8.0.0",
+  "upstreamVersion": "8.3.5",
+  "canonicalBuildExit": 0,
+  "publishDryRunExit": 0,
+  "publishDryRunHasNodeModules": false,
+  "readmeEqualsLicense": true,
+  "customFiles": 26,
+  "sealedFileCount": 1090,
+  "files": {
+    "package.json": {
+      "sha256": "d9d20691a883012cf1b090e40cc47641e25c5b51804711d66f7f4c736ba4f633",
+      "dryRunIdentical": true
+    },
+    "package-lock.json": {
+      "sha256": "a499ca75ecf16ad9f9864e2092a8da56a6d85373eda9455414912c8b7eff130f",
+      "dryRunIdentical": true
+    },
+    "io-package.json": {
+      "sha256": "e8d5fbfa311ad141f08fd061ef0795ab5dcac01ae5082f5a00da6dd58cf0cd2d",
+      "dryRunIdentical": true
+    },
+    "src-admin/package-lock.json": {
+      "sha256": "a310b3b6fd8f42ffc5783f62ce6142f09329c1fbe87d324a3439873382dc2cd3",
+      "dryRunIdentical": true
+    },
+    "NEXOWATT_EOS_PREBUILT_MANIFEST.json": {
+      "sha256": "fe04ebef6779e53c4c05e29f5530e283207e50b01d3de1a49df3c40716bddac9",
+      "dryRunIdentical": true
+    },
+    "adminWww/NEXOWATT_EOS_FRONTEND_MANIFEST.json": {
+      "sha256": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9",
+      "dryRunIdentical": true
+    },
+    "release-manifests/admin8-development-validation.json": {
+      "sha256": "959f38833ed7f7d5156585f409b7a59a77dc1c11595f8e9eda1bc39e27883c76",
+      "dryRunIdentical": true
+    }
+  }
+}

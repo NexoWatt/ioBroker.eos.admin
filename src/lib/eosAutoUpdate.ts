@@ -58,22 +58,28 @@ interface PersistedState {
 }
 
 const ADMIN_USER = 'system.user.admin';
-const POLICY: NexoWattAutoUpdatePolicy = 'none';
+const POLICY = 'none' as const;
 const BLOCK_REASON = 'UNATTENDED_UPDATES_BLOCKED_UNVERIFIED_RELEASE';
 const RECONCILE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const ENABLED_STATE_ID = 'info.nexowattStableUpdatesEnabled';
 const STATUS_STATE_ID = 'info.nexowattStableUpdatesState';
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
-const normalizedName = (value: unknown): string => String(value || '').trim().replace(/^system\.adapter\./, '').replace(/\.\d+$/, '');
+const normalizedName = (value: unknown): string =>
+    (typeof value === 'string' ? value : '')
+        .trim()
+        .replace(/^system\.adapter\./, '')
+        .replace(/\.\d+$/, '');
 const validAdapterName = (name: string): boolean => /^[a-z][a-z0-9-]{0,63}$/.test(name);
 
 // Classification for quarantine ONLY. This is deliberately never an issuer or
 // package trust decision; textual metadata provides no evidence of provenance.
 export function isNexoWattRepositoryEntry(name: string, _entry?: any): boolean {
     const adapterName = normalizedName(name).toLowerCase();
-    return validAdapterName(adapterName) && (adapterName === 'eos-admin'
-        || adapterName.startsWith('nexowatt-') || adapterName.startsWith('eos-'));
+    return (
+        validAdapterName(adapterName) &&
+        (adapterName === 'eos-admin' || adapterName.startsWith('nexowatt-') || adapterName.startsWith('eos-'))
+    );
 }
 
 export class NexoWattStableUpdateManager {
@@ -85,7 +91,9 @@ export class NexoWattStableUpdateManager {
 
     constructor(private readonly adapter: NexoWattAutoUpdateAdapter) {}
 
-    private get instanceId(): string { return `system.adapter.${this.adapter.namespace}`; }
+    private get instanceId(): string {
+        return `system.adapter.${this.adapter.namespace}`;
+    }
 
     async start(): Promise<NexoWattStableUpdateStatus> {
         this.stopped = false;
@@ -97,20 +105,28 @@ export class NexoWattStableUpdateManager {
 
     stop(): void {
         this.stopped = true;
-        if (this.timer) clearInterval(this.timer);
-        if (this.retryTimer) clearTimeout(this.retryTimer);
+        if (this.timer) {
+            clearInterval(this.timer);
+        }
+        if (this.retryTimer) {
+            clearTimeout(this.retryTimer);
+        }
         this.timer = undefined;
         this.retryTimer = undefined;
     }
 
     async getStatus(refresh = false): Promise<NexoWattStableUpdateStatus> {
-        if (refresh) return this.reconcile('status');
+        if (refresh) {
+            return this.reconcile('status');
+        }
         const persisted = await this.readPersisted();
         return this.statusFromPersisted(persisted.enabled, persisted.state);
     }
 
     async setEnabled(_enabled: boolean): Promise<NexoWattStableUpdateStatus> {
-        if (this.stopped) return this.statusFromPersisted(false, this.cachedState);
+        if (this.stopped) {
+            return this.statusFromPersisted(false, this.cachedState);
+        }
         // The former UI/API switch is not an override for release integrity.
         const status = await this.reconcile('settings-security-quarantine');
         this.ensurePeriodicTimer();
@@ -118,25 +134,39 @@ export class NexoWattStableUpdateManager {
     }
 
     async reconcile(reason = 'manual'): Promise<NexoWattStableUpdateStatus> {
-        if (this.reconcilePromise) return this.reconcilePromise;
-        this.reconcilePromise = this.reconcileInternal(reason).finally(() => { this.reconcilePromise = undefined; });
+        if (this.reconcilePromise) {
+            return this.reconcilePromise;
+        }
+        this.reconcilePromise = this.reconcileInternal(reason).finally(() => {
+            this.reconcilePromise = undefined;
+        });
         return this.reconcilePromise;
     }
 
     private ensurePeriodicTimer(): void {
-        if (this.timer || this.stopped) return;
+        if (this.timer || this.stopped) {
+            return;
+        }
         this.timer = setInterval(() => {
-            if (!this.stopped) void this.reconcile('interval').catch(() => this.adapter.log.warn('[NexoWatt stable updates] UNATTENDED_UPDATE_MIGRATION_FAILED'));
+            if (!this.stopped) {
+                void this.reconcile('interval').catch(() =>
+                    this.adapter.log.warn('[NexoWatt stable updates] UNATTENDED_UPDATE_MIGRATION_FAILED'),
+                );
+            }
         }, RECONCILE_INTERVAL_MS);
         this.timer.unref?.();
     }
 
     private parseState(value: unknown): PersistedState | null {
-        if (value && typeof value === 'object' && !Array.isArray(value)) return clone(value as PersistedState);
-        if (typeof value !== 'string' || !value.trim()) return null;
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return clone(value as PersistedState);
+        }
+        if (typeof value !== 'string' || !value.trim()) {
+            return null;
+        }
         try {
             const parsed = JSON.parse(value);
-            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as PersistedState : null;
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as PersistedState) : null;
         } catch {
             return null;
         }
@@ -150,7 +180,9 @@ export class NexoWattStableUpdateManager {
             const instance = await this.adapter.getForeignObjectAsync(this.instanceId);
             legacyNative = instance?.native || {};
         } catch (error) {
-            this.adapter.log.debug(`[NexoWatt stable updates] Cannot read legacy native state: ${error instanceof Error ? error.message : error}`);
+            this.adapter.log.debug(
+                `[NexoWatt stable updates] Cannot read legacy native state: ${error instanceof Error ? error.message : 'Unknown storage error'}`,
+            );
         }
 
         const enabled = false;
@@ -161,17 +193,25 @@ export class NexoWattStableUpdateManager {
         try {
             const enabledState = await this.adapter.getStateAsync(ENABLED_STATE_ID);
             // Read legacy state for migration availability, never for permission.
-            if (enabledState?.val === true) this.adapter.log.debug('[NexoWatt stable updates] Legacy enable flag ignored by security quarantine');
+            if (enabledState?.val === true) {
+                this.adapter.log.debug('[NexoWatt stable updates] Legacy enable flag ignored by security quarantine');
+            }
         } catch (error) {
-            this.adapter.log.debug(`[NexoWatt stable updates] Cannot read enabled state: ${error instanceof Error ? error.message : error}`);
+            this.adapter.log.debug(
+                `[NexoWatt stable updates] Cannot read enabled state: ${error instanceof Error ? error.message : 'Unknown storage error'}`,
+            );
         }
 
         try {
             const persistedState = await this.adapter.getStateAsync(STATUS_STATE_ID);
             const parsed = this.parseState(persistedState?.val);
-            if (parsed) state = parsed;
+            if (parsed) {
+                state = parsed;
+            }
         } catch (error) {
-            this.adapter.log.debug(`[NexoWatt stable updates] Cannot read status state: ${error instanceof Error ? error.message : error}`);
+            this.adapter.log.debug(
+                `[NexoWatt stable updates] Cannot read status state: ${error instanceof Error ? error.message : 'Unknown storage error'}`,
+            );
         }
 
         this.cachedState = clone(state);
@@ -184,7 +224,9 @@ export class NexoWattStableUpdateManager {
             blocked: true,
             repository: String(state.selectedRepository || ''),
             managedAdapters: Array.isArray(state.managedAdapters) ? state.managedAdapters.map(String).sort() : [],
-            availableStableAdapters: Array.isArray(state.availableStableAdapters) ? state.availableStableAdapters.map(String).sort() : [],
+            availableStableAdapters: Array.isArray(state.availableStableAdapters)
+                ? state.availableStableAdapters.map(String).sort()
+                : [],
             lastSync: Number(state.lastSync || 0),
             lastRepositoryRefresh: Number(state.lastRepositoryRefresh || 0),
             error: String(state.error || BLOCK_REASON),
@@ -197,30 +239,45 @@ export class NexoWattStableUpdateManager {
         const persisted = await this.readPersisted();
         const { enabled } = persisted;
         const state = clone(persisted.state);
-        if (this.stopped) return this.statusFromPersisted(enabled, state);
+        if (this.stopped) {
+            return this.statusFromPersisted(enabled, state);
+        }
         try {
             return await this.disable(state, reason);
-        } catch (error) {
+        } catch {
             const message = 'UNATTENDED_UPDATE_MIGRATION_FAILED';
             state.error = message;
             state.lastSync = Date.now();
-            if (!this.stopped) await this.persist(enabled, state);
-            if (!this.stopped) this.scheduleRetry();
-            if (!this.stopped) this.adapter.log.warn(`[NexoWatt stable updates] ${message}`);
+            if (!this.stopped) {
+                await this.persist(enabled, state);
+            }
+            if (!this.stopped) {
+                this.scheduleRetry();
+            }
+            if (!this.stopped) {
+                this.adapter.log.warn(`[NexoWatt stable updates] ${message}`);
+            }
             return this.statusFromPersisted(enabled, state);
         }
     }
 
     private async readInstalledAdapters(): Promise<Map<string, AdapterObjectLike>> {
-        const view = await this.adapter.getObjectViewAsync('system', 'adapter', {
-            startkey: 'system.adapter.',
-            endkey: 'system.adapter.\u9999',
-        }, { user: ADMIN_USER });
+        const view = await this.adapter.getObjectViewAsync(
+            'system',
+            'adapter',
+            {
+                startkey: 'system.adapter.',
+                endkey: 'system.adapter.\u9999',
+            },
+            { user: ADMIN_USER },
+        );
         const result = new Map<string, AdapterObjectLike>();
         for (const row of view?.rows || []) {
             const object = row?.value || row?.doc;
             const name = normalizedName(object?.common?.name || row?.id || object?._id);
-            if (name && object?.common?.version) result.set(name, object);
+            if (name && object?.common?.version) {
+                result.set(name, object);
+            }
         }
         return result;
     }
@@ -230,16 +287,22 @@ export class NexoWattStableUpdateManager {
         const names = new Set([
             ...[...installed.keys()].filter(name => isNexoWattRepositoryEntry(name)),
             ...Object.keys(state.previousPolicies || {}).filter(validAdapterName),
-            ...(Array.isArray(state.managedAdapters) ? state.managedAdapters.filter(name => typeof name === 'string' && validAdapterName(name)) : []),
+            ...(Array.isArray(state.managedAdapters)
+                ? state.managedAdapters.filter(name => typeof name === 'string' && validAdapterName(name))
+                : []),
         ]);
         state.previousPolicies ||= {};
         for (const name of [...names].sort()) {
-            if (this.stopped) return this.statusFromPersisted(false, state);
+            if (this.stopped) {
+                return this.statusFromPersisted(false, state);
+            }
             const current = await this.adapter.getForeignObjectAsync(`system.adapter.${name}`);
-            if (!current?.common) continue;
+            if (!current?.common) {
+                continue;
+            }
             // Preserve the old value only for an explicitly reviewed later
             // migration. Never restore an automatic policy in this release.
-            if (!Object.hasOwn(state.previousPolicies, name)) {
+            if (!Object.prototype.hasOwnProperty.call(state.previousPolicies, name)) {
                 const previous = current.common.automaticUpgrade;
                 state.previousPolicies[name] = ['none', 'patch', 'minor', 'major'].includes(previous) ? previous : null;
             }
@@ -248,12 +311,17 @@ export class NexoWattStableUpdateManager {
         const systemConfig = await this.adapter.getForeignObjectAsync('system.config');
         if (systemConfig?.common) {
             let systemConfigChanged = false;
-            const auto = systemConfig.common.adapterAutoUpgrade && typeof systemConfig.common.adapterAutoUpgrade === 'object'
-                ? clone(systemConfig.common.adapterAutoUpgrade)
-                : null;
+            const auto =
+                systemConfig.common.adapterAutoUpgrade && typeof systemConfig.common.adapterAutoUpgrade === 'object'
+                    ? clone(systemConfig.common.adapterAutoUpgrade)
+                    : null;
             if (auto && state.selectedRepository) {
-                auto.repositories = auto.repositories && typeof auto.repositories === 'object' ? { ...auto.repositories } : {};
-                if (auto.repositories[state.selectedRepository] === true && (state.previousRepositoryEnabled === false || state.previousRepositoryEnabled === null)) {
+                auto.repositories =
+                    auto.repositories && typeof auto.repositories === 'object' ? { ...auto.repositories } : {};
+                if (
+                    auto.repositories[state.selectedRepository] === true &&
+                    (state.previousRepositoryEnabled === false || state.previousRepositoryEnabled === null)
+                ) {
                     if (state.previousRepositoryEnabled === null || state.previousRepositoryEnabled === undefined) {
                         delete auto.repositories[state.selectedRepository];
                     } else {
@@ -266,9 +334,12 @@ export class NexoWattStableUpdateManager {
                     systemConfigChanged = true;
                 }
             }
-            if (state.ownsActiveRepoOrder && Array.isArray(state.previousActiveRepo)
-                && Array.isArray(systemConfig.common.activeRepo)
-                && systemConfig.common.activeRepo[0] === state.selectedRepository) {
+            if (
+                state.ownsActiveRepoOrder &&
+                Array.isArray(state.previousActiveRepo) &&
+                Array.isArray(systemConfig.common.activeRepo) &&
+                systemConfig.common.activeRepo[0] === state.selectedRepository
+            ) {
                 systemConfig.common.activeRepo = [...state.previousActiveRepo];
                 systemConfigChanged = true;
             }
@@ -283,25 +354,42 @@ export class NexoWattStableUpdateManager {
         state.availableStableAdapters = [];
         state.lastSync = Date.now();
         state.error = BLOCK_REASON;
-        if (!this.stopped) await this.persist(false, state);
-        if (!this.stopped) this.adapter.log.info(`[NexoWatt stable updates] Unattended installation blocked; managed policies quarantined (${reason})`);
+        if (!this.stopped) {
+            await this.persist(false, state);
+        }
+        if (!this.stopped) {
+            this.adapter.log.info(
+                `[NexoWatt stable updates] Unattended installation blocked; managed policies quarantined (${reason})`,
+            );
+        }
         return this.statusFromPersisted(false, state);
     }
 
     private async writeAdapterPolicy(name: string, policy: NexoWattAutoUpdatePolicy | null): Promise<void> {
-        if (!validAdapterName(name)) throw new Error('invalidManagedAdapterName');
+        if (!validAdapterName(name)) {
+            throw new Error('invalidManagedAdapterName');
+        }
         const id = `system.adapter.${name}`;
         const object = await this.adapter.getForeignObjectAsync(id);
-        if (!object?.common || this.stopped) return;
+        if (!object?.common || this.stopped) {
+            return;
+        }
         const current = object.common.automaticUpgrade as NexoWattAutoUpdatePolicy | undefined;
-        if ((policy === null && current === undefined) || current === policy) return;
-        if (policy === null) delete object.common.automaticUpgrade;
-        else object.common.automaticUpgrade = policy;
+        if ((policy === null && current === undefined) || current === policy) {
+            return;
+        }
+        if (policy === null) {
+            delete object.common.automaticUpgrade;
+        } else {
+            object.common.automaticUpgrade = policy;
+        }
         await this.adapter.setForeignObjectAsync(id, object, { user: ADMIN_USER });
     }
 
     private async persist(enabled: boolean, state: PersistedState): Promise<void> {
-        if (this.stopped) return;
+        if (this.stopped) {
+            return;
+        }
         this.cachedState = clone(state);
 
         const currentEnabled = await this.adapter.getStateAsync(ENABLED_STATE_ID).catch(() => null);
@@ -311,21 +399,29 @@ export class NexoWattStableUpdateManager {
 
         const serialized = JSON.stringify(state);
         const currentState = await this.adapter.getStateAsync(STATUS_STATE_ID).catch(() => null);
-        const currentSerialized = typeof currentState?.val === 'string'
-            ? currentState.val
-            : currentState?.val == null ? '' : JSON.stringify(currentState.val);
+        const currentSerialized =
+            typeof currentState?.val === 'string'
+                ? currentState.val
+                : currentState?.val == null
+                  ? ''
+                  : JSON.stringify(currentState.val);
         if (currentSerialized !== serialized) {
             await this.adapter.setStateAsync(STATUS_STATE_ID, serialized, true);
         }
     }
 
     private scheduleRetry(): void {
-        if (this.retryTimer) clearTimeout(this.retryTimer);
+        if (this.retryTimer) {
+            clearTimeout(this.retryTimer);
+        }
         this.retryTimer = setTimeout(() => {
             this.retryTimer = undefined;
-            if (!this.stopped) void this.reconcile('retry').catch(() => this.adapter.log.warn('[NexoWatt stable updates] UNATTENDED_UPDATE_MIGRATION_FAILED'));
+            if (!this.stopped) {
+                void this.reconcile('retry').catch(() =>
+                    this.adapter.log.warn('[NexoWatt stable updates] UNATTENDED_UPDATE_MIGRATION_FAILED'),
+                );
+            }
         }, 60_000);
         this.retryTimer.unref?.();
     }
-
 }

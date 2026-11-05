@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "ae303bdabc73c2588b1194d2f0c4951ac0d8b00e",
+  "lockSha256": "f45f9b4bbc5b2dc0265e5bd5887045020d15fac11ae712cb616cd00e0423307c",
+  "packageEntries": 700,
+  "missingRegistryOrSha512": [],
+  "declaredLifecyclePackages": [
+    {
+      "path": "node_modules/diskusage",
+      "version": "1.2.0"
+    },
+    {
+      "path": "node_modules/esbuild",
+      "version": "0.28.1"
+    },
+    {
+      "path": "node_modules/fsevents",
+      "version": "2.3.3"
+    },
+    {
+      "path": "node_modules/unix-dgram",
+      "version": "2.0.6"
+    }
+  ],
+  "installationMode": "npm ci --ignore-scripts; no package install hooks executed"
+}

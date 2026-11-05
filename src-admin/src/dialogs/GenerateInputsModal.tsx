@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState, type JSX } from 'react';
 
 import { Button, Dialog, DialogActions, DialogContent, Paper, Typography, Box, AppBar } from '@mui/material';
 
 import { Settings as SettingsIcon, Close as CloseIcon, Check as CheckIcon } from '@mui/icons-material';
 
-import { I18n, type AdminConnection, type ThemeName, type ThemeType, type IobTheme } from '@iobroker/adapter-react-v5';
+import { I18n, type AdminConnection, type ThemeName, type ThemeType, type IobTheme } from '@iobroker/gui-components';
 
 import { type ConfigItemPanel, ConfigPanel } from '@iobroker/json-config';
+
+import AceEditor from '../components/AceEditor';
 
 const styles: Record<string, React.CSSProperties> = {
     root: {
@@ -67,7 +69,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, title, cust
                     >
                         <div style={styles.headerBlock}>{title}</div>
                     </AppBar>
-                    <Box p={3}>
+                    <Box sx={{ p: 3 }}>
                         <Typography component="div">{children}</Typography>
                     </Box>
                 </>
@@ -201,14 +203,9 @@ const GenerateInputsModal: React.FC<GenerateInputsModalProps> = ({
 }) => {
     const [error, setError] = useState<Record<string, string>>({});
 
-    const [schema, setSchema] = useState<{ type: 'panel'; items: Record<string, Partial<SchemaItem>> }>({
-        type: 'panel',
-        items: {},
-    });
-
-    const [schemaData, setSchemaData] = useState<Record<string, string | boolean | number>>({});
-
-    useEffect(() => {
+    // The form definition and its initial values follow directly from `newInstance` - deriving them
+    // here keeps the dialog from rendering an empty form for one frame first.
+    const { schema, initialData } = useMemo(() => {
         const objSchema: {
             [key: string]: Partial<SchemaItem>;
         } = {};
@@ -218,7 +215,7 @@ const GenerateInputsModal: React.FC<GenerateInputsModalProps> = ({
         if (newInstance?.comment?.add && Array.isArray(newInstance?.comment?.add)) {
             newInstance.comment.add.forEach((text: string, idx: number) => (objSchema[idx] = { type: 'header', text }));
 
-            newInstance.comment.inputs.forEach((el, idx) => {
+            newInstance.comment.inputs?.forEach((el, idx) => {
                 objSchema[idx + 1] = {
                     ...el,
                     type: types[el.type],
@@ -250,14 +247,25 @@ const GenerateInputsModal: React.FC<GenerateInputsModalProps> = ({
                     objValue[idx + 1] = false;
                 }
             });
-            setSchemaData(objValue);
-            setSchema({ type: 'panel', items: objSchema });
         }
+        return {
+            schema: { type: 'panel' as const, items: objSchema },
+            initialData: objValue,
+        };
     }, [newInstance]);
+
+    const [schemaData, setSchemaData] = useState<Record<string, string | boolean | number>>(initialData);
+
+    // Start over whenever a different instance is configured.
+    const [appliedInstance, setAppliedInstance] = useState(newInstance);
+    if (appliedInstance !== newInstance) {
+        setAppliedInstance(newInstance);
+        setSchemaData(initialData);
+    }
 
     return (
         <Dialog
-            onClose={onClose}
+            onClose={() => onClose()}
             open={!0}
             sx={{ '& .MuiDialog-paper': styles.paper }}
         >
@@ -297,12 +305,14 @@ const GenerateInputsModal: React.FC<GenerateInputsModalProps> = ({
                                     adapterName: 'dummy',
                                     _themeName: themeName,
                                     systemConfig,
+                                    // the library does not bring the code editor, the host provides it
+                                    AceEditor,
                                 }}
                                 data={schemaData}
                                 themeName={themeName}
-                                onChange={setSchemaData}
-                                onError={(attr: string, _error?: string): void =>
-                                    setError({ ...error, [attr]: _error })
+                                onChange={data => setSchemaData(data as Record<string, string | number | boolean>)}
+                                onError={(attr: string | undefined, _error?: string): void =>
+                                    setError({ ...error, [attr || '']: _error || '' })
                                 }
                                 schema={schema as unknown as ConfigItemPanel}
                                 // all unused properties
@@ -330,7 +340,7 @@ const GenerateInputsModal: React.FC<GenerateInputsModalProps> = ({
                                     err = true;
                                     alert(`no data ${schema.items[key].label}`);
                                 } else {
-                                    setValueInObj(obj, schema.items[key].name, schemaData[key]);
+                                    setValueInObj(obj, schema.items[key].name || '', schemaData[key]);
                                 }
                             } else if (schema.items[key].name) {
                                 err = false;

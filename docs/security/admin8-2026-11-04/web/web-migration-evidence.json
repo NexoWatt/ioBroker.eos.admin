@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-11-04T21:17:50.372175+00:00",
+  "node": "24.22.1",
+  "admin": "8.0.0",
+  "upstreamAdmin": "8.3.5",
+  "upstreamWebserver": "3.4.0",
+  "oauthAlias": "@node-oauth/oauth2-server@5.3.1",
+  "files": {
+    "src/lib/web.ts": "2f51ea7d52aa35848bc91b5ba1ee48a64cf7f7db1fb1a6dd06773104880c1f30",
+    "build/lib/web.js": "4fb9e25861498971bd59dc2b922964d6a49624c2377f7b68c8c9b50e5f640703",
+    "public/404.html": "9c50ea1b8207cb6edb687f38aaa7a4bf3e294b9d1fd532ce60a2710e7bc2d6dc",
+    "test/eos-admin8-web.test.cjs": "bacdf395ef7dafeccb2e844998549badc99d72afd435e3d76c1f33118fd8d89c",
+    "test/eos-auth-regressions.test.cjs": "64038886d25e729a60571ae18bc7c82bd890019c7b3f6cb4b62e62f913dfeca6",
+    "tools/nexowatt-password-write-selftest.cjs": "9cea060b108682a60de2f00f392c7535d7372f1703469eaab33181bdbed4f386",
+    "tools/nexowatt-security-boundaries-selftest.cjs": "1110279a2e1b9def36cfee96d8e5893570f0551d67fd85e6f5433ab255dee32a"
+  },
+  "checks": {
+    "strictBackendEmit": "passed, zero diagnostics",
+    "webESLint": "passed, zero errors/warnings",
+    "webAndAuthTests": "16 passed, 0 failed",
+    "passwordWriteSelftest": "passed",
+    "securityBoundaries": "40 passed, 0 failed"
+  }
+}

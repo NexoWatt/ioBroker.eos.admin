@@ -22,7 +22,7 @@
     const parse = (value, fallback) => { if (value && typeof value === 'object') return value; try { return JSON.parse(String(value ?? '')); } catch (_) { return fallback; } };
     const severity = value => { const normalized = String(value || '').toLowerCase(); if (normalized === 'error') return 'error'; if (normalized === 'warning' || normalized === 'warn') return 'warning'; if (normalized === 'ok') return 'ok'; return 'info'; };
     const currentTab = () => String(location.hash || '').match(/tab-[a-z0-9_-]+/i)?.[0]?.toLowerCase() || 'tab-intro';
-    const currentRole = () => String(window.NEXOWATT_EOS_ACCESS_ROLE || 'admin').toLowerCase();
+    const currentRole = () => String(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
     const technical = () => ['admin', 'service', 'installer', 'installateur'].includes(currentRole());
     const formatPower = value => { const watts = num(value); const absolute = Math.abs(watts); const sign = watts < 0 ? '−' : ''; return absolute >= 1000 ? `${sign}${(absolute / 1000).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} kW` : `${sign}${Math.round(absolute).toLocaleString('de-DE')} W`; };
     const formatAge = timestamp => { const value = num(timestamp); if (!value) return 'noch kein Regeltick'; const seconds = Math.max(0, Math.round((Date.now() - value) / 1000)); if (seconds < 2) return 'gerade eben'; if (seconds < 60) return `vor ${seconds} s`; return `vor ${Math.round(seconds / 60)} min`; };
@@ -173,6 +173,12 @@
     };
     const load = async () => {
         if (destroyed || inFlight || document.visibilityState === 'hidden' || currentTab() !== 'tab-intro') return;
+        // Admin8 renders and polls the native React card; the legacy compatibility
+        // runtime must not issue a second stream of reads once that card is mounted.
+        if (document.querySelector(`[data-nexowatt-contract="${CONTRACT}"]:not(#${ROOT_ID})`)) {
+            document.getElementById(ROOT_ID)?.remove();
+            return;
+        }
         const socket = getSocket();
         if (!socket) {
             if (Date.now() - startedAt < CONNECTION_WAIT_MS) {

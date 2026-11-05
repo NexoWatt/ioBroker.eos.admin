@@ -5,7 +5,7 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Grid2,
+    Grid,
     Button,
     Checkbox,
     FormControlLabel,
@@ -25,7 +25,7 @@ import {
     Check as IconCheck,
 } from '@mui/icons-material';
 
-import { Utils, IconPicker, type Translate } from '@iobroker/adapter-react-v5';
+import { Utils, IconPicker, type Translate } from '@iobroker/gui-components';
 import { IOTextField, IOColorPicker } from '../IOFields/Fields';
 
 import Group1 from '../../assets/groups/group1.svg';
@@ -56,93 +56,61 @@ function PermissionsTab(props: PermissionsTabProps): React.JSX.Element {
             return mapFunction(value, key);
         });
 
-    let acl = props.group.common.acl;
+    const source = props.group.common.acl || ({} as ioBroker.GroupObject['common']['acl']);
 
-    // Initialize ACL if not exists or is invalid
-    acl = acl || ({} as ioBroker.GroupObject['common']['acl']);
+    // Initialize the ACL if it does not exist or is incomplete. This builds a new object instead of
+    // patching `props.group` in place - mutating props during render is not allowed in React.
+    // A stored block may be missing single flags, so the defaults come first and whatever is stored
+    // overrides them. The `Partial<>` casts say what the stored blocks really are - without them
+    // TS declares the defaults dead code, because the declared types have all flags required.
+    const asPartial = <T,>(value: T | undefined): Partial<T> | undefined => value;
 
-    acl.object = acl.object || {
-        read: true,
-        list: true,
-        write: true,
-        delete: false,
-        create: undefined,
-    };
-    acl.object = {
-        read: true,
-        list: true,
-        write: true,
-        delete: false,
-        ...acl.object,
-    };
-
-    acl.state = acl.state || {
-        read: true,
-        list: true,
-        write: true,
-        delete: false,
-        create: undefined,
-    };
-    acl.state = {
-        read: true,
-        list: true,
-        write: true,
-        delete: false,
-        ...acl.state,
-    };
-
-    acl.users = acl.users || {
-        write: false,
-        delete: false,
-        create: false,
-        list: undefined,
-        read: undefined,
-    };
-    acl.users = {
-        write: false,
-        delete: false,
-        create: false,
-        ...acl.users,
-    };
-
-    acl.other = acl.other || {
-        http: false,
-        execute: false,
-        sendto: true,
-    };
-    acl.other = {
-        http: false,
-        execute: false,
-        sendto: true,
-        ...acl.other,
-    };
-
-    acl.file = acl.file || {
-        read: true,
-        list: true,
-        write: false,
-        delete: false,
-        create: false,
-    };
-
-    acl.file = {
-        read: true,
-        list: true,
-        write: false,
-        delete: false,
-        create: false,
-        ...acl.file,
+    const acl: ioBroker.GroupObject['common']['acl'] = {
+        ...source,
+        object: {
+            read: true,
+            list: true,
+            write: true,
+            delete: false,
+            create: false,
+            ...asPartial(source.object),
+        },
+        state: {
+            read: true,
+            list: true,
+            write: true,
+            delete: false,
+            create: false,
+            ...asPartial(source.state),
+        },
+        users: {
+            read: false,
+            list: false,
+            write: false,
+            delete: false,
+            create: false,
+            ...asPartial(source.users),
+        },
+        other: { http: false, execute: false, sendto: true, ...asPartial(source.other) },
+        file: {
+            read: true,
+            list: true,
+            write: false,
+            delete: false,
+            create: false,
+            ...asPartial(source.file),
+        },
     };
 
     return (
-        <Grid2
+        <Grid
             container
             spacing={props.innerWidth < 500 ? 1 : 4}
             style={props.styles.dialog}
             key="PermissionsTab"
         >
-            {mapObject(props.group.common.acl || {}, (block, blockKey) => (
-                <Grid2
+            {mapObject(acl as unknown as Record<string, unknown>, (block, blockKey) => (
+                <Grid
                     size={{ xs: 12, md: 12 }}
                     key={blockKey}
                 >
@@ -163,6 +131,8 @@ function PermissionsTab(props: PermissionsTabProps): React.JSX.Element {
                                         const newData: ioBroker.GroupObject = Utils.clone(
                                             props.group,
                                         ) as ioBroker.GroupObject;
+                                        // carry over the normalized ACL, `props.group` may still be incomplete
+                                        newData.common.acl = Utils.clone(acl) as ioBroker.GroupObject['common']['acl'];
                                         (newData.common.acl as any as Record<string, Record<string, boolean>>)[
                                             blockKey
                                         ][permKey] = e.target.checked;
@@ -174,9 +144,9 @@ function PermissionsTab(props: PermissionsTabProps): React.JSX.Element {
                             labelPlacement="top"
                         />
                     ))}
-                </Grid2>
+                </Grid>
             ))}
-        </Grid2>
+        </Grid>
     );
 }
 
@@ -192,7 +162,7 @@ interface GroupEditDialogProps extends PermissionsTabProps {
     isNew: boolean;
     onChange: (group: ioBroker.GroupObject) => void;
     saveData: (originalId: string | null) => void;
-    getText: (text: ioBroker.StringOrTranslated) => string;
+    getText: (text: ioBroker.StringOrTranslated | undefined) => string;
     group: ioBroker.GroupObject;
     styles: Record<string, React.CSSProperties>;
 }
@@ -200,6 +170,8 @@ interface GroupEditDialogProps extends PermissionsTabProps {
 interface GroupEditDialogState {
     tab: 0;
     originalId: string;
+    /** Serialized group as it was when the dialog opened, to detect unsaved changes */
+    originalData: string;
 }
 
 class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogState> {
@@ -208,6 +180,7 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
         this.state = {
             tab: 0,
             originalId: props.group._id,
+            originalData: JSON.stringify(props.group),
         };
     }
 
@@ -229,11 +202,15 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
         const idExists = this.props.groups.find(group => group._id === this.props.group._id);
         const idChanged = this.props.group._id !== this.state.originalId;
 
+        // Offer "save" only once something was actually edited. A new group is always saveable.
+        const changed = this.props.isNew || JSON.stringify(this.props.group) !== this.state.originalData;
+
         let canSave =
             this.props.group._id !== 'system.group.' &&
-            (this.props.group.common as any).password === (this.props.group.common as any).passwordRepeat;
+            (this.props.group.common as any).password === (this.props.group.common as any).passwordRepeat &&
+            changed;
 
-        const getShortId = (_id: string): string => _id.split('.').pop();
+        const getShortId = (_id: string): string => _id.split('.').pop() || '';
 
         const name2Id = (name: string): string =>
             name.replace(Utils.FORBIDDEN_CHARS, '_').replace(/\s/g, '_').replace(/\./g, '_').toLowerCase();
@@ -256,12 +233,12 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
         const name = this.props.getText(this.props.group.common.name);
 
         const mainTab = (
-            <Grid2
+            <Grid
                 container
                 spacing={this.props.innerWidth < 500 ? 1 : 4}
                 style={this.props.styles.dialog}
             >
-                <Grid2 size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <IOTextField
                         label="Name"
                         t={this.props.t}
@@ -281,8 +258,8 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
                         icon={TextFieldsIcon}
                         styles={this.props.styles}
                     />
-                </Grid2>
-                <Grid2 size={{ xs: 12, md: 6 }}>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <IOTextField
                         label="ID edit"
                         t={this.props.t}
@@ -296,8 +273,8 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
                         icon={LocalOfferIcon}
                         styles={this.props.styles}
                     />
-                </Grid2>
-                <Grid2 size={{ xs: 12, md: 6 }}>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <IOTextField
                         label="ID preview"
                         t={this.props.t}
@@ -306,8 +283,8 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
                         icon={PageviewIcon}
                         styles={this.props.styles}
                     />
-                </Grid2>
-                <Grid2 size={{ xs: 12, md: 6 }}>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <IOTextField
                         label="Description"
                         t={this.props.t}
@@ -320,8 +297,8 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
                         icon={DescriptionIcon}
                         styles={this.props.styles}
                     />
-                </Grid2>
-                <Grid2 size={{ xs: 12, md: 6 }}>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <IconPicker
                         label="Icon"
                         icons={GROUPS_ICONS}
@@ -337,12 +314,12 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
                         icon={ImageIcon}
                         // classes={this.props.classes}
                     />
-                </Grid2>
-                <Grid2 size={{ xs: 12, md: 6 }}>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <IOColorPicker
                         label="Color"
                         t={this.props.t}
-                        value={this.props.group.common.color}
+                        value={this.props.group.common.color || ''}
                         previewStyle={this.props.styles.iconPreview}
                         onChange={color => {
                             const newData: ioBroker.GroupObject = Utils.clone(this.props.group) as ioBroker.GroupObject;
@@ -353,8 +330,8 @@ class GroupEditDialog extends Component<GroupEditDialogProps, GroupEditDialogSta
                         style={this.props.styles.colorPicker}
                         styles={this.props.styles}
                     />
-                </Grid2>
-            </Grid2>
+                </Grid>
+            </Grid>
         );
 
         const selectedTab = [mainTab, PermissionsTab(this.props)][this.state.tab];

@@ -1,6 +1,17 @@
 import React, { type JSX } from 'react';
 
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, AppBar, Tabs, Tab, Box } from '@mui/material';
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    AppBar,
+    Tabs,
+    Tab,
+    Box,
+    Tooltip,
+} from '@mui/material';
 
 import {
     I18n,
@@ -11,11 +22,12 @@ import {
     type ThemeType,
     type ThemeName,
     type Translate,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 // Icons
 import { Close as CloseIcon, Save as SaveIcon } from '@mui/icons-material';
 
+import { onCtrlEnter } from '@/helpers/ctrlEnter';
 import ObjectCustomEditor from '@/components/Object/ObjectCustomEditor';
 import ObjectHistoryData from '@/components/Object/ObjectHistoryData';
 import ObjectChart from '@/components/Object/ObjectChart';
@@ -65,6 +77,8 @@ interface ObjectCustomDialogProps {
 
 interface ObjectCustomDialogState {
     hasChanges: boolean;
+    /** At least one field of the JSON config currently fails its validator */
+    error: boolean;
     currentTab: number;
     confirmDialog: boolean;
     mobile: boolean;
@@ -100,6 +114,7 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
 
         this.state = {
             hasChanges: false,
+            error: false,
             currentTab,
             confirmDialog: false,
             mobile: MobileDialog.isMobile(),
@@ -147,7 +162,7 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
                 t={this.props.t}
                 isFloatComma={this.props.isFloatComma}
                 lang={this.props.lang}
-                expertMode={this.props.expertMode}
+                expertMode={!!this.props.expertMode}
                 socket={this.props.socket}
                 obj={this.props.objects[this.props.objectIDs[0]] as ioBroker.StateObject}
                 customsInstances={this.props.customsInstances}
@@ -159,7 +174,7 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
     renderCustomEditor(): JSX.Element {
         return (
             <ObjectCustomEditor
-                registerSaveFunc={(func: (cb?: (error?: boolean) => void) => void) => (this.saveFunc = func)}
+                registerSaveFunc={func => (this.saveFunc = func as (cb?: (error?: boolean) => void) => void)}
                 t={this.props.t}
                 lang={this.props.lang}
                 socket={this.props.socket}
@@ -167,9 +182,12 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
                 customsInstances={this.props.customsInstances}
                 objects={this.props.objects}
                 onProgress={(progressRunning: boolean) => this.setState({ progressRunning })}
+                // JSON config reports whether any field currently fails its `validator`
+                // (`validatorNoSaveOnError`). Saving stays blocked until every field is valid again.
+                onError={(error?: boolean) => this.setState({ error: !!error })}
                 reportChangedIds={this.props.reportChangedIds}
-                onChange={(hasChanges: boolean, update: boolean) => {
-                    this.setState({ hasChanges }, () => {
+                onChange={(hasChanges?: boolean, update?: boolean) => {
+                    this.setState({ hasChanges: !!hasChanges }, () => {
                         if (update) {
                             const chartAvailable = this.isChartAvailable();
                             if (chartAvailable !== this.chartAvailable) {
@@ -201,6 +219,21 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
             />
         );
     }
+
+    /** CTRL+ENTER triggers the same action as the "Save & close" button */
+    onCtrlEnter = (): void => {
+        // the confirmation dialogs are rendered inside this dialog, so their events end up here too
+        if (this.state.confirmDialog || this.state.showWarning || this.state.currentTab !== 0) {
+            return;
+        }
+        if (this.state.hasChanges && !this.state.error && !this.state.progressRunning) {
+            if (this.saveFunc) {
+                this.saveFunc(error => !error && this.onClose());
+            } else {
+                this.onClose();
+            }
+        }
+    };
 
     onClose(): void {
         if (this.state.hasChanges) {
@@ -241,6 +274,7 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
                 scroll="paper"
                 open={!0}
                 onClose={() => this.props.onClose()}
+                onKeyDown={e => onCtrlEnter(e, this.onCtrlEnter)}
                 fullWidth
                 maxWidth="xl"
                 aria-labelledby="form-dialog-title"
@@ -335,28 +369,26 @@ class ObjectCustomDialog extends MobileDialog<ObjectCustomDialogProps, ObjectCus
                             id="object-custom-dialog-save"
                             variant="contained"
                             color="primary"
-                            disabled={!this.state.hasChanges || this.state.progressRunning}
+                            disabled={!this.state.hasChanges || this.state.error || this.state.progressRunning}
                             onClick={() => this.saveFunc && this.saveFunc()}
                         >
                             {this.getButtonTitle(<SaveIcon />, this.props.t('Save'))}
                         </Button>
                     )}
                     {this.state.currentTab === 0 && (
-                        <Button
-                            id="object-custom-dialog-save-close"
-                            variant="contained"
-                            color="primary"
-                            disabled={!this.state.hasChanges || this.state.progressRunning}
-                            onClick={() => {
-                                if (this.saveFunc) {
-                                    this.saveFunc(error => !error && this.onClose());
-                                } else {
-                                    this.onClose();
-                                }
-                            }}
-                        >
-                            {this.getButtonTitle(<SaveIcon />, this.props.t('Save & close'), <CloseIcon />)}
-                        </Button>
+                        <Tooltip title={this.props.t('Press CTRL+ENTER to confirm')}>
+                            <span>
+                                <Button
+                                    id="object-custom-dialog-save-close"
+                                    variant="contained"
+                                    color="primary"
+                                    disabled={!this.state.hasChanges || this.state.error || this.state.progressRunning}
+                                    onClick={this.onCtrlEnter}
+                                >
+                                    {this.getButtonTitle(<SaveIcon />, this.props.t('Save & close'), <CloseIcon />)}
+                                </Button>
+                            </span>
+                        </Tooltip>
                     )}
                     <Button
                         id="object-custom-dialog-close"

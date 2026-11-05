@@ -1,0 +1,10 @@
+✔ plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch (4752.558498ms)
+✔ plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging (741.55654ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5599.094538

@@ -5,12 +5,12 @@ export default [
     {
         languageOptions: {
             parserOptions: {
-                allowDefaultProject: {
-                    allow: ['*.js', '*.mjs'],
-                },
                 tsconfigRootDir: import.meta.dirname,
-                project: './tsconfig.json',
-                // projectService: true,
+                projectService: {
+                    // TypeScript prioritizes the adjacent declaration file for this legacy JS helper.
+                    allowDefaultProject: ['src/lib/eosNewsSecurity.js'],
+                    defaultProject: 'tsconfig.json',
+                },
             },
         },
     },

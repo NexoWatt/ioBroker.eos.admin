@@ -1,9 +1,9 @@
 {
   "tool": "nexowatt-security-inventory@1.0.0",
-  "timestamp": "2026-10-25T15:13:06.464Z",
+  "timestamp": "2026-11-05T05:37:38.016Z",
   "environment": {
-    "node": "v24.22.1",
-    "platform": "linux",
+    "node": "v24.21.0",
+    "platform": "win32",
     "arch": "x64"
   },
   "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
@@ -11,50 +11,56 @@
     {
       "label": "backend",
       "name": "iobroker.eos-admin",
-      "version": "7.10.12",
+      "version": "8.0.0",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "290232ed96238a11b4d2b45925030573496fdf94e40f22d98b0f866671bf19cb",
-        "lock": "0bd3d6e877aa66974c4dc18ab0f5f1aece1e9272c75a092af12f5aa4a8f83a9b"
+        "manifest": "d9d20691a883012cf1b090e40cc47641e25c5b51804711d66f7f4c736ba4f633",
+        "lock": "a499ca75ecf16ad9f9864e2092a8da56a6d85373eda9455414912c8b7eff130f"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
-      "componentCount": 788,
-      "lockNonDevCount": 315,
-      "lockDevCount": 473,
-      "installScriptCount": 7,
-      "withoutIntegrityCount": 563,
+      "componentCount": 773,
+      "lockNonDevCount": 293,
+      "lockDevCount": 480,
+      "installScriptCount": 9,
+      "withoutIntegrityCount": 0,
       "linksCount": 0,
       "manifestDrift": [],
       "directDependencies": [
         {
           "name": "@iobroker/adapter-core",
-          "declared": "^3.4.1",
-          "locked": "3.4.1",
+          "declared": "^3.4.3",
+          "locked": "3.4.3",
           "location": "node_modules/@iobroker/adapter-core"
         },
         {
           "name": "@iobroker/plugin-docker",
-          "declared": "^1.0.3",
-          "locked": "1.0.3",
+          "declared": "^1.2.1",
+          "locked": "1.2.1",
           "location": "node_modules/@iobroker/plugin-docker"
         },
         {
           "name": "@iobroker/socket-classes",
-          "declared": "^2.3.4",
-          "locked": "2.3.4",
+          "declared": "^2.10.0",
+          "locked": "2.10.0",
           "location": "node_modules/@iobroker/socket-classes"
         },
         {
           "name": "@iobroker/webserver",
-          "declared": "^1.4.0",
-          "locked": "1.4.0",
+          "declared": "^3.4.0",
+          "locked": "3.4.0",
           "location": "node_modules/@iobroker/webserver"
         },
         {
           "name": "@iobroker/ws-server",
-          "declared": "^4.4.1",
-          "locked": "4.4.1",
+          "declared": "^4.5.2",
+          "locked": "4.5.2",
           "location": "node_modules/@iobroker/ws-server"
+        },
+        {
+          "name": "@tsconfig/node22",
+          "declared": "^22.0.6",
+          "locked": "22.0.6",
+          "location": "node_modules/@tsconfig/node22"
         },
         {
           "name": "ajv",
@@ -63,27 +69,21 @@
           "location": "node_modules/ajv"
         },
         {
-          "name": "archiver",
-          "declared": "^7.0.1",
-          "locked": "7.0.1",
-          "location": "node_modules/archiver"
-        },
-        {
           "name": "axios",
-          "declared": "^1.17.0",
-          "locked": "1.17.0",
+          "declared": "^1.20.0",
+          "locked": "1.20.0",
           "location": "node_modules/axios"
         },
         {
           "name": "body-parser",
-          "declared": "^2.2.2",
-          "locked": "2.2.2",
+          "declared": "^2.4.0",
+          "locked": "2.4.0",
           "location": "node_modules/body-parser"
         },
         {
           "name": "compression",
-          "declared": "^1.8.1",
-          "locked": "1.8.1",
+          "declared": "^1.8.2",
+          "locked": "1.8.2",
           "location": "node_modules/compression"
         },
         {
@@ -94,8 +94,8 @@
         },
         {
           "name": "express",
-          "declared": "^5.2.1",
-          "locked": "5.2.1",
+          "declared": "^5.3.0",
+          "locked": "5.3.0",
           "location": "node_modules/express"
         },
         {
@@ -111,58 +111,34 @@
           "location": "node_modules/express-session"
         },
         {
-          "name": "iobroker.mcp",
-          "declared": "^1.0.0",
-          "locked": "1.0.0",
-          "location": "node_modules/iobroker.mcp"
-        },
-        {
           "name": "json5",
           "declared": "^2.2.3",
           "locked": "2.2.3",
           "location": "node_modules/json5"
         },
         {
-          "name": "mime",
-          "declared": "^3.0.0",
-          "locked": "3.0.0",
-          "location": "node_modules/mime"
+          "name": "mime-types",
+          "declared": "^3.0.2",
+          "locked": "3.0.2",
+          "location": "node_modules/mime-types"
         },
         {
           "name": "semver",
-          "declared": "^7.8.3",
-          "locked": "7.8.3",
+          "declared": "^7.8.5",
+          "locked": "7.8.5",
           "location": "node_modules/semver"
         }
       ],
       "unresolvedEdges": [
         {
-          "location": "node_modules/@modelcontextprotocol/sdk",
-          "dependency": "@cfworker/json-schema",
+          "location": "node_modules/@puppeteer/browsers",
+          "dependency": "proxy-agent",
           "optional": true,
           "peer": true
         },
         {
-          "location": "node_modules/bare-events",
-          "dependency": "bare-abort-controller",
-          "optional": true,
-          "peer": true
-        },
-        {
-          "location": "node_modules/bare-fs",
-          "dependency": "bare-buffer",
-          "optional": true,
-          "peer": true
-        },
-        {
-          "location": "node_modules/bare-stream",
-          "dependency": "bare-abort-controller",
-          "optional": true,
-          "peer": true
-        },
-        {
-          "location": "node_modules/bare-stream",
-          "dependency": "bare-buffer",
+          "location": "node_modules/@puppeteer/browsers",
+          "dependency": "yauzl",
           "optional": true,
           "peer": true
         },
@@ -192,56 +168,56 @@
         }
       ],
       "rootEngines": {
-        "node": ">=22.0.0 <23 || >=24.0.0 <25"
+        "node": ">=24.22.1 <25"
       }
     },
     {
       "label": "frontend",
       "name": "src-rx",
-      "version": "7.10.12",
+      "version": "8.0.0",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "9dcb5ded79a57628259f92763e8248c007ca34fcbe3e93b860c4ed5c81ce1dd4",
-        "lock": "180c6cfa9ea971348985cf64aebdd6c1e9100cb7bf807bdee9a7ee7a0588cdc2"
+        "manifest": "d510290b70940e3a4683d0056d75159c049bdc660462f68582fe724e3c1de062",
+        "lock": "a310b3b6fd8f42ffc5783f62ce6142f09329c1fbe87d324a3439873382dc2cd3"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
-      "componentCount": 768,
-      "lockNonDevCount": 371,
-      "lockDevCount": 397,
-      "installScriptCount": 6,
+      "componentCount": 582,
+      "lockNonDevCount": 355,
+      "lockDevCount": 227,
+      "installScriptCount": 3,
       "withoutIntegrityCount": 0,
       "linksCount": 0,
       "manifestDrift": [],
       "directDependencies": [
         {
-          "name": "@iobroker/adapter-react-v5",
-          "declared": "^8.2.9",
-          "locked": "8.2.9",
-          "location": "node_modules/@iobroker/adapter-react-v5"
+          "name": "@iobroker/ai-gui",
+          "declared": "^0.0.4",
+          "locked": "0.0.4",
+          "location": "node_modules/@iobroker/ai-gui"
         },
         {
           "name": "@iobroker/dm-gui-components",
-          "declared": "^9.1.0",
-          "locked": "9.1.0",
+          "declared": "^10.0.23",
+          "locked": "10.0.23",
           "location": "node_modules/@iobroker/dm-gui-components"
         },
         {
+          "name": "@iobroker/gui-components",
+          "declared": "^10.3.14",
+          "locked": "10.3.14",
+          "location": "node_modules/@iobroker/gui-components"
+        },
+        {
           "name": "@iobroker/json-config",
-          "declared": "^8.4.7",
-          "locked": "8.4.7",
+          "declared": "^10.1.8",
+          "locked": "10.1.8",
           "location": "node_modules/@iobroker/json-config"
         },
         {
           "name": "ace-builds",
-          "declared": "^1.44.0",
-          "locked": "1.44.0",
+          "declared": "^1.45.2",
+          "locked": "1.45.2",
           "location": "node_modules/ace-builds"
-        },
-        {
-          "name": "http-proxy-middleware",
-          "declared": "^3.0.5",
-          "locked": "3.0.5",
-          "location": "node_modules/http-proxy-middleware"
         },
         {
           "name": "remark-gfm",
@@ -254,18 +230,6 @@
         {
           "location": "node_modules/@module-federation/dts-plugin",
           "dependency": "vue-tsc",
-          "optional": true,
-          "peer": true
-        },
-        {
-          "location": "node_modules/@module-federation/runtime-core/node_modules/@module-federation/sdk",
-          "dependency": "node-fetch",
-          "optional": true,
-          "peer": true
-        },
-        {
-          "location": "node_modules/@module-federation/runtime/node_modules/@module-federation/sdk",
-          "dependency": "node-fetch",
           "optional": true,
           "peer": true
         },
@@ -300,6 +264,30 @@
           "peer": true
         },
         {
+          "location": "node_modules/@rollup/pluginutils",
+          "dependency": "rollup",
+          "optional": true,
+          "peer": true
+        },
+        {
+          "location": "node_modules/@vitejs/plugin-react",
+          "dependency": "@rolldown/plugin-babel",
+          "optional": true,
+          "peer": true
+        },
+        {
+          "location": "node_modules/@vitejs/plugin-react",
+          "dependency": "babel-plugin-react-compiler",
+          "optional": true,
+          "peer": true
+        },
+        {
+          "location": "node_modules/@vitejs/plugin-react",
+          "dependency": "oxc-transform-react",
+          "optional": true,
+          "peer": true
+        },
+        {
           "location": "node_modules/react-dnd",
           "dependency": "@types/hoist-non-react-statics",
           "optional": true,
@@ -307,13 +295,19 @@
         },
         {
           "location": "node_modules/vite",
-          "dependency": "jiti",
+          "dependency": "@vitejs/devtools",
           "optional": true,
           "peer": true
         },
         {
           "location": "node_modules/vite",
-          "dependency": "lightningcss",
+          "dependency": "esbuild",
+          "optional": true,
+          "peer": true
+        },
+        {
+          "location": "node_modules/vite",
+          "dependency": "jiti",
           "optional": true,
           "peer": true
         },
@@ -369,8 +363,8 @@
       "rootEngines": {}
     }
   ],
-  "runtimeFileCount": 793,
-  "sourceFileCount": 39,
+  "runtimeFileCount": 930,
+  "sourceFileCount": 42,
   "vendoredPackageManifests": [
     {
       "path": "adminWww/lib/js/crypto-js/package.json",

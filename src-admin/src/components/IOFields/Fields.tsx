@@ -4,7 +4,7 @@ import { TextField, FormControl, InputAdornment, IconButton } from '@mui/materia
 
 import { Close as CloseIcon } from '@mui/icons-material';
 
-import { ColorPicker, type Translate } from '@iobroker/adapter-react-v5';
+import { ColorPicker, type Translate } from '@iobroker/gui-components';
 
 interface IOTextFieldProps {
     label: string;
@@ -36,7 +36,7 @@ export function IOTextField(props: IOTextFieldProps): JSX.Element {
                     error={!!props.error}
                     helperText={props.error || ''}
                     value={props.value}
-                    onChange={e => props.onChange(e.target.value)}
+                    onChange={e => props.onChange?.(e.target.value)}
                     disabled={props.disabled}
                     type={props.type}
                     slotProps={{
@@ -50,7 +50,7 @@ export function IOTextField(props: IOTextFieldProps): JSX.Element {
                                     <IconButton
                                         tabIndex={-1}
                                         size="small"
-                                        onClick={() => props.onChange('')}
+                                        onClick={() => props.onChange?.('')}
                                     >
                                         <CloseIcon />
                                     </IconButton>

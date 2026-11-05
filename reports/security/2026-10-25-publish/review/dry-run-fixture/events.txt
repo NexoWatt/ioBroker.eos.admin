@@ -1,0 +1,6 @@
+prepublishOnly
+prepack
+prepare
+postpack
+publish
+postpublish

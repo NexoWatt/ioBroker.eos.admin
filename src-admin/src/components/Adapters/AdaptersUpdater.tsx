@@ -14,7 +14,7 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Grid2,
+    Grid,
     IconButton,
     Typography,
     Box,
@@ -22,11 +22,12 @@ import {
 
 import { Close as CloseIcon, Language as LanguageIcon, Info as InfoIcon } from '@mui/icons-material';
 
-import { I18n, type IobTheme, Utils } from '@iobroker/adapter-react-v5';
+import { I18n, type IobTheme, Utils } from '@iobroker/gui-components';
 
 import type { AdapterRatingInfo, InstalledInfo } from '@/components/Adapters/AdapterInstallDialog';
 import { checkCondition } from '@/components/Adapters/AdapterUpdateDialog';
 import type { RepoAdapterObject, RepoInfo } from '@/components/Adapters/Utils';
+import NewsLine, { stripNewsMarker } from '@/components/Adapters/NewsLine';
 
 interface GetNewsResultEntry {
     version: string;
@@ -137,7 +138,7 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
     /** Key adapterName, value: version */
     private readonly initialVersions: Record<string, string>;
 
-    private readonly currentRef: React.RefObject<HTMLLIElement>;
+    private readonly currentRef: React.RefObject<HTMLLIElement | null>;
 
     private current: string;
 
@@ -229,20 +230,21 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
         const installed = this.props.installed[adapter];
         const news: GetNewsResultEntry[] = [];
 
-        if (installed && adapterObj?.news) {
-            Object.keys(adapterObj.news).forEach(version => {
+        const adapterNews = adapterObj?.news;
+        if (installed && adapterNews) {
+            Object.keys(adapterNews).forEach(version => {
                 try {
                     if (semver.gt(version, installed.version)) {
                         news.push({
                             version,
                             news: this.props.noTranslation
-                                ? adapterObj.news[version].en
-                                : adapterObj.news[version][this.props.lang] || adapterObj.news[version].en,
+                                ? adapterNews[version].en
+                                : adapterNews[version][this.props.lang] || adapterNews[version].en,
                         });
                     }
                 } catch {
                     // ignore it
-                    console.warn(`Cannot compare "${version}" and "${installed.version}"`);
+                    console.warn(`Cannot compare "${version}" and "${installed.version}" of adapter ${adapter}`);
                 }
             });
         }
@@ -259,7 +261,8 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
             // during installation, this adapter was uninstalled
             return null;
         }
-        const image = `.${this.props.installed[adapter].localIcon}`;
+        const localIcon = this.props.installed[adapter].localIcon;
+        const image = localIcon ? `.${localIcon}` : this.props.repository[adapter]?.extIcon || 'img/no-image.svg';
 
         return (
             <ListItem
@@ -352,8 +355,8 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
         fromVersion = fromVersion || installed.version;
         const result: JSX.Element[] = [];
 
-        let stableVersion: string;
-        let latestVersion: string;
+        let stableVersion: string | undefined;
+        let latestVersion: string | undefined;
         const repoInfo: RepoInfo = this.props.repository._repoInfo as unknown as RepoInfo;
         if (repoInfo?.stable) {
             stableVersion = this.props.repository[adapter]?.version;
@@ -363,20 +366,19 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
             latestVersion = this.props.repository[adapter]?.version;
         }
 
-        if (installed && adapterObj?.news) {
-            Object.keys(adapterObj.news).forEach(version => {
+        const adapterNews = adapterObj?.news;
+        if (installed && adapterNews) {
+            Object.keys(adapterNews).forEach(version => {
                 try {
-                    if (semver.gt(version, fromVersion) && adapterObj.news[version]) {
+                    if (semver.gt(version, fromVersion) && adapterNews[version]) {
                         const newsText: string = this.props.noTranslation
-                            ? adapterObj.news[version].en || ''
-                            : adapterObj.news[version][this.props.lang] || adapterObj.news[version].en || '';
+                            ? adapterNews[version].en || ''
+                            : adapterNews[version][this.props.lang] || adapterNews[version].en || '';
 
                         const news = newsText
                             .split('\n')
                             .map(line =>
-                                line
-                                    .trim()
-                                    .replace(/^\*\s?/, '')
+                                stripNewsMarker(line.trim())
                                     .replace(/<!--[^>]*->/g, '')
                                     .replace(/<! -[^>]*->/g, '')
                                     .trim(),
@@ -384,7 +386,7 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
                             .filter(line => !!line);
 
                         result.push(
-                            <Grid2 key={version}>
+                            <Grid key={version}>
                                 <Typography sx={styles.versionHeader}>
                                     {version}
                                     {latestVersion === version ? (
@@ -403,20 +405,17 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
                                     ) : null}
                                 </Typography>
                                 {news.map((value, index) => (
-                                    <Typography
+                                    <NewsLine
                                         key={`${version}-${index}`}
-                                        component="div"
-                                        variant="body2"
-                                    >
-                                        {`• ${value}`}
-                                    </Typography>
+                                        text={value}
+                                    />
                                 ))}
-                            </Grid2>,
+                            </Grid>,
                         );
                     }
                 } catch {
                     // ignore it
-                    console.warn(`Cannot compare "${version}" and "${fromVersion}"`);
+                    console.warn(`Cannot compare "${version}" and "${fromVersion}" of adapter ${adapter}`);
                 }
             });
         }
@@ -469,33 +468,33 @@ class AdaptersUpdater extends Component<AdaptersUpdaterProps, AdaptersUpdaterSta
                         </Typography>
                     </DialogTitle>
                     <DialogContent dividers>
-                        <Grid2
+                        <Grid
                             container
-                            direction="column"
                             spacing={2}
                             wrap="nowrap"
+                            sx={{ flexDirection: 'column' }}
                         >
                             {news.length ? (
-                                <Grid2>
+                                <Grid>
                                     <Typography
                                         variant="h6"
                                         gutterBottom
                                     >
                                         {I18n.t('Change log')}
                                     </Typography>
-                                    <Grid2
+                                    <Grid
                                         container
                                         spacing={2}
-                                        direction="column"
                                         wrap="nowrap"
+                                        sx={{ flexDirection: 'column' }}
                                     >
                                         {news}
-                                    </Grid2>
-                                </Grid2>
+                                    </Grid>
+                                </Grid>
                             ) : (
                                 I18n.t('No change log available')
                             )}
-                        </Grid2>
+                        </Grid>
                     </DialogContent>
                     <DialogActions style={styles.wrapperButton}>
                         <Button

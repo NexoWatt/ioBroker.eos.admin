@@ -1,0 +1,35 @@
+[2026-11-05T04:50:54.736Z] Execute: "node /workspace/scratch/c16def314bc5/admin8-followup/source-review/upstream-v3.0.8/node_modules/vite/bin/vite.js build" {"cwd":"/workspace/scratch/c16def314bc5/admin8-followup/source-review/upstream-v3.0.8"}
+vite v8.2.2 building client environment for production...
+transforming...
+[2026-11-05T04:50:57.711Z] child process exited with code 0 after 2974ms.
+✓ 12681 modules transformed.
+rendering chunks...
+[ Module Federation DTS ] Federated types created correctly
+computing gzip size...
+build/assets/mf-entry-bootstrap-0-5d5a409e.js                                                                                                                          1.56 kB
+build/index.html                                                                                                                                                       1.92 kB │ gzip:     0.61 kB
+build/mf-manifest.json                                                                                                                                                 4.43 kB │ gzip:     0.77 kB
+build/.vite/manifest.json                                                                                                                                              7.68 kB │ gzip:     0.83 kB
+build/mf-stats.json                                                                                                                                                    9.24 kB │ gzip:     1.14 kB
+build/assets/virtualExposes-31pkFC9v.js                                                                                                                                0.13 kB │ gzip:     0.13 kB
+build/customComponents.js                                                                                                                                              0.97 kB │ gzip:     0.45 kB
+build/assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js                                                           1.14 kB │ gzip:     0.67 kB
+build/assets/vite-preload-helper-B7qeedMF.js                                                                                                                           1.24 kB │ gzip:     0.68 kB
+build/assets/rolldown-runtime-C0FnF6B9.js                                                                                                                              1.29 kB │ gzip:     0.71 kB
+build/assets/index-PfxLVs-2.js                                                                                                                                         1.35 kB │ gzip:     0.66 kB
+build/assets/Components-I39zZDnw.js                                                                                                                                    1.96 kB │ gzip:     0.87 kB
+build/assets/hostInit-CExI67Q9.js                                                                                                                                      2.57 kB │ gzip:     1.19 kB
+build/assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js                                                     5.47 kB │ gzip:     0.79 kB
+build/assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js                                                  18.10 kB │ gzip:     6.01 kB
+build/assets/lib-BR4qb34w.js                                                                                                                                          23.33 kB │ gzip:     8.26 kB
+build/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js                 181.32 kB │ gzip:    57.30 kB
+build/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js     1,392.09 kB │ gzip:   375.73 kB
+build/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js  6,962.27 kB │ gzip: 1,514.73 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 18.59s
+"node in /workspace/scratch/c16def314bc5/admin8-followup/source-review/upstream-v3.0.8 finished.

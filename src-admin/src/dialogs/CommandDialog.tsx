@@ -13,7 +13,7 @@ import {
 
 import { Close as CloseIcon, OpenInBrowser as OpenInBrowserIcon } from '@mui/icons-material';
 
-import type { IobTheme, Translate, AdminConnection } from '@iobroker/adapter-react-v5';
+import type { IobTheme, Translate, AdminConnection } from '@iobroker/gui-components';
 import type { CommandFile } from '@/types';
 import Command from '../components/Command';
 
@@ -36,7 +36,7 @@ interface CommandDialogProps {
     t: Translate;
     confirmText?: string;
     onClose: () => void;
-    callback: () => void;
+    callback: () => void | null | undefined;
     onInBackground: () => void;
     visible: boolean;
     ready: boolean;
@@ -60,7 +60,7 @@ interface CommandDialogState {
 }
 
 export default class CommandDialog extends Component<CommandDialogProps, CommandDialogState> {
-    private paperRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
+    private paperRef: React.RefObject<HTMLDivElement | null> = React.createRef<HTMLDivElement>();
 
     constructor(props: CommandDialogProps) {
         super(props);

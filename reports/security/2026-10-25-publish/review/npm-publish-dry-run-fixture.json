@@ -1,0 +1,24 @@
+{
+  "command": [
+    "npm",
+    "publish",
+    "--dry-run",
+    "--registry=http://127.0.0.1:9",
+    "--fetch-retries=0",
+    "--fetch-timeout=1000",
+    "--userconfig=/workspace/scratch/c16def314bc5/publish-fix-20261025/review/dry-run-fixture/user.npmrc",
+    "--globalconfig=/workspace/scratch/c16def314bc5/publish-fix-20261025/review/dry-run-fixture/global.npmrc"
+  ],
+  "utc": "2026-10-25T15:42:17.134290+00:00",
+  "exit": 0,
+  "seconds": 0.511,
+  "events": [
+    "prepublishOnly",
+    "prepack",
+    "prepare",
+    "postpack",
+    "publish",
+    "postpublish"
+  ],
+  "scope": "Local fixture, npm publish --dry-run, registry deliberately unreachable loopback; no realpackagepublication orcredentials"
+}

@@ -1,265 +1,163 @@
-import { statSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import less from 'less';
-import buildTools from '@iobroker/build-tools';
-import axios from 'axios';
 
-const { deleteFoldersRecursive, buildReact, patchHtmlFile, npmInstall, copyFiles } = buildTools;
+const root = dirname(fileURLToPath(import.meta.url));
+const frontend = join(root, 'src-admin');
+const output = join(frontend, 'build');
+const destination = join(root, 'adminWww');
 
-const srcRx = 'src-admin/';
-const dirName = dirname(fileURLToPath(import.meta.url));
-const src = `${dirName}/${srcRx}`;
-const rootFolder = dirName;
-const dest = 'adminWww/';
-
-function patchNexoWattBuiltFrontend(): void {
-    execFileSync(process.execPath, [`${dirName}/tools/nexowatt-patch-built-frontend.cjs`], {
-        cwd: dirName,
+/** Build-time tools operate offline on the exact packages installed by npm ci. */
+function runNode(script: string, args: string[] = [], cwd = root): void {
+    execFileSync(process.execPath, [script, ...args], {
+        cwd,
         stdio: 'inherit',
+        timeout: 15 * 60_000,
+        env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=7000' },
     });
 }
 
-async function build(): Promise<void> {
-    const socketNew = readFileSync(`${dirName}/node_modules/@iobroker/ws/build/esm/socket.io.min.js`).toString();
-    const socketOld = readFileSync(`${dirName}/src-admin/public/lib/js/socket.io.js`).toString();
-    if (socketNew !== socketOld) {
-        writeFileSync(`${dirName}/src-admin/public/lib/js/socket.io.js`, socketNew);
-        writeFileSync(
-            `${dirName}/src-admin/public/lib/js/socket.io.js.map`,
-            readFileSync(`${dirName}/node_modules/@iobroker/ws/build/esm/socket.io.min.js.map`),
-        );
-    }
-
-    writeFileSync(
-        `${src}public/lib/js/sparkline.js`,
-        readFileSync(`${rootFolder}/src-admin/node_modules/@fnando/sparkline/dist/sparkline.js`),
-    );
-    writeFileSync(
-        `${src}public/lib/js/sparkline.js.map`,
-        readFileSync(`${rootFolder}/src-admin/node_modules/@fnando/sparkline/dist/sparkline.js.map`),
-    );
-
-    const ace = `${rootFolder}/src-admin/node_modules/ace-builds/src-min-noconflict/`;
-    writeFileSync(`${dirName}/${srcRx}public/lib/js/ace/worker-json.js`, readFileSync(`${ace}worker-json.js`));
-    writeFileSync(`${dirName}/${srcRx}public/lib/js/ace/ext-searchbox.js`, readFileSync(`${ace}ext-searchbox.js`));
-
-    await buildReact(src, { rootDir: dirName, vite: true, tsc: true, exec: true, ramSize: 7000 });
-    if (existsSync(`${dirName}/adminWww/index.html`)) {
-        throw new Error('Front-end was not build to end!');
-    }
-}
-
-async function syncUtils(): Promise<void> {
-    const stat1 = statSync(`${dirName}/src-admin/src/helpers/utils.ts`);
-    const stat2 = statSync(`${dirName}/src/lib/utils.ts`);
-    const data1 = readFileSync(`${dirName}/src-admin/src/helpers/utils.ts`).toString();
-    const data2 = readFileSync(`${dirName}/src/lib/utils.ts`).toString();
-    if (data1 !== data2) {
-        if (stat1.mtimeMs > stat2.mtimeMs) {
-            writeFileSync(`${dirName}/src/lib/utils.ts`, data1);
-        } else {
-            writeFileSync(`${dirName}/src-admin/src/helpers/utils.ts`, data2);
+function requireDependencies(): void {
+    for (const path of [
+        'src-admin/node_modules/vite/bin/vite.js',
+        'src-admin/node_modules/typescript/bin/tsc',
+        'node_modules/@iobroker/ws/build/esm/socket.io.min.js',
+        'node_modules/@iobroker/admin-component-easy-access/admin',
+    ]) {
+        if (!existsSync(join(root, path))) {
+            throw new Error(`Missing locked build dependency ${path}. Run npm ci in the root and src-admin first.`);
         }
     }
+}
 
-    try {
-        // Copy JSON config description and schema from 'https://github.com/ioBroker/json-config' to packages
-        let response = await axios(
-            'https://raw.githubusercontent.com/ioBroker/json-config/main/schemas/jsonConfig.json',
+function copy(source: string, target: string): void {
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(source, target, { recursive: true, dereference: false });
+}
+
+function prepareRuntimeAssets(): void {
+    requireDependencies();
+    for (const suffix of ['', '.map']) {
+        copy(
+            join(root, `node_modules/@iobroker/ws/build/esm/socket.io.min.js${suffix}`),
+            join(frontend, `public/lib/js/socket.io.js${suffix}`),
         );
-        writeFileSync(`${dirName}/packages/jsonConfig/schemas/jsonConfig.json`, JSON.stringify(response.data, null, 2));
-    } catch (e) {
-        console.error('Cannot update jsonConfig.json. Not critical!', e);
     }
-    try {
-        let response = await axios('https://raw.githubusercontent.com/ioBroker/json-config/main/README.md');
-        writeFileSync(`${dirName}/packages/jsonConfig/README.md`, response.data);
-    } catch (e) {
-        console.error('Cannot update README.md. Not critical!', e);
+    for (const file of ['worker-json.js', 'ext-searchbox.js']) {
+        copy(
+            join(frontend, 'node_modules/ace-builds/src-min-noconflict', file),
+            join(frontend, 'public/lib/js/ace', file),
+        );
     }
 }
 
-async function copyAllFiles(): Promise<void> {
-    deleteFoldersRecursive(`${dirName}/build`);
-    deleteFoldersRecursive(`${dirName}/admin/custom`);
-    deleteFoldersRecursive(`${dirName}/${srcRx}public/lib/js/crypto-js`);
-    deleteFoldersRecursive(`${dirName}/../dm-gui-components/build/src`);
-    deleteFoldersRecursive(`${dirName}/../jsonConfig/build/src`);
-    await syncUtils();
-
-    copyFiles([`${srcRx}build/**/*`, `!${srcRx}build/index.html`, `!${srcRx}build/static/js/*.js`], dest);
-
-    // copy custom plugin
-    if (existsSync(`${rootFolder}/node_modules/@iobroker/admin-component-easy-access`)) {
-        copyFiles(
-            [
-                `${rootFolder}/node_modules/@iobroker/admin-component-easy-access/admin/**/*`,
-                `${rootFolder}/node_modules/@iobroker/admin-component-easy-access/admin/*`,
-            ],
-            `admin/`,
-        );
-    } else if (existsSync(`${dirName}/node_modules/@iobroker/admin-component-easy-access`)) {
-        copyFiles(`${dirName}/node_modules/@iobroker/admin-component-easy-access/admin/**/*`, `admin/`);
-    } else if (existsSync(`${dirName}/node_modules/src-admin/@iobroker/admin-component-easy-access`)) {
-        copyFiles(`${dirName}/src-admin/node_modules/@iobroker/admin-component-easy-access/admin/**/*`, `admin/`);
-    } else {
-        console.error('Cannot find admin-component-easy-access');
-        process.exit(1);
-    }
-    // copy crypto-js
-    copyFiles(
-        [
-            `${srcRx}node_modules/crypto-js/**/*.*`,
-            `!${srcRx}node_modules/crypto-js/CONTRIBUTING.md`,
-            `!${srcRx}node_modules/crypto-js/README.md`,
-        ],
-        `${dest}lib/js/crypto-js`,
-    );
-    copyFiles(`${srcRx}build/index.html`, dest, {
-        replace: [
-            { find: 'href="/', text: 'href="' },
-            { find: 'src="/', text: 'src="' },
-        ],
-    });
-    copyFiles(`${srcRx}build/static/js/**/*.js`, `${dest}static/js`, {
-        replace: [{ find: 's.p+"static/media', text: '"./static/media' }],
-    });
-    copyFiles(
-        [
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/worker-json.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/worker-html.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/worker-xml.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/worker-yaml.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/worker-javascript.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/worker-css.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/snippets/html.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/snippets/css.js`,
-            `${srcRx}node_modules/ace-builds/src-min-noconflict/snippets/javascript.js`,
-        ],
-        `${dest}static/js`,
-    );
+async function renderLess(file: string): Promise<string> {
+    const filename = join(frontend, 'less', file);
+    return (
+        await less.render(readFileSync(filename, 'utf8'), {
+            filename,
+            compress: true,
+            paths: [join(frontend, 'less')],
+        })
+    ).css;
 }
 
 async function configCSS(): Promise<void> {
-    const selectID = await less.render(readFileSync(`./${srcRx}less/selectID.less`).toString('utf8'), {
-        filename: 'selectID.less',
-        compress: true,
-        paths: [`./${srcRx}less`],
-    });
-    const adapterLess = await less.render(readFileSync(`./${srcRx}less/adapter.less`).toString('utf8'), {
-        filename: 'adapter.less',
-        compress: true,
-        paths: [`./${srcRx}less`],
-    });
-    const materializeCorrect = await less.render(
-        readFileSync(`./${srcRx}less/materializeCorrect.less`).toString('utf8'),
-        {
-            filename: 'materializeCorrect.less',
-            compress: true,
-            paths: [`./${srcRx}less`],
-        },
-    );
-
-    writeFileSync(`./${srcRx}public/css/adapter.css`, selectID.css + adapterLess.css + materializeCorrect.css);
+    const css = await Promise.all(['selectID.less', 'adapter.less', 'materializeCorrect.less'].map(renderLess));
+    writeFileSync(join(frontend, 'public/css/adapter.css'), css.join(''));
 }
 
 async function iobCSS(): Promise<void> {
-    const selectID = await less.render(readFileSync(`./${srcRx}less/selectID.less`).toString('utf8'), {
-        filename: 'selectID.less',
-        compress: true,
-        paths: [`./${srcRx}less`],
-    });
-
-    writeFileSync(`./${srcRx}public/lib/css/iob/selectID.css`, selectID.css);
+    writeFileSync(join(frontend, 'public/lib/css/iob/selectID.css'), await renderLess('selectID.less'));
 }
 
 async function treeTableCSS(): Promise<void> {
-    const treeTable = await less.render(readFileSync(`./${srcRx}less/jquery.treetable.theme.less`).toString('utf8'), {
-        filename: 'selectID.less',
-        compress: true,
-        paths: [`./${srcRx}less`],
-    });
-    writeFileSync(`./${srcRx}public/lib/css/jquery.treetable.theme.css`, treeTable.css);
+    writeFileSync(
+        join(frontend, 'public/lib/css/jquery.treetable.theme.css'),
+        await renderLess('jquery.treetable.theme.less'),
+    );
 }
 
-function clean(): void {
-    deleteFoldersRecursive(`${dirName}/${dest}`, ['404.html', 'oauthError.html', 'oauthSuccess.html']);
-    deleteFoldersRecursive(`${dirName}/${srcRx}/build`);
-}
-
-if (process.argv.includes('--backend-i18n')) {
-    copyFiles(['src/i18n/*'], 'build/i18n');
-    syncUtils().catch((e: unknown) => {
-        console.error(e);
-        process.exit(1);
-    });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-0-configCSS')) {
-    syncUtils()
-        .then(() => configCSS())
-        .catch((e: unknown) => {
-            console.error(e);
-            process.exit(1);
-        });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-0-iobCSS')) {
-    iobCSS().catch((e: unknown) => {
-        console.error(e);
-        process.exit(1);
-    });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-0-treeTableCSS')) {
-    treeTableCSS().catch((e: unknown) => {
-        console.error(e);
-        process.exit(1);
-    });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-1-clean')) {
-    syncUtils()
-        .then(() => clean())
-        .catch((e: unknown) => {
-            console.error(e);
-            process.exit(1);
-        });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-2-npm')) {
-    if (!existsSync(`${src}node_modules`)) {
-        npmInstall(src).catch((e: unknown) => {
-            console.error(e);
-            process.exit(1);
-        });
+function build(): void {
+    prepareRuntimeAssets();
+    runNode(join(frontend, 'node_modules/typescript/bin/tsc'), ['--project', 'tsconfig.json', '--noEmit'], frontend);
+    runNode(join(frontend, 'node_modules/vite/bin/vite.js'), ['build'], frontend);
+    if (!existsSync(join(output, 'NEXOWATT_EOS_FRONTEND_MANIFEST.json'))) {
+        throw new Error('Frontend build did not produce its source-bound EOS artifact manifest');
     }
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-3-build')) {
-    build().catch((e: unknown) => {
-        console.error(e);
-        process.exit(1);
-    });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-5-copy')) {
-    copyAllFiles().catch((e: unknown) => {
-        console.error(e);
-        process.exit(1);
-    });
-} else if (process.argv.find(e => e.replace(/^-*/, '') === 'react-6-patch')) {
-    patchHtmlFile(`${dest}/index.html`)
-        .then(() => patchNexoWattBuiltFrontend())
-        .catch((e: unknown) => {
-            console.error(e);
-            process.exit(1);
-        });
-} else {
-    configCSS()
-        .then(async () => {
-            clean();
-            if (!existsSync(`${src}node_modules`)) {
-                await npmInstall(src);
-            }
-            await configCSS();
-            await iobCSS();
-            await treeTableCSS();
-            await build();
-            await copyAllFiles();
-            await patchHtmlFile(`${dest}/index.html`);
-            patchNexoWattBuiltFrontend();
-        })
-        .catch((e: unknown) => {
-            console.error(e);
-            process.exit(1);
-        });
 }
+
+/** Replace runtime output only after a complete build. Never delete or synchronize backend sources. */
+function copyAllFiles(): void {
+    if (!existsSync(join(output, 'NEXOWATT_EOS_FRONTEND_MANIFEST.json'))) {
+        throw new Error('No complete EOS frontend build available to copy');
+    }
+    const preserved = new Map<string, Buffer>();
+    for (const name of ['404.html', 'oauthError.html', 'oauthSuccess.html']) {
+        if (existsSync(join(destination, name))) preserved.set(name, readFileSync(join(destination, name)));
+    }
+    rmSync(destination, { recursive: true, force: true });
+    copy(output, destination);
+    for (const [name, bytes] of preserved) {
+        if (!existsSync(join(destination, name))) writeFileSync(join(destination, name), bytes);
+    }
+    // The custom bundle is owned by this locked package; merging leaves obsolete executable chunks behind.
+    rmSync(join(root, 'admin/custom'), { recursive: true, force: true });
+    copy(join(root, 'node_modules/@iobroker/admin-component-easy-access/admin'), join(root, 'admin'));
+    copy(join(frontend, 'node_modules/crypto-js'), join(destination, 'lib/js/crypto-js'));
+    for (const file of [
+        'worker-json.js',
+        'worker-html.js',
+        'worker-xml.js',
+        'worker-yaml.js',
+        'worker-javascript.js',
+        'worker-css.js',
+        'snippets/html.js',
+        'snippets/css.js',
+        'snippets/javascript.js',
+    ]) {
+        copy(
+            join(frontend, 'node_modules/ace-builds/src-min-noconflict', file),
+            join(destination, 'static/js', file.split('/').at(-1)!),
+        );
+    }
+}
+
+function validateBuiltFrontend(): void {
+    runNode(join(root, 'tools/nexowatt-patch-built-frontend.cjs'));
+}
+
+async function main(): Promise<void> {
+    const mode = process.argv.slice(2).map(arg => arg.replace(/^-+/, ''));
+    if (mode.includes('backend-i18n')) {
+        copy(join(root, 'src/i18n'), join(root, 'build/i18n'));
+    } else if (mode.includes('react-0-configCSS')) {
+        await configCSS();
+    } else if (mode.includes('react-0-iobCSS')) {
+        await iobCSS();
+    } else if (mode.includes('react-0-treeTableCSS')) {
+        await treeTableCSS();
+    } else if (mode.includes('react-1-clean')) {
+        rmSync(output, { recursive: true, force: true });
+    } else if (mode.includes('react-2-npm')) {
+        requireDependencies();
+    } else if (mode.includes('react-3-build')) {
+        build();
+    } else if (mode.includes('react-5-copy')) {
+        copyAllFiles();
+    } else if (mode.includes('react-6-patch')) {
+        validateBuiltFrontend();
+    } else {
+        await Promise.all([configCSS(), iobCSS(), treeTableCSS()]);
+        build();
+        copyAllFiles();
+        validateBuiltFrontend();
+    }
+}
+
+main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+});

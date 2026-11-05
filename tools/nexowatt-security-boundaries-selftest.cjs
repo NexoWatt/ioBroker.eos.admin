@@ -305,7 +305,7 @@ function makeSocketGuard({ role = 'installer', userId = 'system.user.test', disa
     const start = code.indexOf('installEosSocketCommandGuard(socketAdmin) {');
     const end = code.indexOf('async ensureEosRoleModel()', start);
     assert.ok(start >= 0 && end > start, 'Shipped socket guard is available');
-    const install = vm.runInNewContext(`({ ${code.slice(start, end)} }).installEosSocketCommandGuard`, { ERROR_PERMISSION: 'permissionError' }, { filename: 'build/main.js:socketGuard', timeout: 5000 });
+    const install = vm.runInNewContext(`({ ${code.slice(start, end)} }).installEosSocketCommandGuard`, { ERROR_PERMISSION: 'permissionError', webServer: undefined }, { filename: 'build/main.js:socketGuard', timeout: 5000 });
     const originalCalls = [];
     const replies = [];
     const commands = { _checkPermissions(...args) { originalCalls.push(args); return originalAllowed; } };
@@ -317,6 +317,7 @@ function makeSocketGuard({ role = 'installer', userId = 'system.user.test', disa
         eosPasswordSetupRequired: new Set(pending ? [userId] : []),
         eosRoleCacheHealthy: healthy,
         eosSessionSecurity: { isSocketAllowed() { return sessionAllowed; }, revoke() {} },
+        uiPushSessions: { clear() {} },
         getProtectedAdapterNames() { return ['admin', 'eos-admin', 'nexowatt-ui', 'nexowatt-devices']; },
     };
     install.call(context, { commands });
@@ -505,7 +506,8 @@ test('role-cache read failures leave authorization closed and never commit a par
 test('message dispatch denies every chat capability before any privileged MCP construction', () => {
     const code = read('build/main.js');
     const start = code.indexOf('onMessage = obj => {') >= 0 ? code.indexOf('onMessage = obj => {') : code.indexOf('onMessage = (obj) => {');
-    const end = code.indexOf('getName(', start);
+    // Admin 8 removes the unused chat name helper; the next live handler is log search.
+    const end = code.indexOf('async processLogSearch(', start);
     assert.ok(start >= 0 && end > start, 'Shipped message dispatcher is present');
     const Dispatcher = vm.runInNewContext(`(class { ${code.slice(start, end)} })`, {}, { timeout: 5000 });
     const adapter = new Dispatcher();

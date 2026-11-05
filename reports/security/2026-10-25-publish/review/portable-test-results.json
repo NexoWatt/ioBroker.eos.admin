@@ -1,0 +1,30 @@
+[
+  {
+    "label": "portable-source",
+    "command": [
+      "node",
+      "--test",
+      "test/eos-license-trust.test.cjs",
+      "test/eos-web-resources.test.cjs"
+    ],
+    "env": {},
+    "utc": "2026-10-25T15:41:05.830187+00:00",
+    "exit": 0,
+    "seconds": 0.662
+  },
+  {
+    "label": "portable-build",
+    "command": [
+      "node",
+      "--test",
+      "test/eos-license-trust.test.cjs",
+      "test/eos-web-resources.test.cjs"
+    ],
+    "env": {
+      "EOS_TEST_RUNTIME": "build"
+    },
+    "utc": "2026-10-25T15:41:06.492680+00:00",
+    "exit": 0,
+    "seconds": 0.641
+  }
+]

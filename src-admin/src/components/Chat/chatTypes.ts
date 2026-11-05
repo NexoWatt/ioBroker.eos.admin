@@ -1,19 +1,22 @@
 /** Shared types for the admin chat helper frontend, mirroring the backend `chat:*` message API. */
 
-import type { AdminConnection } from '@iobroker/adapter-react-v5';
+import type { AdminConnection } from '@iobroker/gui-components';
+import type { AiProvider, AiReasoningEffort, OpenAIMessage } from '@iobroker/ai-core/build/shared/types';
+import { DEFAULT_AI_MAX_TOKENS } from '@iobroker/ai-core/build/shared/limits';
 
-export type AiProvider = 'openai' | 'anthropic' | 'gemini' | 'deepseek' | 'custom';
+/*
+ * Providers, messages and limits are the ones of `@iobroker/ai-core`, which the backend talks to the
+ * providers with. An empty `ReasoningEffort` leaves the parameter out and lets the endpoint decide.
+ */
+export type { AiProvider, AiReasoningEffort as ReasoningEffort, OpenAIMessage as ApiMessage };
+export {
+    DEFAULT_AI_MAX_TOKENS as DEFAULT_CHAT_MAX_TOKENS,
+    MIN_AI_MAX_TOKENS as MIN_CHAT_MAX_TOKENS,
+    MAX_AI_MAX_TOKENS as MAX_CHAT_MAX_TOKENS,
+} from '@iobroker/ai-core/build/shared/limits';
 
 /** Permission mode: `read` = answer/inspect only, `act` = may propose write/action tools. */
 export type ChatMode = 'read' | 'act';
-
-/** A message in OpenAI chat-completion format (the conversation the backend continues each turn). */
-export interface ApiMessage {
-    role: 'system' | 'user' | 'assistant' | 'tool';
-    content?: string | null;
-    tool_calls?: unknown[];
-    tool_call_id?: string;
-}
 
 /** One executed tool call returned by the backend, for display. */
 export interface ChatStep {
@@ -33,20 +36,48 @@ export interface PendingAction {
 
 /** An action the frontend performs after a turn (the backend handed it over). */
 export type ClientAction =
-    | { type: 'install'; adapter: string }
-    | { type: 'navigate'; hash: string }
-    | { type: 'command'; command: string };
+    { type: 'install'; adapter: string } | { type: 'navigate'; hash: string } | { type: 'command'; command: string };
 
 /** Response of the `chat:send` backend command. */
 export interface ChatSendResponse {
     success?: boolean;
     error?: string;
+    /**
+     * Only in the immediate acknowledgement: the backend took the request and will push the real
+     * answer as an instance message (see `helpers/pushRequest.ts`).
+     */
+    accepted?: boolean;
     status?: 'done' | 'confirm';
     content?: string;
-    newMessages?: ApiMessage[];
+    newMessages?: OpenAIMessage[];
     steps?: ChatStep[];
     pendingActions?: PendingAction[];
     clientActions?: ClientAction[];
+}
+
+/** An HTTP endpoint that exposes (or can expose) the in-app MCP server under `/mcp`. */
+export interface McpEndpoint {
+    /** The instance id, e.g. `admin.0`, `web.0` or `mcp.0`. */
+    id: string;
+    port: number;
+    secure: boolean;
+    /** `admin` = embedded in this admin's web server; `web` = a web-adapter extension; `mcp` = standalone. */
+    kind: 'admin' | 'web' | 'mcp';
+}
+
+/** Response of `chat:getMcpInfo` — everything the "use without an API" help dialog needs. */
+export interface ChatMcpInfoResponse {
+    error?: string;
+    /** The system prompt the assistant runs with in read-only mode. */
+    promptRead?: string;
+    /** The system prompt the assistant runs with in actions mode. */
+    promptAct?: string;
+    /** HTTP endpoints exposing the MCP server (already resolved to where each one actually listens). */
+    endpoints?: McpEndpoint[];
+    /** Whether the `iobroker.mcp` adapter is installed. */
+    mcpInstalled?: boolean;
+    /** Whether the MCP server embedded in this admin's own web server is enabled (`!native.disableMcp`). */
+    adminMcpEnabled?: boolean;
 }
 
 /** One selectable AI credential (id + display name). */
@@ -79,6 +110,16 @@ export interface ChatSettingsValue {
     /** Base URL for the OpenAI-compatible/custom endpoint. */
     baseUrl: string;
     allowSelfSignedCerts: boolean;
+    /**
+     * What to ask of the reasoning of an OpenAI-compatible endpoint. Empty - the default - leaves the
+     * parameter out and lets the endpoint decide; `none` is what a small local model wants.
+     */
+    reasoningEffort: AiReasoningEffort;
+    /**
+     * Output budget of one answer in tokens. Only Anthropic requires the parameter; the backend
+     * clamps the value into the range every model accepts and falls back to the default on 0.
+     */
+    maxTokens: number;
     /** Hide the floating launcher button; reveal it by moving the mouse to the bottom-right corner. */
     hideFab: boolean;
 }
@@ -99,6 +140,8 @@ export const DEFAULT_CHAT_SETTINGS: ChatSettingsValue = {
     credentialId: '',
     baseUrl: '',
     allowSelfSignedCerts: false,
+    reasoningEffort: '',
+    maxTokens: DEFAULT_AI_MAX_TOKENS,
     hideFab: false,
 };
 
@@ -160,8 +203,11 @@ export async function loadChatSettingsFromObject(socket: AdminConnection): Promi
     return null;
 }
 
-/** Persist the chat settings into the shared `system.ai` object (created on demand). */
-export async function saveChatSettingsToObject(socket: AdminConnection, value: ChatSettingsValue): Promise<void> {
+/** Persist (some of) the chat settings into the shared `system.ai` object (created on demand). */
+export async function saveChatSettingsToObject(
+    socket: AdminConnection,
+    value: Partial<ChatSettingsValue>,
+): Promise<void> {
     let obj: ioBroker.Object | null | undefined;
     try {
         obj = await socket.getObject(CHAT_SETTINGS_OBJECT_ID);
@@ -188,7 +234,7 @@ export const CHAT_MODE_KEY = 'App.chatHelperMode';
 /** The persisted conversation: what is rendered plus the OpenAI-format messages sent to the backend. */
 export interface ChatHistory {
     items: DisplayItem[];
-    apiMessages: ApiMessage[];
+    apiMessages: OpenAIMessage[];
 }
 
 /** Restore the conversation from localStorage (empty if none or malformed). */

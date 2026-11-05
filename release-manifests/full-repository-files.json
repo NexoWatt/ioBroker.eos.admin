@@ -1,8 +1,9 @@
 {
   "version": "7.10.12",
-  "generatedAt": "2026-10-25T15:20:10.113223+00:00",
-  "scope": "Complete repository excluding only this self-referential manifest; source, shipped scoped runtime, tests, documentation and evidence. No installed node_modules or private signing keys.",
-  "inputArchiveSha256": "c58a4c03b3f3113455bf1a3492b942307902deabf3fd8f670670ff16955f9a92",
+  "revision": "automatic-vscode-npm-publish",
+  "generatedAt": "2026-10-25T16:08:08.875020+00:00",
+  "scope": "Full delivered repository snapshot excluding this manifest. Automatic local registry metadata repair during npm publish is recorded separately in its repair report.",
+  "inputArchiveSha256": "121b45fb5d360cce735116420a544439d2be87d06c401d9e2b0c880c123102ce",
   "files": [
     {
       "path": ".github/CODEOWNERS",
@@ -246,8 +247,8 @@
     },
     {
       "path": "NEXOWATT_EOS_PREBUILT_MANIFEST.json",
-      "size": 168973,
-      "sha256": "c3f6f5a098470d5781cb317da515e386ff06cd9541ecfbb277266c7d1c449c2d"
+      "size": 169301,
+      "sha256": "b11a72196be58ff8cc92436f4828b8910d60674a305b4bc83d41f444e436817f"
     },
     {
       "path": "NEXOWATT_EOS_STABLE_7.9.94.md",
@@ -273,6 +274,11 @@
       "path": "NEXOWATT_PUBLIC_NPM_DISTRIBUTION.md",
       "size": 2296,
       "sha256": "cb4667d2a300bd4040b065614b037fa21722e59914c1100cd62137498760ff3d"
+    },
+    {
+      "path": "NPM_PUBLISH_FIX_7.10.12.md",
+      "size": 4581,
+      "sha256": "9a9fd461e7cae08ea08c0aa25e9616c159dcc1b7d846df80087a88dc368f0652"
     },
     {
       "path": "NexoWatt_EOS_Admin_EMS_OVERVIEW_MERGE_VALIDATION.md",
@@ -711,8 +717,8 @@
     },
     {
       "path": "START_HERE_7.10.12.md",
-      "size": 3947,
-      "sha256": "b8861e29352c9bba09ea616e28cb67a627c87859ec6e3bafe9d507fdbff78d9c"
+      "size": 4498,
+      "sha256": "8a06a8fc721fce26162fa0ae5dde63ec9b35b007cc6ae905d01ca6debbefeb94"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -5826,13 +5832,13 @@
     },
     {
       "path": "package-lock.json",
-      "size": 267430,
-      "sha256": "0bd3d6e877aa66974c4dc18ab0f5f1aece1e9272c75a092af12f5aa4a8f83a9b"
+      "size": 267659,
+      "sha256": "604e221f51b8bba41a6e29f2afb5f2fb5d277984326fb79f8006b8ea9d75fc75"
     },
     {
       "path": "package.json",
-      "size": 13464,
-      "sha256": "290232ed96238a11b4d2b45925030573496fdf94e40f22d98b0f866671bf19cb"
+      "size": 13681,
+      "sha256": "48cccd244bdcedfb678f37333863172201a73bb96cb027c7ee8898c772161457"
     },
     {
       "path": "packages/eos-license-client/index.js",
@@ -6340,6 +6346,206 @@
       "sha256": "937e8eef2ea3307349319e6775d20dbeb30f348d26db9e3091fdde157988b15f"
     },
     {
+      "path": "reports/security/2026-10-25-direct-publish/final-content-review.json",
+      "size": 1979,
+      "sha256": "0f9b9414a0bf8c25bee96822a4f90350e8439c3ec2663c6a6ba3dfc2cfde60e6"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/01-seal-eos-prebuilt-release.log",
+      "size": 296,
+      "sha256": "44ecc0b8452d49fcf984fdec2114f3b61914293db52682eaee634ab84ce65fe5"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/02-security-inventory.log",
+      "size": 481,
+      "sha256": "758ce62475b9978730498d514908bd6ed3fb6f6bf19d924663dbbb562a4fcb57"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/03-check-eos-package.log",
+      "size": 1204,
+      "sha256": "c443c5538aa3128a19c0ee232a84aa9417c6b43aefb2fdb02264e09767178603"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/04-check-eos-stability.log",
+      "size": 39938,
+      "sha256": "56eb47ff52002853c6f2dc906c242b13ab6b29ab3742e99f756f6bbdd5e0875c"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/change-scope.json",
+      "size": 1144,
+      "sha256": "2f1d5a1d3d75fe99c47f403c5ccd5d2bae4b7a37162528cdb298459b18267c71"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/real-publish-dry-run.json",
+      "size": 622,
+      "sha256": "a2d52d4bf8d8e35ac854494741a1520b969035dfe883f88c2010054fdbda00e2"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/real-publish-dry-run.log",
+      "size": 1585,
+      "sha256": "7c9d26ee7ecb049cb18f862b6b0de6be7a1fc8f919bf8cb7696de43ac0990e4c"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/raw/verification-results.json",
+      "size": 703,
+      "sha256": "ff5d87f01c6dd8779700ead4d6301280b1ed83773c8d256ba544ecfe8fc4a82f"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/review/DIRECT_PUBLISH_PEER_REVIEW.md",
+      "size": 2872,
+      "sha256": "70c53485726506c981a71991037b99b97fa2b7c46740173d786fad5b96f4722e"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/review/direct-publish-tests.json",
+      "size": 378,
+      "sha256": "b204460c0787e6a3f3020187ce8e6fd3141292043c3f5bcd92909e25c562aa68"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/review/direct-publish-tests.log",
+      "size": 405,
+      "sha256": "2269dd5202693820dd8cc18620e0268c64f096e81ff33bbf68efd67b051f2534"
+    },
+    {
+      "path": "reports/security/2026-10-25-direct-publish/review/review-input-hashes.json",
+      "size": 605,
+      "sha256": "70ea52888993d89cd33d47dc24786880ce06086c485af8e340a6452920583a37"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/inventory.log",
+      "size": 287,
+      "sha256": "53f0c77ffbc5dc1c1e38b5c0d82f2c4580df7d8cef7bb73d7c6eebb934dce1eb"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/package.log",
+      "size": 38,
+      "sha256": "957b94987c38bbfd4f1e30a1d0932828b75a5f221dd332df5bbc4c947fa88b48"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/publish-dry-run.log",
+      "size": 140325,
+      "sha256": "1a49374410298747de281228c9a904d6216abcad4546daeeb546d0cc93e6fd8d"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/results.json",
+      "size": 1223,
+      "sha256": "baa35540ee8d1ff83e03142d3b1cc67ca5225562155924cb1cf3e50ec7787191"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/seal.log",
+      "size": 80,
+      "sha256": "a55fa5ac9f23c48c2692331f3079559beae9ac2d76fcf5b822390505ff848d6a"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/stability.log",
+      "size": 39632,
+      "sha256": "0b8bb4fceab9eba34dd172dfb6d4d59cb63d61a31acb0a2d1224ddf97653730b"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/final-raw/version-sync.log",
+      "size": 147,
+      "sha256": "93e4e6c680dc19fa11e7f763052108eedf08d4436b76c984390e4da6098b506a"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/input-provenance.json",
+      "size": 228,
+      "sha256": "91cee465a72409b8b296bd2bf60c769d5aa4b3bac3a7ddd511fbe405d2132af7"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/lock-probe.log",
+      "size": 18,
+      "sha256": "a909d4d897bcdf41b0ecb9596ab27719db796549a25a093d61df6fba4043b0ba"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/LOCK_REPAIR_PEER_REVIEW_2026-10-25.md",
+      "size": 3585,
+      "sha256": "4bd9e079c80640d4dde9c24357dc6096478a5d8a070746d6e903abea9726389d"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/PUBLISH_GATE_REVIEW_2026-10-25.md",
+      "size": 6282,
+      "sha256": "5109c82460e8a5fe6eb64d290d156160ac5e938f3d20cf3fae7def41016e60a9"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/actual-registry-repair-attempt.json",
+      "size": 693,
+      "sha256": "f2e6b445110c71c0afa0e4aec181f1718b2e44c8cefe02cf288ffe1a855b3185"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/actual-registry-repair-attempt.log",
+      "size": 201,
+      "sha256": "e6ac60761221f5f6e6e2e6e9c9eaf11c9e1dcd19e8139df96fee60446639b7b7"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/dry-run-fixture/events.txt",
+      "size": 60,
+      "sha256": "03e62ec48bd0130bc48df2b0d865751ab6bcb802cf5f94ba4ab626c5fb7d797b"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/dry-run-fixture/global.npmrc",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/dry-run-fixture/marker.cjs",
+      "size": 89,
+      "sha256": "d4f230f27be7ec3493aec74fe802fac57ff83dd28eea403633d3d68c5ded1a88"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/dry-run-fixture/package.json",
+      "size": 398,
+      "sha256": "b2f2d7a80112eea384388974896286e81c226c6634faffd0b11a5efaa8d39322"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/dry-run-fixture/user.npmrc",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/lock-repair-peer-tests.json",
+      "size": 289,
+      "sha256": "2522a8235878450a223e344cf7cbf70de21136acdc21589f9300ed640b00594d"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/lock-repair-peer-tests.log",
+      "size": 1097,
+      "sha256": "bcd36073ecfd5b7bfc250c6c7d8bc8cced7f4ea275e7c2a90383946449aec71c"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/npm-publish-dry-run-fixture.json",
+      "size": 707,
+      "sha256": "61dd8920e03c3a020daa54879d0a98a7336f1ad4e043f1c5a699c3c0f830bc77"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/npm-publish-dry-run-fixture.log",
+      "size": 1290,
+      "sha256": "e4ddd464fcfd168ee5b7421d16c17e80afe0cf6a9a4f0413cd1b2bd8edbbb8a7"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/portable-build.log",
+      "size": 2365,
+      "sha256": "26249bd4b07f2c267e1d827668026d695b1381c690c77d5a8514585439d7e455"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/portable-source.log",
+      "size": 2360,
+      "sha256": "a2471710d62dc4674c83369defa2f7c8521077c0dbeb1fd5e45e7cbe273eb833"
+    },
+    {
+      "path": "reports/security/2026-10-25-publish/review/portable-test-results.json",
+      "size": 589,
+      "sha256": "cfe3eb17f0473f4031f7eeb3051dbe2dbb4d476a5080f4974c11e13cc56f1fee"
+    },
+    {
+      "path": "reports/security/DIRECT_PUBLISH_2026-10-25.md",
+      "size": 4239,
+      "sha256": "19c16cf6a6a1fc4fb4a126877fea2620f4b37d6dba30428a5f9543256855d7c6"
+    },
+    {
+      "path": "reports/security/PUBLISH_REPAIR_2026-10-25.md",
+      "size": 6840,
+      "sha256": "ac4875fe9428e3ec1f67e17bec964c7a376b6338f910a0714e9cbaff77e36984"
+    },
+    {
       "path": "reports/security/RELEASE_REVIEW_7.10.10.md",
       "size": 9656,
       "sha256": "0c6d32bfabc615dd278e3dabf8fc5765f2bc47ddb270e27384106795b8c091fc"
@@ -6377,7 +6583,7 @@
     {
       "path": "reports/security/inventory-summary.json",
       "size": 11224,
-      "sha256": "897f9c1cacb3ce23c47abc5b5549411637f23d6074b00717b2e8913ea8f987af"
+      "sha256": "82e57e652fffc4d9907a18c44d9d2193d7da7867525b7ba4826e4152a8950698"
     },
     {
       "path": "reports/security/licensing-preliminary.txt",
@@ -6957,12 +7163,12 @@
     {
       "path": "reports/security/sbom-backend-lock.cdx.json",
       "size": 854819,
-      "sha256": "1ce1dc9a8f302987d1e5795ca16e8064621d789dab7e5a03a998a6c68c31a9cd"
+      "sha256": "3412cda0a553addd82dda89a516a00763c26fb3cf8021aa5d2d59bccab824d65"
     },
     {
       "path": "reports/security/sbom-frontend-lock.cdx.json",
       "size": 1067556,
-      "sha256": "29991b868f47ea64ce2ad3f55f538f35ab3e1cff87b491f180f15d932ffcad67"
+      "sha256": "1d0c6de200dd610e8d05f517ef4ddcb82dd72a3ee7bd8eafddacfb855bf9cb16"
     },
     {
       "path": "reports/security/secret-pattern-scan-7.10.11.json",
@@ -6977,7 +7183,7 @@
     {
       "path": "reports/security/source-runtime-manifest.json",
       "size": 143884,
-      "sha256": "4a5fbf447f7c41427b7c7a04e415a964ecd55bf6c3152f33a4fffac3804c557e"
+      "sha256": "dd3a9a4071eeabad3ae1e0dfced793bbf31944821f1f586a670a99f9765d0c6e"
     },
     {
       "path": "reports/security/ui-preview/README.md",
@@ -9960,6 +10166,11 @@
       "sha256": "2904d6bfe188590471f07658b1849a27222483f6ec8236f06a8fd95eda8341a8"
     },
     {
+      "path": "test/eos-direct-publish.test.cjs",
+      "size": 9154,
+      "sha256": "45888d212d696d5ad136a5a29801391f010823df812b43dabf788b91cbfcc195"
+    },
+    {
       "path": "test/eos-file-transfer-security.test.cjs",
       "size": 9102,
       "sha256": "229e2949d4978dc92b1a0c68ddf8c0a9b49f2637d3ef746d1653827448086c57"
@@ -9986,28 +10197,33 @@
     },
     {
       "path": "test/eos-license-trust.test.cjs",
-      "size": 4725,
-      "sha256": "d9cf836d6c9a5a0989c1c6b68a4a675699c94c7ac7bdd1b54074505af791eb77"
+      "size": 5099,
+      "sha256": "c92419567461cf80743257bfb3341be755a02c78de73859c6248019c258f6bb1"
+    },
+    {
+      "path": "test/eos-lock-repair.test.cjs",
+      "size": 9489,
+      "sha256": "9ca3d1da2f9ccb373e2465fbdc721f8bb1f0422e190ee255d860193cfdbc1cbb"
     },
     {
       "path": "test/eos-news-security.test.cjs",
-      "size": 4855,
-      "sha256": "b374c3ded3ede2c44df6244dbe35800629cf0efd6dba59d99883cbe745575d94"
+      "size": 5032,
+      "sha256": "1bee211af16dec79f9d1e98d55ea0b914ef61d0d7c2f21a4c04234ab98373079"
     },
     {
       "path": "test/eos-release-admission.test.cjs",
-      "size": 4407,
-      "sha256": "cb0ef5be4102909e8c9b6222f1108d9d39c97a066069a895caf3faaf128a9630"
+      "size": 4661,
+      "sha256": "abad18ac012ba76d76b584085a9cfaa7e7cb2c849ae90e0b7c3835816a0bc347"
     },
     {
       "path": "test/eos-session-security.test.cjs",
-      "size": 11727,
-      "sha256": "4f2b1acce2f5807e8a72f4b10a11ee1fae156c3f409661fda84fc8a3189c8662"
+      "size": 11904,
+      "sha256": "0fc6561d2aa3e3e00ecf89de3848dae3c024240469322275fdecd7f8ac329096"
     },
     {
       "path": "test/eos-web-resources.test.cjs",
-      "size": 13783,
-      "sha256": "780e466fc64c9d8a6a2972f24a355fed1a1dcf1cf6d31bbbe8bc390845060f42"
+      "size": 15096,
+      "sha256": "02dea5dbde021e5ed4315d3763bbc42e1e72916e1059dba0c518789d0c064e9d"
     },
     {
       "path": "test/fixtures/OAUTH2_MODEL_LICENSE",
@@ -10186,8 +10402,8 @@
     },
     {
       "path": "tools/nexowatt-lock-provenance-check.cjs",
-      "size": 2555,
-      "sha256": "e3cc89ea36fdbe24d9b3d6177d006d6b2ea5838e14ad88823f76aebe21e9d6c3"
+      "size": 3085,
+      "sha256": "205b9aca908598b2a2660a62952d8dc95789a6abeb15d9ee3d4e8026cbd64353"
     },
     {
       "path": "tools/nexowatt-lock-provenance-selftest.cjs",
@@ -10251,8 +10467,8 @@
     },
     {
       "path": "tools/nexowatt-prebuilt-release-selftest.cjs",
-      "size": 12294,
-      "sha256": "81febdc33dd1d8cb46e5ecce8e52c850be7a770eb58bc201db74a3c65c136c7a"
+      "size": 12744,
+      "sha256": "d6660d0dea5b029f7b8ddd52dead4f1ad64fb8f7b5f1556b3c93cd131863c5f7"
     },
     {
       "path": "tools/nexowatt-publish-channel-guard.cjs",
@@ -10273,6 +10489,11 @@
       "path": "tools/nexowatt-repair-eos-admin-update.cjs",
       "size": 950,
       "sha256": "f28c1999b0f75139e582770ad649d17d11f9e909ac49d13c31be5fa5b36253e3"
+    },
+    {
+      "path": "tools/nexowatt-repair-lock-metadata.cjs",
+      "size": 10973,
+      "sha256": "74802194e9353882bb59d5c2115c097633a2bb6bcb6e729d75abd037bcc531fb"
     },
     {
       "path": "tools/nexowatt-role-access-selftest.cjs",
@@ -10376,8 +10597,8 @@
     },
     {
       "path": "tools/nexowatt-validate-package.cjs",
-      "size": 27832,
-      "sha256": "aacbe4fed4c1e1cc7e2fb2781992ed66ffc3561dcd9f65b5d0a530c03021cb99"
+      "size": 28232,
+      "sha256": "e6f10fe8b2416a39b7adddd434a26603c0f39c785a8182b2375724a8dc7bb0a1"
     },
     {
       "path": "tools/nexowatt-value-column-selftest.cjs",

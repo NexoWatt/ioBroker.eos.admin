@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { OpenStreetMapProvider } from 'leaflet-geosearch';
 
 import {
-    Grid2,
+    Grid,
     InputLabel,
     MenuItem,
     FormControl,
@@ -21,11 +21,11 @@ import { Close as CloseIcon } from '@mui/icons-material';
 
 import { Marker, type DragEndEvent, type LatLngTuple, type Map } from 'leaflet';
 
-import { DialogConfirm, I18n, type Translate } from '@iobroker/adapter-react-v5';
+import { DialogConfirm, I18n, Icon, type Translate } from '@iobroker/gui-components';
 import { type AdminGuiConfig } from '@/types';
 
 import AdminUtils from '../../helpers/AdminUtils';
-import countries from '../../assets/json/countries.json';
+import { COUNTRY_SEPARATOR, getCountryList } from '../../helpers/countries';
 import BaseSystemSettingsDialog from './BaseSystemSettingsDialog';
 
 const styles: Record<string, React.CSSProperties> = {
@@ -47,6 +47,16 @@ const styles: Record<string, React.CSSProperties> = {
     map: {
         borderRadius: 5,
     },
+    itemWithIcon: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+    },
+    itemIcon: {
+        width: 20,
+        height: 20,
+        flexShrink: 0,
+    },
 };
 
 const MyMapComponent: React.FC<{ addMap: (map: any) => any }> = props => {
@@ -59,7 +69,7 @@ interface Setting {
     id: string;
     title: string;
     translate?: boolean;
-    values: { id: string | boolean; title: string }[];
+    values: { id: string | boolean; title: string; icon?: string }[];
     allowText?: boolean;
     autocomplete?: boolean;
     help?: string;
@@ -73,6 +83,8 @@ interface Props {
     saving: boolean;
     onChange: (data: any, dataAux: any, cb?: () => void) => void;
     histories: string[];
+    /** Icons of the history instances by instance ID, e.g. `influxdb.0` */
+    historyIcons?: Record<string, string>;
     multipleRepos: boolean;
 }
 
@@ -94,13 +106,13 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
         };
     }
 
-    marker: Marker;
+    marker: Marker | null = null;
 
-    map: Map;
+    map: Map | null = null;
 
-    cityTimer: ReturnType<typeof setTimeout>;
+    cityTimer: ReturnType<typeof setTimeout> | null = null;
 
-    latLongTimer: ReturnType<typeof setTimeout>;
+    latLongTimer: ReturnType<typeof setTimeout> | null = null;
 
     getSettings(): Setting[] {
         return [
@@ -241,6 +253,7 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                     ...this.props.histories.map(history => ({
                         id: history,
                         title: history,
+                        icon: this.props.historyIcons?.[history],
                     })),
                 ],
             },
@@ -259,6 +272,15 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                 values: [
                     { id: true, title: 'on' },
                     { id: false, title: 'off (default)' },
+                ],
+            },
+            {
+                id: 'tipsDisabled',
+                title: 'Tips at start',
+                translate: true,
+                values: [
+                    { id: false, title: 'show (default)' },
+                    { id: true, title: 'do not show' },
                 ],
             },
             {
@@ -329,7 +351,7 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
 
         // if disabled by vendor settings
         if (
-            this.props.adminGuiConfig.admin.settings &&
+            this.props.adminGuiConfig.admin?.settings &&
             (this.props.adminGuiConfig.admin.settings as { [id: string]: boolean })[e.id] === false
         ) {
             return null;
@@ -337,7 +359,7 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
 
         if (e.autocomplete && e.values) {
             return (
-                <Grid2
+                <Grid
                     size={{ sm: 6, xs: 12 }}
                     key={i}
                 >
@@ -383,14 +405,14 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                             />
                         )}
                     />
-                </Grid2>
+                </Grid>
             );
         }
 
         // If value is not in known values, show text input
         if (e.allowText && value && !e.values.find(elem => elem.id === value)) {
             return (
-                <Grid2
+                <Grid
                     size={{ sm: 6, xs: 12 }}
                     key={i}
                 >
@@ -433,21 +455,41 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                             }}
                         />
                     </FormControl>
-                </Grid2>
+                </Grid>
             );
         }
+
+        const getTitle = (elem: Setting['values'][0]): string =>
+            e.translate ? this.props.t(elem.title || elem.id.toString()) : elem.title || elem.id.toString();
+        // e.g., the icons of the history adapters
+        const withIcons = e.values.some(elem => elem.icon);
 
         const items = e.values.map((elem, index) => (
             <MenuItem
                 value={elem.id as string}
                 key={index}
             >
-                {e.translate ? this.props.t(elem.title || elem.id.toString()) : elem.title || elem.id}
+                {withIcons ? (
+                    <span style={styles.itemWithIcon}>
+                        {elem.icon ? (
+                            <Icon
+                                src={elem.icon}
+                                style={styles.itemIcon}
+                            />
+                        ) : (
+                            // keeps the texts in the list aligned
+                            <span style={styles.itemIcon} />
+                        )}
+                        {getTitle(elem)}
+                    </span>
+                ) : (
+                    getTitle(elem)
+                )}
             </MenuItem>
         ));
 
         return (
-            <Grid2
+            <Grid
                 size={{ sm: 6, xs: 12 }}
                 key={i}
             >
@@ -469,12 +511,33 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                         value={value === undefined ? false : value}
                         onChange={evt => this.handleChange(evt, i)}
                         displayEmpty
+                        renderValue={
+                            withIcons
+                                ? selected => {
+                                      const elem = e.values.find(item => item.id === selected);
+                                      if (!elem) {
+                                          return String(selected ?? '');
+                                      }
+                                      return (
+                                          <span style={styles.itemWithIcon}>
+                                              {elem.icon ? (
+                                                  <Icon
+                                                      src={elem.icon}
+                                                      style={styles.itemIcon}
+                                                  />
+                                              ) : null}
+                                              {getTitle(elem)}
+                                          </span>
+                                      );
+                                  }
+                                : undefined
+                        }
                     >
                         {items}
                     </Select>
                     {e.help ? <FormHelperText>{this.props.t(e.help)}</FormHelperText> : null}
                 </FormControl>
-            </Grid2>
+            </Grid>
         );
     }
 
@@ -485,7 +548,7 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                     text={this.props.t('confirm_change_repo')}
                     onClose={result => {
                         const value = this.state.confirmValue;
-                        this.setState({ confirm: false, confirmValue: null }, () => {
+                        this.setState({ confirm: false, confirmValue: '' }, () => {
                             if (result) {
                                 this.doChange('activeRepo', value);
                             }
@@ -499,12 +562,13 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
     }
 
     getCounters = (): JSX.Element => {
-        const items = countries.map((elem, index) => (
+        const items = getCountryList(this.props.t).map(name => (
             <MenuItem
-                value={elem.name}
-                key={index}
+                value={name}
+                key={name}
+                disabled={name === COUNTRY_SEPARATOR}
             >
-                {this.props.t(elem.name)}
+                {name === COUNTRY_SEPARATOR ? name : this.props.t(name)}
             </MenuItem>
         ));
 
@@ -550,11 +614,11 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
             }
             this.latLongTimer = setTimeout(() => {
                 this.latLongTimer = null;
-                this.map.flyTo([
+                this.map?.flyTo([
                     parseFloat(this.props.data.common.latitude as any as string),
                     parseFloat(this.props.data.common.longitude as any as string),
                 ]);
-                this.marker.setLatLng([
+                this.marker?.setLatLng([
                     parseFloat(this.props.data.common.latitude as any as string),
                     parseFloat(this.props.data.common.longitude as any as string),
                 ]);
@@ -582,8 +646,8 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                             this.onChangeInput(results[0].y, 'latitude', () =>
                                 this.onChangeInput(results[0].x, 'longitude', () =>
                                     this.onChangeInput(23, 'zoom', () => {
-                                        this.map.flyTo([results[0].y, results[0].x]);
-                                        this.marker.setLatLng([results[0].y, results[0].x]);
+                                        this.map?.flyTo([results[0].y, results[0].x]);
+                                        this.marker?.setLatLng([results[0].y, results[0].x]);
                                     }),
                                 ),
                             ),
@@ -661,16 +725,16 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
         return (
             <div style={styles.tabPanel}>
                 {this.renderDialogConfirm()}
-                <Grid2
+                <Grid
                     container
                     spacing={3}
                 >
-                    <Grid2 size={{ lg: 6, md: 12 }}>
-                        <Grid2
+                    <Grid size={{ lg: 6, md: 12 }}>
+                        <Grid
                             container
                             spacing={3}
                         >
-                            <Grid2 size={{ xs: 12 }}>
+                            <Grid size={{ xs: 12 }}>
                                 <TextField
                                     disabled={this.props.saving}
                                     fullWidth
@@ -699,11 +763,11 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                                         },
                                     }}
                                 />
-                            </Grid2>
+                            </Grid>
                             {selectors}
-                        </Grid2>
-                    </Grid2>
-                    <Grid2 size={{ lg: 6, md: 12 }}>
+                        </Grid>
+                    </Grid>
+                    <Grid size={{ lg: 6, md: 12 }}>
                         <MapContainer
                             style={styles.map}
                             center={center}
@@ -720,14 +784,14 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                             <TileLayer url="https://{s}.tile.osm.org/{z}/{x}/{y}.png" />
                             <MyMapComponent addMap={map => this.onMap(map)} />
                         </MapContainer>
-                    </Grid2>
-                </Grid2>
-                <Grid2
+                    </Grid>
+                </Grid>
+                <Grid
                     container
                     spacing={6}
                 >
-                    <Grid2 size={{ sm: 6, xs: 12, md: 3 }}>{this.getCounters()}</Grid2>
-                    <Grid2 size={{ sm: 6, xs: 12, md: 3 }}>
+                    <Grid size={{ sm: 6, xs: 12, md: 3 }}>{this.getCounters()}</Grid>
+                    <Grid size={{ sm: 6, xs: 12, md: 3 }}>
                         <FormControl
                             style={styles.formControl}
                             variant="standard"
@@ -767,8 +831,8 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                                 }}
                             />
                         </FormControl>
-                    </Grid2>
-                    <Grid2 size={{ sm: 6, xs: 12, md: 3 }}>
+                    </Grid>
+                    <Grid size={{ sm: 6, xs: 12, md: 3 }}>
                         <FormControl
                             style={styles.formControl}
                             variant="standard"
@@ -796,8 +860,8 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                                 onChange={evt => this.onChangeText(evt, 'latitude')}
                             />
                         </FormControl>
-                    </Grid2>
-                    <Grid2 size={{ sm: 6, xs: 12, md: 3 }}>
+                    </Grid>
+                    <Grid size={{ sm: 6, xs: 12, md: 3 }}>
                         <FormControl
                             style={styles.formControl}
                             variant="standard"
@@ -825,8 +889,8 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                                 onChange={evt => this.onChangeText(evt, 'longitude')}
                             />
                         </FormControl>
-                    </Grid2>
-                </Grid2>
+                    </Grid>
+                </Grid>
             </div>
         );
     }

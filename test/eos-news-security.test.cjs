@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { stripTypeScriptTypes } = require('node:module');
+assert.equal(typeof stripTypeScriptTypes, 'function', 'Release tests require Node.js 24.x (or a supported Node.js version exposing stripTypeScriptTypes). Run node --version.');
 const root = path.resolve(__dirname, '..');
 const backend = require('../src/lib/eosNewsSecurity.js');
 const ts = fs.readFileSync(path.join(root, 'src-admin/src/helpers/eosNewsSecurity.ts'), 'utf8');
@@ -25,29 +26,52 @@ test('backend and frontend compare data and reject executable/malformed conditio
     assert.equal(globalThis.eosAuditMarker, undefined);
 });
 test('shipped frontend expression has the same outcomes and contains no news eval', () => {
-    const expression = '(' + backend.matchesObjectCount.toString() + ')(context.noObjects,message["number-of-objects"])';
     let found = 0;
     for (const file of fs.readdirSync(path.join(root, 'adminWww/assets')).filter(name => /^bootstrap-.*\.js$/.test(name))) {
         const bundle = fs.readFileSync(path.join(root, 'adminWww/assets', file), 'utf8');
         assert.ok(!/eval\([^\n;]*number-of-objects/.test(bundle));
-        if (!bundle.includes(expression)) continue;
-        assert.ok(bundle.includes('showIt&&message["number-of-objects"]!==undefined&&(showIt='));
-        found++;
-        for (const [count, condition, expected] of cases) {
-            const context = { context: { noObjects: count }, message: { 'number-of-objects': condition } };
-            assert.equal(vm.runInNewContext(expression, context, { timeout: 100 }), expected);
-            assert.equal(context.eosAuditMarker, undefined);
+        // Locate the actual emitted standalone comparison function. This does not require a
+        // TypeScript parser/dev dependency during a VS Code publish check.
+        const functions = bundle.matchAll(/function\s+([$\w]+)\([^)]*\)\{[^{}]*Number\.isSafeInteger[\s\S]*?default:return[^{}]*\}\}/g);
+        for (const match of functions) {
+            const expression = match[0];
+            if (!expression.includes('length>64') || !expression.includes('(<=|>=|===|!==|==|!=|<|>)')) continue;
+            const name = match[1].replace(/[$]/g, '\\$&');
+            const caller = new RegExp(name + '\\([^,;]+\\.noObjects,[^,;]+\\[(?:`|"|\')number-of-objects(?:`|"|\')\\]\\)');
+            assert.match(bundle, caller, 'Actual news component must call the bounded emitted comparator');
+            assert.match(bundle, /\[(?:`|"|')number-of-objects(?:`|"|')\]!==void 0/);
+            found++;
+            for (const [count, condition, expected] of cases) {
+                const context = { count, condition };
+                assert.equal(vm.runInNewContext('(' + expression + ')(count,condition)', context, { timeout: 100 }), expected);
+                assert.equal(context.eosAuditMarker, undefined);
+            }
         }
     }
-    assert.ok(found > 0, 'Actual shipped bootstrap must include the safe expression');
+    assert.ok(found > 0, 'Actual shipped bootstrap must contain and call the bounded news comparator');
 });
 test('actual shipped news method refuses marker and preserves numeric behavior', async () => {
     const built = fs.readFileSync(path.join(root, 'build/main.js'), 'utf8');
-    const start = built.indexOf('  async registerNewsNotifications(messages, lastMessageId) {');
-    const end = built.indexOf('\n  /**', start);
-    assert.ok(start > 0 && end > start);
-    const sandbox = { _nodeOs: { platform: () => 'linux' }, process: { version: 'v24.22.1' }, _eosNewsSecurity: backend };
-    const method = vm.runInNewContext('({' + built.slice(start, end) + '}).registerNewsNotifications', sandbox);
+    // Evaluate the emitted class against an isolated ioBroker boundary. No compiler or
+    // development dependency is needed, and no startup handler is invoked.
+    const module = { exports: {}, parent: {} };
+    const sandbox = {
+        module, exports: module.exports, __dirname: path.join(root, 'build'),
+        process: { env: {}, version: 'v24.22.1' },
+        require(name) {
+            if (name === 'node:fs') return { readFileSync: () => '{"name":"iobroker.eos-admin"}' };
+            if (name === 'node:os') return { platform: () => 'linux' };
+            if (name.startsWith('node:')) return require(name);
+            if (name === '@iobroker/adapter-core') return { Adapter: class { on() {} }, commonTools: {} };
+            if (name === './lib/eosNewsSecurity') return backend;
+            if (name === './lib/eosUiSessionRegistry') return require('../build/lib/eosUiSessionRegistry.js');
+            return {};
+        },
+    };
+    vm.runInNewContext(built, sandbox, { timeout: 5000, filename: 'build/main.js' });
+    assert.equal(typeof module.exports, 'function');
+    const method = module.exports({}).registerNewsNotifications;
+    assert.equal(typeof method, 'function', 'Compiled Admin class must contain the news method');
     let notifications = 0, queries = 0;
     const adapter = { getObjectViewAsync: async () => ({ rows: [] }), getForeignObjectAsync: async () => null,
         getNpmVersion: async () => '11.9.0', log: { info() {} },
@@ -65,6 +89,6 @@ test('Node index validates bounded schema and strips unused data', () => {
     assert.deepEqual(backend.validateNodeReleaseIndex([{ version: 'v24.22.1', npm: '11.9.0', extra: 'discard' }, null,
         { version: {}, npm: '11.9.0' }, { version: 'v1.2.3', npm: 'bad' }]), [{ version: 'v24.22.1', npm: '11.9.0' }]);
     const source = fs.readFileSync(path.join(root, 'src/main.ts'), 'utf8');
-    assert.ok(source.includes("allowedHosts: ['nodejs.org'], maxBytes: 2_097_152, budgetMs: 5000"));
+    assert.match(source, /allowedHosts:\s*\['nodejs\.org'\],\s*maxBytes:\s*2_097_152,\s*budgetMs:\s*5000/);
     assert.ok(!source.includes('axios'));
 });

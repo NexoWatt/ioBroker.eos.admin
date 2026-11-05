@@ -1,6 +1,9 @@
 import config, { reactConfig } from '@iobroker/eslint-config';
 
 export default [
+    // Immutable upstream parser: exact version/bytes are checked by its provenance test.
+    // EOS evaluator and schema boundary helpers remain covered by the normal rules.
+    { ignores: ['**/src/vendor/acorn/**'] },
     ...config,
     ...reactConfig,
     {
@@ -25,6 +28,8 @@ export default [
         rules: {
             'jsdoc/require-jsdoc': 'off',
             'jsdoc/require-param': 'off',
+            'react-hooks/set-state-in-effect': 'off',
+            'react-hooks/refs': 'off',
         },
     },
 ];

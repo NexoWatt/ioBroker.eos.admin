@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React, { Component, type JSX } from 'react';
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, Grid2, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Grid, Button } from '@mui/material';
 import {
     TextFields as TextFieldsIcon,
     LocalOffer as LocalOfferIcon,
@@ -15,7 +15,9 @@ import {
     PersonOff as PersonOffIcon,
 } from '@mui/icons-material';
 
-import { Utils, IconPicker, type Translate } from '@iobroker/adapter-react-v5';
+import { Utils, IconPicker, type Translate } from '@iobroker/gui-components';
+
+import { adminHref } from '@/helpers/utils';
 
 import { IOTextField, IOColorPicker } from '../IOFields/Fields';
 import AdminUtils from '../../helpers/AdminUtils';
@@ -49,15 +51,17 @@ interface UserEditDialogProps {
     /** If user creation or edit dialog */
     isNew: boolean;
     onChange: (user: ioBroker.UserObject) => void;
-    saveData: (originalId: string) => Promise<void>;
+    saveData: (originalId: string | null) => Promise<void>;
     innerWidth: number;
-    getText: (text: ioBroker.StringOrTranslated) => string;
+    getText: (text: ioBroker.StringOrTranslated | undefined) => string;
     styles: Record<string, React.CSSProperties>;
 }
 
 interface UserEditDialogState {
     originalId: string | null;
     passwordRepeat: string;
+    /** Serialized user as it was when the dialog opened, to detect unsaved changes */
+    originalData: string;
 }
 
 export default class UserEditDialog extends Component<UserEditDialogProps, UserEditDialogState> {
@@ -66,6 +70,7 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
         this.state = {
             originalId: props.user._id,
             passwordRepeat: props.user.common.password,
+            originalData: JSON.stringify(props.user),
         };
     }
 
@@ -87,7 +92,7 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
         const idExists = this.props.users.find(user => user._id === this.props.user._id);
         const idChanged = this.props.user._id !== this.state.originalId;
 
-        const getShortId = (_id: string): string => _id.split('.').pop();
+        const getShortId = (_id: string): string => _id.split('.').pop() || '';
 
         const name2Id = (name: string): string =>
             name
@@ -114,7 +119,10 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
             this.state.passwordRepeat,
         );
 
-        let canSave = this.props.user._id !== 'system.user.' && !errorPassword && !errorPasswordRepeat;
+        // Offer "save" only once something was actually edited. A new user is always saveable.
+        const changed = this.props.isNew || JSON.stringify(this.props.user) !== this.state.originalData;
+
+        let canSave = this.props.user._id !== 'system.user.' && !errorPassword && !errorPasswordRepeat && changed;
 
         if (this.props.isNew && idExists) {
             canSave = false;
@@ -143,12 +151,12 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                         },
                     }}
                 >
-                    <Grid2
+                    <Grid
                         container
                         spacing={this.props.innerWidth < 500 ? 1 : 4}
                         style={this.props.styles.dialog}
                     >
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOTextField
                                 label="Name"
                                 t={this.props.t}
@@ -173,8 +181,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={TextFieldsIcon}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOTextField
                                 label="ID edit"
                                 t={this.props.t}
@@ -190,8 +198,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={LocalOfferIcon}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOTextField
                                 label="ID preview"
                                 t={this.props.t}
@@ -200,8 +208,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={PageviewIcon}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOTextField
                                 label="Description"
                                 t={this.props.t}
@@ -216,8 +224,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={DescriptionIcon}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOTextField
                                 label="Password"
                                 t={this.props.t}
@@ -235,8 +243,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={VpnKeyIcon}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOTextField
                                 label="Password repeat"
                                 t={this.props.t}
@@ -248,8 +256,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={VpnKeyIcon}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IconPicker
                                 icons={USER_ICONS}
                                 label="Icon"
@@ -267,12 +275,12 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 icon={ImageIcon}
                                 // classes={this.props.classes}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, md: 6 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
                             <IOColorPicker
                                 label="Color"
                                 t={this.props.t}
-                                value={this.props.user.common.color}
+                                value={this.props.user.common.color || ''}
                                 previewStyle={this.props.styles.iconPreview}
                                 onChange={color => {
                                     const newData: ioBroker.UserObject = Utils.clone(
@@ -285,8 +293,8 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                                 style={this.props.styles.colorPicker}
                                 styles={this.props.styles}
                             />
-                        </Grid2>
-                    </Grid2>
+                        </Grid>
+                    </Grid>
                     {!this.props.isNew ? this.renderOidcButton() : null}
                 </DialogContent>
 
@@ -317,7 +325,7 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
     /**
      * Render the button for OIDC connect/disconnect
      */
-    renderOidcButton(): JSX.Element {
+    renderOidcButton(): JSX.Element | null {
         if (window.ssoActive !== 'true') {
             // SSO is not active, do not show the button
             return null;
@@ -329,7 +337,9 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                 color="secondary"
                 fullWidth
                 onClick={() => {
-                    window.location.href = `/sso?redirectUrl=${encodeURIComponent(`${window.origin}/#tab-users`)}&method=register&user=${this.props.getText(this.props.user.common.name)}`;
+                    window.location.href = adminHref(
+                        `sso?redirectUrl=${encodeURIComponent(`${window.origin}${adminHref('#tab-users')}`)}&method=register&user=${encodeURIComponent((this.state.originalId || this.props.user._id).replace(/^system\.user\./, ''))}`,
+                    );
                 }}
                 startIcon={<PersonIcon />}
                 sx={{ marginTop: 2 }}
@@ -344,7 +354,7 @@ export default class UserEditDialog extends Component<UserEditDialogProps, UserE
                 startIcon={<PersonOffIcon />}
                 sx={{ marginTop: 2 }}
                 onClick={async () => {
-                    delete this.props.user.common.externalAuthentication.oidc;
+                    delete this.props.user.common.externalAuthentication?.oidc;
                     await this.props.saveData(this.state.originalId);
                     window.alert('Single-Sign On disconnected!');
                 }}

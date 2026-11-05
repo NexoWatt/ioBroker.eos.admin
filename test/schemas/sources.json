@@ -1,0 +1,24 @@
+{
+  "schemas": [
+    {
+      "requestUrl": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/master/schemas/io-package.json",
+      "sourceUrl": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/0a3c2037105cba5a322024b866877983a0397cae/schemas/io-package.json",
+      "commit": "0a3c2037105cba5a322024b866877983a0397cae",
+      "file": "io-package.json",
+      "gitBlobSha": "80e86cf7898359215457408bff62062b6666e738",
+      "size": 67100,
+      "sha256": "f35668bef709d34e75e70d5c0087ef7f27a8fc57908f6158fbbac6c5ccf3c75c",
+      "verification": "full bytes match immutable GitHub blob SHA-1 and size; JSON parsed"
+    },
+    {
+      "requestUrl": "https://raw.githubusercontent.com/ioBroker/json-config/main/schemas/jsonConfig.json",
+      "sourceUrl": "https://raw.githubusercontent.com/ioBroker/json-config/64c04436b4055714288f198d1eeb0ddb173bb24d/schemas/jsonConfig.json",
+      "commit": "64c04436b4055714288f198d1eeb0ddb173bb24d",
+      "file": "jsonConfig.json",
+      "gitBlobSha": "c73827fe8477c2f48a5461621c5113c400e30354",
+      "size": 659734,
+      "sha256": "05a4a663fe68af6b40ce41833965a6b33b37c6a266229a3746015b998a69015e",
+      "verification": "full bytes match immutable GitHub blob SHA-1 and size; JSON parsed"
+    }
+  ]
+}

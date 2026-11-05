@@ -7,7 +7,7 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
-    Grid2,
+    Grid,
     IconButton,
     InputLabel,
     MenuItem,
@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon, Add as AddIcon, Public as IconWeb, Language as LanguageIcon } from '@mui/icons-material';
 
-import { type AdminConnection, I18n, Utils, type IobTheme, type Translate } from '@iobroker/adapter-react-v5';
+import { type AdminConnection, I18n, Utils, type IobTheme, type Translate } from '@iobroker/gui-components';
 
 import type { HostsWorker } from '@/Workers/HostsWorker';
 import type { InstancesWorker } from '@/Workers/InstancesWorker';
@@ -92,8 +92,13 @@ export interface AdapterDependencies {
     name: string;
     version: string | null;
     installed: boolean;
-    installedVersion: string;
+    installedVersion: string | null;
     rightVersion: boolean;
+    /**
+     * For global dependencies in a multihost setup: the hosts that do not fulfill the required version.
+     * Empty array means every host fulfills the requirement.
+     */
+    wrongHosts?: { host: string; installedVersion: string }[];
 }
 
 interface AddInstanceDialogProps {
@@ -144,13 +149,15 @@ class AddInstanceDialog extends Component<AddInstanceDialogProps, AddInstanceDia
     }
 
     componentDidMount(): void {
-        void this.props.instancesWorker.getObjects().then((instances: Record<string, ioBroker.InstanceObject>) => {
-            const instanceNumbers = Object.keys(instances)
-                .filter(id => instances[id]?.common?.name === this.props.adapter)
-                .map(id => id.substring(id.lastIndexOf('.') + 1));
+        void this.props.instancesWorker
+            .getObjects()
+            .then((instances: Record<string, ioBroker.InstanceObject> | null) => {
+                const instanceNumbers = Object.keys(instances || {})
+                    .filter(id => instances?.[id]?.common?.name === this.props.adapter)
+                    .map(id => id.substring(id.lastIndexOf('.') + 1));
 
-            this.setState({ instanceNumbers });
-        });
+                this.setState({ instanceNumbers });
+            });
     }
 
     getAvailableInstances(): JSX.Element[] {
@@ -187,17 +194,42 @@ class AddInstanceDialog extends Component<AddInstanceDialogProps, AddInstanceDia
         if (!dependencies) {
             return '';
         }
-        const array = [];
+        const array: JSX.Element[] = [];
         for (const adapter of dependencies) {
             if (!adapter.installedVersion) {
-                array.push(this.props.t('No version of %s', adapter.name, adapter.name));
+                array.push(
+                    <div key={adapter.name}>{this.props.t('No version of %s', adapter.name, adapter.name)}</div>,
+                );
+            } else if (adapter.wrongHosts?.length) {
+                // Global dependency not fulfilled on one or more hosts (multihost setup):
+                // list every host and its installed version, so the user knows which host to update.
+                array.push(
+                    <div key={adapter.name}>
+                        <div>
+                            {this.props.t(
+                                'The following hosts do not fulfill the required version %s of %s:',
+                                adapter.version || 'unknown',
+                                adapter.name,
+                            )}
+                        </div>
+                        <ul style={{ margin: '4px 0' }}>
+                            {adapter.wrongHosts.map(h => (
+                                <li key={h.host}>
+                                    {h.host}: {h.installedVersion}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>,
+                );
             } else if (!adapter.rightVersion) {
                 array.push(
-                    `${this.props.t('Invalid version of %s. Required %s. Current ', adapter.name, adapter.version)}${adapter.installedVersion}`,
+                    <div key={adapter.name}>
+                        {`${this.props.t('Invalid version of %s. Required %s. Current ', adapter.name, adapter.version || 'unknown')}${adapter.installedVersion}`}
+                    </div>,
                 );
             }
         }
-        return array.length ? array.map(el => <div key={el}>{el}</div>) : '';
+        return array.length ? array : '';
     }
 
     getText(text: string | { [lang: string]: string }, noTranslation?: boolean): string {
@@ -212,7 +244,7 @@ class AddInstanceDialog extends Component<AddInstanceDialogProps, AddInstanceDia
 
     renderOneMessage(message: Message, index: number): JSX.Element {
         return (
-            <Grid2 key={index}>
+            <Grid key={index}>
                 <Typography sx={styles[`messageTitle_${message.level || 'warn'}`]}>
                     {this.getText(message.title, this.props.noTranslation) || ''}
                 </Typography>
@@ -227,31 +259,30 @@ class AddInstanceDialog extends Component<AddInstanceDialogProps, AddInstanceDia
                     <Button
                         onClick={() => {
                             const w = window.open(message.link, '_blank');
-                            w.focus();
+                            w?.focus();
                         }}
                         startIcon={<IconWeb />}
                         variant="contained"
                         color="grey"
                     >
-                        {this.getText(message.linkText, this.props.noTranslation) || this.props.t('More info')}
+                        {this.getText(message.linkText || '', this.props.noTranslation) || this.props.t('More info')}
                     </Button>
                 ) : null}
-            </Grid2>
+            </Grid>
         );
     }
 
     renderMessages(): JSX.Element | null {
         if (this.messages) {
             return (
-                <Grid2
+                <Grid
                     container
                     spacing={2}
-                    direction="column"
                     wrap="nowrap"
-                    sx={{ marginBottom: 1 }}
+                    sx={{ marginBottom: 1, flexDirection: 'column' }}
                 >
                     {this.messages.map((message, i) => this.renderOneMessage(message, i))}
-                </Grid2>
+                </Grid>
             );
         }
         return null;
@@ -299,9 +330,9 @@ class AddInstanceDialog extends Component<AddInstanceDialogProps, AddInstanceDia
                 <DialogContent dividers>
                     {this.renderMessages()}
                     {!checkDeps && this.props.expertMode ? (
-                        <Grid2
+                        <Grid
                             container
-                            direction="column"
+                            sx={{ flexDirection: 'column' }}
                         >
                             <HostSelectors
                                 tooltip={this.t('Select host to add the instance')}
@@ -327,7 +358,7 @@ class AddInstanceDialog extends Component<AddInstanceDialogProps, AddInstanceDia
                                     {this.getAvailableInstances()}
                                 </Select>
                             </FormControl>
-                        </Grid2>
+                        </Grid>
                     ) : null}
                     <Box
                         component="div"

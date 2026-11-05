@@ -1,0 +1,21 @@
+(node:12) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Admin8 proxy forwards selected instance request body and target authorization, never Admin credentials or caller forwarding headers (37.078598ms)
+✔ missing/expired/resource-scoped sessions and disabled/forced-reset users fail closed; names grant no administrator membership (13.150182ms)
+✔ each request rechecks actual administrator membership and instance opt-in without a stale decision cache (5.959491ms)
+✔ encoded separators, traversal, credentials in query and cross-origin mutations never reach a target (6.14124ms)
+✔ local redirects and cookies without Path remain inside the selected instance (5.869829ms)
+✔ HTTPS target rejects an untrusted certificate and accepts an explicitly trusted certificate without disabling verification (117.589954ms)
+✔ SSE stays streamed and is closed immediately when proxy sessions are invalidated (6.091416ms)
+✔ WebSocket upgrades use the proxy before unrelated Admin websocket listeners and revoke active tunnels (4.143426ms)
+✔ HTTPS Admin entry forwards to a local HTTP adapter and marks the scoped application cookie Secure (71.833794ms)
+✔ trusted HTTPS certificate with a mismatched hostname is rejected (84.94502ms)
+✔ a stalled authorization database times out without forwarding and a subsequent request recovers (2010.420419ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2607.267348

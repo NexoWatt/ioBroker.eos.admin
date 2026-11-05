@@ -5,6 +5,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+const { loadFrontendManifest } = require('./nexowatt-frontend-artifacts.cjs');
+
 const DEFAULT_ROOT = path.resolve(__dirname, '..');
 const LEGACY_OVERLAYS = [
   'adminWww/js/eos-branding.js',
@@ -134,7 +136,11 @@ function isLegacyVersionedRuntime(file, activeRuntime, activeShell) {
 }
 
 function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
-  const activeRuntime = runtimeNumber(root);
+  const runtimeRoot = path.join(root, 'adminWww');
+  const manifestFile = path.join(runtimeRoot, 'NEXOWATT_EOS_FRONTEND_MANIFEST.json');
+  const manifest = fs.existsSync(manifestFile) ? loadFrontendManifest(runtimeRoot) : null;
+  const activeRuntime = manifest ? 0 : runtimeNumber(root);
+  const recorded = manifest ? new Set([...Object.keys(manifest.chunks), ...Object.keys(manifest.assets || {})]) : null;
   const activeShell = shellNumber(root);
   const activeRelease = releaseNumber(root);
   const referencedTools = referencedVersionedTools(root);
@@ -149,6 +155,16 @@ function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
   for (const scanRoot of scanRoots) {
     for (const file of walkFiles(scanRoot)) {
       if (isLegacyVersionedRuntime(file, activeRuntime, activeShell)) files.add(file);
+      if (recorded) {
+        // A flat ZIP extraction must not retain an old hashed application or
+        // federation module that is absent from this reviewed build receipt.
+        for (const base of [runtimeRoot, path.join(root, 'src-admin', 'build')]) {
+          const relative = path.relative(base, file).replace(/\\/g, '/');
+          if (!relative.startsWith('../') && !path.isAbsolute(relative) && /\.m?js$/.test(relative) &&
+              (relative.startsWith('assets/') || !relative.includes('/')) &&
+              !recorded.has(relative) && !Object.hasOwn(manifest.sources, `public/${relative}`)) files.add(file);
+        }
+      }
     }
   }
   for (const file of walkFiles(path.join(root, 'tools'))) {
@@ -199,7 +215,7 @@ function cleanLegacyRuntime(options = {}) {
 
   if (!silent) {
     if (!quiet) {
-      console.log(`[NexoWatt EOS runtime cleanup] OK (runtime v${activeRuntime}, shell v${activeShell}, removed ${removed.length} legacy file${removed.length === 1 ? '' : 's'})`);
+      console.log(`[NexoWatt EOS runtime cleanup] OK (runtime ${activeRuntime === 0 ? 'Admin8 manifest' : `v${activeRuntime}`}, shell v${activeShell}, removed ${removed.length} legacy file${removed.length === 1 ? '' : 's'})`);
     } else if (removed.length) {
       console.log(`[NexoWatt EOS runtime cleanup] removed ${removed.length} legacy runtime files before validation`);
     }

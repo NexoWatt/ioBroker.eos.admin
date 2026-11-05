@@ -1,0 +1,325 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 test
+> npm run test:package && npm run test:unit
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 test:package
+> mocha test/package --exit
+
+
+
+  Reviewed EOS package-validation profile
+    ✔ uses the reviewed upstream validator version and exact source
+    ✔ pins both official schemas by immutable commit and SHA-256
+    ✔ keeps the official schema immutable and validates the actual complete EOS metadata (641ms)
+    ✔ ships the concrete proprietary license link as actual nonempty files
+
+  Validate the package files
+    Ensure they are readable
+      package.json
+        ✔ exists
+        ✔ contains valid JSON
+        ✔ is an object
+      io-package.json
+        ✔ exists
+        ✔ contains valid JSON
+        ✔ is an object
+    Check contents of package.json
+      ✔ The property "name" exists
+      ✔ The property "version" exists
+      ✔ The property "description" exists
+      ✔ The property "author" exists
+      ✔ The property "license" exists
+      ✔ The package name is correct
+      ✔ property main is defined for non onlyWWW adapters
+      ✔ Repository metadata is truthful for the proprietary EOS distribution
+      ✔ npm is not listed as a dependency
+      ✔ No "prepare" script is defined in package.json
+      ✔ iobroker.js-controller is not listed as a dependency
+    Check contents of io-package.json
+      ✔ The property "common.name" exists
+      ✔ The property "common.titleLang" exists
+      ✔ The property "common.version" exists
+      ✔ The property "common.news" exists
+      ✔ The property "common.desc" exists
+      ✔ The property "common.icon" exists
+      ✔ The property "common.extIcon" exists
+      ✔ The property "common.type" exists
+      ✔ The property "common.authors" exists
+      ✔ The property "native" exists
+      ✔ io-package.json matches the strict EOS profile of the pinned official schema (476ms)
+      ✔ The title does not contain "adapter" or "iobroker"
+      ✔ titleLang is an object to support multiple languages
+      ✔ titleLang does not contain "adapter" or "iobroker"
+      ✔ The description is an object to support multiple languages
+      ✔ common.authors is an array that is not empty
+      ✔ common.news is an object that contains maximum 20 entries
+      ✔ if common.licenseInformation exists, it is an object with required properties
+      ✔ common.license should not exist together with common.licenseInformation
+      ✔ common.tier must be 1, 2 or 3
+      ✔ The adapter uses a supported admin UI
+      ✔ The JSON config file exists
+      ✔ Check JSON config file (523ms)
+    Compare contents of package.json and io-package.json
+      ✔ The name matches
+      ✔ The version matches
+      ✔ The license matches
+    Validate JSON files
+      Base directory JSON files
+        ✔ package.json contains valid JSON
+        ✔ io-package.json contains valid JSON
+      admin/*.json files
+        ✔ admin/custom/mf-manifest.json contains valid JSON
+      admin/*.json5 files
+        ✔ admin/jsonConfig.json5 contains valid JSON5
+      admin/i18n/**/*.json files
+        ✔ admin/custom/i18n/de.json contains valid JSON
+        ✔ admin/custom/i18n/en.json contains valid JSON
+        ✔ admin/custom/i18n/es.json contains valid JSON
+        ✔ admin/custom/i18n/fr.json contains valid JSON
+        ✔ admin/custom/i18n/it.json contains valid JSON
+        ✔ admin/custom/i18n/nl.json contains valid JSON
+        ✔ admin/custom/i18n/pl.json contains valid JSON
+        ✔ admin/custom/i18n/pt.json contains valid JSON
+        ✔ admin/custom/i18n/ru.json contains valid JSON
+        ✔ admin/custom/i18n/zh-cn.json contains valid JSON
+        ✔ admin/i18n/de.json contains valid JSON
+        ✔ admin/i18n/en.json contains valid JSON
+        ✔ admin/i18n/es.json contains valid JSON
+        ✔ admin/i18n/fr.json contains valid JSON
+        ✔ admin/i18n/it.json contains valid JSON
+        ✔ admin/i18n/nl.json contains valid JSON
+        ✔ admin/i18n/pl.json contains valid JSON
+        ✔ admin/i18n/pt.json contains valid JSON
+        ✔ admin/i18n/ru.json contains valid JSON
+        ✔ admin/i18n/uk.json contains valid JSON
+        ✔ admin/i18n/zh-cn.json contains valid JSON
+
+  Check additional files
+    ✔ README.md exists
+    ✔ LICENSE exists or is present in the README.md
+
+
+  74 passing (2s)
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 test:unit
+> node --test test/eos-*.test.cjs
+
+✔ Admin 8 GUI capability is bound to live socket, identity, role and security epoch (3.209615ms)
+✔ GUI subscription bounds and explicit revocation cannot be bypassed by renewals (0.379632ms)
+✔ Admin 8 log search reads matching local and compressed logs (32.330406ms)
+✔ Log file reads reject traversal, symbolic links and oversized expansion (166.119896ms)
+✔ Remote log files are limited to validated listed basenames (2.349824ms)
+✔ Shipped Admin 8 GUI requests require the authenticated sender and suppress revoked in-flight results (13.861723ms)
+✔ Shipped EOS socket authorization refuses startup if the Admin 8 dispatcher contract changes (3.637478ms)
+✔ Controller search replies validate shape, size and values before browser delivery (3.146112ms)
+✔ Legacy OS-password RPC is disabled for every EOS role and never reflects supplied credentials (3.735744ms)
+✔ Shipped startup has no OS credential-probing helper or standalone su test program (1.115459ms)
+✔ Malformed fetch metadata is rejected without coercing untrusted header objects (1.448421ms)
+✔ License storage reports both primary write failure and cleanup failures without losing either (3.47611ms)
+✔ graph parser distinguishes actual imports from translations and never executes emitted code (19.390238ms)
+✔ receipt permits the real federation asset entry but rejects missing dependencies, changed asset bytes and unsafe paths (9.2529ms)
+✔ manifest cleanup removes old versioned and hashed modules while retaining current entry, federation and source assets (9.720551ms)
+✔ prepared release parser works without installed packages and rejects altered vendor bytes before loading them (259.691822ms)
+✔ Admin8 serialized log buffers validate bytes and transfer size before conversion (32.494207ms)
+✔ serialized and compressed logs render escaped text and ignore forged size metadata (14.453369ms)
+✔ Admin8 public path survives login, iframe socket info and escaped 404 details (1.185783ms)
+✔ configured external SSO cannot become active through Admin8 config (0.124074ms)
+✔ proxy revocation and shutdown are wired to the Web lifecycle (0.281636ms)
+✔ installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible (77.72073ms)
+✔ installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens (15.424134ms)
+✔ Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes (49.781848ms)
+✔ login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins (3.394058ms)
+✔ production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin (0.526238ms)
+✔ all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies (1.081499ms)
+✔ HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state (1.255025ms)
+✔ EOS token readers no longer accept query credentials but preserve cookie and Authorization (1.188397ms)
+✔ file identity guard rejects anonymous and pending-password users and passes normalized caller (2.032004ms)
+✔ SSO remains denied before OAuth and DB file routes have their own identity guard (1.620145ms)
+✔ OAuth callback messages are HTML text, replacement metacharacters cannot restore markup (2.555238ms)
+✔ alias parser validates syntax without running statements or sample values (20.31107ms)
+✔ static custom schemas remain available without executing values (0.953059ms)
+✔ custom executable fields and alternate vendor interpolation paths are blocked (0.409655ms)
+✔ schema bounds and own-data validation reject pollution, getters, cycles and oversized values (17.60646ms)
+✔ vendored syntax parser matches reviewed integrity and license provenance (1.071364ms)
+✔ plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch (4993.232534ms)
+✔ plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging (718.157167ms)
+✔ documentation accepts bounded UTF-8 and refuses HTTP errors and redirects (56.924362ms)
+✔ documentation rejects unsafe origins and already-cancelled work before I/O (1.391377ms)
+✔ documentation bounds declared and streamed response sizes (31.223573ms)
+✔ documentation aborts a live streaming body at one total five-second deadline (5053.514995ms)
+✔ caller cancellation aborts body reading without waiting for deadline (83.855905ms)
+✔ URL parser accepts ordinary files and strips real queries before decoding (8.257557ms)
+✔ URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth (1.667125ms)
+✔ single file read propagates authenticated caller ACL to both operations and ignores attacker MIME (2.434259ms)
+✔ missing or malformed identity and invalid direct-call path perform no database IO (5.128203ms)
+✔ explicit authenticated user names containing @ retain their identity for ACL checks (3.722464ms)
+✔ directory exports are denied without recursive reads or archive allocation (1.558074ms)
+✔ missing metadata, oversized declared files and excessive parent entries fail before reading file bytes (7.805781ms)
+✔ actual oversized response is rejected even if metadata was small (1.4138ms)
+✔ active file types are attachments with isolated restrictive response headers (6.969925ms)
+✔ database errors fail closed and do not expose internal details (4.547773ms)
+✔ concurrent stalled requests reserve both slots even after the five-second deadline (17.898732ms)
+✔ aborted client cannot trigger a late file read and reservation is released after DB settles (1.713453ms)
+✔ slow output keeps both reservations until deadline destroys unfinished responses (1.498195ms)
+(node:161) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Admin8 proxy forwards selected instance request body and target authorization, never Admin credentials or caller forwarding headers (46.840212ms)
+✔ missing/expired/resource-scoped sessions and disabled/forced-reset users fail closed; names grant no administrator membership (16.952424ms)
+✔ each request rechecks actual administrator membership and instance opt-in without a stale decision cache (14.233009ms)
+✔ encoded separators, traversal, credentials in query and cross-origin mutations never reach a target (8.436093ms)
+✔ local redirects and cookies without Path remain inside the selected instance (10.655923ms)
+✔ HTTPS target rejects an untrusted certificate and accepts an explicitly trusted certificate without disabling verification (267.973491ms)
+✔ SSE stays streamed and is closed immediately when proxy sessions are invalidated (5.378862ms)
+✔ WebSocket upgrades use the proxy before unrelated Admin websocket listeners and revoke active tunnels (3.464292ms)
+✔ HTTPS Admin entry forwards to a local HTTP adapter and marks the scoped application cookie Secure (72.339864ms)
+✔ trusted HTTPS certificate with a mismatched hostname is rejected (101.735099ms)
+✔ a stalled authorization database times out without forwarding and a subsequent request recovers (2008.027012ms)
+✔ starts denied, permits signed-service decision and sends no license key (10.557209ms)
+✔ a new request uses a new nonce and rejects replay from an older request (2.900508ms)
+✔ Home and Pro quantity limits and features are checked independently (9.033196ms)
+✔ malformed, stale, future, oversized and missing entitlements fail closed (12.906782ms)
+✔ timeout invalidates an existing lease; late and duplicate callbacks cannot reopen it (22.653353ms)
+✔ throws and rejected transport promises settle denied without an unhandled rejection (2.478435ms)
+✔ lease expires autonomously, onLost is once per denial episode, then recovery is possible (36.929019ms)
+✔ wall clock rollback does not extend monotonic lease and a forward jump immediately denies (38.969506ms)
+✔ stop cancels in-flight request and prevents late callback activation (0.583653ms)
+✔ concurrent callers coalesce safely and status mutation cannot change entitlement (0.315566ms)
+✔ failed safe-state callback latches denial and sanitizes logs (6.461353ms)
+✔ asynchronous safe-state transition must finish before a fresh grant is accepted (0.780964ms)
+✔ invalid configuration cannot create a permissive guard (0.786323ms)
+✔ one shared lease gates each Home/Pro feature without extra messages or rights after loss (2.915831ms)
+✔ UUID normalizes case/space while preserving canonical and direct vendor-prefix identity (4.414657ms)
+✔ Home license authenticates UUID, explicit adapters, limits and immutable derived features (1.587176ms)
+✔ Pro license enables Pro features only from signed edition and caps 10 batteries (2.777126ms)
+✔ expiry and notBefore use exact millisecond boundaries without coercion or grace (2.190769ms)
+✔ forged or edited signature, foreign signing key, unknown kid and legacy format fail closed (1.44035ms)
+✔ trust accepts only bounded explicit Ed25519 public SPKI keys (83.603116ms)
+✔ schema rejects wildcard adapters, duplicate adapters, unsafe limits and unknown signed fields (14.655388ms)
+✔ malformed/oversized tokens and noncanonical base64 cannot reach successful verification (0.555432ms)
+✔ encrypted storage roundtrips across restart with fresh nonce and no plaintext on disk (46.666586ms)
+✔ GCM binds UUID and fails after ciphertext/tag/nonce corruption (47.946033ms)
+✔ missing/wrong/short storage key never silently regenerates existing encrypted license (15.583165ms)
+✔ storage high water mark cannot decrease; serialized operations preserve monotonic value (28.655601ms)
+✔ clear removes only license, keeps device encryption key and permits fresh install (16.231924ms)
+✔ storage rejects symlink files, symlink directory/ancestor and hard linked secrets (15.973718ms)
+✔ storage rejects permissive POSIX modes and unsafe directory roots (16.188284ms)
+✔ storage bounds files and rejects malformed data/envelopes without destructive overwrite (15.005145ms)
+✔ license endpoints authorize before body parser, service calls and static files (4.580503ms)
+✔ secure admin activation invokes parser after authorization and returns no submitted token (0.678203ms)
+✔ cross-origin, missing origin/header and cross-site writes fail before parser (1.299141ms)
+✔ forwarded host/proto headers do not establish origin or TLS trust (0.390066ms)
+✔ plaintext LAN is denied for every route; explicit socket loopback can perform setup (0.448673ms)
+✔ malformed activation/removal bodies are rejected without reaching service (3.160603ms)
+✔ parser size/syntax errors are sanitized and cannot reach activation (0.454362ms)
+✔ authorization and asynchronous service failures return sanitized bounded errors (0.708357ms)
+✔ per-address write and read rate budgets deny excess operations (4.254851ms)
+✔ license page has restrictive CSP and safe no-cache headers (0.475904ms)
+✔ origin matching uses scheme, hostname and port exactly (0.228128ms)
+✔ startup without provisioned trust denies and creates no license (36.895089ms)
+✔ startup with empty trust configuration denies (6.090085ms)
+✔ trusted service without stored license denies (4.275472ms)
+✔ Home allows licensed adapter and published Home limits with bounded lease (21.994558ms)
+✔ Home rejects Pro feature and over-limit resource counts (27.888183ms)
+✔ Pro grants its feature set only to listed adapter and within signed limits (37.248912ms)
+✔ licensed second adapter receives grants only when enabled (25.134442ms)
+✔ missing, disabled, renamed or non-instance senders cannot obtain grants (36.298637ms)
+✔ sender mismatch, unknown feature, extra keys and invalid quota types reject (24.58575ms)
+✔ malformed or untrusted import preserves existing encrypted license (28.09567ms)
+✔ explicit license removal denies checks and remains removed after restart (58.114021ms)
+✔ external license deletion invalidates previously cached grant eligibility (11.373305ms)
+✔ tampered authenticated ciphertext invalidates cached license (21.122549ms)
+✔ encrypted license and edition persist over clean service restart (61.050492ms)
+✔ changed system UUID denies while running (12.38143ms)
+✔ lease is capped at expiry and license expires at exact boundary (29.581766ms)
+✔ expiry is rechecked after delayed adapter object lookup (26.415716ms)
+✔ wall clock rollback relative to monotonic time fails closed until restart (12.800977ms)
+✔ frequent sub-tolerance checks cannot keep a frozen wall clock licensed (13.608429ms)
+✔ small cumulative backward steps cannot reset the monotonic clock anchor (22.625222ms)
+✔ persisted high-water mark detects ordinary rollback across restart (18.730723ms)
+✔ sender rate cap denies excess requests and renews after window (101.816034ms)
+✔ queue cap rejects excess work without preventing earlier jobs completing (1.925377ms)
+✔ new checks and mutations after stop are denied (8.410415ms)
+✔ check queued before stop cannot grant or restore cached validity after stop (7.819636ms)
+✔ check already in adapter lookup cannot grant after stop (28.570041ms)
+✔ database timeout clears validity, bounds outstanding reads and ignores late results (32.90167ms)
+✔ timeout during adapter identity lookup clears a previously valid license view (33.941924ms)
+✔ serialized deletion ahead of a check prevents an intervening grant (16.934691ms)
+✔ status rechecks expiry after delayed UUID lookup (11.510218ms)
+✔ import expiring during UUID lookup preserves the previous valid license (22.172337ms)
+✔ production directory resolver works without an assumed adapter instance method (11.949447ms)
+✔ directory resolver failure is contained and keeps authority denied (1.219433ms)
+✔ trusted root-owned complete directory chain accepts bounded public keys (8.977603ms)
+✔ writable, foreign-owned or symbolic-link ancestor is denied before file open (6.981262ms)
+✔ unsafe trust file and inode swap fail closed (13.639875ms)
+✔ read remains bounded after growth and rejects malformed contents with close (9.846248ms)
+✔ Windows and noncanonical paths require explicit supported provisioning (6.991377ms)
+✔ exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks (10.900827ms)
+✔ dry run and already complete locks do not mutate inputs or fetch unnecessary metadata (4.542597ms)
+✔ aliases use actual package name, not installation directory (0.237911ms)
+✔ network failure leaves every input unchanged and never writes a success report (3.623087ms)
+✔ wrong package/version, weak or malformed digest and foreign tarball are rejected before writing (8.147105ms)
+✔ existing conflicting or malformed metadata is never overwritten (1.800041ms)
+✔ concurrent package or lock changes are preserved and stop repair (1.348233ms)
+✔ second-lock commit failure restores both original locks and records rollback evidence (3.132251ms)
+✔ rollback preserves a concurrent developer edit and reports that backup review is required (4.317213ms)
+✔ registry transport has fixed five-second budget, TLS validation and no redirect/retry (0.332001ms)
+(node:243) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ backend and frontend compare data and reject executable/malformed conditions (1.230809ms)
+✔ shipped frontend expression has the same outcomes and contains no news eval (25.677569ms)
+✔ actual shipped news method refuses marker and preserves numeric behavior (5.479821ms)
+✔ Node index validates bounded schema and strips unused data (1.868823ms)
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.577292ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (160.197901ms)
+✔ complete fixture metadata admits without fetching or executing any package (94.768267ms)
+✔ missing integrity in one scope rejects the real admission process (83.34131ms)
+✔ missing lockfile fails closed instead of permitting a publish check (76.758116ms)
+(node:264) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ pinned upstream password login, token pair and refresh work with security binding (8.971434ms)
+✔ all devices access and refresh tokens reject changed password without waiting for object event (1.917365ms)
+✔ disable, deletion and changed group ACL independently invalidate both token classes (5.972981ms)
+✔ observed disable then re-enable cannot resurrect old token after snapshot returns to original (1.293372ms)
+✔ legacy and unbound external tokens are rejected and direct internal minting is denied (0.931067ms)
+✔ proof cannot be forged by passing a user-shaped object or copied authenticated identity (0.528061ms)
+✔ password mutation during credential verification and before token save fails closed (0.697821ms)
+✔ refresh credential cannot cross revocation between lookup and save (0.808415ms)
+✔ restart generation does not accept previously saved capabilities (0.543864ms)
+✔ session database failures and bounded stalled reads fail closed without unbounded backlog (76.481637ms)
+✔ socket revocation synchronously blocks commands, clears subscriptions and closes every connection (1.062851ms)
+✔ metadata-only account updates do not revoke established capabilities (0.89251ms)
+✔ expired access and refresh capabilities fail closed in the common session reader (0.791576ms)
+✔ late socket authentication cannot reopen a connection after revocation (2.115638ms)
+✔ real five-second watchdog closes a socket after a missed credential object event (5251.674614ms)
+✔ HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling (6.998377ms)
+✔ HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport (2.246812ms)
+✔ HTTPS rejects redirects without contacting redirect targets (1.820912ms)
+✔ HTTPS rejects oversized declared and streamed responses and compressed bodies (3.582366ms)
+✔ HTTPS rejects malformed or primitive JSON without exposing body/error text (4.51105ms)
+✔ HTTPS hard deadline destroys a request before response including DNS/connect stalls (22.561557ms)
+✔ HTTPS hard deadline also bounds slow response bodies (21.530903ms)
+✔ HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected (1.627897ms)
+✔ gzip preview returns text but rejects bombs, oversized input, and invalid gzip (57.005852ms)
+✔ gzip preview concurrency is bounded independently of compressed size (71.745635ms)
+✔ system-info calls coalesce and cache npm version; no shell is used (1.405959ms)
+✔ upload budget admits two across routes; third denied and aborted temporary files cleaned (70.733658ms)
+✔ upload parser receives actual total/file/part limits and private temporary directory (34.112024ms)
+✔ restore storage replaces an existing regular file without modifying unrelated data (37.849885ms)
+✔ POSIX restore storage replaces a destination symlink and persists restrictive permissions (40.696404ms)
+✔ retained upload data counts against shared quota at the next admission (40.455243ms)
+✔ upload total deadline aborts a still-active parser and removes its partial directory (56.398825ms)
+✔ upload admission rejects low disk space before constructing parser (2.788402ms)
+✔ synchronous parser initialization failure releases reserved capacity (65.191255ms)
+ℹ tests 200
+ℹ suites 0
+ℹ pass 200
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6414.032759

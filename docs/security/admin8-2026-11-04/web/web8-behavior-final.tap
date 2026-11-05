@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: Admin8 serialized log buffers validate bytes and transfer size before conversion
+ok 1 - Admin8 serialized log buffers validate bytes and transfer size before conversion
+  ---
+  duration_ms: 1.945717
+  type: 'test'
+  ...
+# Subtest: serialized and compressed logs render escaped text and ignore forged size metadata
+ok 2 - serialized and compressed logs render escaped text and ignore forged size metadata
+  ---
+  duration_ms: 12.947698
+  type: 'test'
+  ...
+# Subtest: Admin8 public path survives login, iframe socket info and escaped 404 details
+ok 3 - Admin8 public path survives login, iframe socket info and escaped 404 details
+  ---
+  duration_ms: 0.797449
+  type: 'test'
+  ...
+# Subtest: configured external SSO cannot become active through Admin8 config
+ok 4 - configured external SSO cannot become active through Admin8 config
+  ---
+  duration_ms: 0.168019
+  type: 'test'
+  ...
+# Subtest: proxy revocation and shutdown are wired to the Web lifecycle
+ok 5 - proxy revocation and shutdown are wired to the Web lifecycle
+  ---
+  duration_ms: 0.340463
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible
+ok 6 - installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible
+  ---
+  duration_ms: 59.91685
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens
+ok 7 - installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens
+  ---
+  duration_ms: 17.201726
+  type: 'test'
+  ...
+# Subtest: Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes
+ok 8 - Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes
+  ---
+  duration_ms: 26.62156
+  type: 'test'
+  ...
+# Subtest: login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins
+ok 9 - login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins
+  ---
+  duration_ms: 1.611972
+  type: 'test'
+  ...
+# Subtest: production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin
+ok 10 - production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin
+  ---
+  duration_ms: 0.271952
+  type: 'test'
+  ...
+# Subtest: all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies
+ok 11 - all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies
+  ---
+  duration_ms: 0.558315
+  type: 'test'
+  ...
+# Subtest: HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state
+ok 12 - HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state
+  ---
+  duration_ms: 0.773614
+  type: 'test'
+  ...
+# Subtest: EOS token readers no longer accept query credentials but preserve cookie and Authorization
+ok 13 - EOS token readers no longer accept query credentials but preserve cookie and Authorization
+  ---
+  duration_ms: 0.746012
+  type: 'test'
+  ...
+# Subtest: file identity guard rejects anonymous and pending-password users and passes normalized caller
+ok 14 - file identity guard rejects anonymous and pending-password users and passes normalized caller
+  ---
+  duration_ms: 0.673295
+  type: 'test'
+  ...
+# Subtest: SSO remains denied before OAuth and DB file routes have their own identity guard
+ok 15 - SSO remains denied before OAuth and DB file routes have their own identity guard
+  ---
+  duration_ms: 1.275014
+  type: 'test'
+  ...
+# Subtest: OAuth callback messages are HTML text, replacement metacharacters cannot restore markup
+ok 16 - OAuth callback messages are HTML text, replacement metacharacters cannot restore markup
+  ---
+  duration_ms: 1.415322
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 386.594232

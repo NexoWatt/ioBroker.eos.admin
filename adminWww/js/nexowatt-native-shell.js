@@ -147,6 +147,12 @@
     };
 
     const ensureModernOverview = () => {
+        // The native Admin8 React surface is authoritative. A compatibility hero may
+        // have been inserted before the lazy Intro chunk mounted; remove only that node.
+        if (document.querySelector('[data-eos-native-react-overview="true"]')) {
+            document.querySelectorAll('[data-eos-runtime-overview-hero="true"]').forEach(node => node.remove());
+            return;
+        }
         const paper = document.getElementById('app-paper');
         const role = String(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
         if (!paper || isLogin() || currentTab() !== 'tab-intro' || role === 'unknown') {

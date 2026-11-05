@@ -3,7 +3,7 @@
  *
  *      Controls Adapter-Processes
  *
- *      Copyright 2014-2025 Denis Haev <dogafox@gmail.com>,
+ *      Copyright 2014-2026 Denis Haev <dogafox@gmail.com>,
  *      MIT License
  *
  */
@@ -14,24 +14,47 @@ import { platform } from 'node:os';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 
-import { Adapter, type AdapterOptions, commonTools, I18n, getAbsoluteInstanceDataDir } from '@iobroker/adapter-core';
-import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobroker/socket-classes';
-import { SocketIO } from '@iobroker/ws-server';
+import {
+    Adapter,
+    type AdapterOptions,
+    commonTools,
+    controllerDir,
+    getAbsoluteDefaultDataDir,
+    getAbsoluteInstanceDataDir,
+    I18n,
+} from '@iobroker/adapter-core';
+import { SocketAdmin, type Server, type Store as SocketStore, type SocketSettings } from '@iobroker/socket-classes';
+import type { Store } from 'express-session';
+import { SocketIO, type Socket as WebSocketClient } from '@iobroker/ws-server';
 import { getAdapterUpdateText } from './lib/translations';
 import Web from './lib/web';
-import { checkWellKnownPasswords, setLinuxPassword } from './lib/checkLinuxPass';
 import { DockerManager } from '@iobroker/plugin-docker';
-import { checkCommonObjects, updateDevicesObject, updateIcons, validateUserData0 } from './lib/objectFixes';
-import { McpClientManager } from './lib/chat/mcpClientManager';
-import { ChatOrchestrator, type ChatMode } from './lib/chat/chatOrchestrator';
-import { resolveAiKey } from './lib/chat/credentials';
-import { listModels, type AiProvider } from './lib/chat/llmProvider';
-import type { OpenAIMessage } from './lib/chat/anthropicAdapter';
+import {
+    checkCommonObjects,
+    updateDevicesObject,
+    updateIcons,
+    validateUserData0,
+    verifyAdapterCore,
+} from './lib/objectFixes';
 import type { AdminAdapterConfig } from './types';
 import { EosLicenseService } from './lib/eosLicenseService';
 import { EosSessionSecurity } from './lib/eosSessionSecurity';
+import { EosUiSessionRegistry, type EosUiIdentity, type EosUiSession } from './lib/eosUiSessionRegistry';
 import { requestHttpsJson } from './lib/eosHttpsClient';
 import { matchesObjectCount, validateNodeReleaseIndex } from './lib/eosNewsSecurity';
+import {
+    createLocalLogFiles,
+    createRemoteLogFiles,
+    detectLogLocation,
+    LOG_LEVELS,
+    searchLogFiles,
+    validateLogSearchResult,
+    type LogFiles,
+    type LogLevel,
+    type LogLocation,
+    type SearchLogFilesOptions,
+    type SearchLogFilesResult,
+} from './lib/logSearch';
 
 const adapterName = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), { encoding: 'utf-8' }))
     .name.split('.')
@@ -40,10 +63,40 @@ const adapterName = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'
 const { getInstalledInfo } = commonTools;
 
 const ONE_HOUR_MS = 3_600_000;
+
+/** How long another host may take to answer a request of the log search, e.g. to send a big log file */
+const LOG_SEARCH_HOST_TIMEOUT_MS = 5_000;
+
+/** How long another host may take to tell whether it supports a feature */
+const FEATURE_CHECK_TIMEOUT_MS = 5_000;
 const ERROR_PERMISSION = 'permissionError';
 
-const CURRENT_MAX_MAJOR_NODEJS = 22;
-const CURRENT_MAX_MAJOR_NPM = 10;
+/** Instance-message type for pushed answers of a long request. Shared verbatim with the frontend. */
+const UI_PUSH_MESSAGE_TYPE = 'pushedAnswer';
+
+const CURRENT_MAX_MAJOR_NODEJS = 24;
+const CURRENT_MAX_MAJOR_NPM = 11;
+
+interface EosSocketCommands {
+    _checkPermissions(client: WebSocketClient, command: string, callback?: unknown, ...args: unknown[]): boolean;
+    _nexowattEosGuardInstalled?: boolean;
+}
+
+function clearLegacyNondeletable(common: object): boolean {
+    if (!('nondeletable' in common) || common.nondeletable !== true) {
+        return false;
+    }
+    common.nondeletable = false;
+    return true;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isSocketSessionStore(value: Store | null): value is Store & SocketStore {
+    return !!value && typeof value.get === 'function' && typeof value.set === 'function';
+}
 
 function normalizeLoginTimeout(value: unknown, fallback = 3_600): number {
     const ttl = Math.round(Number(value));
@@ -52,17 +105,6 @@ function normalizeLoginTimeout(value: unknown, fallback = 3_600): number {
     }
     return Math.min(ttl, 31_536_000); // 1 year hard limit
 }
-
-
-type EosProtectedAdapterConfig =
-    | string
-    | {
-          adapter?: string;
-          name?: string;
-          enabled?: boolean;
-          note?: string;
-          reason?: string;
-      };
 
 type EosAdminGroupConfig =
     | string
@@ -89,7 +131,6 @@ const CORE_PROTECTED_ADAPTER_NAMES = [
 ] as const;
 const LEGACY_ADMIN_INSTANCE_ID = 'system.adapter.admin.0';
 const LEGACY_BACKUP_ADAPTER_NAME = 'backitup';
-const CUSTOMER_BACKUP_ADAPTER_NAMES = ['nexowatt-backup', 'eos-backup'] as const;
 const DEFAULT_LEGACY_ADMIN_LOCK_PORT = 18_081;
 const DEFAULT_LEGACY_ADMIN_LOCK_BIND = '127.0.0.1';
 const DEFAULT_EOS_ADMIN_GROUPS = ['system.group.administrator'];
@@ -100,63 +141,12 @@ const EOS_ROLE_READABLE_OBJECT_ACL = 0x664;
 const EOS_SERVICE_GROUP = 'system.group.nexowatt-service';
 const EOS_INSTALLER_GROUP = 'system.group.installateur';
 const EOS_ENDUSER_GROUP = 'system.group.endkunde';
-const EOS_ROLE_GROUP_IDS = [EOS_SERVICE_GROUP, EOS_INSTALLER_GROUP, EOS_ENDUSER_GROUP] as const;
 // The EOS shell must be able to read the system configuration and repository metadata for
 // installer/end-user sessions. Write access remains administrator-only through the object ACL.
 const EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS = ['system.config', 'system.repositories'] as const;
 // Secrets, certificates and platform license data remain visible only to NexoWatt Admin / Service.
 const EOS_ADMIN_ONLY_SYSTEM_OBJECT_IDS = ['system.certificates', 'system.licenses'] as const;
-const EOS_SECURITY_OBJECT_IDS = [
-    ...EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS,
-    ...EOS_ADMIN_ONLY_SYSTEM_OBJECT_IDS,
-] as const;
-
-function normalizeAdapterName(value: unknown): string | null {
-    if (typeof value !== 'string') {
-        return null;
-    }
-
-    let adapter = value.trim();
-    if (!adapter) {
-        return null;
-    }
-
-    adapter = adapter.replace(/^iobroker\./i, '').replace(/^system\.adapter\./, '');
-    adapter = adapter.replace(/\.\d+$/, '');
-
-    return /^[a-z0-9_-]+$/i.test(adapter) ? adapter : null;
-}
-
-function normalizeProtectedAdapters(value: unknown): string[] {
-    const result = new Set<string>();
-
-    const add = (entry: unknown): void => {
-        if (typeof entry === 'string') {
-            const normalized = normalizeAdapterName(entry);
-            if (normalized) {
-                result.add(normalized);
-            }
-            return;
-        }
-
-        if (entry && typeof entry === 'object') {
-            const config = entry as EosProtectedAdapterConfig;
-            if (config.enabled === false) {
-                return;
-            }
-            const normalized = normalizeAdapterName(config.adapter || config.name);
-            if (normalized) {
-                result.add(normalized);
-            }
-        }
-    };
-
-    if (Array.isArray(value)) {
-        value.forEach(add);
-    }
-
-    return [...result].sort();
-}
+const EOS_SECURITY_OBJECT_IDS = [...EOS_ROLE_READABLE_SYSTEM_OBJECT_IDS, ...EOS_ADMIN_ONLY_SYSTEM_OBJECT_IDS] as const;
 
 function normalizeGroupId(value: unknown): string | null {
     if (typeof value !== 'string') {
@@ -183,7 +173,7 @@ function normalizeAdminOnlyGroups(value: unknown): string[] {
             return;
         }
         if (entry && typeof entry === 'object') {
-            const row = entry as EosAdminGroupConfig;
+            const row = entry as Exclude<EosAdminGroupConfig, string>;
             if (row.enabled === false) {
                 return;
             }
@@ -205,6 +195,18 @@ function normalizeAdminOnlyGroups(value: unknown): string[] {
     return [...result].sort();
 }
 
+/**
+ * Detect whether this process runs on a CI system (GitHub Actions, Travis, AppVeyor or anything else that sets `CI`).
+ * Same detection as used by the Sentry plugin of the js-controller.
+ */
+function isCiSystem(): boolean {
+    const ci = process.env.CI;
+    if (ci && ci !== 'false' && ci !== '0') {
+        return true;
+    }
+    return !!(process.env.GITHUB_ACTIONS || process.env.TRAVIS || process.env.APPVEYOR);
+}
+
 let socket: SocketAdmin;
 let webServer: Web;
 let lastRepoUpdate: number;
@@ -218,12 +220,6 @@ interface UpdateInfo {
     availableVersion: string;
     /** Current installed version */
     installedVersion: string;
-}
-
-interface WellKnownUserPassword {
-    login: string;
-    password: string;
-    result?: boolean;
 }
 
 interface NewsMessage {
@@ -244,7 +240,6 @@ interface NewsMessage {
     content: ioBroker.Translated;
 }
 
-
 const EOS_STABLE_INITIAL_PASSWORD = 'nexowatt';
 const EOS_STABLE_ACCOUNTS = [
     { user: 'installer', role: 'installer' },
@@ -252,13 +247,16 @@ const EOS_STABLE_ACCOUNTS = [
     { user: 'user', role: 'customer' },
 ] as const;
 
-
-async function ensureEosStableGroupMembership(adapter: Adapter, user: string, role: 'installer' | 'customer'): Promise<void> {
+async function ensureEosStableGroupMembership(
+    adapter: ioBroker.Adapter,
+    user: string,
+    role: 'installer' | 'customer',
+): Promise<void> {
     const candidateGroups =
         role === 'installer'
             ? ['system.group.installer', 'system.group.installateur', 'system.group.installers']
             : ['system.group.endkunde', 'system.group.endkunden'];
-    const userId = `system.user.${user}`;
+    const userId: ioBroker.ObjectIDs.User = `system.user.${user}`;
     for (const groupId of candidateGroups) {
         const group = (await adapter.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null | undefined;
         if (!group) {
@@ -267,53 +265,67 @@ async function ensureEosStableGroupMembership(adapter: Adapter, user: string, ro
         const members = Array.isArray(group.common?.members) ? [...group.common.members] : [];
         if (!members.includes(userId)) {
             members.push(userId);
-            await adapter.extendForeignObjectAsync(
-                groupId,
-                { common: { members } },
-                { user: 'system.user.admin' },
-            );
+            await adapter.extendForeignObjectAsync(groupId, { common: { members } }, { user: 'system.user.admin' });
         }
     }
 }
 
-async function ensureEosStableInitialAccounts(adapter: Adapter): Promise<void> {
+async function ensureEosStableInitialAccounts(adapter: ioBroker.Adapter): Promise<void> {
     for (const account of EOS_STABLE_ACCOUNTS) {
         const id = `system.user.${account.user}` as `system.user.${string}`;
-        let object = await adapter.getForeignObjectAsync(id) as ioBroker.UserObject | null;
+        let object = (await adapter.getForeignObjectAsync(id)) as ioBroker.UserObject | null;
         const created = !object;
         if (!object) {
-            await adapter.setForeignObjectAsync(id, {
-                type: 'user', common: { name: account.user, enabled: false, password: '' }, native: {},
-            } as ioBroker.UserObject, { user: 'system.user.admin' });
-            object = await adapter.getForeignObjectAsync(id) as ioBroker.UserObject | null;
+            await adapter.setForeignObjectAsync(
+                id,
+                {
+                    type: 'user',
+                    common: { name: account.user, enabled: false, password: '' },
+                    native: {},
+                },
+                { user: 'system.user.admin' },
+            );
+            object = (await adapter.getForeignObjectAsync(id)) as ioBroker.UserObject | null;
         }
-        if (!object) throw new Error('eosAccountProvisioningFailed');
+        if (!object) {
+            throw new Error('eosAccountProvisioningFailed');
+        }
         let insecure = created || !String(object.common?.password || '').trim();
         if (!insecure) {
             // This legacy value is checked solely to retire previously shipped shared credentials.
             // It must never be assigned to a new or reset account.
-            const result = await adapter.checkPasswordAsync(account.user, EOS_STABLE_INITIAL_PASSWORD, { user: 'system.user.admin' });
+            const result = await adapter.checkPasswordAsync(account.user, EOS_STABLE_INITIAL_PASSWORD, {
+                user: 'system.user.admin',
+            });
             insecure = Array.isArray(result) ? result[0] === true : result === true;
         }
         if (insecure) {
             // Disable before replacing the password: any write failure remains fail-closed.
             await adapter.extendForeignObjectAsync(id, { common: { enabled: false } }, { user: 'system.user.admin' });
-            await adapter.setPasswordAsync(account.user, `${randomBytes(32).toString('base64url')}!aA1`, { user: 'system.user.admin' });
-            await adapter.extendForeignObjectAsync(id, { native: {
-                nexowattManaged: true,
-                nexowattRole: account.role,
-                nexowattPasswordChangeRequired: true,
-                eosPasswordChangeRequired: true,
-                nexowattEosAccount: {
-                    passwordInitialized: false,
-                    passwordSetupVersion: 0,
-                    forcePasswordChange: true,
-                    passwordlessFirstLoginAllowed: false,
-                    standardPasswordMode: false,
-                    disabledForCredentialMigration: true,
-                    credentialMigrationAt: new Date().toISOString(),
+            await adapter.setPasswordAsync(account.user, `${randomBytes(32).toString('base64url')}!aA1`, {
+                user: 'system.user.admin',
+            });
+            await adapter.extendForeignObjectAsync(
+                id,
+                {
+                    native: {
+                        nexowattManaged: true,
+                        nexowattRole: account.role,
+                        nexowattPasswordChangeRequired: true,
+                        eosPasswordChangeRequired: true,
+                        nexowattEosAccount: {
+                            passwordInitialized: false,
+                            passwordSetupVersion: 0,
+                            forcePasswordChange: true,
+                            passwordlessFirstLoginAllowed: false,
+                            standardPasswordMode: false,
+                            disabledForCredentialMigration: true,
+                            credentialMigrationAt: new Date().toISOString(),
+                        },
+                    },
                 },
-            } }, { user: 'system.user.admin' });
+                { user: 'system.user.admin' },
+            );
             adapter.log.warn(`EOS account ${account.user} disabled: unique credential provisioning by Admin required`);
         }
         // Existing individual passwords and their pending-reset metadata are deliberately retained.
@@ -325,30 +337,44 @@ class Admin extends Adapter {
     declare public config: AdminAdapterConfig;
 
     /** Local license authority; management/recovery is never license-gated. */
-    public eosLicenseService: EosLicenseService;
+    public eosLicenseService: EosLicenseService | undefined;
+    /** The host this instance runs on. Optional on `Adapter`, but always set for a started instance. */
+    declare public host: string;
 
     /** secret used for the socket connection */
-    public secret: string;
+    public secret = '';
 
     /** Central EOS-only capability revocation, installed before HTTP/socket startup. */
-    public eosSessionSecurity: EosSessionSecurity;
+    public eosSessionSecurity: EosSessionSecurity | undefined;
 
     /** Timer to update the repository */
-    private timerRepo: NodeJS.Timeout;
+    private timerRepo: ioBroker.Timeout | undefined;
 
-    private updaterTimeout: NodeJS.Timeout;
+    private updaterTimeout: ioBroker.Timeout | undefined;
 
-    private ratingTimeout: NodeJS.Timeout;
+    private ratingTimeout: ioBroker.Timeout | undefined;
 
-    private timerNews: NodeJS.Timeout;
+    private timerNews: ioBroker.Timeout | undefined;
 
-    private _tasks: ioBroker.AnyObject[];
+    private _tasks: ioBroker.AnyObject[] = [];
 
-    private changedPasswords: WellKnownUserPassword[] = [];
+    /** True if the adapter runs on a CI system (GitHub Actions, Travis, AppVeyor, ...). See `sendToHost` */
+    private readonly ciSystem: boolean = isCiSystem();
 
-    /** In-process ioBroker.mcp connection backing the chat helper. Created on first chat message. */
-    private mcpChat: McpClientManager | null = null;
+    /** Where the log files of this host are. Found at the first search in the Log tab */
+    private logLocation: LogLocation | null = null;
 
+    /**
+     * GUI sessions, by the secret this adapter handed out when the page subscribed for pushed answers.
+     *
+     * A `admin:searchLogs` message carries the secret as `uiSession`; the message itself
+     * has neither a socket id nor a user, so this map is the only thing that ties a request back to the
+     * browser tab that sent it - and to the ioBroker user behind it. The secret is generated here and
+     * never by the caller: a page may only ever name a session it was given.
+     */
+    private readonly uiPushSessions = new EosUiSessionRegistry();
+
+    private readonly activeLogSearches = new Set<string>();
 
     /** Periodic guard that keeps EOS safety policy applied even if object events are missed. */
     private eosSecurityTimer: NodeJS.Timeout | null = null;
@@ -379,6 +405,18 @@ class Admin extends Adapter {
             logTransporter: true, // receive the logs
             systemConfig: true,
             install: () => void null,
+            /*
+             * The GUI subscribes here so that the answer of a long request can be *pushed* to it. A turn
+             * of the assistant (the LLM plus its tool rounds) and a search through the log files of
+             * another host regularly run longer than 30 s, and `@iobroker/ws` answers every socket
+             * callback with the string "timeout" after exactly that (socket.io.js:
+             * `Date.now() + 30_000`). The answer then arrived in a dead callback: an empty chat, a
+             * search that never ends, and nothing in any log. So the page gets an immediate
+             * acknowledgement and the result later as an instance message.
+             */
+            uiClientSubscribe: (info: { clientId: string; message: ioBroker.Message }) =>
+                this.onUiClientSubscribe(info),
+            uiClientUnsubscribe: (info: { clientId: string }) => this.onUiClientUnsubscribe(info),
         };
 
         super(options as AdapterOptions);
@@ -401,25 +439,29 @@ class Admin extends Adapter {
     onObjectChange = (id: string, obj: ioBroker.Object | null | undefined): void => {
         // Invalidate before forwarding changes or waiting for the debounced role cache.
         this.eosSessionSecurity?.handleObjectChange(id, obj, objects[id]);
-        if (/^system\.(?:user|group)\./.test(id)) this.eosRoleCacheHealthy = false;
+        if (/^system\.(?:user|group)\./.test(id)) {
+            this.uiPushSessions.clear();
+            webServer?.invalidateProxySessions();
+        }
+        if (/^system\.(?:user|group)\./.test(id)) {
+            this.eosRoleCacheHealthy = false;
+        }
         if (obj) {
-            objects[id] = obj as ioBroker.StateObject;
+            objects[id] = obj;
 
             if (id === 'system.config' && !this.config.language) {
                 if (obj.common?.language) {
                     systemLanguage = obj.common.language;
-                    if (webServer) {
-                        webServer.setLanguage(systemLanguage);
-                    }
+                    webServer?.setLanguage(systemLanguage);
                 }
             }
 
             if (id === 'system.repositories' || id.match(/^system\.adapter\.[^.]+$/)) {
                 if (this.updaterTimeout) {
-                    clearTimeout(this.updaterTimeout);
+                    this.clearTimeout(this.updaterTimeout);
                 }
-                this.updaterTimeout = setTimeout(() => {
-                    this.updaterTimeout = null;
+                this.updaterTimeout = this.setTimeout(() => {
+                    this.updaterTimeout = undefined;
                     void this.writeUpdateInfo();
                 }, 5_000);
             }
@@ -436,10 +478,10 @@ class Admin extends Adapter {
                 this.scheduleEosSecurityGuard(`protected object change: ${id}`);
             }
         } else if (
-            id.startsWith('system.group.')
-            || id.startsWith('system.user.')
-            || id.startsWith('system.credentials.')
-            || (EOS_SECURITY_OBJECT_IDS as readonly string[]).includes(id)
+            id.startsWith('system.group.') ||
+            id.startsWith('system.user.') ||
+            id.startsWith('system.credentials.') ||
+            (EOS_SECURITY_OBJECT_IDS as readonly string[]).includes(id)
         ) {
             this.scheduleEosSecurityGuard(`role/security object change: ${id}`);
         }
@@ -462,7 +504,7 @@ class Admin extends Adapter {
         socket?.stateChange(id, state);
     };
 
-    onFileChange = (id: string, fileName: string, size: number): void => {
+    onFileChange = (id: string, fileName: string, size: number | null): void => {
         socket?.fileChange(id, fileName, size);
     };
 
@@ -470,8 +512,15 @@ class Admin extends Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     onReady = async (): Promise<void> => {
-        if (this.config.auth !== true) this.log.warn('EOS security profile requires login; legacy auth=false is overridden at runtime.');
+        if (this.config.auth !== true) {
+            this.log.warn('EOS security profile requires login; legacy auth=false is overridden at runtime.');
+        }
         this.config.auth = true;
+        if (this.ciSystem) {
+            this.log.info(
+                'CI system detected: requests to hosts that are not running will be answered immediately with a timeout error',
+            );
+        }
         const systemConfig = await this.getForeignObjectAsync('system.config');
         if (systemConfig) {
             systemConfig.native = systemConfig.native || {};
@@ -508,24 +557,6 @@ class Admin extends Adapter {
     };
 
     /**
-     * Lazily create the in-process MCP connection backing the chat helper.
-     *
-     * `allowSetState` is enabled so the `set_state`/`set_states` tools exist; the orchestrator only
-     * offers them in "act" mode and only runs them after explicit per-action confirmation. Raw
-     * object/file changes stay disabled — state creation goes through the namespace-guarded
-     * admin-local `create_user_state` tool instead.
-     */
-    private getMcpChat(): McpClientManager {
-        this.mcpChat ||= new McpClientManager(this, {
-            defaultUser: 'system.user.admin',
-            language: systemLanguage,
-            allowSetState: true,
-            allowObjectChange: false,
-        });
-        return this.mcpChat;
-    }
-
-    /**
      * Some message was sent to this instance over the message box. Used by email, pushover, text2speech, ...
      * Using this method requires the "common.messagebox" property to be set to true in io-package.json
      *
@@ -537,11 +568,23 @@ class Admin extends Adapter {
         }
         if (obj.command === 'eos.license.check') {
             if (obj.callback && this.eosLicenseService) {
-                void this.eosLicenseService.check(obj.from, obj.message).then(result => {
-                    if (obj.callback) this.sendTo(obj.from, obj.command, result, obj.callback);
-                }).catch(() => {
-                    if (obj.callback) this.sendTo(obj.from, obj.command, { v: 1, valid: false, code: 'SERVICE_UNAVAILABLE' }, obj.callback);
-                });
+                void this.eosLicenseService
+                    .check(obj.from, obj.message)
+                    .then(result => {
+                        if (obj.callback) {
+                            this.sendTo(obj.from, obj.command, result, obj.callback);
+                        }
+                    })
+                    .catch(() => {
+                        if (obj.callback) {
+                            this.sendTo(
+                                obj.from,
+                                obj.command,
+                                { v: 1, valid: false, code: 'SERVICE_UNAVAILABLE' },
+                                obj.callback,
+                            );
+                        }
+                    });
             }
             return;
         }
@@ -554,7 +597,12 @@ class Admin extends Adapter {
                     try {
                         this.sendTo(obj.from, obj.command, { result: existsSync(obj.message) }, obj.callback);
                     } catch (e) {
-                        this.sendTo(obj.from, obj.command, { error: e.message }, obj.callback);
+                        this.sendTo(
+                            obj.from,
+                            obj.command,
+                            { error: e instanceof Error ? e.message : 'File check failed' },
+                            obj.callback,
+                        );
                     }
                 }
                 return;
@@ -563,8 +611,8 @@ class Admin extends Adapter {
                 for (let f = 0; f < obj.message.length; f++) {
                     try {
                         result[obj.message[f]] = existsSync(obj.message[f]);
-                    } catch (e) {
-                        result[obj.message[f]] = e.message;
+                    } catch {
+                        result[obj.message[f]] = false;
                     }
                 }
                 return obj.callback && this.sendTo(obj.from, obj.command, result, obj.callback);
@@ -606,6 +654,9 @@ class Admin extends Adapter {
                 this.sendTo(obj.from, obj.command, { openUrl: obj.message._origin, saveConfig: true }, obj.callback);
             }
             return;
+        } else if (obj.command === 'admin:searchLogs') {
+            void this.processLogSearch(obj).catch(() => this.log.warn('Log search failed'));
+            return;
         } else if (obj.command.startsWith('admin:')) {
             return this.processNotificationsGui(obj);
         } else if (obj.command.startsWith('test:')) {
@@ -632,385 +683,368 @@ class Admin extends Adapter {
             });
             return;
         } else if (obj.command.startsWith('chat:')) {
-                if (obj.callback) {
-                    this.sendTo(obj.from, obj.command, { error: 'EOS Assist ist in dieser Stable-Version vorübergehend deaktiviert.' }, obj.callback);
-                }
-                return;
-            } else if (webServer?.processMessage(obj)) {
+            if (obj.callback) {
+                this.sendTo(
+                    obj.from,
+                    obj.command,
+                    { error: 'EOS Assist ist in dieser Stable-Version vorübergehend deaktiviert.' },
+                    obj.callback,
+                );
+            }
+            return;
+        } else if (webServer?.processMessage(obj)) {
             return;
         }
 
         socket?.sendCommand(obj);
     };
 
-    private getName(name?: ioBroker.StringOrTranslated): string | undefined {
-        if (!name) {
-            return undefined;
-        }
-        if (typeof name === 'string') {
-            return name;
-        }
-        if (typeof name === 'object') {
-            return name[this.language] || name.en;
-        }
-        return null;
-    }
-
     /**
-     * Handle `chat:*` messages from the admin GUI chat helper.
+     * Handle `admin:searchLogs` from the Log tab: search the log files of a host.
      *
-     * - `chat:getProviders` — list the AI credentials the user can pick (id + name, no secrets).
-     * - `chat:testConnection` — validate a provider/key by listing its models.
-     * - `chat:send` — run one chat turn: the backend drives the LLM ↔ MCP tool loop and returns the
-     *   final answer, the new messages and the executed tool steps.
-     * - `chat:getTools` / `chat:callTool` — low-level access to the in-process MCP tool layer (A1).
+     * The message holds the host - without it the one this instance runs on - and the filters of the tab:
+     * `hours`, `level` (this one and the more severe ones), `source`, `text` and `maxRows`.
      *
      * @param obj the message object
      */
-    private async processChatMessage(obj: ioBroker.Message): Promise<void> {
-        const respond = (response: Record<string, unknown>): void => {
-            if (obj.callback) {
-                this.sendTo(obj.from, obj.command, response, obj.callback);
-            }
-        };
-        const fail = (error: unknown): void =>
-            respond({ error: error instanceof Error ? error.message : String(error as string) });
+    private async processLogSearch(obj: ioBroker.Message): Promise<void> {
+        const message: Record<string, unknown> =
+            obj.message && typeof obj.message === 'object' ? (obj.message as Record<string, unknown>) : {};
+        let response: SearchLogFilesResult | { error: string };
 
-        if (obj.command === 'chat:getTools') {
-            try {
-                const tools = await this.getMcpChat().getTools();
-                respond({ tools });
-            } catch (e) {
-                fail(e);
-            }
+        /*
+         * The log files of a host, read from its disk. They hold whatever any adapter ever logged -
+         * tokens, passwords in a stack trace, the contents of a request - so this needs the right that
+         * reading the log over the socket needs (`readLogs`: "other"."execute"). The message itself
+         * names no user, so the identity comes from the GUI session that subscribed for pushed answers;
+         * without one there is nobody to check, and the search is refused.
+         */
+        // Searching the files of another host can take longer than a socket callback lives, so the
+        // answer is pushed if the Log tab asked for it. See `buildPushResponder` - building it releases
+        // the callback, so it happens once for every way out of this function.
+        const respond = this.buildPushResponder<SearchLogFilesResult | { error: string }>(obj);
+        const session = this.getUiSession(obj);
+        if (!session?.user) {
+            respond({ error: 'The log search can only be used from a subscribed admin GUI session' });
+            return;
+        }
+        if (!session.mayExecute) {
+            respond({ error: 'No permission: searching the log files requires the "execute" right' });
             return;
         }
 
-        if (obj.command === 'chat:callTool') {
-            const message = (obj.message || {}) as { name?: string; args?: Record<string, unknown> };
-            if (!message.name) {
-                fail('Tool name is required');
+        if (this.activeLogSearches.has(session.user) || this.activeLogSearches.size >= 4) {
+            respond({ error: 'A log search is already active; retry after it completes' });
+            return;
+        }
+        this.activeLogSearches.add(session.user);
+        try {
+            const host =
+                typeof message.host === 'string' && message.host
+                    ? message.host.replace(/^system\.host\./, '')
+                    : this.host;
+
+            const filters: Omit<SearchLogFilesOptions, 'files'> = {
+                hours: Number(message.hours),
+                level: LOG_LEVELS.includes(message.level as LogLevel) ? (message.level as LogLevel) : undefined,
+                source: typeof message.source === 'string' ? message.source : undefined,
+                text: typeof message.text === 'string' ? message.text : undefined,
+                maxRows: Number(message.maxRows),
+            };
+
+            response =
+                host === this.host
+                    ? await searchLogFiles({ files: this.getLocalLogFiles(), ...filters })
+                    : await this.searchRemoteLogFiles(host, filters);
+        } catch {
+            response = { error: 'Log search failed or exceeded its resource limits' };
+        } finally {
+            this.activeLogSearches.delete(session.user);
+        }
+
+        respond(response);
+    }
+
+    /** The log files of the host this instance runs on, read from the disk */
+    private getLocalLogFiles(): LogFiles {
+        if (!this.logLocation) {
+            let dataDir: string | undefined;
+            try {
+                dataDir = getAbsoluteDefaultDataDir();
+            } catch {
+                dataDir = undefined;
+            }
+            this.logLocation = detectLogLocation({ controllerDir, dataDir });
+            this.log.debug(
+                `Log files for the search: ${this.logLocation.directory}, ${this.logLocation.prefix}.<date>${this.logLocation.extension} (${this.logLocation.source})`,
+            );
+        }
+        return createLocalLogFiles(this.logLocation);
+    }
+
+    /**
+     * Search the log files of another host.
+     *
+     * A js-controller that knows the host command `searchLogs` searches its files itself and sends only the
+     * matching entries. An older one - and one that answers the command with an error - sends every file with
+     * `getLogFile`, as for the download of a log file, and admin searches them.
+     *
+     * @param host name of the host without `system.host.`
+     * @param filters what to look for
+     */
+    private async searchRemoteLogFiles(
+        host: string,
+        filters: Omit<SearchLogFilesOptions, 'files'>,
+    ): Promise<SearchLogFilesResult> {
+        const id = `system.host.${host}`;
+        const obj = await this.getForeignObjectAsync(id);
+        if (obj?.type !== 'host') {
+            throw new Error(`Unknown host ${host}`);
+        }
+        const alive = await this.getForeignStateAsync(`${id}.alive`);
+        if (!alive?.val) {
+            throw new Error(`Host ${host} is not running`);
+        }
+
+        const request = (command: string, message: unknown, timeout = LOG_SEARCH_HOST_TIMEOUT_MS): Promise<unknown> =>
+            new Promise((resolve, reject) => {
+                // a host that does not know a command never answers
+                const timer = this.setTimeout(
+                    () => reject(new Error(`Host ${host} did not answer "${command}"`)),
+                    timeout,
+                );
+                this.sendToHost(
+                    id,
+                    command,
+                    message,
+                    answer => {
+                        if (timer) {
+                            this.clearTimeout(timer);
+                        }
+                        resolve(answer);
+                    },
+                    { timeout },
+                );
+            });
+
+        if (await this.isHostFeatureSupported(obj, 'CONTROLLER_SEARCH_LOGS', request)) {
+            const answer = await request('searchLogs', filters);
+            const result = validateLogSearchResult(answer);
+            if (result) {
+                return result;
+            }
+            // The host knows the command but cannot do it, e.g. because it writes no log file at all.
+            // Its files are read the way those of an older controller are read.
+            this.log.debug(
+                `Host ${host} could not search its log files (${isRecord(answer) && typeof answer.error === 'string' ? 'host reported an error' : 'invalid answer'}), reading them instead`,
+            );
+        }
+
+        return searchLogFiles({ files: createRemoteLogFiles(request), ...filters });
+    }
+
+    /**
+     * Ask a host whether its js-controller supports a feature.
+     *
+     * Only a js-controller from 7.2.0 on answers this question, so an older one is not asked at all.
+     *
+     * @param obj object of the host
+     * @param feature name of the feature
+     * @param request sends a command to the host
+     */
+    private async isHostFeatureSupported(
+        obj: ioBroker.HostObject,
+        feature: string,
+        request: (command: string, message: unknown, timeout?: number) => Promise<unknown>,
+    ): Promise<boolean> {
+        const version = semver.coerce(obj.common.installedVersion);
+        if (!version || semver.lt(version, '7.2.0')) {
+            return false;
+        }
+        try {
+            const answer = (await request('checkFeatureSupported', feature, FEATURE_CHECK_TIMEOUT_MS)) as {
+                result?: boolean;
+            } | null;
+            return answer?.result === true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * A GUI page registers itself for pushed answers, and gets the secret of its session back.
+     *
+     * The subscription is the only moment at which this adapter can see *who* is on the other end: the
+     * socket layer runs in this process and hands over the id of the connection, whose ACL it has
+     * already calculated. User and rights are recorded here, and the page gets a secret to name the
+     * session with - a later `admin:searchLogs` carries that secret instead of claiming a user itself.
+     *
+     * Only our own message type is accepted - anything else is some other UI asking for something we
+     * do not serve.
+     *
+     * @param info client id and the subscribe message, as the messaging controller hands it over
+     * @param info.clientId the id to address this client with later
+     * @param info.message the subscribe message, carrying the type and the socket id of the page
+     */
+    private onUiClientSubscribe(info: { clientId: string; message: ioBroker.Message }): {
+        accepted: boolean;
+        error?: string;
+        session?: string;
+    } {
+        const message = info.message?.message as { type?: string; sid?: string } | undefined;
+        if (message?.type !== UI_PUSH_MESSAGE_TYPE) {
+            return { accepted: false, error: `Unknown subscription type "${message?.type || ''}"` };
+        }
+        const identity = this.getUiIdentity(message.sid);
+        if (
+            !identity ||
+            info.message.from !== `system.adapter.${this.namespace}` ||
+            info.message.user !== identity.user
+        ) {
+            return { accepted: false, error: 'An active authenticated EOS session is required' };
+        }
+        const session = this.uiPushSessions.issue(info.clientId, identity, normalizeLoginTimeout(this.config.ttl));
+        if (!session) {
+            return { accepted: false, error: 'GUI subscription limit reached' };
+        }
+        return { accepted: true, session };
+    }
+
+    /**
+     * A GUI page went away - drop every session that pointed at it.
+     *
+     * @param info the client the messaging controller is retiring
+     * @param info.clientId the id that is going away
+     */
+    private onUiClientUnsubscribe(info: { clientId: string }): void {
+        this.uiPushSessions.unsubscribe(info.clientId);
+    }
+
+    /**
+     * The ACL the socket layer calculated for one open connection of this instance's web server.
+     *
+     * With authentication it belongs to the logged-in user, without it to the configured default user,
+     * and in both cases a whitelist of the address has already been applied to it.
+     *
+     * @param sid the socket id, as the `clientSubscribe` message carries it
+     */
+    private getUiIdentity(sid?: string): EosUiIdentity | undefined {
+        if (typeof sid !== 'string' || !sid || sid.length > 256 || !this.eosRoleCacheHealthy) {
+            return undefined;
+        }
+        const sockets = socket?.getSocketsList();
+        const clients = sockets ? (Array.isArray(sockets) ? sockets : Object.values(sockets)) : [];
+        const client = clients.find(entry => entry.id === sid);
+        const user = client?._acl?.user;
+        if (
+            !client ||
+            !user ||
+            !this.eosSessionSecurity?.isSocketAllowed(client) ||
+            this.eosDisabledUsers.has(user) ||
+            this.eosPasswordSetupRequired.has(user)
+        ) {
+            return undefined;
+        }
+        const role = this.getEosCachedRole(user);
+        return {
+            user,
+            socketId: sid,
+            epoch: this.eosSessionSecurity.epoch,
+            // EOS permits installer diagnostics, while host execution stays Service-only.
+            mayExecute: role === 'installer' || (role === 'admin' && !!client._acl?.other?.execute),
+        };
+    }
+
+    /**
+     * The session a request names in `uiSession`, if it is one this adapter handed out.
+     *
+     * @param obj the incoming sendTo message
+     */
+    private getUiSession(obj: ioBroker.Message): EosUiSession | undefined {
+        const token: unknown = obj.message?.uiSession;
+        const entry = this.uiPushSessions.get(token, sid => this.getUiIdentity(sid));
+        return entry && obj.from === `system.adapter.${this.namespace}` && obj.user === entry.user ? entry : undefined;
+    }
+
+    /**
+     * Build the function that delivers the answer of one long request (`admin:searchLogs`).
+     *
+     * If the page registered for pushed answers and named itself in the message, the answer goes out as
+     * an instance message and the socket callback is acknowledged right away - the request takes longer
+     * than the 30 s the callback lives. Everything else - an older frontend, a script talking to us -
+     * keeps the plain request/response behaviour.
+     *
+     * @param obj the incoming sendTo message
+     */
+    private buildPushResponder<T extends object>(obj: ioBroker.Message): (response: T) => void {
+        const session = typeof obj.message?.uiSession === 'string' ? obj.message.uiSession : '';
+        const requestId =
+            typeof obj.message?.requestId === 'string' && obj.message.requestId.length <= 128
+                ? obj.message.requestId
+                : '';
+        const clientId = this.getUiSession(obj)?.clientId;
+
+        if (!clientId || !requestId) {
+            return response => {
+                if (obj.callback && (!clientId || this.getUiSession(obj))) {
+                    this.sendTo(obj.from, obj.command, response, obj.callback);
+                }
+            };
+        }
+
+        // Release the socket callback immediately - it has 30 s to live, the request has more.
+        this.sendTo(obj.from, obj.command, { accepted: true, requestId }, obj.callback);
+        let sent = false;
+        return response => {
+            if (sent || !this.getUiSession(obj)) {
                 return;
             }
-            try {
-                const result = await this.getMcpChat().callTool(message.name, message.args);
-                respond({ ...result });
-            } catch (e) {
-                fail(e);
-            }
-            return;
-        }
-
-        if (obj.command === 'chat:getProviders') {
-            // List the configured AI credentials (id + name, no secrets) the user can pick from.
-            try {
-                const credentials = await this.getObjectViewAsync('system', 'config', {
-                    startkey: 'system.credentials.',
-                    endkey: 'system.credentials.\u9999',
-                });
-                const providers: { name?: string; id: string; icon?: string }[] = [];
-                credentials.rows.forEach(row => {
-                    if ((row.value.native as any).type === 'ai') {
-                        providers.push({
-                            name: this.getName(row.value.common.name),
-                            id: row.value._id,
-                            icon: row.value.common.icon,
-                        });
-                    }
-                });
-                respond({ providers });
-            } catch (e) {
-                fail(e);
-            }
-            return;
-        }
-
-        if (obj.command === 'chat:testConnection') {
-            const message = (obj.message || {}) as {
-                provider?: AiProvider;
-                credentialId?: string;
-                apiKey?: string;
-                baseUrl?: string;
-                allowSelfSignedCerts?: boolean;
-            };
-            try {
-                const provider = message.provider || 'openai';
-                // Prefer an explicit key from the settings form; otherwise resolve from the store.
-                let apiKey = (message.apiKey || '').trim();
-                if (!apiKey && message.credentialId) {
-                    apiKey = await resolveAiKey(this, message.credentialId);
-                }
-                const models = await listModels({
-                    provider,
-                    apiKey,
-                    baseUrl: message.baseUrl,
-                    allowSelfSignedCerts: message.allowSelfSignedCerts,
-                });
-                respond({ success: true, models, count: models.length });
-            } catch (e) {
-                fail(e);
-            }
-            return;
-        }
-
-        if (obj.command === 'chat:send') {
-            const message = (obj.message || {}) as {
-                messages?: OpenAIMessage[];
-                provider?: AiProvider;
-                model?: string;
-                credentialId?: string;
-                baseUrl?: string;
-                allowSelfSignedCerts?: boolean;
-                maxToolRounds?: number;
-                mode?: ChatMode;
-                approvals?: Record<string, boolean>;
-                autoApprove?: string[];
-                uiContext?: { hash?: string };
-            };
-            try {
-                if (!Array.isArray(message.messages) || !message.messages.length) {
-                    fail('messages are required');
-                    return;
-                }
-                const provider = message.provider || 'openai';
-                const model = (message.model || '').trim();
-                if (!model) {
-                    fail('model is required');
-                    return;
-                }
-                const apiKey = message.credentialId ? await resolveAiKey(this, message.credentialId) : '';
-                // OpenAI-compatible/custom endpoints (e.g. local Ollama) may run without a key.
-                if (!apiKey && provider !== 'custom' && !message.baseUrl) {
-                    fail('No API key configured for the selected provider');
-                    return;
-                }
-                const orchestrator = new ChatOrchestrator(this.getMcpChat(), this);
-                const result = await orchestrator.run({
-                    provider,
-                    model,
-                    apiKey,
-                    baseUrl: message.baseUrl,
-                    messages: message.messages,
-                    language: systemLanguage,
-                    allowSelfSignedCerts: message.allowSelfSignedCerts,
-                    maxToolRounds: message.maxToolRounds,
-                    mode: message.mode,
-                    approvals: message.approvals,
-                    autoApprove: message.autoApprove,
-                    uiContext: message.uiContext,
-                });
-                respond({ success: true, ...result });
-            } catch (e) {
-                fail(e);
-            }
-            return;
-        }
-
-        fail(`Unknown chat command: ${obj.command}`);
+            sent = true;
+            this.sendToUI({
+                clientId,
+                data: { type: UI_PUSH_MESSAGE_TYPE, requestId, ...response },
+            }).catch(e => {
+                // The tab was closed, or the subscription was dropped in the meantime.
+                this.uiPushSessions.delete(session);
+                this.log.warn(
+                    `Cannot deliver the answer of "${obj.command}" to the GUI: ${
+                        e instanceof Error ? e.message : String(e)
+                    }`,
+                );
+            });
+        };
     }
 
     processNotificationsGui(obj: ioBroker.Message): void {
-        if (obj.command === 'admin:getNotificationSchema') {
-            const guiMessage: { login: string; password: string } = obj.message;
-            const alreadyDone = this.changedPasswords.find(
-                item => item.login === guiMessage.login && item.password === guiMessage.password,
-            );
-            let schema: any;
-            if (alreadyDone?.result === true) {
-                schema = {
-                    type: 'panel',
-                    items: {
-                        _info: {
-                            type: 'staticText',
-                            text: I18n.getTranslatedObject(
-                                'The password for user "%s" was successfully changed',
-                                guiMessage.login,
-                            ),
-                            style: { color: 'green' },
-                            sm: 12,
-                        },
-                    },
-                };
-            } else if (alreadyDone?.result === false) {
-                schema = {
-                    type: 'panel',
-                    items: {
-                        _info: {
-                            type: 'staticText',
-                            text: I18n.getTranslatedObject('Cannot change password for %s:', guiMessage.login),
-                            style: { color: 'orange' },
-                            sm: 12,
-                        },
-                        _info1: {
-                            newLine: true,
-                            type: 'staticText',
-                            text: `sudo passwd ${guiMessage.login}`,
-                            style: { fontFamilies: 'monospace', color: 'green', backgroundColor: 'black' },
-                            sm: 12,
-                        },
-                        _info3: {
-                            newLine: true,
-                            type: 'staticText',
-                            text: I18n.getTranslatedObject('Enter your new password by prompt.'),
-                            style: { fontFamilies: 'monospace', color: 'green', backgroundColor: 'black' },
-                            sm: 12,
-                        },
-                    },
-                };
-            } else if (alreadyDone) {
-                // Ask user for new password and for password repeat
-                schema = {
-                    type: 'panel',
-                    items: {
-                        _info: {
-                            type: 'header',
-                            size: 5,
-                            text: I18n.getTranslatedObject(
-                                `User "%s" has well known password. We suggest to change it.`,
-                                guiMessage.login,
-                            ),
-                            style: { color: 'orange' },
-                            sm: 12,
-                        },
-                        password: {
-                            newLine: true,
-                            label: I18n.getTranslatedObject('New password'),
-                            type: 'password',
-                            help: I18n.getTranslatedObject('Minimal length is 6 chars'),
-                            visible: true,
-                            sm: 12,
-                            md: 6,
-                        },
-                        passwordRepeat: {
-                            label: I18n.getTranslatedObject('Password repeat'),
-                            type: 'password',
-                            visible: true,
-                            sm: 12,
-                            md: 6,
-                        },
-                        _send: {
-                            newLine: true,
-                            type: 'sendto',
-                            command: 'admin:setPassword',
-                            jsonData: `{ "oldPassword": "${guiMessage.password}", "login": "${guiMessage.login}", "password": "$\{data.password}", "passwordRepeat": "$\{data.passwordRepeat}" }`,
-                            label: I18n.getTranslatedObject('Set password'),
-                            disabled:
-                                '!data.password || !data.passwordRepeat || data.password.length < 6 || data.password !== data.passwordRepeat',
-                            sm: 6,
-                            md: 3,
-                            variant: 'contained',
-                        },
-                    },
-                };
-            } else {
-                schema = {
-                    type: 'panel',
-                    items: {
-                        _info: {
-                            type: 'staticText',
-                            text: I18n.getTranslatedObject(
-                                'This message is no more actual and was generated by other instance start',
-                            ),
-                            style: { color: 'grey' },
-                            sm: 12,
-                        },
-                    },
-                };
-            }
-
-            this.sendTo(obj.from, obj.command, { schema }, obj.callback);
-        } else if (obj.command === 'admin:setPassword') {
-            // compare password and passwordRepeat
-            const guiMessage: { login: string; password: string; passwordRepeat: string; oldPassword: string } =
-                obj.message;
-            // empty password isn't allowed
-            if (!guiMessage.password) {
-                this.sendTo(
-                    obj.from,
-                    obj.command,
-                    {
-                        command: {
-                            command: 'message',
-                            message: I18n.getTranslatedObject("Empty password isn't allowed"),
-                            refresh: true,
-                        },
-                    },
-                    obj.callback,
-                );
-            } else if (guiMessage.password !== guiMessage.passwordRepeat) {
-                this.sendTo(
-                    obj.from,
-                    obj.command,
-                    {
-                        command: {
-                            command: 'message',
-                            message: I18n.getTranslatedObject('Password and password repeat are not equal'),
-                            refresh: true,
-                        },
-                    },
-                    obj.callback,
-                );
-            } else if (guiMessage.password.length < 6) {
-                this.sendTo(
-                    obj.from,
-                    obj.command,
-                    {
-                        command: {
-                            command: 'message',
-                            message: I18n.getTranslatedObject('Password is too short (min 6 chars)'),
-                            refresh: true,
-                        },
-                    },
-                    obj.callback,
-                );
-            } else {
-                void setLinuxPassword(guiMessage.login, guiMessage.oldPassword, guiMessage.password).then(result => {
-                    this.changedPasswords = this.changedPasswords.filter(
-                        item => item.password !== guiMessage.login && item.login !== guiMessage.oldPassword,
-                    );
-                    this.changedPasswords.push({
-                        login: guiMessage.login,
-                        password: guiMessage.oldPassword,
-                        result: result === true,
-                    });
-                    if (result === true) {
-                        this.sendTo(
-                            obj.from,
-                            obj.command,
-                            {
-                                command: {
-                                    command: 'message',
-                                    message: I18n.getTranslatedObject(
-                                        'Password successfully changed for "%s"',
-                                        guiMessage.login,
-                                    ),
-                                    refresh: true,
-                                },
-                            },
-                            obj.callback,
-                        );
-                    } else {
-                        this.sendTo(
-                            obj.from,
-                            obj.command,
-                            {
-                                command: {
-                                    command: 'message',
-                                    message: I18n.getTranslatedObject(
-                                        `Cannot change password for "%s": %s`,
-                                        guiMessage.login,
-                                        result,
-                                    ),
-                                    style: { color: 'red' },
-                                    refresh: true,
-                                },
-                            },
-                            obj.callback,
-                        );
-                    }
-                });
-            }
+        if (!obj.callback || !['admin:getNotificationSchema', 'admin:setPassword'].includes(obj.command)) {
+            return;
         }
+        const message = I18n.getTranslatedObject(
+            'EOS does not test or change operating-system passwords. Use an authorized operating-system administrator and the operating system maintenance tools. ioBroker account passwords are managed separately in EOS.',
+        );
+        if (obj.command === 'admin:getNotificationSchema') {
+            this.sendTo(
+                obj.from,
+                obj.command,
+                {
+                    schema: { type: 'panel', items: { _info: { type: 'staticText', text: message, sm: 12 } } },
+                },
+                obj.callback,
+            );
+            return;
+        }
+        // This legacy RPC must never cross from an ioBroker role into an OS login/su process.
+        // Reject for every caller, including administrators; no request credentials are inspected.
+        this.sendTo(
+            obj.from,
+            obj.command,
+            {
+                error: 'EOS_OS_PASSWORD_MANAGEMENT_DISABLED',
+                status: 410,
+                command: { command: 'message', message, refresh: false },
+            },
+            obj.callback,
+        );
     }
 
     /**
@@ -1021,24 +1055,25 @@ class Admin extends Adapter {
     onUnload = (callback: () => void): void => {
         this.eosLicenseService?.stop();
         this.eosSessionSecurity?.stop();
+        this.uiPushSessions.clear();
         if (this.timerRepo) {
             clearTimeout(this.timerRepo);
-            this.timerRepo = null;
+            this.timerRepo = undefined;
         }
 
         if (this.timerNews) {
             clearTimeout(this.timerNews);
-            this.timerNews = null;
+            this.timerNews = undefined;
         }
 
         if (this.ratingTimeout) {
             clearTimeout(this.ratingTimeout);
-            this.ratingTimeout = null;
+            this.ratingTimeout = undefined;
         }
 
         if (this.updaterTimeout) {
             clearTimeout(this.updaterTimeout);
-            this.updaterTimeout = null;
+            this.updaterTimeout = undefined;
         }
 
         if (this.eosSecurityDebounce) {
@@ -1051,11 +1086,6 @@ class Admin extends Adapter {
             this.eosSecurityTimer = null;
         }
 
-        if (this.mcpChat) {
-            void this.mcpChat.close();
-            this.mcpChat = null;
-        }
-
         try {
             this.log.info(`terminating http${this.config.secure ? 's' : ''} server on port ${this.config.port}`);
             socket?.close();
@@ -1066,34 +1096,26 @@ class Admin extends Adapter {
         }
     };
 
-    onLog = (obj: {
-        /** Log message */
-        message: string;
-        /** origin */
-        from: string;
-        /** timestamp in ms */
-        ts: number;
-        /** Log message */
-        severity: ioBroker.LogLevel;
-        /** unique ID of the message */
-        _id: number;
-    }): void => socket?.sendLog(obj);
+    onLog = (obj: ioBroker.LogMessage): void => socket?.sendLog(obj);
 
     private isLegacyAdminLockEnabled(): boolean {
         return this.config.eosLockLegacyAdmin !== false;
     }
 
     private shouldHideLegacyAdminFromNonAdmins(): boolean {
-        const config = this.config as Record<string, unknown>;
-        return this.config.eosHideLegacyAdminFromNonAdmins !== false
-            && config.eosHideLegacyAdminForNonAdmins !== false
-            && config.nexowattHideLegacyAdminForNonAdmins !== false;
+        const config = this.config;
+        return (
+            this.config.eosHideLegacyAdminFromNonAdmins !== false &&
+            config.eosHideLegacyAdminForNonAdmins !== false &&
+            config.nexowattHideLegacyAdminForNonAdmins !== false
+        );
     }
 
     private shouldHideLegacyBackupFromNonAdmins(): boolean {
-        const config = this.config as Record<string, unknown>;
-        return config.eosHideLegacyBackupFromNonAdmins !== false
-            && config.nexowattHideLegacyBackupFromNonAdmins !== false;
+        const config = this.config;
+        return (
+            config.eosHideLegacyBackupFromNonAdmins !== false && config.nexowattHideLegacyBackupFromNonAdmins !== false
+        );
     }
 
     private shouldApplyAdminOnlyAclToProtectedAdapters(): boolean {
@@ -1102,8 +1124,10 @@ class Admin extends Adapter {
         // objects are restricted too aggressively. Delete/stop protection is enforced by EOS UI
         // policy and backend guards, while hard ACLs remain reserved for the legacy admin and
         // eos-admin itself.
-        const config = this.config as Record<string, unknown>;
-        return config.eosStrictProtectedAdapterAcl === true && this.config.eosApplyAdminOnlyAclToProtectedAdapters === true;
+        const config = this.config;
+        return (
+            config.eosStrictProtectedAdapterAcl === true && this.config.eosApplyAdminOnlyAclToProtectedAdapters === true
+        );
     }
 
     private getAdminOnlyGroup(): string {
@@ -1123,7 +1147,7 @@ class Admin extends Adapter {
         return normalizeGroupId(this.config.eosAdminOnlyGroup) || DEFAULT_ADMIN_ONLY_GROUP;
     }
 
-    private getAdminOnlyAcl(): Record<string, unknown> {
+    private getAdminOnlyAcl(): ioBroker.ObjectACL {
         return {
             object: ADMIN_ONLY_OBJECT_ACL,
             owner: ADMIN_OWNER_USER,
@@ -1148,7 +1172,6 @@ class Admin extends Adapter {
 
     private getEosRoleGroupAcl(role: 'service' | 'installer' | 'enduser'): ioBroker.GroupObject['common']['acl'] {
         const full = { list: true, read: true, write: true, create: true, delete: true };
-        const none = { list: false, read: false, write: false, create: false, delete: false };
         if (role === 'service') {
             return {
                 object: { ...full },
@@ -1181,7 +1204,11 @@ class Admin extends Adapter {
             return { en: 'NexoWatt Admin / Service', de: 'NexoWatt Admin / Service', nl: 'NexoWatt Admin / Service' };
         }
         if (role === 'installer') {
-            return { en: 'Installer / Commissioning', de: 'Installateur / Inbetriebnahme', nl: 'Installateur / inbedrijfstelling' };
+            return {
+                en: 'Installer / Commissioning',
+                de: 'Installateur / Inbetriebnahme',
+                nl: 'Installateur / inbedrijfstelling',
+            };
         }
         return { en: 'End user / Smart Home', de: 'Endkunde / Smart Home', nl: 'Eindgebruiker / Smart Home' };
     }
@@ -1202,7 +1229,7 @@ class Admin extends Adapter {
                     acl,
                 },
                 native: {},
-            } as ioBroker.GroupObject;
+            };
             changed = true;
         }
         group.common ||= {} as ioBroker.GroupCommon;
@@ -1219,7 +1246,7 @@ class Admin extends Adapter {
             group.common.acl = acl;
             changed = true;
         }
-        const native = ((group.native ||= {}) as Record<string, unknown>);
+        const native = (group.native ||= {}) as Record<string, unknown>;
         if (native.nexowattEosRole !== role || native.nexowattManagedRole !== true) {
             native.nexowattEosRole = role;
             native.nexowattManagedRole = true;
@@ -1264,15 +1291,19 @@ class Admin extends Adapter {
     }
 
     private async ensureEosServiceAdministratorMembership(): Promise<void> {
-        const administrator = (await this.getForeignObjectAsync('system.group.administrator')) as ioBroker.GroupObject | null;
+        const administrator = (await this.getForeignObjectAsync(
+            'system.group.administrator',
+        )) as ioBroker.GroupObject | null;
         if (!administrator?.common) {
             return;
         }
         administrator.common.members ||= [];
-        const native = ((administrator.native ||= {}) as Record<string, unknown>);
+        const native = (administrator.native ||= {}) as Record<string, unknown>;
         const previousManaged = new Set(
             Array.isArray(native.nexowattEosServiceMirroredMembers)
-                ? (native.nexowattEosServiceMirroredMembers as unknown[]).filter((entry): entry is string => typeof entry === 'string')
+                ? (native.nexowattEosServiceMirroredMembers as unknown[]).filter(
+                      (entry): entry is string => typeof entry === 'string',
+                  )
                 : [],
         );
         const currentManaged = new Set<string>();
@@ -1335,7 +1366,7 @@ class Admin extends Adapter {
                     provisionedAt: new Date().toISOString(),
                 },
             },
-        } as ioBroker.UserObject;
+        };
         await this.setForeignObjectAsync(userId, user);
         return user;
     }
@@ -1348,10 +1379,11 @@ class Admin extends Adapter {
         if (!user?.common || userId === 'system.user.admin') {
             return;
         }
-        const native = ((user.native ||= {}) as Record<string, unknown>);
-        const account = ((native.nexowattEosAccount ||= {}) as Record<string, unknown>);
-        const initialized = account.passwordInitialized === true
-            || Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
+        const native = (user.native ||= {}) as Record<string, unknown>;
+        const account = (native.nexowattEosAccount ||= {}) as Record<string, unknown>;
+        const initialized =
+            account.passwordInitialized === true ||
+            Number(account.passwordSetupVersion || account.passwordInitializationVersion || 0) >= 1;
         if (initialized && account.forcePasswordChange !== true) {
             return;
         }
@@ -1362,14 +1394,16 @@ class Admin extends Adapter {
         }
         if (String(user.common.password || '') === '') {
             const bootstrapSecret = `${randomBytes(48).toString('base64url')}!aA1`;
-            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, { user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User });
+            await this.setPasswordAsync(userId.replace(/^system\.user\./, ''), bootstrapSecret, {
+                user: ADMIN_OWNER_USER as ioBroker.ObjectIDs.User,
+            });
             user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
             if (!user) {
                 return;
             }
         }
-        const updatedNative = ((user.native ||= {}) as Record<string, unknown>);
-        const updatedAccount = ((updatedNative.nexowattEosAccount ||= {}) as Record<string, unknown>);
+        const updatedNative = (user.native ||= {}) as Record<string, unknown>;
+        const updatedAccount = (updatedNative.nexowattEosAccount ||= {}) as Record<string, unknown>;
         let changed = false;
         for (const [key, value] of Object.entries({
             passwordInitialized: false,
@@ -1424,7 +1458,9 @@ class Admin extends Adapter {
         const priorities = { enduser: 1, installer: 2, admin: 3 } as const;
         const assign = (userId: string, role: 'admin' | 'installer' | 'enduser'): void => {
             const current = next.get(userId);
-            if (!current || priorities[role] > priorities[current]) next.set(userId, role);
+            if (!current || priorities[role] > priorities[current]) {
+                next.set(userId, role);
+            }
         };
         for (const [roleName, groupIds] of [
             ['admin', this.getEosRoleGroupIds('service')],
@@ -1434,27 +1470,42 @@ class Admin extends Adapter {
         ] as const) {
             for (const groupId of groupIds) {
                 const group = (await this.getForeignObjectAsync(groupId)) as ioBroker.GroupObject | null;
-                for (const member of group?.common?.members || []) assign(member, roleName);
+                for (const member of group?.common?.members || []) {
+                    assign(member, roleName);
+                }
             }
         }
         for (const userId of next.keys()) {
-            const user = await this.getForeignObjectAsync(userId) as ioBroker.UserObject | null;
-            if (!user || user.type !== 'user' || user.common?.enabled === false) nextDisabled.add(userId);
-            const native = (user?.native || {}) as Record<string, any>;
-            if (native.nexowattEosAccount?.forcePasswordChange === true
-                || native.nexowattPasswordChangeRequired === true || native.eosPasswordChangeRequired === true) {
+            const user = (await this.getForeignObjectAsync(userId)) as ioBroker.UserObject | null;
+            if (!user || user.type !== 'user' || user.common?.enabled === false) {
+                nextDisabled.add(userId);
+            }
+            const native = user?.native || {};
+            if (
+                native.nexowattEosAccount?.forcePasswordChange === true ||
+                native.nexowattPasswordChangeRequired === true ||
+                native.eosPasswordChangeRequired === true
+            ) {
                 nextPending.add(userId);
             }
         }
         // A concurrent security event invalidates the entire in-flight authorization snapshot.
-        if (sessionEpoch !== this.eosSessionSecurity?.epoch) return;
+        if (sessionEpoch !== this.eosSessionSecurity?.epoch) {
+            return;
+        }
         // Commit only after every async read succeeded; no partial authorization snapshot.
         this.eosRoleCache.clear();
         this.eosDisabledUsers.clear();
         this.eosPasswordSetupRequired.clear();
-        for (const [userId, role] of next.entries()) this.eosRoleCache.set(userId, role);
-        for (const userId of nextDisabled) this.eosDisabledUsers.add(userId);
-        for (const userId of nextPending) this.eosPasswordSetupRequired.add(userId);
+        for (const [userId, role] of next.entries()) {
+            this.eosRoleCache.set(userId, role);
+        }
+        for (const userId of nextDisabled) {
+            this.eosDisabledUsers.add(userId);
+        }
+        for (const userId of nextPending) {
+            this.eosPasswordSetupRequired.add(userId);
+        }
         this.eosRoleCacheHealthy = true;
     }
 
@@ -1472,12 +1523,26 @@ class Admin extends Adapter {
     }
 
     private installEosSocketCommandGuard(socketAdmin: SocketAdmin): void {
-        const commands = (socketAdmin as unknown as { commands?: { _checkPermissions?: (...args: any[]) => boolean } }).commands;
-        if (!commands?._checkPermissions || (commands as any)._nexowattEosGuardInstalled) {
+        function isEosSocketCommands(value: unknown): value is EosSocketCommands {
+            return (
+                !!value &&
+                typeof value === 'object' &&
+                '_checkPermissions' in value &&
+                typeof value._checkPermissions === 'function'
+            );
+        }
+
+        // socket-classes exposes the command dispatcher at runtime. A changed API must stop startup,
+        // because continuing without this authorization guard would weaken the EOS role boundary.
+        const commands: unknown = Reflect.get(socketAdmin, 'commands');
+        if (!isEosSocketCommands(commands)) {
+            throw new Error('EOS_SOCKET_PERMISSION_API_UNAVAILABLE');
+        }
+        if (commands._nexowattEosGuardInstalled) {
             return;
         }
         const original = commands._checkPermissions.bind(commands);
-        const deny = (socketClient: any, command: string, callback: unknown, reason: string): false => {
+        const deny = (socketClient: WebSocketClient, command: string, callback: unknown, reason: string): false => {
             this.log.warn(`EOS role guard denied ${command} for ${socketClient?._acl?.user || 'unknown'} (${reason})`);
             if (typeof callback === 'function') {
                 callback(ERROR_PERMISSION);
@@ -1486,19 +1551,36 @@ class Admin extends Adapter {
             }
             return false;
         };
-        commands._checkPermissions = (socketClient: any, command: string, callback?: unknown, ...args: any[]): boolean => {
-            const userId = socketClient?._acl?.user as string | undefined;
+        commands._checkPermissions = (
+            socketClient: WebSocketClient,
+            command: string,
+            callback?: unknown,
+            ...args: unknown[]
+        ): boolean => {
+            const userId = socketClient?._acl?.user;
             const role = this.getEosCachedRole(userId);
-            if (!this.eosSessionSecurity?.isSocketAllowed(socketClient) || !this.eosRoleCacheHealthy || !userId || this.eosDisabledUsers.has(userId) || this.eosPasswordSetupRequired.has(userId)) {
+            if (
+                !this.eosSessionSecurity?.isSocketAllowed(socketClient) ||
+                !this.eosRoleCacheHealthy ||
+                !userId ||
+                this.eosDisabledUsers.has(userId) ||
+                this.eosPasswordSetupRequired.has(userId)
+            ) {
                 return deny(socketClient, command, callback, 'account disabled or password change required');
             }
             if (role === 'admin') {
                 const allowed = original(socketClient, command, callback, ...args);
                 const target = typeof args[0] === 'string' ? args[0] : '';
-                if (allowed && (['changePassword', 'addUser', 'delUser', 'addGroup', 'delGroup'].includes(command)
-                    || (['setObject', 'extendObject', 'delObject'].includes(command) && /^system\.(?:user|group)\./.test(target)))) {
+                if (
+                    allowed &&
+                    (['changePassword', 'addUser', 'delUser', 'addGroup', 'delGroup'].includes(command) ||
+                        (['setObject', 'extendObject', 'delObject'].includes(command) &&
+                            /^system\.(?:user|group)\./.test(target)))
+                ) {
                     // Close cached socket ACLs before the authorized asynchronous credential write.
-                    this.eosSessionSecurity.revoke();
+                    this.eosSessionSecurity?.revoke();
+                    this.uiPushSessions.clear();
+                    webServer?.invalidateProxySessions();
                 }
                 return allowed;
             }
@@ -1521,14 +1603,22 @@ class Admin extends Adapter {
             }
             const objectId = typeof args[0] === 'string' ? args[0] : '';
             if (['setObject', 'extendObject', 'delObject'].includes(command)) {
-                if (/^system\.(?:config|repositories|certificates|licenses|credentials\.|user\.|group\.|host\.)/.test(objectId)) {
+                if (
+                    /^system\.(?:config|repositories|certificates|licenses|credentials\.|user\.|group\.|host\.)/.test(
+                        objectId,
+                    )
+                ) {
                     return deny(socketClient, command, callback, 'sensitive system objects are Service-only');
                 }
                 if (/^system\.adapter\.(?:admin|eos-admin|backitup|xterm)(?:\.|$)/.test(objectId)) {
                     return deny(socketClient, command, callback, 'internal Service reserve is Admin/Service-only');
                 }
                 const adapterObject = objectId.match(/^system\.adapter\.([^.]+)/)?.[1];
-                if (command === 'delObject' && adapterObject && this.getProtectedAdapterNames().includes(adapterObject)) {
+                if (
+                    command === 'delObject' &&
+                    adapterObject &&
+                    this.getProtectedAdapterNames().includes(adapterObject)
+                ) {
                     return deny(socketClient, command, callback, 'protected EOS system module');
                 }
                 if (role === 'enduser' && !/^enum\.(?:rooms|functions)(?:\.|$)/.test(objectId)) {
@@ -1548,7 +1638,7 @@ class Admin extends Adapter {
             }
             return original(socketClient, command, callback, ...args);
         };
-        (commands as any)._nexowattEosGuardInstalled = true;
+        commands._nexowattEosGuardInstalled = true;
     }
 
     private async ensureEosRoleModel(): Promise<void> {
@@ -1571,13 +1661,16 @@ class Admin extends Adapter {
         if (!obj) {
             return false;
         }
-        const native = ((obj as ioBroker.AnyObject & { native?: Record<string, unknown> }).native ||= {}) as Record<string, unknown>;
+        const native = ((obj as ioBroker.AnyObject & { native?: Record<string, unknown> }).native ||= {}) as Record<
+            string,
+            unknown
+        >;
         let changed = false;
         if (native._nexowattEosRoleReadableAclManaged !== true) {
             native._nexowattEosRoleReadableAclManaged = true;
             changed = true;
         }
-        const acl = (obj.acl ||= {}) as Record<string, unknown>;
+        const acl = (obj.acl ||= { owner: ADMIN_OWNER_USER, ownerGroup: 'system.group.administrator', object: 0 });
         if (acl.owner !== ADMIN_OWNER_USER) {
             acl.owner = ADMIN_OWNER_USER;
             changed = true;
@@ -1617,7 +1710,9 @@ class Admin extends Adapter {
                 }
             }
         } catch (e) {
-            this.log.debug(`Cannot scan credential objects for EOS ACL guard: ${e instanceof Error ? e.message : e}`);
+            this.log.debug(
+                `Cannot scan credential objects for EOS ACL guard: ${e instanceof Error ? e.message : String(e)}`,
+            );
         }
     }
 
@@ -1625,10 +1720,11 @@ class Admin extends Adapter {
         try {
             const enums = await this.getObjectListAsync({ startkey: 'enum.', endkey: 'enum.\u9999' });
             for (const row of enums.rows || []) {
-                const smartHomeEnum = row.id === 'enum.rooms'
-                    || row.id === 'enum.functions'
-                    || row.id?.startsWith('enum.rooms.')
-                    || row.id?.startsWith('enum.functions.');
+                const smartHomeEnum =
+                    row.id === 'enum.rooms' ||
+                    row.id === 'enum.functions' ||
+                    row.id?.startsWith('enum.rooms.') ||
+                    row.id?.startsWith('enum.functions.');
                 if (!smartHomeEnum) {
                     continue;
                 }
@@ -1636,7 +1732,11 @@ class Admin extends Adapter {
                 if (!obj) {
                     continue;
                 }
-                const acl = (obj.acl ||= {}) as Record<string, unknown>;
+                const acl = (obj.acl ||= {
+                    owner: ADMIN_OWNER_USER,
+                    ownerGroup: 'system.group.administrator',
+                    object: 0,
+                });
                 let changed = false;
                 if (acl.owner !== ADMIN_OWNER_USER) {
                     acl.owner = ADMIN_OWNER_USER;
@@ -1658,7 +1758,7 @@ class Admin extends Adapter {
                 }
             }
         } catch (e) {
-            this.log.debug(`Cannot prepare Smart Home enum ACLs: ${e instanceof Error ? e.message : e}`);
+            this.log.debug(`Cannot prepare Smart Home enum ACLs: ${e instanceof Error ? e.message : String(e)}`);
         }
     }
 
@@ -1668,7 +1768,10 @@ class Admin extends Adapter {
             return false;
         }
 
-        const native = ((obj as ioBroker.AnyObject & { native?: Record<string, unknown> }).native ||= {}) as Record<string, unknown>;
+        const native = ((obj as ioBroker.AnyObject & { native?: Record<string, unknown> }).native ||= {}) as Record<
+            string,
+            unknown
+        >;
         let changed = false;
         if (native._nexowattEosAclManaged !== true) {
             native._nexowattEosAclManaged = true;
@@ -1677,7 +1780,7 @@ class Admin extends Adapter {
         }
 
         const targetAcl = this.getAdminOnlyAcl();
-        const acl = (obj.acl ||= {}) as Record<string, unknown>;
+        const acl = (obj.acl ||= { owner: ADMIN_OWNER_USER, ownerGroup: 'system.group.administrator', object: 0 });
 
         if (acl.owner !== targetAcl.owner) {
             acl.owner = targetAcl.owner;
@@ -1702,18 +1805,20 @@ class Admin extends Adapter {
     }
 
     private async restoreObjectAclManagedByEos(id: string): Promise<boolean> {
-        const obj = (await this.getForeignObjectAsync(id)) as (ioBroker.AnyObject & { native?: Record<string, unknown> }) | null | undefined;
+        const obj = (await this.getForeignObjectAsync(id)) as
+            (ioBroker.AnyObject & { native?: Record<string, unknown> }) | null | undefined;
         const native = obj?.native as Record<string, unknown> | undefined;
         if (!obj || !native || native._nexowattEosAclManaged !== true) {
             return false;
         }
 
         const targetAcl = this.getAdminOnlyAcl();
-        const currentAcl = obj.acl as Record<string, unknown> | undefined;
-        const stillManaged = !!currentAcl
-            && currentAcl.owner === targetAcl.owner
-            && currentAcl.ownerGroup === targetAcl.ownerGroup
-            && currentAcl.object === targetAcl.object;
+        const currentAcl = obj.acl;
+        const stillManaged =
+            !!currentAcl &&
+            currentAcl.owner === targetAcl.owner &&
+            currentAcl.ownerGroup === targetAcl.ownerGroup &&
+            currentAcl.object === targetAcl.object;
         const previous = native._nexowattEosAclPrevious;
         if (stillManaged) {
             if (typeof previous === 'string' && previous) {
@@ -1770,7 +1875,9 @@ class Admin extends Adapter {
                 }
             }
         } catch (e) {
-            this.log.debug(`Cannot scan internal backup instances for EOS visibility guard: ${e instanceof Error ? e.message : e}`);
+            this.log.debug(
+                `Cannot scan internal backup instances for EOS visibility guard: ${e instanceof Error ? e.message : String(e)}`,
+            );
         }
         return [...ids];
     }
@@ -1791,7 +1898,9 @@ class Admin extends Adapter {
             changed = (await this.ensureObjectAdminOnlyAcl(id)) || changed;
         }
         if (changed) {
-            this.log.info(`EOS ACL guard restricted internal ${LEGACY_BACKUP_ADAPTER_NAME} reserve to ${this.getAdminOnlyGroup()}`);
+            this.log.info(
+                `EOS ACL guard restricted internal ${LEGACY_BACKUP_ADAPTER_NAME} reserve to ${this.getAdminOnlyGroup()}`,
+            );
         }
     }
 
@@ -1804,9 +1913,8 @@ class Admin extends Adapter {
     }
 
     private getLegacyAdminLockBind(): string {
-        const configured = typeof this.config.eosLegacyAdminLockBind === 'string'
-            ? this.config.eosLegacyAdminLockBind.trim()
-            : '';
+        const configured =
+            typeof this.config.eosLegacyAdminLockBind === 'string' ? this.config.eosLegacyAdminLockBind.trim() : '';
         return configured || DEFAULT_LEGACY_ADMIN_LOCK_BIND;
     }
 
@@ -1831,7 +1939,10 @@ class Admin extends Adapter {
         return { adapter: match[1], instance: match[2] };
     }
 
-    private isProtectedDeleteObjectId(id: string, protectedAdapters = new Set(this.getProtectedAdapterNames())): boolean {
+    private isProtectedDeleteObjectId(
+        id: string,
+        protectedAdapters = new Set(this.getProtectedAdapterNames()),
+    ): boolean {
         const { adapter, instance } = this.parseAdapterObjectId(id);
         if (!adapter || !protectedAdapters.has(adapter)) {
             return false;
@@ -1857,7 +1968,10 @@ class Admin extends Adapter {
         }, 750);
     }
 
-    private async ensureObjectProtectionPolicy(id: string, options: { keepDontDelete: boolean; adminOnlyAcl: boolean }): Promise<boolean> {
+    private async ensureObjectProtectionPolicy(
+        id: string,
+        options: { keepDontDelete: boolean; adminOnlyAcl: boolean },
+    ): Promise<boolean> {
         const obj = (await this.getForeignObjectAsync(id)) as ioBroker.AnyObject | null | undefined;
         if (!obj?.common) {
             return false;
@@ -1875,15 +1989,14 @@ class Admin extends Adapter {
         }
 
         // Keep updates possible. nondeletable=true blocks adapter updates in ioBroker.
-        if ((obj.common as Record<string, unknown>).nondeletable === true) {
-            (obj.common as Record<string, unknown>).nondeletable = false;
+        if (clearLegacyNondeletable(obj.common)) {
             changed = true;
         }
 
         const targetAcl = this.getAdminOnlyAcl();
 
         if (options.adminOnlyAcl) {
-            const acl = (obj.acl ||= {}) as Record<string, unknown>;
+            const acl = (obj.acl ||= { owner: ADMIN_OWNER_USER, ownerGroup: 'system.group.administrator', object: 0 });
 
             if (acl.owner !== targetAcl.owner) {
                 acl.owner = targetAcl.owner;
@@ -1899,13 +2012,15 @@ class Admin extends Adapter {
                 acl.object = targetAcl.object;
                 changed = true;
             }
-        } else if (obj.acl
-            && (obj.acl as Record<string, unknown>).owner === targetAcl.owner
-            && (obj.acl as Record<string, unknown>).ownerGroup === targetAcl.ownerGroup
-            && (obj.acl as Record<string, unknown>).object === targetAcl.object) {
+        } else if (
+            obj.acl &&
+            obj.acl.owner === targetAcl.owner &&
+            obj.acl.ownerGroup === targetAcl.ownerGroup &&
+            obj.acl.object === targetAcl.object
+        ) {
             // v37 repair: remove stale EOS admin-only ACLs from runtime adapters such as
             // BackItUp. Those ACLs can disturb adapter internals and adapter-owned config UIs.
-            delete (obj as ioBroker.AnyObject).acl;
+            delete obj.acl;
             changed = true;
         }
 
@@ -1943,8 +2058,7 @@ class Admin extends Adapter {
             changed = true;
         }
 
-        if ((obj.common as Record<string, unknown>).nondeletable === true) {
-            (obj.common as Record<string, unknown>).nondeletable = false;
+        if (clearLegacyNondeletable(obj.common)) {
             changed = true;
         }
 
@@ -1952,9 +2066,13 @@ class Admin extends Adapter {
         // hard core list. UI protection remains for real core modules.
         if (!isProtected && obj.acl) {
             const targetAcl = this.getAdminOnlyAcl();
-            const acl = obj.acl as Record<string, unknown>;
-            if (acl.owner === targetAcl.owner && acl.ownerGroup === targetAcl.ownerGroup && acl.object === targetAcl.object) {
-                delete (obj as ioBroker.AnyObject).acl;
+            const acl = obj.acl;
+            if (
+                acl.owner === targetAcl.owner &&
+                acl.ownerGroup === targetAcl.ownerGroup &&
+                acl.object === targetAcl.object
+            ) {
+                delete obj.acl;
                 changed = true;
             }
         }
@@ -1982,7 +2100,9 @@ class Admin extends Adapter {
                     }
                 }
             } catch (e) {
-                this.log.warn(`Cannot scan ${type} objects for stale delete locks: ${e instanceof Error ? e.message : e}`);
+                this.log.warn(
+                    `Cannot scan ${type} objects for stale delete locks: ${e instanceof Error ? e.message : String(e)}`,
+                );
             }
         };
 
@@ -2010,9 +2130,7 @@ class Admin extends Adapter {
         // v87 role access: EOS Admin itself must stay readable for authenticated installer and
         // end-user sessions. Deletion is still blocked by EOS policy, but an administrator-only
         // object ACL prevents the socket from reading its own instance and causes permissionError.
-        const adminOnlyAcl = !isEosAdmin
-            && this.shouldApplyAdminOnlyAclToProtectedAdapters()
-            && adapter !== 'backitup';
+        const adminOnlyAcl = !isEosAdmin && this.shouldApplyAdminOnlyAclToProtectedAdapters() && adapter !== 'backitup';
 
         // v37 BackItUp/runtime-adapter compatibility:
         // default EOS protection is UI/role based. Do not rewrite common/ACL of runtime adapters
@@ -2028,10 +2146,11 @@ class Admin extends Adapter {
                 objectChanged = await this.restoreObjectAclManagedByEos(id);
                 objectChanged = (await this.ensureEosRoleReadableAcl(id)) || objectChanged;
             }
-            objectChanged = (await this.ensureObjectProtectionPolicy(id, {
-                keepDontDelete: false,
-                adminOnlyAcl: protectWithAdminAcl,
-            })) || objectChanged;
+            objectChanged =
+                (await this.ensureObjectProtectionPolicy(id, {
+                    keepDontDelete: false,
+                    adminOnlyAcl: protectWithAdminAcl,
+                })) || objectChanged;
             return objectChanged;
         };
 
@@ -2044,11 +2163,16 @@ class Admin extends Adapter {
             });
 
             for (const row of instances.rows) {
-                const protectThisInstance = this.isProtectedDeleteObjectId(row.id, new Set(this.getProtectedAdapterNames()));
+                const protectThisInstance = this.isProtectedDeleteObjectId(
+                    row.id,
+                    new Set(this.getProtectedAdapterNames()),
+                );
                 changed = (await reconcileObject(row.id, protectThisInstance && adminOnlyAcl)) || changed;
             }
         } catch (e) {
-            this.log.warn(`Cannot protect instances of adapter "${adapter}": ${e instanceof Error ? e.message : e}`);
+            this.log.warn(
+                `Cannot protect instances of adapter "${adapter}": ${e instanceof Error ? e.message : String(e)}`,
+            );
         }
 
         if (changed) {
@@ -2057,7 +2181,6 @@ class Admin extends Adapter {
     }
 
     private async ensureLegacyAdminLocked(): Promise<void> {
-
         if (!this.isLegacyAdminLockEnabled()) {
             return;
         }
@@ -2087,8 +2210,7 @@ class Admin extends Adapter {
             changed = true;
         }
 
-        if ((obj.common as Record<string, unknown>).nondeletable === true) {
-            (obj.common as Record<string, unknown>).nondeletable = false;
+        if (clearLegacyNondeletable(obj.common)) {
             changed = true;
         }
 
@@ -2125,7 +2247,7 @@ class Admin extends Adapter {
                 }
             }
         } catch (e) {
-            this.log.warn(`Cannot apply EOS security guard (${reason}): ${e instanceof Error ? e.message : e}`);
+            this.log.warn(`Cannot apply EOS security guard (${reason}): ${e instanceof Error ? e.message : String(e)}`);
         } finally {
             this.eosSecurityRunning = false;
         }
@@ -2165,7 +2287,7 @@ class Admin extends Adapter {
                 _id: 'info.updatesNumber',
                 type: 'state',
                 common: {
-                    role: 'indicator.updates',
+                    role: 'state',
                     name: {
                         en: 'Number of adapters to update',
                         de: 'Anzahl der zu aktualisierenden Adapter',
@@ -2364,7 +2486,11 @@ class Admin extends Adapter {
                 }
             } else if (activeRepo && systemRepos?.native?.repositories?.[activeRepo]?.json) {
                 // This is deprecated and must be deleted after a couple of years: BF 2025.02.07
-                sources = systemRepos.native.repositories[activeRepo].json;
+                // `native` is `Record<string, any>`, so the cast keeps `sources` narrowed to non-undefined
+                sources = systemRepos.native.repositories[activeRepo].json as Record<
+                    string,
+                    ioBroker.RepositoryJsonAdapterContent
+                >;
             }
         }
 
@@ -2419,7 +2545,7 @@ class Admin extends Adapter {
                 oldUpdates = JSON.parse(state.val) || {};
             } catch (e) {
                 oldUpdates = {};
-                this.log.warn(`Cannot parse info.updatesJson: ${e}`);
+                this.log.warn(`Cannot parse info.updatesJson: ${(e as Error).toString()}`);
             }
         } else {
             oldUpdates = {};
@@ -2450,7 +2576,7 @@ class Admin extends Adapter {
                     }
                 }
             } catch (err) {
-                this.log.warn(`Error on version check for ${name}: ${err}`);
+                this.log.warn(`Error on version check for ${name}: ${(err as Error).toString()}`);
             }
         });
 
@@ -2479,7 +2605,7 @@ class Admin extends Adapter {
         await this.registerNotification('admin', 'adapterUpdates', textArr.join('\n'));
     }
 
-    async initSocket(server: Server, store: Store): Promise<void> {
+    async initSocket(server: Server, store: Store | null): Promise<void> {
         const settings: SocketSettings = {
             language: this.config.language,
             defaultUser: this.config.defaultUser,
@@ -2495,10 +2621,15 @@ class Admin extends Adapter {
         try {
             await this.ensureEosRoleModel();
         } catch (e) {
-            this.log.warn(`Cannot prepare EOS role cache before socket start: ${e instanceof Error ? e.message : e}`);
+            this.log.warn(
+                `Cannot prepare EOS role cache before socket start: ${e instanceof Error ? e.message : String(e)}`,
+            );
         }
 
         socket = new SocketAdmin(settings, this, objects);
+        if (!this.eosSessionSecurity || !isSocketSessionStore(store)) {
+            throw new Error('EOS authentication services are unavailable');
+        }
         this.eosSessionSecurity.bindSockets(socket);
         this.installEosSocketCommandGuard(socket);
         socket.start(server, SocketIO, { store, oauth2Only: true, noBasicAuth: this.config.noBasicAuth });
@@ -2512,7 +2643,7 @@ class Admin extends Adapter {
                     try {
                         await socket.updateRatings();
                     } catch (error) {
-                        this.log.error(`Cannot fetch ratings: ${error}`);
+                        this.log.error(`Cannot fetch ratings: ${(error as Error).toString()}`);
                     }
                 }
             })
@@ -2535,15 +2666,16 @@ class Admin extends Adapter {
                 this._tasks = this._tasks || [];
 
                 for (const row of doc.rows) {
-                    const obj: ioBroker.AnyObject = row.value as ioBroker.AnyObject;
-                    if (!obj.acl || obj.acl.owner !== this.config.defaultUser) {
+                    const obj: ioBroker.AnyObject = row.value;
+                    // objects without an ACL are left alone - the objects DB owns that structure
+                    if (obj.acl && obj.acl.owner !== this.config.defaultUser) {
                         obj.acl.owner = this.config.defaultUser;
                         await this.setForeignObjectAsync(obj._id, obj);
                         len++;
                     }
                 }
             } catch (e) {
-                this.log.error(`Error applying rights to objects: ${e.message}`);
+                this.log.error(`Error applying rights to objects: ${(e as Error).message}`);
             }
         }
         return len;
@@ -2589,10 +2721,12 @@ class Admin extends Adapter {
     async updateNews(): Promise<void> {
         if (this.timerNews) {
             clearTimeout(this.timerNews);
-            this.timerNews = null;
+            this.timerNews = undefined;
         }
 
-        this.checkNodeJsVersion().catch(() => this.log.warn('Cannot check Node.js versions; bounded request or local update failed'));
+        this.checkNodeJsVersion().catch(() =>
+            this.log.warn('Cannot check Node.js versions; bounded request or local update failed'),
+        );
 
         let oldNews: NewsMessage[];
         let newEtag;
@@ -2604,15 +2738,19 @@ class Admin extends Adapter {
         const newsRequestStarted = performance.now();
         const newsRemainingBudget = (): number => {
             const remaining = Math.floor(5000 - (performance.now() - newsRequestStarted));
-            if (remaining <= 0) throw new Error('EOS_NEWS_REQUEST_DEADLINE');
+            if (remaining <= 0) {
+                throw new Error('EOS_NEWS_REQUEST_DEADLINE');
+            }
             return remaining;
         };
 
         try {
             etag = await requestHttpsJson('https://iobroker.live/repo/news-hash.json', {
-                allowedHosts: ['iobroker.live'], maxBytes: 16_384, budgetMs: newsRemainingBudget(),
+                allowedHosts: ['iobroker.live'],
+                maxBytes: 16_384,
+                budgetMs: newsRemainingBudget(),
             });
-        } catch (e) {
+        } catch {
             this.log.warn('Cannot update news; bounded request or local update failed');
         }
 
@@ -2623,9 +2761,11 @@ class Admin extends Adapter {
 
             try {
                 _newNews = await requestHttpsJson('https://iobroker.live/repo/news.json', {
-                    allowedHosts: ['iobroker.live'], maxBytes: 1_048_576, budgetMs: newsRemainingBudget(),
+                    allowedHosts: ['iobroker.live'],
+                    maxBytes: 1_048_576,
+                    budgetMs: newsRemainingBudget(),
                 });
-            } catch (e) {
+            } catch {
                 this.log.warn('Cannot fetch news feed; bounded HTTPS request failed');
             }
         } else {
@@ -2684,11 +2824,16 @@ class Admin extends Adapter {
             if (newEtag !== oldEtag) {
                 await this.setStateAsync('info.newsETag', newEtag, true);
             }
-        } catch (e) {
+        } catch {
             this.log.warn('Cannot update news; bounded request or local update failed');
         }
 
-        this.timerNews = setTimeout(() => this.updateNews(), 24 * ONE_HOUR_MS + 1);
+        this.timerNews = this.setTimeout(
+            () => {
+                this.updateNews().catch(() => this.log.warn('Cannot update news'));
+            },
+            24 * ONE_HOUR_MS + 1,
+        );
     }
 
     /**
@@ -2865,9 +3010,22 @@ class Admin extends Adapter {
         if (!hostAlive?.val) {
             return 'jsonl';
         }
-        const diagData = await this.sendToHostAsync(this.host, 'getDiagData', 'normal');
-        // @ts-expect-error messages are special and cannot be typed easily
-        return diagData.objectsType as 'jsonl' | 'file' | 'redis';
+        const diagData: unknown = await this.sendToHostAsync(this.host, 'getDiagData', 'normal');
+        const type = isRecord(diagData) ? diagData.objectsType : undefined;
+        return type === 'file' || type === 'redis' ? type : 'jsonl';
+    }
+
+    /**
+     * Get the installed js-controller version. The controller is core infrastructure and not a
+     * regular adapter, so its version cannot be read from the `system.adapter.*` objects.
+     */
+    getJsControllerVersion(): string {
+        try {
+            return getInstalledInfo()['js-controller']?.version || '';
+        } catch (e) {
+            this.log.warn(`Cannot determine js-controller version: ${(e as Error).toString()}`);
+            return '';
+        }
     }
 
     /**
@@ -2878,9 +3036,50 @@ class Admin extends Adapter {
         if (!hostAlive?.val) {
             throw new Error('Host is offline');
         }
-        const hostInfo = await this.sendToHostAsync(this.host, 'getHostInfo', {});
-        // @ts-expect-error messages are special and cannot be typed easily
+        const hostInfo: unknown = await this.sendToHostAsync(this.host, 'getHostInfo', {});
+        if (!isRecord(hostInfo) || typeof hostInfo.NPM !== 'string' || !semver.valid(hostInfo.NPM)) {
+            throw new Error('Host did not report its npm version');
+        }
         return hostInfo.NPM;
+    }
+
+    /**
+     * Send a message to a host.
+     *
+     * On CI systems the test frameworks (`@iobroker/testing`, `@iobroker/legacy-testing`) start only the adapters,
+     * but no js-controller host. Requests to the host (`getRepository`, `getInstalled`, `readBaseSettings`, ...)
+     * are then never answered, and the GUI waits for its read timeout (15 seconds) before it continues.
+     * To speed up the CI runs, such requests are answered immediately with a timeout error if the host is not alive.
+     * Outside a CI system this method behaves exactly like `Adapter.sendToHost`.
+     *
+     * @param hostName Name of the host with or without the `system.host.` prefix, or `null` for all hosts
+     * @param command Command for the host
+     * @param message Command-specific message
+     * @param callback Called with the answer of the host
+     */
+    override sendToHost(
+        hostName: string | null,
+        command: string,
+        message: unknown,
+        callback?: ioBroker.MessageCallback | ioBroker.MessageCallbackInfo,
+        options?: { timeout?: number; user?: ioBroker.ObjectIDs.User },
+    ): void {
+        if (!this.ciSystem || !hostName || typeof callback !== 'function') {
+            super.sendToHost(hostName, command, message, callback, options);
+            return;
+        }
+        const cb = callback;
+        const hostId = hostName.startsWith('system.host.') ? hostName : `system.host.${hostName}`;
+        void this.getForeignState(`${hostId}.alive`, (_err, state) => {
+            if (state?.val) {
+                super.sendToHost(hostName, command, message, cb, options);
+                return;
+            }
+            this.log.debug(`[CI] Host "${hostId}" is not alive: request "${command}" timed out`);
+            const answer = command === 'getRepository' || command === 'getInstalled' ? {} : { error: 'timeout' };
+            // Controller callbacks receive command data, not complete Message envelopes.
+            Reflect.apply(cb, undefined, [answer]);
+        });
     }
 
     async checkNodeJsVersion(): Promise<void> {
@@ -2895,7 +3094,7 @@ class Admin extends Adapter {
             for (const row of objs.rows) {
                 const obj = row.value;
                 if (obj?.common.enabled && obj.common.host === this.host) {
-                    const instance = parseInt(row.id.split('.').pop());
+                    const instance = parseInt(row.id.split('.').pop() || '', 10);
                     if (min === null || min < instance) {
                         min = instance;
                     }
@@ -2906,9 +3105,15 @@ class Admin extends Adapter {
             }
         }
 
-        const response = { data: validateNodeReleaseIndex(await requestHttpsJson('https://nodejs.org/download/release/index.json', {
-            allowedHosts: ['nodejs.org'], maxBytes: 2_097_152, budgetMs: 5000,
-        })) };
+        const response = {
+            data: validateNodeReleaseIndex(
+                await requestHttpsJson('https://nodejs.org/download/release/index.json', {
+                    allowedHosts: ['nodejs.org'],
+                    maxBytes: 2_097_152,
+                    budgetMs: 5000,
+                }),
+            ),
+        };
         const result = {
             nodeNewest: '',
             nodeNewestNext: '',
@@ -2921,7 +3126,7 @@ class Admin extends Adapter {
         try {
             result.npmCurrent = await this.getNpmVersion();
         } catch (error) {
-            this.log.warn(`Cannot get current npm version: ${error}`);
+            this.log.warn(`Cannot get current npm version: ${String(error)}`);
         }
 
         // https://nodejs.org/download/release/index.json
@@ -3172,12 +3377,12 @@ class Admin extends Adapter {
     /**
      * Add the repository read timestamp to the repository data structure
      */
-    async addRepositoryReadTimestamp(repository: Record<string, any>, activeRepo: string | string[]): Promise<void> {
+    async addRepositoryReadTimestamp(repository: unknown, activeRepo: string | string[]): Promise<void> {
         try {
             const readTime = new Date().toISOString();
 
             // Add read timestamp to the repository info structure
-            if (repository._repoInfo) {
+            if (isRecord(repository) && isRecord(repository._repoInfo)) {
                 repository._repoInfo.repoReadTime = readTime;
             }
 
@@ -3203,11 +3408,14 @@ class Admin extends Adapter {
                 this.log.debug(`Repository read timestamp updated: ${readTime}`);
             }
         } catch (err) {
-            this.log.error(`Cannot add repository read timestamp: ${err}`);
+            this.log.error(`Cannot add repository read timestamp: ${(err as Error).toString()}`);
         }
     }
 
-    async checkRevokedVersions(repository: Record<string, ioBroker.RepositoryJsonAdapterContent>): Promise<void> {
+    async checkRevokedVersions(repository: unknown): Promise<void> {
+        if (!isRecord(repository)) {
+            throw new Error('Invalid repository response');
+        }
         try {
             const adapters = Object.keys(repository);
             const instances = await this.getObjectViewAsync('system', 'instance', {
@@ -3216,19 +3424,25 @@ class Admin extends Adapter {
             });
 
             for (const _adapter of adapters) {
-                if (repository[_adapter].blockedVersions) {
+                const entry = repository[_adapter];
+                if (!isRecord(entry)) {
+                    continue;
+                }
+                if (entry.blockedVersions) {
                     // read the current version
-                    if (Array.isArray(repository[_adapter].blockedVersions)) {
+                    if (Array.isArray(entry.blockedVersions)) {
                         const instance = instances.rows.find(
                             item => item.value?.common.name === _adapter && item.value.common.enabled,
                         );
                         if (instance?.value?.common?.version) {
-                            for (let i = 0; i < repository[_adapter].blockedVersions.length; i++) {
+                            for (let i = 0; i < entry.blockedVersions.length; i++) {
                                 try {
                                     if (
                                         semver.satisfies(
                                             instance.value.common.version,
-                                            repository[_adapter].blockedVersions[i],
+                                            typeof entry.blockedVersions[i] === 'string'
+                                                ? entry.blockedVersions[i]
+                                                : '',
                                         )
                                     ) {
                                         // stop all instances
@@ -3262,9 +3476,7 @@ class Admin extends Adapter {
                                         }
                                     }
                                 } catch {
-                                    this.log.error(
-                                        `Cannot check revoked versions: ${repository[_adapter].blockedVersions[i]}`,
-                                    );
+                                    this.log.error(`Cannot check revoked versions: ${entry.blockedVersions[i]}`);
                                     // ignore
                                 }
                             }
@@ -3272,14 +3484,14 @@ class Admin extends Adapter {
                     } else {
                         this.log.error(
                             `Invalid blockedVersions for ${_adapter}: ${JSON.stringify(
-                                repository[_adapter].blockedVersions,
+                                entry.blockedVersions,
                             )}. Expected array like ["<= 3.17.4"] or also ["~3.14.0", "~3.15.0", "~3.16.0"]`,
                         );
                     }
                 }
             }
         } catch (e) {
-            this.log.error(`Cannot check revoked versions: ${e}`);
+            this.log.error(`Cannot check revoked versions: ${(e as Error).toString()}`);
         }
     }
 
@@ -3287,17 +3499,17 @@ class Admin extends Adapter {
         // start the next cycle
         if (this.config.autoUpdate) {
             if (this.timerRepo) {
-                clearTimeout(this.timerRepo);
-                this.timerRepo = null;
+                this.clearTimeout(this.timerRepo);
+                this.timerRepo = undefined;
             }
             this.log.debug(
                 `Next repo update on ${new Date(
                     Date.now() + this.config.autoUpdate * ONE_HOUR_MS + 1,
                 ).toLocaleString()}`,
             );
-            this.timerRepo = setTimeout(
+            this.timerRepo = this.setTimeout(
                 async () => {
-                    this.timerRepo = null;
+                    this.timerRepo = undefined;
                     await this.updateRegister();
                 },
                 this.config.autoUpdate * ONE_HOUR_MS + 1,
@@ -3314,30 +3526,19 @@ class Admin extends Adapter {
                 npm: CURRENT_MAX_MAJOR_NPM,
             };
         }
-        const repository: Record<string, ioBroker.RepositoryJsonAdapterContent> = (await this.sendToHostAsync(
-            this.host,
-            'getRepository',
-            {},
-        )) as unknown as Record<string, ioBroker.RepositoryJsonAdapterContent>;
-        const repoInfo: {
-            repoTime: string;
-            recommendedVersions: {
-                nodeJsRecommended: number;
-                npmRecommended: number;
-            };
-        } = repository?._repoInfo as unknown as {
-            repoTime: string;
-            recommendedVersions: {
-                nodeJsRecommended: number;
-                npmRecommended: number;
-            };
-        };
-
-        if (repoInfo?.recommendedVersions) {
-            return {
-                node: repoInfo.recommendedVersions?.nodeJsRecommended,
-                npm: repoInfo.recommendedVersions?.npmRecommended,
-            };
+        const repository: unknown = await this.sendToHostAsync(this.host, 'getRepository', {});
+        const repoInfo = isRecord(repository) ? repository._repoInfo : undefined;
+        const recommended = isRecord(repoInfo) ? repoInfo.recommendedVersions : undefined;
+        if (
+            isRecord(recommended) &&
+            Number.isInteger(recommended.nodeJsRecommended) &&
+            Number.isInteger(recommended.npmRecommended) &&
+            typeof recommended.nodeJsRecommended === 'number' &&
+            recommended.nodeJsRecommended >= 24 &&
+            typeof recommended.npmRecommended === 'number' &&
+            recommended.npmRecommended >= 11
+        ) {
+            return { node: recommended.nodeJsRecommended, npm: recommended.npmRecommended };
         }
         return {
             node: CURRENT_MAX_MAJOR_NODEJS,
@@ -3418,9 +3619,9 @@ class Admin extends Adapter {
                                     await this.addRepositoryReadTimestamp(_repository, active);
 
                                     socket?.repoUpdated();
-                                    this.checkRevokedVersions(
-                                        _repository as unknown as Record<string, ioBroker.RepositoryJsonAdapterContent>,
-                                    ).catch(e => this.log.error(`Cannot check revoked versions: ${e}`));
+                                    this.checkRevokedVersions(_repository).catch(e =>
+                                        this.log.error(`Cannot check revoked versions: ${e}`),
+                                    );
                                 }
 
                                 // start the next cycle
@@ -3434,15 +3635,15 @@ class Admin extends Adapter {
                         }
                         this.log.debug(`Next repo update on ${new Date(Date.now() + interval).toLocaleString()}`);
                         if (this.timerRepo) {
-                            clearTimeout(this.timerRepo);
+                            this.clearTimeout(this.timerRepo);
                         }
-                        this.timerRepo = setTimeout(async () => {
-                            this.timerRepo = null;
+                        this.timerRepo = this.setTimeout(async () => {
+                            this.timerRepo = undefined;
                             await this.updateRegister();
                         }, interval);
                     }
                 } catch (err) {
-                    this.log.error(`May not read "system.repositories": ${err}`);
+                    this.log.error(`May not read "system.repositories": ${(err as Error).toString()}`);
                 }
             }
         } catch {
@@ -3458,6 +3659,7 @@ class Admin extends Adapter {
         if (!this.config.defaultUser.match(/^system\.user\./)) {
             this.config.defaultUser = `system.user.${this.config.defaultUser}`;
         }
+        verifyAdapterCore(this).catch((e: Error) => this.log.warn(`Cannot check @adapter-core version: ${e?.message}`));
 
         this.startEosSecurityGuard();
 
@@ -3505,39 +3707,16 @@ class Admin extends Adapter {
             void this.updateRegister().catch(e => this.log.error(`Cannot update repository: ${e}`));
         }
 
-        void this.updateNews().catch(e =>
+        void this.updateNews().catch(() =>
             this.log.error('Cannot update news; bounded request or local update failed'),
         );
         updateIcons(this);
         void validateUserData0(this).catch(e => this.log.error(`Cannot validate 0_userdata: ${e}`));
         void updateDevicesObject(this).catch(e => this.log.error(`Cannot update devices objects: ${e}`));
-        void this.checkWellKnownPasswords().catch(e => this.log.error(`Cannot check well known passwords: ${e}`));
+        this.log.info(
+            'Operating-system password testing and changes are disabled in EOS; use authorized OS maintenance.',
+        );
         this.subscribeForeignObjects(`system.adapter.${this.namespace}.plugins.sentry.enabled`);
-    }
-
-    async checkWellKnownPasswords(): Promise<void> {
-        if (process.platform !== 'linux') {
-            return;
-        }
-        const found = await checkWellKnownPasswords();
-        if (found) {
-            this.changedPasswords = this.changedPasswords.filter(
-                item => item.login !== found.login && item.password !== found.password,
-            );
-            this.changedPasswords.push(found);
-
-            await this.registerNotification('admin', 'wellKnownPassword', I18n.translate('User: %s', found.login), {
-                contextData: {
-                    admin: {
-                        notification: {
-                            login: found.login,
-                            password: found.password,
-                            offlineMessage: I18n.getTranslatedObject('Offline message', found.login),
-                        },
-                    },
-                },
-            });
-        }
     }
 }
 

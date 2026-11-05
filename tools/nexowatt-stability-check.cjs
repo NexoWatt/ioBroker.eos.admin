@@ -18,13 +18,13 @@ const exists = f => fs.existsSync(path.join(root, f));
 
 const version = json('package.json').version;
 const info = json('NEXOWATT_EOS_BUILD_INFO.json');
-const runtime = info.runtimeEntry;
-const runtimeNo = Number(String(runtime).replace(/^v/, ''));
+const { verifyFrontendManifest, readModuleChunks } = require('./nexowatt-frontend-artifacts.cjs');
+const frontend = verifyFrontendManifest();
 const shellNo = Number(info.shellCacheVersion ?? info.brandingCacheVersion);
 const shellTag = String(info.shellCacheTag || shellNo);
 const autoUpdateTag = String(info.autoUpdateCacheTag || info.autoUpdateCacheVersion || shellTag);
-if (!/^7\.10\.12(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
-if (!Number.isFinite(runtimeNo) || !Number.isFinite(shellNo)) fail('invalid runtime/shell version');
+if (!/^8\.0\.0(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
+if (!Number.isFinite(shellNo)) fail('invalid shell cache version');
 for (const [name, value] of [
   ['build info', info.version],
   ['io common', json('io-package.json').common.version],
@@ -39,8 +39,6 @@ for (const [name, value] of [
 
 const index = read('adminWww/index.html');
 for (const marker of [
-  `hostInit-${runtime}.js?v=${runtimeNo}`,
-  `index-CQZugZ1z-${runtime}.js?v=${runtimeNo}`,
   `eos-manual-write-policy.js?v=${shellTag}`,
   `eos-role-bootstrap.js?v=${shellTag}`,
   `eos-policy-client.js?v=${shellTag}`,
@@ -57,24 +55,7 @@ for (const old of ['eos-branding.js','eos-branding.css','eos-security-ui.js','eo
   if (index.includes(old)) fail(`legacy overlay active: ${old}`);
 }
 
-for (const file of [
-  `adminWww/assets/hostInit-${runtime}.js`,
-  `adminWww/assets/index-CQZugZ1z-${runtime}.js`,
-  `adminWww/assets/bootstrap-COulQZax-${runtime}.js`,
-  `adminWww/assets/Objects-DPan0bzw-${runtime}.js`,
-  `adminWww/assets/index-D2ymscJA-${runtime}.js`,
-  `adminWww/remoteEntry-${runtime}.js`,
-]) if (!exists(file)) fail(`missing ${file}`);
-if (!read('adminWww/mf-manifest.json').includes(`remoteEntry-${runtime}.js`)) fail('mf-manifest runtime mismatch');
-
-const oldAssets = fs.readdirSync(path.join(root, 'adminWww/assets')).filter(f => {
-  const m = f.match(/-v(\d+)\.js$/); return m && Number(m[1]) < runtimeNo;
-});
-const oldRemote = fs.readdirSync(path.join(root, 'adminWww')).filter(f => {
-  const m = f.match(/^remoteEntry-v(\d+)\.js$/); return m && Number(m[1]) < runtimeNo;
-});
-if (oldAssets.length || oldRemote.length) fail(`legacy runtime files remain: ${oldAssets.length + oldRemote.length}`);
-
+// Actual hashed entries, imports, source hashes and role-gated startup were checked above.
 const scripts = ['eos-policy-client.js','eos-branding-sanitizer.js','nexowatt-native-shell.js','eos-native-security.js','eos-basic-settings.js','eos-role-ui.js','eos-account-management.js','eos-auto-update.js','eos-assistant.js'];
 const observerCount = scripts.reduce((n, f) => n + (read(`adminWww/js/${f}`).match(/new MutationObserver/g) || []).length, 0);
 if (observerCount < 2 || observerCount > 4) fail(`unexpected EOS observer count ${observerCount}`);
@@ -83,8 +64,8 @@ const shell = read('adminWww/js/nexowatt-native-shell.js');
 if (!shell.includes('ensureNavigationContainer') || !shell.includes('rendered natively by Drawer.tsx')) fail('native shell container implementation missing');
 if (shell.includes('textNode.textContent = cfg.label') || shell.includes('innerHTML = cfg.svg')) fail('native shell still rewrites navigation content');
 if (shell.includes('createTreeWalker')) fail('broad text walker detected');
-const bootstrap = read(`adminWww/assets/bootstrap-COulQZax-${runtime}.js`);
-for (const marker of ['NEXOWATT_TAB_ICON', 'nexowatt-native-nav-item', 'tabName:h.name', 'NexoWatt EOS', 'Zugänge & Rechte']) {
+const bootstrap = readModuleChunks('src/components/Drawer.tsx');
+for (const marker of ['nexowatt-native-nav-item', 'NexoWatt EOS', 'Zugänge & Rechte']) {
   if (!bootstrap.includes(marker)) fail(`native bootstrap marker missing: ${marker}`);
 }
 const sec = read('adminWww/js/eos-native-security.js');
@@ -95,16 +76,17 @@ for (const rel of ['js/eos-role-bootstrap.js','js/eos-policy-client.js','js/eos-
   if (read(`src-admin/public/${rel}`) !== read(`adminWww/${rel}`)) fail(`source/build drift: ${rel}`);
 }
 
-const objects = read(`adminWww/assets/index-D2ymscJA-${runtime}.js`);
+const objects = readModuleChunks('src/components/Object/eosObjectBrowserWrite.ts');
 if (!objects.includes('NEXOWATT_EOS_MANUAL_WRITE_POLICY')) fail('ObjectBrowser manual-write integration missing');
-if (!objects.includes('common.write!==!1') && !objects.includes('common.write===!1')) fail('common.write semantics missing');
+const guards = json('adminWww/eos-object-browser-guards.json');
+if (guards.marker !== 'nexowatt-eos-admin8-manual-write-v1') fail('ObjectBrowser reviewed source guards missing');
 for (const marker of ['restoreObjectAclManagedByEos','protected object change:']) if (!read('build/main.js').includes(marker)) fail(`backend marker missing: ${marker}`);
 for (const marker of ["role: 'unknown'",'EOS security context temporarily unavailable','mf-manifest.json']) if (!read('build/lib/web.js').includes(marker)) fail(`web marker missing: ${marker}`);
 for (const marker of ['getEosFirstLoginPasswordState','/nexowatt/account/first-password','/nexowatt/account/passwordless-claim','/nexowatt/account/reset','passwordSetupVersion','logoutRequired']) if (!read('build/lib/web.js').includes(marker)) fail(`first-login web marker missing: ${marker}`);
 for (const marker of ['ensureEosRoleModel','system.group.installateur','system.group.endkunde','system.user.guest','eosPasswordSetupRequired','ensureEosSystemObjectAccess','ensureEosSmartHomeEnumAccess']) if (!read('build/main.js').includes(marker)) fail(`role backend marker missing: ${marker}`);
 if (/async getEosRequestAccess\([^)]*\)[\s\S]{0,240}this\.getEosRequestAccess\(/.test(read('build/lib/web.js'))) fail('web role resolver is recursive');
 if (!read('adminWww/js/eos-branding-sanitizer.js').includes("document.title = 'NexoWatt EOS – Energy Operation System'")) fail('branding sanitizer title guard missing');
-if (!exists('tools/nexowatt-patch-built-frontend.cjs') || !read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('post-build guard missing');
+if (!exists('src-admin/build-tools/eos-frontend-manifest.mjs') || !read('src-admin/vite.config.ts').includes('eosObjectBrowser')) fail('source-bound frontend build guards missing');
 
 if (bad) process.exit(1);
 console.log('[NexoWatt EOS stability] OK');

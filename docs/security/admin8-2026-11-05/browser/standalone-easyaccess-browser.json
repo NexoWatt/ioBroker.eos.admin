@@ -1,0 +1,77 @@
+{
+  "environment": {
+    "node": "v24.22.1",
+    "scope": "Real shipped EasyAccess remote and its actual bundled React/GUI/JSONConfig; synthetic socket, isolated browser; no live controller",
+    "browser": "153.0.8010.0"
+  },
+  "errors": [],
+  "console": [],
+  "requests": [
+    "/",
+    "/custom/customComponents.js",
+    "/custom/assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+    "/custom/assets/vite-preload-helper-B7qeedMF.js",
+    "/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+    "/custom/assets/rolldown-runtime-C0FnF6B9.js",
+    "/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+    "/custom/assets/virtualExposes-31pkFC9v.js",
+    "/custom/assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+    "/custom/assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+    "/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+    "/custom/assets/Components-I39zZDnw.js"
+  ],
+  "external": [],
+  "missing": [],
+  "mount": {
+    "exports": [
+      "default"
+    ],
+    "rendererSource": "standalone remote bootstrap",
+    "reactVersion": "19.2.8"
+  },
+  "before": {
+    "rows": [
+      "<img src=x onerror=window.xssTriggered=true>.0",
+      "alpha.0",
+      "zeta.0"
+    ],
+    "checkboxes": 4,
+    "checked": 1
+  },
+  "afterConfig": [
+    {
+      "accessAllowedConfigs": [
+        "alpha.0",
+        "zeta.0"
+      ],
+      "accessAllowedTabs": []
+    }
+  ],
+  "afterTab": {
+    "changes": [
+      {
+        "accessAllowedConfigs": [
+          "alpha.0",
+          "zeta.0"
+        ],
+        "accessAllowedTabs": []
+      },
+      {
+        "accessAllowedConfigs": [
+          "alpha.0",
+          "zeta.0"
+        ],
+        "accessAllowedTabs": [
+          "zeta.0"
+        ]
+      }
+    ],
+    "reads": 1,
+    "xssTriggered": false,
+    "injectedImages": 0
+  },
+  "artifact": {
+    "customComponents.js": "3473e9d623e145c9fd94238133783e5014945cfd13c6ce28665a798ea84fde46",
+    "mf-manifest.json": "9663909905b837985eed4c4e17ebff85f347cadb00be2bede3d0b4d2220b7541"
+  }
+}

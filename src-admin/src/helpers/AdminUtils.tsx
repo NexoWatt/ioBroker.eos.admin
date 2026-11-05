@@ -1,7 +1,7 @@
 import semver from 'semver';
-import { type ThemeType, type Translate } from '@iobroker/adapter-react-v5';
+import { type ThemeType, type Translate } from '@iobroker/gui-components';
 import type { InstancesWorker } from '@/Workers/InstancesWorker';
-import { replaceLink } from './utils';
+import { replaceLink, applyRemoteAccessToLink, detectRemoteAccess } from './utils';
 
 declare module '@mui/material/Button' {
     interface ButtonPropsColorOverrides {
@@ -159,7 +159,7 @@ export default class AdminUtils {
      * @param seconds the number of seconds
      * @param t i18n.t function
      */
-    static formatSeconds(seconds: number, t: Translate): string {
+    static formatSeconds(seconds: number, t?: Translate): string {
         const days = Math.floor(seconds / (3600 * 24));
         let minutesRes: string;
         let secondsRes: string;
@@ -191,7 +191,7 @@ export default class AdminUtils {
 
         let text = '';
         if (days) {
-            text += `${days} ${t('daysShortText')} `;
+            text += `${days} ${t ? t('daysShortText') : 'd'} `;
         }
         text += `${hoursRes}:${minutesRes}:${secondsRes}`;
 
@@ -209,7 +209,7 @@ export default class AdminUtils {
         return result;
     }
 
-    static fixAdminUI(obj: Record<string, any>): void {
+    static fixAdminUI(obj: Record<string, any> | null | undefined): void {
         if (obj?.common) {
             if (!obj.common.adminUI) {
                 if (obj.common.noConfig) {
@@ -409,16 +409,67 @@ export default class AdminUtils {
         return `https://www.iobroker.net/#${lang}/adapters/adapterref/iobroker.${adapterName}/README.md`;
     }
 
-    static updateAvailable(oldVersion: string, newVersion: string): boolean {
+    /**
+     * Whether `newVersion` is newer than `oldVersion`. A version not known (empty) is not newer - e.g.
+     * a repository that does not list the adapter - and is not worth a warning (#3679)
+     *
+     * @param oldVersion the installed version
+     * @param newVersion the available version
+     * @param what what the versions are of, for the warning, e.g. `adapter "mqtt"`
+     */
+    static updateAvailable(
+        oldVersion: string | null | undefined,
+        newVersion: string | null | undefined,
+        what?: string,
+    ): boolean {
+        if (!oldVersion || !newVersion) {
+            return false;
+        }
         try {
             return semver.gt(newVersion, oldVersion) === true;
         } catch {
-            console.warn(`[ADAPTERS] Cannot compare "${newVersion}" and "${oldVersion}"`);
+            console.warn(
+                `[ADAPTERS] Cannot compare the available version "${newVersion}" with the installed "${oldVersion}"${what ? ` of ${what}` : ''}`,
+            );
             return false;
         }
     }
 
-    static getText(word: ioBroker.StringOrTranslated, lang: ioBroker.Languages): string {
+    /**
+     * Count the adapters that have a newer version in the repository.
+     *
+     * `js-controller` is not counted here: it is updated as a host, not as an adapter, and is
+     * reported by the hosts. Versions the user explicitly ignored do not count either.
+     *
+     * @param installed installed adapters with their versions
+     * @param repository the repository the versions are compared against
+     */
+    static countAdapterUpdates(
+        installed: Record<string, { version: string; ignoreVersion?: string }>,
+        repository: Record<string, { version: string }>,
+    ): number {
+        if (!installed) {
+            return 0;
+        }
+        let count = 0;
+        for (const name of Object.keys(installed)) {
+            const _installed = installed[name];
+            const adapter = repository?.[name];
+            if (
+                name !== 'js-controller' &&
+                name !== 'hosts' &&
+                _installed?.version &&
+                adapter?.version &&
+                _installed.ignoreVersion !== adapter.version &&
+                AdminUtils.updateAvailable(_installed.version, adapter.version, `adapter "${name}"`)
+            ) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    static getText(word: ioBroker.StringOrTranslated | undefined, lang: ioBroker.Languages): string {
         if (typeof word === 'object') {
             if (!word) {
                 return '';
@@ -440,24 +491,24 @@ export default class AdminUtils {
         hosts: Record<string, ioBroker.HostObject>,
         adminInstance: string,
         themeType: ThemeType,
-    ): Promise<{ href: string; adapterName: string; instanceNumber: number | null }> {
+    ): Promise<{ href: string; adapterName: string; instanceNumber: number | null; unreachable?: boolean }> {
         const instances = await instancesWorker.getObjects();
         let adapter = tab.replace(/^tab-/, '');
         const m = adapter.match(/-(\d+)$/);
         const instanceNumber: number | null = m ? parseInt(m[1], 10) : null;
-        let instance;
+        let instanceId: string | undefined;
         if (instances) {
             if (instanceNumber !== null) {
                 adapter = adapter.replace(/-(\d+)$/, '');
                 const name = `system.adapter.${adapter}.${instanceNumber}`;
-                instance = Object.keys(instances).find(id => id === name);
+                instanceId = Object.keys(instances).find(id => id === name);
             } else {
                 const name = `system.adapter.${adapter}.`;
 
-                instance = instances && Object.keys(instances).find(id => id.startsWith(name));
+                instanceId = Object.keys(instances).find(id => id.startsWith(name));
             }
         }
-        instance = instances?.[instance];
+        const instance = instanceId ? instances?.[instanceId] : undefined;
         AdminUtils.fixAdminUI(instance);
         if (!instance?.common?.adminTab) {
             console.error(`Cannot find instance ${tab}`);
@@ -474,29 +525,49 @@ export default class AdminUtils {
                 href = `adapter/${adapter}/tab.html${instanceNumber !== null && instanceNumber !== undefined ? `?${instanceNumber}` : ''}`;
             }
         }
+        // fix for singletons
+        const instNum = instanceNumber === null ? parseInt(instance._id.split('.').pop() || '', 10) : instanceNumber;
+
+        // The own web server of the adapter is reached through admin: `%protocol%://%ip%:%port%%httpAdminRoot%`
+        // becomes `proxy/node-red.0%httpAdminRoot%`. The tab then lives on the address of admin, also through the
+        // remote access of ioBroker Cloud/Pro and with HTTPS for admin.
+        const proxied = !!(instance.common.adminTab as { proxy?: boolean }).proxy && /^[^/]*:\/\/[^/]*/.test(href);
+        if (proxied) {
+            const path = href.replace(/^[^/]*:\/\/[^/]*/, '');
+            // the trailing slash is needed, else the browser resolves the relative URLs of the page next to it
+            href = `proxy/${adapter}.${instNum}${path.startsWith('/') || path.startsWith('%') ? path : `/${path}`}`;
+        }
+
         if (!instance.common.adminTab.singleton && instanceNumber !== null && instanceNumber !== undefined) {
             href += `${href.includes('?') ? '&' : '?'}instance=${instanceNumber}`;
         }
 
-        if (href.includes('%')) {
-            let _instNum: number;
-            // fix for singletons
-            if (instanceNumber === null) {
-                _instNum = parseInt(instance._id.split('.').pop(), 10);
-            } else {
-                _instNum = instanceNumber;
-            }
+        let unreachable = false;
 
+        if (href.includes('%')) {
             // replace
-            const hrefs = replaceLink(href, adapter, _instNum, {
+            const hrefs = replaceLink(href, adapter, instNum, {
                 hostname,
                 // it cannot be void
-                instances,
+                instances: instances || {},
                 hosts,
                 adminInstance,
             });
 
             href = hrefs ? hrefs[0]?.url : '';
+
+            // A tab like the one of node-red or xterm does not live in the admin, it points to the own
+            // server of the adapter. Opened through the remote access of ioBroker Cloud/Pro that address
+            // is in a network the browser is not in, and the iframe would stay empty.
+            const remoteAccess = proxied ? null : detectRemoteAccess(instances || {}, window.location);
+            if (href && remoteAccess) {
+                const remoteHref = applyRemoteAccessToLink(href, hrefs?.[0]?.port, remoteAccess);
+                if (remoteHref === null) {
+                    unreachable = true;
+                } else {
+                    href = remoteHref;
+                }
+            }
         }
 
         // add at the end the instance, as some adapters make bullshit like: window.location.search.slice(-1) || 0;
@@ -506,6 +577,7 @@ export default class AdminUtils {
             href,
             adapterName: adapter,
             instanceNumber,
+            unreachable,
         };
     }
 }

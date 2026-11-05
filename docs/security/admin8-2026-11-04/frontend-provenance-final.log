@@ -1,0 +1,16 @@
+/workspace/scratch/c16def314bc5/admin8-migration/admin/tools/nexowatt-frontend-artifacts.cjs:74
+        if (!/^[a-f0-9]{64}$/.test(hash) || sha(fs.readFileSync(safePath(sourceRoot, relative))) !== hash) throw new Error(`Frontend source/build drift: ${relative}`);
+                                                                                                           ^
+
+Error: Frontend source/build drift: src/version.json
+    at Object.verifyFrontendManifest (/workspace/scratch/c16def314bc5/admin8-migration/admin/tools/nexowatt-frontend-artifacts.cjs:74:114)
+    at [eval]:1:71
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_string:71:3
+
+Node.js v24.22.1

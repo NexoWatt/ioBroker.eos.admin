@@ -1,0 +1,511 @@
+{
+  "scope": "Static syntax/import graph and sensitive API inventory, not full dataflow or exploitability proof",
+  "syntaxErrors": [],
+  "reachable": [
+    "assets/Components-I39zZDnw.js",
+    "assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+    "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+    "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+    "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+    "assets/lib-BR4qb34w.js",
+    "assets/rolldown-runtime-C0FnF6B9.js",
+    "assets/virtualExposes-31pkFC9v.js",
+    "assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+    "assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+    "assets/vite-preload-helper-B7qeedMF.js",
+    "customComponents.js"
+  ],
+  "unreachableFromRequestedEntry": [
+    "assets/hostInit-CExI67Q9.js",
+    "assets/index-PfxLVs-2.js",
+    "assets/mf-entry-bootstrap-0-5d5a409e.js"
+  ],
+  "missingLiteralImports": [],
+  "externalLiteralImports": [],
+  "nonLiteralImports": [
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "dynamic",
+      "value": null,
+      "expression": "c",
+      "offset": 25981
+    },
+    {
+      "file": "assets/mf-entry-bootstrap-0-5d5a409e.js",
+      "kind": "dynamic",
+      "value": null,
+      "expression": "src",
+      "offset": 1012
+    }
+  ],
+  "files": [
+    {
+      "file": "assets/Components-I39zZDnw.js",
+      "bytes": 1967,
+      "sha256": "82b39adfb8b7f889b49442844aa321a38484eb81a8caf0e4c4ff414e79aea628",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "offset": 168
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+      "bytes": 5471,
+      "sha256": "8b5ef78fb4f78c974ebb225c7e6d616e5c7526bf040a117acbb7ddc2c5a4f6e5",
+      "imports": [
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js`",
+          "offset": 1743
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js`",
+          "offset": 1504
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js`",
+          "offset": 1261
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js`",
+          "offset": 1023
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js`",
+          "offset": 805
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js`",
+          "offset": 561
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js`",
+          "offset": 333
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "expression": "`./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js`",
+          "offset": 88
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./vite-preload-helper-B7qeedMF.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+      "bytes": 6962279,
+      "sha256": "88250b4e7bb827f5af3677ce71458dade4f926469cc04c46adcb6ab4a70b57d4",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./rolldown-runtime-C0FnF6B9.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": [
+        {
+          "offset": 16640,
+          "value": "19.2.8",
+          "snippet": "t.version=`19.2.8`"
+        },
+        {
+          "offset": 7502,
+          "value": "19.2.8",
+          "snippet": "e.version=`19.2.8`"
+        }
+      ]
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "bytes": 1392095,
+      "sha256": "b29f27375ee78ed2129c77541f5f2c3cdf09cd535d2c460db1ee75b0179749eb",
+      "imports": [
+        {
+          "kind": "dynamic",
+          "value": "./lib-BR4qb34w.js",
+          "expression": "`./lib-BR4qb34w.js`",
+          "offset": 1243789
+        },
+        {
+          "kind": "dynamic",
+          "value": "./lib-BR4qb34w.js",
+          "expression": "`./lib-BR4qb34w.js`",
+          "offset": 1242947
+        },
+        {
+          "kind": "dynamic",
+          "value": null,
+          "expression": "c",
+          "offset": 25981
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "offset": 224
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./vite-preload-helper-B7qeedMF.js",
+          "offset": 170
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./rolldown-runtime-C0FnF6B9.js",
+          "offset": 98
+        }
+      ],
+      "versionMarkers": [
+        {
+          "offset": 1189105,
+          "value": "1.1",
+          "snippet": "this.directives.yaml.version=`1.1`"
+        },
+        {
+          "offset": 451225,
+          "value": "1.44.0",
+          "snippet": "t.version=`1.44.0`"
+        },
+        {
+          "offset": 66451,
+          "value": "2.9.0",
+          "snippet": "this.version=`2.9.0`"
+        }
+      ]
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+      "bytes": 181321,
+      "sha256": "fb3d3f6e8c58b5e1919356b6a0661539d636538b3e5911acc30891f975a4d319",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "offset": 72
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./rolldown-runtime-C0FnF6B9.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": [
+        {
+          "offset": 178799,
+          "value": "19.2.8",
+          "snippet": "t.version=`19.2.8`"
+        }
+      ]
+    },
+    {
+      "file": "assets/hostInit-CExI67Q9.js",
+      "bytes": 2572,
+      "sha256": "d66a11dbb405d52caabc3750ed3868802f60e00086c2a86b5ad075f8c94ed95d",
+      "imports": [
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+          "expression": "`./_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js`",
+          "offset": 1539
+        },
+        {
+          "kind": "dynamic",
+          "value": "../customComponents.js",
+          "expression": "`../customComponents.js`",
+          "offset": 1421
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./vite-preload-helper-B7qeedMF.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/index-PfxLVs-2.js",
+      "bytes": 1354,
+      "sha256": "50213d401c65bc2fd93480d58b36fe1283131d0bd0e0bc653cabd95130d92111",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js",
+          "offset": 408
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "offset": 220
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+          "offset": 106
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/lib-BR4qb34w.js",
+      "bytes": 23338,
+      "sha256": "59ed209e0d629204e03b9630b881667cef0578c5cf34c735137c0ca14215e5da",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+          "offset": 51
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./rolldown-runtime-C0FnF6B9.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/mf-entry-bootstrap-0-5d5a409e.js",
+      "bytes": 1566,
+      "sha256": "5d5a409e533ee0879843d37da6902e1c1ab929dcaf3524fe8ce3876bb3057251",
+      "imports": [
+        {
+          "kind": "dynamic",
+          "value": null,
+          "expression": "src",
+          "offset": 1012
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/rolldown-runtime-C0FnF6B9.js",
+      "bytes": 1291,
+      "sha256": "e0a79ad36c6ca1ffbc796c80aa5661803a9d1bc684e29d1587f48b4ba9a82714",
+      "imports": [],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/virtualExposes-31pkFC9v.js",
+      "bytes": 139,
+      "sha256": "f3ec3e049d5172531fa56690147e5ea0ad22e4f270c44eb12b9dbe0e277cbd6c",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+      "bytes": 18108,
+      "sha256": "56431d32d2bd71cf837916ca660a7cc08b1e82e78f97b55e0d4a3ff05fb1e4b6",
+      "imports": [
+        {
+          "kind": "dynamic",
+          "value": "./virtualExposes-31pkFC9v.js",
+          "expression": "`./virtualExposes-31pkFC9v.js`",
+          "offset": 3429
+        },
+        {
+          "kind": "dynamic",
+          "value": "./_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js",
+          "expression": "`./_virtual_mf-localSharedImportMap___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1-C-YSgZ8j.js`",
+          "offset": 3221
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+          "offset": 54
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./vite-preload-helper-B7qeedMF.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/virtual_mf-exposes___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-D15lsoU9.js",
+      "bytes": 1140,
+      "sha256": "0c4370aaa3cd19f5ed0f817f5f6fbb45bce5f753d11c77d2c5df352d9f253c24",
+      "imports": [
+        {
+          "kind": "dynamic",
+          "value": "./Components-I39zZDnw.js",
+          "expression": "`./Components-I39zZDnw.js`",
+          "offset": 873
+        },
+        {
+          "kind": "ImportDeclaration",
+          "value": "./vite-preload-helper-B7qeedMF.js",
+          "offset": 105
+        }
+      ],
+      "versionMarkers": []
+    },
+    {
+      "file": "assets/vite-preload-helper-B7qeedMF.js",
+      "bytes": 1243,
+      "sha256": "4a3f3b6380d67b01347265072f4958e9242589aae6a42d7bfdc4ec27222de54a",
+      "imports": [],
+      "versionMarkers": []
+    },
+    {
+      "file": "customComponents.js",
+      "bytes": 978,
+      "sha256": "3473e9d623e145c9fd94238133783e5014945cfd13c6ce28665a798ea84fde46",
+      "imports": [
+        {
+          "kind": "ImportDeclaration",
+          "value": "./assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__AdminComponentEasyAccessSet__customComponents_js-DMGIttnZ.js",
+          "offset": 0
+        }
+      ],
+      "versionMarkers": []
+    }
+  ],
+  "sensitiveCandidates": [
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+      "kind": "Function",
+      "offset": 6818794,
+      "snippet": "ray(n)||(n=[n]),n=n.filter(e=>e),e.filterFunc){if(typeof e.filterFunc==`string`)try{this.filterFunc=Function(`obj`,e.filterFunc)}catch{console.error(`Cannot parse filter function: \"obj => ${e.filterFunc}\"`),this.filterFunc=void 0}else this.filterFu"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+      "kind": "dangerouslySetInnerHTML",
+      "offset": 6396302,
+      "snippet": "props.sx,className:this.props.className,style:this.state.color?{color:this.state.color}:void 0,...r,dangerouslySetInnerHTML:{__html:n||``}})}catch{}return null}render(){if(this.state.svg)return this.state.created||setTimeout(()=>{this.svg=this.state.src?this"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js",
+      "kind": "dangerouslySetInnerHTML",
+      "offset": 80947,
+      "snippet": "'${u}', colorScheme);`);return z(`script`,{suppressHydrationWarning:!0,nonce:typeof window>`u`?c:``,dangerouslySetInnerHTML:{__html:`(function() {\ntry {\n  let colorScheme = '';\n  const mode = localStorage.getItem('${i}') || '${t}';\n  const dark = localStorage.getItem('${a}-dark') || '${r}';\n  const light = localStorage.getItem('${a}-light') || '${n}';\n  if (mode === 'system') {\n    // handle system mode\n    const mql = window.matchMedia('(prefers-color-scheme: dark)');\n    if (mql.matches) {\n   "
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "dangerouslySetInnerHTML",
+      "offset": 1137827,
+      "snippet": "lWidth,...this.state.style||void 0}},e,this.props.schema.container===`html`?h.createElement(`span`,{dangerouslySetInnerHTML:{__html:this.state.text||``}}):this.state.text)}};q();var zb=class extends Z{async componentDidMount(){await super.componentDidMount();let e=Z.getVa"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "dangerouslySetInnerHTML",
+      "offset": 1101439,
+      "snippet": "abel,this.props.schema.noTranslation);if(this.props.schema.format===`html`)n=h.createElement(`div`,{dangerouslySetInnerHTML:{__html:n}});else if(this.props.schema.format===`json`)try{let e=typeof n==`string`?JSON.parse(n):n;n=h.createElement(`pre`,{style"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "dangerouslySetInnerHTML",
+      "offset": 1097751,
+      "snippet": "ue,...this.props.schema.styleValue||void 0};this.props.schema.html?i=h.createElement(`div`,{style:e,dangerouslySetInnerHTML:{__html:a}}):Array.isArray(this.props.schema.data)?(o=!0,i=h.createElement(`div`,{style:e},this.props.schema.data.map((e,t)=>h.cre"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "dangerouslySetInnerHTML",
+      "offset": 1091716,
+      "snippet": "(t=e.label)}let n,i;this.state.controlType===`html`?(i=(t??``).toString(),n=h.createElement(`span`,{dangerouslySetInnerHTML:{__html:t}})):this.state.stateValue===null?(n=`null`,i=n):this.state.stateValue===void 0?(n=`undefined`,i=n):(this.props.schema.di"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 129610,
+      "snippet": "id 0:l.arch)||``,this.props.oContext.hostInfo||{},i||this.getStateValues());return r?t:Y.t(t)}let t=Function(`data`,`originalData`,`arrayIndex`,`globalData`,`_system`,`_alive`,`_common`,`_socket`,`_changed`,`_href`,`_os`,`_arch`,`_host`,`_states`,`return \\`${e.escapeString(a,n)}\\``)(n,this.props.originalData,this.props.arrayIndex,this.props.globalData,this.props.oContext.systemConfig,this.props.alive"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 128997,
+      "snippet": " to use getObject function in text patterns: ${a}`);try{var o,s;if(this.props.custom){var c,l;let t=Function(`data`,`originalData`,`arrayIndex`,`globalData`,`_system`,`instanceObj`,`customObj`,`_socket`,`_changed`,`_href`,`_os`,`_arch`,`_host`,`_states`,`return \\`${e.escapeString(a,n)}\\``)(n,this.props.originalData,this.props.arrayIndex,this.props.globalData,this.props.oContext.systemConfig,this.props.oCont"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "ThisExpression.AsyncFunction",
+      "offset": 127968,
+      "snippet": ".arch)||``,this.props.oContext.hostInfo||{},i||this.getStateValues());return r?t:Y.t(t)}let t=await new this.AsyncFunction(`data`,`originalData`,`arrayIndex`,`globalData`,`_system`,`_alive`,`_common`,`_socket`,`_changed`,`_href`,`getObject`,`_os`,`_arch`,`_host`,`_states`,`return \\`${e.escapeString(a,n)}\\``)(n,this.props.originalData,this.props.arrayIndex,this.props.globalData,this.props.oContext.systemConfig,this.props.alive"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "ThisExpression.AsyncFunction",
+      "offset": 127308,
+      "snippet": "(`getObject(`)&&(a=e.ensureAwaitGetObject(a));try{var o,s;if(this.props.custom){var c,l;let t=await new this.AsyncFunction(`data`,`originalData`,`arrayIndex`,`globalData`,`_system`,`instanceObj`,`customObj`,`_socket`,`_changed`,`_href`,`getObject`,`_os`,`_arch`,`_host`,`_states`,`return \\`${e.escapeString(a,n)}\\``)(n,this.props.originalData,this.props.arrayIndex,this.props.globalData,this.props.oContext.systemConfig,this.props.oCont"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "ThisExpression.AsyncFunction",
+      "offset": 123564,
+      "snippet": "t;if(!l)return null;l.includes(`getObject(`)&&(l=e.ensureAwaitGetObject(l));try{var u,d;let e=await new this.AsyncFunction(`data`,`originalData`,`_system`,`instanceObj`,`customObj`,`_socket`,`arrayIndex`,`globalData`,`_changed`,`_href`,`getObject`,`_os`,`_arch`,`_host`,`_states`,l.includes(`return`)?l:`return ${l}`)(n||this.props.data,this.props.originalData,this.props.oContext.systemConfig,i||{},r||{},this.props.oContext.socket,a,o|"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "ThisExpression.AsyncFunction",
+      "offset": 122529,
+      "snippet": "rn t;if(!c)return n;c.includes(`getObject(`)&&(c=e.ensureAwaitGetObject(c));try{var l,u;let e=await new this.AsyncFunction(`data`,`originalData`,`_system`,`_alive`,`_common`,`_socket`,`_instance`,`arrayIndex`,`globalData`,`_changed`,`_href`,`getObject`,`_os`,`_arch`,`_host`,`_states`,c.includes(`return`)?c:`return ${c}`)(r||this.props.data||{},this.props.originalData,this.props.oContext.systemConfig,this.props.alive,this.props.common,this"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 69826,
+      "snippet": "){var t=e.exports=typeof window<`u`&&window.Math==Math?window:typeof self<`u`&&self.Math==Math?self:Function(`return this`)();typeof __g==`number`&&(__g=t)}),n=e(function(e){var t=e.exports={version:`2.6.5`};typeof __e==`number`&&(__e=t)});n.v"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 26278,
+      "snippet": "turn new Promise((n,r)=>{try{t?n(t):typeof __system_context__>`u`?System.import(e).then(n).catch(r):Function(`callbacks`,`System.import(\"${e}\")${co}`)([n,r])}catch(t){Hr(`Failed to load SystemJS entry from \"${e}\". ${t instanceof Error?t.message:String(t)}`)}})}function "
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 25924,
+      "snippet": "rl:c},t)}catch(e){o(e);return}}o(e)},c=r?r(e):e;try{t?a(t):typeof FEDERATION_ALLOW_NEW_FUNCTION<`u`?Function(`callbacks`,`import(\"${c}\")${co}`)([a,s]):i(()=>import(c).then(a),[],import.meta.url).catch(s)}catch(e){Hr(`Failed to load ESM entry from \"${c}\". ${e inst"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 3116,
+      "snippet": "in e){let n;return n=e.getPublicPath.startsWith(`function`)?Function(`return `+e.getPublicPath)()():Function(e.getPublicPath)(),`${n}${t}`}return`publicPath`in e?!dr()&&!fr()&&`ssrPublicPath`in e&&typeof e.ssrPublicPath==`string`?`${e.ssrPublicP"
+    },
+    {
+      "file": "assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js",
+      "kind": "Function",
+      "offset": 3076,
+      "snippet": ":``};function _r(e,t){if(`getPublicPath`in e){let n;return n=e.getPublicPath.startsWith(`function`)?Function(`return `+e.getPublicPath)()():Function(e.getPublicPath)(),`${n}${t}`}return`publicPath`in e?!dr()&&!fr()&&`ssrPublicPath`in e&&typeof e.ssrPublic"
+    }
+  ]
+}

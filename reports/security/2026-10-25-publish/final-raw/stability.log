@@ -1,0 +1,474 @@
+
+> iobroker.eos-admin@7.10.12 precheck:eos-stability
+> npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime
+
+
+> iobroker.eos-admin@7.10.12 sync:eos-version
+> node tools/nexowatt-sync-release-version.cjs
+
+[NexoWatt EOS version sync] OK (7.10.12; all release files match)
+
+> iobroker.eos-admin@7.10.12 prepare:eos-release-defaults
+> node tools/nexowatt-ensure-release-defaults.cjs
+
+[NexoWatt EOS release defaults] OK (canonical sales defaults already present)
+
+> iobroker.eos-admin@7.10.12 clean:eos-runtime
+> node tools/nexowatt-clean-legacy-runtime.cjs
+
+[NexoWatt EOS runtime cleanup] OK (runtime v85, shell v7109, removed 0 legacy files)
+
+> iobroker.eos-admin@7.10.12 check:eos-stability
+> node tools/nexowatt-stability-check.cjs && node tools/nexowatt-esm-syntax-selftest.cjs && node tools/nexowatt-backend-runtime-selftest.cjs && node tools/nexowatt-prebuilt-release-selftest.cjs && node tools/nexowatt-import-integrity-selftest.cjs && node tools/nexowatt-entrypoint-smoke-selftest.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-publish-channel-selftest.cjs && node tools/nexowatt-release-defaults-selftest.cjs && node tools/nexowatt-role-access-selftest.cjs && node tools/nexowatt-internal-reserve-selftest.cjs && node tools/nexowatt-modern-ui-selftest.cjs && node tools/nexowatt-login-layout-selftest.cjs && node tools/nexowatt-branding-selftest.cjs && node tools/nexowatt-default-port-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-assistant-separation-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs && node tools/nexowatt-version-sync-selftest.cjs && node tools/nexowatt-merge-update-selftest.cjs && node tools/nexowatt-password-write-selftest.cjs && node tools/nexowatt-account-password-flow-selftest.cjs && npm run check:eos-stable-v7103 && node tools/nexowatt-ems-overview-selftest.cjs && node tools/nexowatt-ui-overview-runtime-selftest.cjs && node tools/nexowatt-auto-update-selftest.cjs && node tools/nexowatt-auto-update-placement-selftest.cjs && node tools/nexowatt-role-security-selftest.cjs && node tools/nexowatt-user-area-selftest.cjs && node tools/nexowatt-installer-ems-selftest.cjs && node tools/nexowatt-v7109-clean-core-selftest.cjs && npm run test:eos-licensing && npm run test:eos-security-boundaries && npm run test:eos-security-upgrade && npm run test:eos-security-audit
+
+[NexoWatt EOS stability] OK
+[NexoWatt EOS ESM syntax] OK
+[NexoWatt EOS backend runtime] OK (23 local runtime files resolve, parse and are declared by the npm files whitelist; dependency-free on Windows)
+[NexoWatt EOS prebuilt release] OK (1452 sealed source/runtime files; 23 backend runtime files; no tsc/tsx required for npm publish)
+[NexoWatt EOS import integrity] OK
+[NexoWatt EOS entrypoint smoke] OK (16 scripts + role-bootstrapped app entry, runtime v85)
+[NexoWatt EOS frontend graph] OK (208 reachable JS files, one HTML5 backend)
+[NexoWatt EOS policy self-test] OK
+[NexoWatt EOS publish channel selftest] OK
+[NexoWatt EOS release defaults selftest] OK
+[NexoWatt EOS role access] OK (Admin full authority, Installer EMS access, restricted account administration, End User read-only datapoints)
+[NexoWatt EOS internal reserve] OK
+[NexoWatt EOS modern UI] OK
+[NexoWatt EOS login layout] OK
+[NexoWatt EOS branding] OK
+[NexoWatt EOS default port selftest] OK (8081)
+[NexoWatt EOS module popup selftest] OK
+[NexoWatt EOS datapoint selftest] OK
+[NexoWatt EOS update selftest] OK
+[NexoWatt EOS DP interaction selftest] OK
+[NexoWatt EOS manual write policy selftest] OK
+[NexoWatt EOS value column] OK
+[NexoWatt EOS native shell] OK
+[NexoWatt EOS assistant separation] OK (stable disabled)
+[NexoWatt EOS runtime cleanup selftest] OK
+[NexoWatt EOS version sync selftest] OK (7.10.12; stale 7.9.92 merge repaired)
+[NexoWatt EOS merge update selftest] OK (flat overwrite + EMS merge + version repair + guarded verification)
+[NexoWatt EOS password write] OK: real account name, verified password API and metadata-only update
+PASS live full-length session authenticates an enabled existing user
+PASS expired, absent, and nonnumeric session expiry fail closed
+PASS one-character session alias cannot authenticate an unrelated bearer token
+PASS disabled, deleted, and non-user objects cannot use otherwise live sessions
+PASS session and user database errors fail closed
+PASS raw/refresh namespaces and short tokens cannot authenticate a live user
+PASS upstream authenticated identity still requires an enabled existing user
+PASS missing credentials never authenticate while auth is required
+PASS legacy auth=false cannot imply administrator identity without login
+PASS role-looking labels and unconfigured group IDs never elevate authority
+PASS explicit administrator and installer membership retains intended authority
+PASS new, blank, and known shared-password accounts are disabled without setting shared passwords
+PASS provisioning preserves personal passwords, disabled status, and the administrator
+PASS password-check failure aborts startup provisioning
+PASS upload guard rejects anonymous, customer, installer, pending-password, and foreign-origin requests
+PASS upload guard permits authorized same-origin administrator and rejects ACL failures
+PASS source and shipped upload parser registration enforce limits before file handling (static)
+PASS same-origin browser writes retain host, port, and transport scheme
+PASS forged X-Forwarded-Host does not authorize another origin
+PASS cookie-authorized writes require Origin even when a bearer header is also present
+PASS explicit non-cookie bearer clients can omit Origin
+PASS malformed or non-origin URLs fail closed
+PASS cross-site and same-site fetch metadata cannot authorize writes
+PASS socket guard rejects a revoked connection even with cached administrator privileges
+PASS socket guard denies command and host execution for customer and installer
+PASS socket guard blocks sensitive object mutation including EOS Admin and xterm
+PASS socket guard blocks unresolved, missing, disabled, and pending-password identities before administrator bypass
+PASS socket administrator forwards to upstream permissions instead of bypassing them
+PASS socket customer datapoints remain read-only while normal installer writes retain upstream ACLs
+PASS first-password change requires a bounded nonempty current credential
+PASS first-password change rejects invalid current credentials and unavailable verification
+PASS first-password change with correct current credential writes and invalidates the session
+PASS role-cache refresh suspends authorization until one complete snapshot is committed
+PASS role-cache read failures leave authorization closed and never commit a partial snapshot
+PASS message dispatch denies every chat capability before any privileged MCP construction
+PASS fresh session secret uses 32 random bytes and is persisted before web startup
+PASS session-secret persistence failure denies web startup
+PASS missing system.config never selects a built-in fallback session secret
+PASS valid existing installation session secret is preserved without regeneration
+PASS invalid nonempty existing installation secret denies web startup
+[NexoWatt EOS security boundaries] 40/40 passed; isolated shipped-code tests, no live HTTP/controller test
+
+> iobroker.eos-admin@7.10.12 check:eos-stable-v7103
+> node tools/nexowatt-stable-v7103-selftest.cjs
+
+[NexoWatt EOS stable v7103] OK (v7102 crash/package baseline plus System Settings-only update control)
+[NexoWatt EMS Overview Selftest] OK: read-only Diagnosekarte, Intro-Einbindung und responsive Darstellung geprüft.
+[NexoWatt EOS UI overview runtime] OK
+[NexoWatt EOS auto update] OK (25 behavior checks: immediate quarantine, no metadata trust, legacy migration, failure visibility, no instance restart)
+[NexoWatt EOS auto-update placement] OK (System Settings only; no Overview/Modules injection)
+[NexoWatt EOS role security] OK (Admin full rights, Installer EMS App-Center access, End User read-only datapoints, protected Admin tools)
+[NexoWatt EOS user area] OK (End User read-only actions and system info; Admin unchanged)
+[NexoWatt EOS installer EMS] OK (Installer may use EMS App-Center; Simulation/License remain Admin-only; End User remains blocked)
+[NexoWatt EOS v7109 clean core] OK (modern Services/Datapoints/Logs without redundant page information; Structure hidden; Installer controls native)
+
+> iobroker.eos-admin@7.10.12 test:eos-licensing
+> node --test test/eos-license-*.test.cjs
+
+✔ starts denied, permits signed-service decision and sends no license key (4.146906ms)
+✔ a new request uses a new nonce and rejects replay from an older request (0.778596ms)
+✔ Home and Pro quantity limits and features are checked independently (2.662975ms)
+✔ malformed, stale, future, oversized and missing entitlements fail closed (4.182052ms)
+✔ timeout invalidates an existing lease; late and duplicate callbacks cannot reopen it (20.845549ms)
+✔ throws and rejected transport promises settle denied without an unhandled rejection (0.871667ms)
+✔ lease expires autonomously, onLost is once per denial episode, then recovery is possible (36.419836ms)
+✔ wall clock rollback does not extend monotonic lease and a forward jump immediately denies (35.450317ms)
+✔ stop cancels in-flight request and prevents late callback activation (0.490752ms)
+✔ concurrent callers coalesce safely and status mutation cannot change entitlement (0.490749ms)
+✔ failed safe-state callback latches denial and sanitizes logs (2.873719ms)
+✔ asynchronous safe-state transition must finish before a fresh grant is accepted (2.097695ms)
+✔ invalid configuration cannot create a permissive guard (0.83947ms)
+✔ one shared lease gates each Home/Pro feature without extra messages or rights after loss (1.295776ms)
+✔ UUID normalizes case/space while preserving canonical and direct vendor-prefix identity (4.748617ms)
+✔ Home license authenticates UUID, explicit adapters, limits and immutable derived features (1.912739ms)
+✔ Pro license enables Pro features only from signed edition and caps 10 batteries (2.25118ms)
+✔ expiry and notBefore use exact millisecond boundaries without coercion or grace (2.370303ms)
+✔ forged or edited signature, foreign signing key, unknown kid and legacy format fail closed (1.765763ms)
+✔ trust accepts only bounded explicit Ed25519 public SPKI keys (43.849885ms)
+✔ schema rejects wildcard adapters, duplicate adapters, unsafe limits and unknown signed fields (11.49089ms)
+✔ malformed/oversized tokens and noncanonical base64 cannot reach successful verification (0.702073ms)
+✔ encrypted storage roundtrips across restart with fresh nonce and no plaintext on disk (33.455699ms)
+✔ GCM binds UUID and fails after ciphertext/tag/nonce corruption (20.848559ms)
+✔ missing/wrong/short storage key never silently regenerates existing encrypted license (13.442019ms)
+✔ storage high water mark cannot decrease; serialized operations preserve monotonic value (20.330637ms)
+✔ clear removes only license, keeps device encryption key and permits fresh install (11.509774ms)
+✔ storage rejects symlink files, symlink directory/ancestor and hard linked secrets (12.864161ms)
+✔ storage rejects permissive POSIX modes and unsafe directory roots (8.584568ms)
+✔ storage bounds files and rejects malformed data/envelopes without destructive overwrite (12.66779ms)
+✔ license endpoints authorize before body parser, service calls and static files (4.098568ms)
+✔ secure admin activation invokes parser after authorization and returns no submitted token (0.908177ms)
+✔ cross-origin, missing origin/header and cross-site writes fail before parser (1.633141ms)
+✔ forwarded host/proto headers do not establish origin or TLS trust (0.999697ms)
+✔ plaintext LAN is denied for every route; explicit socket loopback can perform setup (0.894085ms)
+✔ malformed activation/removal bodies are rejected without reaching service (3.48545ms)
+✔ parser size/syntax errors are sanitized and cannot reach activation (0.423805ms)
+✔ authorization and asynchronous service failures return sanitized bounded errors (0.725266ms)
+✔ per-address write and read rate budgets deny excess operations (3.583126ms)
+✔ license page has restrictive CSP and safe no-cache headers (0.977915ms)
+✔ origin matching uses scheme, hostname and port exactly (0.40844ms)
+✔ startup without provisioned trust denies and creates no license (23.883221ms)
+✔ startup with empty trust configuration denies (4.06582ms)
+✔ trusted service without stored license denies (5.619729ms)
+✔ Home allows licensed adapter and published Home limits with bounded lease (19.513482ms)
+✔ Home rejects Pro feature and over-limit resource counts (18.185425ms)
+✔ Pro grants its feature set only to listed adapter and within signed limits (20.201195ms)
+✔ licensed second adapter receives grants only when enabled (12.447681ms)
+✔ missing, disabled, renamed or non-instance senders cannot obtain grants (15.534154ms)
+✔ sender mismatch, unknown feature, extra keys and invalid quota types reject (10.511708ms)
+✔ malformed or untrusted import preserves existing encrypted license (17.74754ms)
+✔ explicit license removal denies checks and remains removed after restart (14.597133ms)
+✔ external license deletion invalidates previously cached grant eligibility (10.272092ms)
+✔ tampered authenticated ciphertext invalidates cached license (10.40359ms)
+✔ encrypted license and edition persist over clean service restart (11.664547ms)
+✔ changed system UUID denies while running (7.737098ms)
+✔ lease is capped at expiry and license expires at exact boundary (12.602598ms)
+✔ expiry is rechecked after delayed adapter object lookup (10.573431ms)
+✔ wall clock rollback relative to monotonic time fails closed until restart (9.364796ms)
+✔ frequent sub-tolerance checks cannot keep a frozen wall clock licensed (9.727329ms)
+✔ small cumulative backward steps cannot reset the monotonic clock anchor (12.35854ms)
+✔ persisted high-water mark detects ordinary rollback across restart (14.700827ms)
+✔ sender rate cap denies excess requests and renews after window (47.306794ms)
+✔ queue cap rejects excess work without preventing earlier jobs completing (5.480158ms)
+✔ new checks and mutations after stop are denied (7.718597ms)
+✔ check queued before stop cannot grant or restore cached validity after stop (7.225464ms)
+✔ check already in adapter lookup cannot grant after stop (10.738723ms)
+✔ database timeout clears validity, bounds outstanding reads and ignores late results (29.554013ms)
+✔ timeout during adapter identity lookup clears a previously valid license view (27.93334ms)
+✔ serialized deletion ahead of a check prevents an intervening grant (14.008208ms)
+✔ status rechecks expiry after delayed UUID lookup (7.119073ms)
+✔ import expiring during UUID lookup preserves the previous valid license (9.06611ms)
+✔ production directory resolver works without an assumed adapter instance method (6.286576ms)
+✔ directory resolver failure is contained and keeps authority denied (1.587499ms)
+✔ trusted root-owned complete directory chain accepts bounded public keys (7.32337ms)
+✔ writable, foreign-owned or symbolic-link ancestor is denied before file open (6.416142ms)
+✔ unsafe trust file and inode swap fail closed (10.073515ms)
+✔ read remains bounded after growth and rejects malformed contents with close (6.468734ms)
+✔ Windows and noncanonical paths require explicit supported provisioning (7.389733ms)
+ℹ tests 79
+ℹ suites 0
+ℹ pass 79
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 590.329239
+
+> iobroker.eos-admin@7.10.12 test:eos-security-boundaries
+> node tools/nexowatt-security-boundaries-selftest.cjs
+
+PASS live full-length session authenticates an enabled existing user
+PASS expired, absent, and nonnumeric session expiry fail closed
+PASS one-character session alias cannot authenticate an unrelated bearer token
+PASS disabled, deleted, and non-user objects cannot use otherwise live sessions
+PASS session and user database errors fail closed
+PASS raw/refresh namespaces and short tokens cannot authenticate a live user
+PASS upstream authenticated identity still requires an enabled existing user
+PASS missing credentials never authenticate while auth is required
+PASS legacy auth=false cannot imply administrator identity without login
+PASS role-looking labels and unconfigured group IDs never elevate authority
+PASS explicit administrator and installer membership retains intended authority
+PASS new, blank, and known shared-password accounts are disabled without setting shared passwords
+PASS provisioning preserves personal passwords, disabled status, and the administrator
+PASS password-check failure aborts startup provisioning
+PASS upload guard rejects anonymous, customer, installer, pending-password, and foreign-origin requests
+PASS upload guard permits authorized same-origin administrator and rejects ACL failures
+PASS source and shipped upload parser registration enforce limits before file handling (static)
+PASS same-origin browser writes retain host, port, and transport scheme
+PASS forged X-Forwarded-Host does not authorize another origin
+PASS cookie-authorized writes require Origin even when a bearer header is also present
+PASS explicit non-cookie bearer clients can omit Origin
+PASS malformed or non-origin URLs fail closed
+PASS cross-site and same-site fetch metadata cannot authorize writes
+PASS socket guard rejects a revoked connection even with cached administrator privileges
+PASS socket guard denies command and host execution for customer and installer
+PASS socket guard blocks sensitive object mutation including EOS Admin and xterm
+PASS socket guard blocks unresolved, missing, disabled, and pending-password identities before administrator bypass
+PASS socket administrator forwards to upstream permissions instead of bypassing them
+PASS socket customer datapoints remain read-only while normal installer writes retain upstream ACLs
+PASS first-password change requires a bounded nonempty current credential
+PASS first-password change rejects invalid current credentials and unavailable verification
+PASS first-password change with correct current credential writes and invalidates the session
+PASS role-cache refresh suspends authorization until one complete snapshot is committed
+PASS role-cache read failures leave authorization closed and never commit a partial snapshot
+PASS message dispatch denies every chat capability before any privileged MCP construction
+PASS fresh session secret uses 32 random bytes and is persisted before web startup
+PASS session-secret persistence failure denies web startup
+PASS missing system.config never selects a built-in fallback session secret
+PASS valid existing installation session secret is preserved without regeneration
+PASS invalid nonempty existing installation secret denies web startup
+[NexoWatt EOS security boundaries] 40/40 passed; isolated shipped-code tests, no live HTTP/controller test
+
+> iobroker.eos-admin@7.10.12 test:eos-security-upgrade
+> node --test test/eos-session-security.test.cjs test/eos-web-resources.test.cjs test/eos-release-admission.test.cjs && node tools/nexowatt-lock-provenance-selftest.cjs
+
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.392377ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (131.034286ms)
+✔ complete fixture metadata admits without fetching or executing any package (73.479247ms)
+✔ missing integrity in one scope rejects the real admission process (68.134274ms)
+✔ missing lockfile fails closed instead of permitting a publish check (75.597286ms)
+(node:1300) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ pinned upstream password login, token pair and refresh work with security binding (9.938144ms)
+✔ all devices access and refresh tokens reject changed password without waiting for object event (2.002212ms)
+✔ disable, deletion and changed group ACL independently invalidate both token classes (5.372066ms)
+✔ observed disable then re-enable cannot resurrect old token after snapshot returns to original (1.402208ms)
+✔ legacy and unbound external tokens are rejected and direct internal minting is denied (1.16425ms)
+✔ proof cannot be forged by passing a user-shaped object or copied authenticated identity (0.536964ms)
+✔ password mutation during credential verification and before token save fails closed (0.775951ms)
+✔ refresh credential cannot cross revocation between lookup and save (0.840785ms)
+✔ restart generation does not accept previously saved capabilities (0.693824ms)
+✔ session database failures and bounded stalled reads fail closed without unbounded backlog (76.331739ms)
+✔ socket revocation synchronously blocks commands, clears subscriptions and closes every connection (0.753323ms)
+✔ metadata-only account updates do not revoke established capabilities (0.69377ms)
+✔ expired access and refresh capabilities fail closed in the common session reader (0.75052ms)
+✔ late socket authentication cannot reopen a connection after revocation (0.445783ms)
+✔ real five-second watchdog closes a socket after a missed credential object event (5257.914049ms)
+✔ HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling (8.170011ms)
+✔ HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport (2.428712ms)
+✔ HTTPS rejects redirects without contacting redirect targets (1.659572ms)
+✔ HTTPS rejects oversized declared and streamed responses and compressed bodies (4.310993ms)
+✔ HTTPS rejects malformed or primitive JSON without exposing body/error text (8.830565ms)
+✔ HTTPS hard deadline destroys a request before response including DNS/connect stalls (22.397818ms)
+✔ HTTPS hard deadline also bounds slow response bodies (21.0958ms)
+✔ HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected (1.97204ms)
+✔ gzip preview returns text but rejects bombs, oversized input, and invalid gzip (50.764776ms)
+✔ gzip preview concurrency is bounded independently of compressed size (34.972992ms)
+✔ system-info calls coalesce and cache npm version; no shell is used (1.801612ms)
+✔ upload budget admits two across routes; third denied and aborted temporary files cleaned (68.041696ms)
+✔ upload parser receives actual total/file/part limits and private temporary directory (33.731514ms)
+✔ restore storage replaces an existing regular file without modifying unrelated data (34.682455ms)
+✔ POSIX restore storage replaces a destination symlink and persists restrictive permissions (35.916791ms)
+✔ retained upload data counts against shared quota at the next admission (34.563018ms)
+✔ upload total deadline aborts a still-active parser and removes its partial directory (52.789711ms)
+✔ upload admission rejects low disk space before constructing parser (2.598633ms)
+✔ synchronous parser initialization failure releases reserved capacity (63.602192ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5567.690467
+[NexoWatt lock provenance] OK (11 admission/denial cases; no network or package execution)
+
+> iobroker.eos-admin@7.10.12 test:eos-security-audit
+> node --test test/eos-*.test.cjs
+
+✔ login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins (2.384512ms)
+✔ production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin (0.568937ms)
+✔ all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies (0.611338ms)
+✔ HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state (1.315981ms)
+✔ EOS token readers no longer accept query credentials but preserve cookie and Authorization (2.024966ms)
+✔ file identity guard rejects anonymous and pending-password users and passes normalized caller (0.771397ms)
+✔ SSO remains denied before OAuth and DB file routes have their own identity guard (1.325324ms)
+✔ OAuth callback messages are HTML text, replacement metacharacters cannot restore markup (2.89975ms)
+✔ URL parser accepts ordinary files and strips real queries before decoding (5.250508ms)
+✔ URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth (2.032226ms)
+✔ single file read propagates authenticated caller ACL to both operations and ignores attacker MIME (2.983935ms)
+✔ missing or malformed identity and invalid direct-call path perform no database IO (7.123985ms)
+✔ explicit authenticated user names containing @ retain their identity for ACL checks (3.022551ms)
+✔ directory exports are denied without recursive reads or archive allocation (1.502631ms)
+✔ missing metadata, oversized declared files and excessive parent entries fail before reading file bytes (5.546264ms)
+✔ actual oversized response is rejected even if metadata was small (2.511342ms)
+✔ active file types are attachments with isolated restrictive response headers (8.267884ms)
+✔ database errors fail closed and do not expose internal details (1.82667ms)
+✔ concurrent stalled requests reserve both slots even after the five-second deadline (15.913ms)
+✔ aborted client cannot trigger a late file read and reservation is released after DB settles (2.168411ms)
+✔ slow output keeps both reservations until deadline destroys unfinished responses (1.983476ms)
+✔ starts denied, permits signed-service decision and sends no license key (4.795856ms)
+✔ a new request uses a new nonce and rejects replay from an older request (0.793905ms)
+✔ Home and Pro quantity limits and features are checked independently (2.545922ms)
+✔ malformed, stale, future, oversized and missing entitlements fail closed (4.430657ms)
+✔ timeout invalidates an existing lease; late and duplicate callbacks cannot reopen it (21.282274ms)
+✔ throws and rejected transport promises settle denied without an unhandled rejection (0.817128ms)
+✔ lease expires autonomously, onLost is once per denial episode, then recovery is possible (36.18177ms)
+✔ wall clock rollback does not extend monotonic lease and a forward jump immediately denies (36.357409ms)
+✔ stop cancels in-flight request and prevents late callback activation (0.464112ms)
+✔ concurrent callers coalesce safely and status mutation cannot change entitlement (0.44553ms)
+✔ failed safe-state callback latches denial and sanitizes logs (4.042203ms)
+✔ asynchronous safe-state transition must finish before a fresh grant is accepted (0.840535ms)
+✔ invalid configuration cannot create a permissive guard (0.640209ms)
+✔ one shared lease gates each Home/Pro feature without extra messages or rights after loss (0.797314ms)
+✔ UUID normalizes case/space while preserving canonical and direct vendor-prefix identity (7.913912ms)
+✔ Home license authenticates UUID, explicit adapters, limits and immutable derived features (3.194166ms)
+✔ Pro license enables Pro features only from signed edition and caps 10 batteries (2.13968ms)
+✔ expiry and notBefore use exact millisecond boundaries without coercion or grace (2.615898ms)
+✔ forged or edited signature, foreign signing key, unknown kid and legacy format fail closed (2.391794ms)
+✔ trust accepts only bounded explicit Ed25519 public SPKI keys (46.582742ms)
+✔ schema rejects wildcard adapters, duplicate adapters, unsafe limits and unknown signed fields (17.643599ms)
+✔ malformed/oversized tokens and noncanonical base64 cannot reach successful verification (0.591304ms)
+✔ encrypted storage roundtrips across restart with fresh nonce and no plaintext on disk (52.102802ms)
+✔ GCM binds UUID and fails after ciphertext/tag/nonce corruption (39.481506ms)
+✔ missing/wrong/short storage key never silently regenerates existing encrypted license (32.603943ms)
+✔ storage high water mark cannot decrease; serialized operations preserve monotonic value (51.404757ms)
+✔ clear removes only license, keeps device encryption key and permits fresh install (25.039185ms)
+✔ storage rejects symlink files, symlink directory/ancestor and hard linked secrets (26.549565ms)
+✔ storage rejects permissive POSIX modes and unsafe directory roots (15.587419ms)
+✔ storage bounds files and rejects malformed data/envelopes without destructive overwrite (29.138392ms)
+✔ license endpoints authorize before body parser, service calls and static files (5.089676ms)
+✔ secure admin activation invokes parser after authorization and returns no submitted token (0.757958ms)
+✔ cross-origin, missing origin/header and cross-site writes fail before parser (1.23205ms)
+✔ forwarded host/proto headers do not establish origin or TLS trust (0.667242ms)
+✔ plaintext LAN is denied for every route; explicit socket loopback can perform setup (0.595044ms)
+✔ malformed activation/removal bodies are rejected without reaching service (5.533853ms)
+✔ parser size/syntax errors are sanitized and cannot reach activation (0.639099ms)
+✔ authorization and asynchronous service failures return sanitized bounded errors (0.775737ms)
+✔ per-address write and read rate budgets deny excess operations (3.446587ms)
+✔ license page has restrictive CSP and safe no-cache headers (1.125584ms)
+✔ origin matching uses scheme, hostname and port exactly (0.400648ms)
+✔ startup without provisioned trust denies and creates no license (27.81454ms)
+✔ startup with empty trust configuration denies (4.904012ms)
+✔ trusted service without stored license denies (5.450718ms)
+✔ Home allows licensed adapter and published Home limits with bounded lease (26.188545ms)
+✔ Home rejects Pro feature and over-limit resource counts (25.90119ms)
+✔ Pro grants its feature set only to listed adapter and within signed limits (29.76972ms)
+✔ licensed second adapter receives grants only when enabled (21.09587ms)
+✔ missing, disabled, renamed or non-instance senders cannot obtain grants (41.351969ms)
+✔ sender mismatch, unknown feature, extra keys and invalid quota types reject (30.510372ms)
+✔ malformed or untrusted import preserves existing encrypted license (23.770927ms)
+✔ explicit license removal denies checks and remains removed after restart (20.354957ms)
+✔ external license deletion invalidates previously cached grant eligibility (29.215558ms)
+✔ tampered authenticated ciphertext invalidates cached license (19.972568ms)
+✔ encrypted license and edition persist over clean service restart (23.181619ms)
+✔ changed system UUID denies while running (14.067527ms)
+✔ lease is capped at expiry and license expires at exact boundary (19.191104ms)
+✔ expiry is rechecked after delayed adapter object lookup (12.362382ms)
+✔ wall clock rollback relative to monotonic time fails closed until restart (9.635249ms)
+✔ frequent sub-tolerance checks cannot keep a frozen wall clock licensed (15.911898ms)
+✔ small cumulative backward steps cannot reset the monotonic clock anchor (15.124349ms)
+✔ persisted high-water mark detects ordinary rollback across restart (20.6886ms)
+✔ sender rate cap denies excess requests and renews after window (72.287362ms)
+✔ queue cap rejects excess work without preventing earlier jobs completing (5.19543ms)
+✔ new checks and mutations after stop are denied (7.328589ms)
+✔ check queued before stop cannot grant or restore cached validity after stop (20.578055ms)
+✔ check already in adapter lookup cannot grant after stop (21.871ms)
+✔ database timeout clears validity, bounds outstanding reads and ignores late results (35.863824ms)
+✔ timeout during adapter identity lookup clears a previously valid license view (40.929377ms)
+✔ serialized deletion ahead of a check prevents an intervening grant (11.379459ms)
+✔ status rechecks expiry after delayed UUID lookup (9.336776ms)
+✔ import expiring during UUID lookup preserves the previous valid license (10.588947ms)
+✔ production directory resolver works without an assumed adapter instance method (8.882114ms)
+✔ directory resolver failure is contained and keeps authority denied (1.405188ms)
+✔ trusted root-owned complete directory chain accepts bounded public keys (7.599047ms)
+✔ writable, foreign-owned or symbolic-link ancestor is denied before file open (6.230271ms)
+✔ unsafe trust file and inode swap fail closed (11.93412ms)
+✔ read remains bounded after growth and rejects malformed contents with close (5.993886ms)
+✔ Windows and noncanonical paths require explicit supported provisioning (8.339565ms)
+✔ exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks (9.056398ms)
+✔ dry run and already complete locks do not mutate inputs or fetch unnecessary metadata (4.486344ms)
+✔ aliases use actual package name, not installation directory (1.42154ms)
+✔ network failure leaves every input unchanged and never writes a success report (3.713582ms)
+✔ wrong package/version, weak or malformed digest and foreign tarball are rejected before writing (9.237844ms)
+✔ existing conflicting or malformed metadata is never overwritten (2.193513ms)
+✔ concurrent package or lock changes are preserved and stop repair (1.250863ms)
+✔ second-lock commit failure restores both original locks and records rollback evidence (3.445867ms)
+✔ rollback preserves a concurrent developer edit and reports that backup review is required (3.156517ms)
+✔ registry transport has fixed five-second budget, TLS validation and no redirect/retry (1.878333ms)
+(node:1454) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ backend and frontend compare data and reject executable/malformed conditions (1.315653ms)
+✔ shipped frontend expression has the same outcomes and contains no news eval (36.563724ms)
+✔ actual shipped news method refuses marker and preserves numeric behavior (1.941345ms)
+✔ Node index validates bounded schema and strips unused data (2.23129ms)
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.612271ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (185.607898ms)
+✔ complete fixture metadata admits without fetching or executing any package (76.976705ms)
+✔ missing integrity in one scope rejects the real admission process (76.456989ms)
+✔ missing lockfile fails closed instead of permitting a publish check (83.326809ms)
+(node:1462) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ pinned upstream password login, token pair and refresh work with security binding (12.302655ms)
+✔ all devices access and refresh tokens reject changed password without waiting for object event (3.294237ms)
+✔ disable, deletion and changed group ACL independently invalidate both token classes (6.439411ms)
+✔ observed disable then re-enable cannot resurrect old token after snapshot returns to original (1.847111ms)
+✔ legacy and unbound external tokens are rejected and direct internal minting is denied (1.279417ms)
+✔ proof cannot be forged by passing a user-shaped object or copied authenticated identity (0.69916ms)
+✔ password mutation during credential verification and before token save fails closed (1.217739ms)
+✔ refresh credential cannot cross revocation between lookup and save (0.957885ms)
+✔ restart generation does not accept previously saved capabilities (0.847415ms)
+✔ session database failures and bounded stalled reads fail closed without unbounded backlog (76.024833ms)
+✔ socket revocation synchronously blocks commands, clears subscriptions and closes every connection (1.533978ms)
+✔ metadata-only account updates do not revoke established capabilities (1.004349ms)
+✔ expired access and refresh capabilities fail closed in the common session reader (0.780269ms)
+✔ late socket authentication cannot reopen a connection after revocation (0.59093ms)
+✔ real five-second watchdog closes a socket after a missed credential object event (5251.612575ms)
+✔ HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling (8.91085ms)
+✔ HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport (1.72424ms)
+✔ HTTPS rejects redirects without contacting redirect targets (1.205313ms)
+✔ HTTPS rejects oversized declared and streamed responses and compressed bodies (4.361573ms)
+✔ HTTPS rejects malformed or primitive JSON without exposing body/error text (10.792681ms)
+✔ HTTPS hard deadline destroys a request before response including DNS/connect stalls (21.709135ms)
+✔ HTTPS hard deadline also bounds slow response bodies (21.029693ms)
+✔ HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected (2.127277ms)
+✔ gzip preview returns text but rejects bombs, oversized input, and invalid gzip (54.011243ms)
+✔ gzip preview concurrency is bounded independently of compressed size (47.082328ms)
+✔ system-info calls coalesce and cache npm version; no shell is used (2.420097ms)
+✔ upload budget admits two across routes; third denied and aborted temporary files cleaned (67.876519ms)
+✔ upload parser receives actual total/file/part limits and private temporary directory (33.578447ms)
+✔ restore storage replaces an existing regular file without modifying unrelated data (35.130815ms)
+✔ POSIX restore storage replaces a destination symlink and persists restrictive permissions (38.790176ms)
+✔ retained upload data counts against shared quota at the next admission (37.989944ms)
+✔ upload total deadline aborts a still-active parser and removes its partial directory (53.527078ms)
+✔ upload admission rejects low disk space before constructing parser (2.40811ms)
+✔ synchronous parser initialization failure releases reserved capacity (64.368416ms)
+ℹ tests 153
+ℹ suites 0
+ℹ pass 153
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5795.952963
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.

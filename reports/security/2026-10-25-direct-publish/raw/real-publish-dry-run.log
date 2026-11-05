@@ -1,0 +1,24 @@
+
+> iobroker.eos-admin@7.10.12 prepublishOnly
+> npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability
+
+
+> iobroker.eos-admin@7.10.12 sync:eos-version
+> node tools/nexowatt-sync-release-version.cjs
+
+[NexoWatt EOS version sync] OK (7.10.12; all release files match)
+
+> iobroker.eos-admin@7.10.12 repair:eos-lock
+> node tools/nexowatt-repair-lock-metadata.cjs --write && npm run security:inventory && npm run check:eos-production-release
+
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+EOS lock repair stopped: REGISTRY_UNAVAILABLE. No package was installed or published.
+Check direct HTTPS access to registry.npmjs.org, then retry npm publish. The repair runs automatically; TLS validation remains enabled.
+npm error code 1
+npm error path /workspace/scratch/c16def314bc5/publish-fix-20261025/admin
+npm error command failed
+npm error command sh -c npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability
+npm error A complete log of this run can be found in: /root/.npm/_logs/2026-10-25T16_03_37_545Z-debug-0.log

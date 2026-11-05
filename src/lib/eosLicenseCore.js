@@ -32,13 +32,20 @@ function fail(code) {
 }
 
 function plain(value) {
-    return !!value && typeof value === 'object' && !Array.isArray(value) &&
-        (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+    return (
+        !!value &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
+    );
 }
 
 function exactKeys(value, keys) {
-    return plain(value) && Object.keys(value).length === keys.length &&
-        keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
+    return (
+        plain(value) &&
+        Object.keys(value).length === keys.length &&
+        keys.every(key => Object.prototype.hasOwnProperty.call(value, key))
+    );
 }
 
 function validTime(value) {
@@ -46,17 +53,29 @@ function validTime(value) {
 }
 
 function normalizeUuid(uuid) {
-    if (typeof uuid !== 'string' || uuid.length > 128) fail('LICENSE_UUID_INVALID');
+    if (typeof uuid !== 'string' || uuid.length > 128) {
+        fail('LICENSE_UUID_INVALID');
+    }
     const normalized = uuid.trim().toLowerCase();
-    if (!UUID_RE.test(normalized)) fail('LICENSE_UUID_INVALID');
+    if (!UUID_RE.test(normalized)) {
+        fail('LICENSE_UUID_INVALID');
+    }
     return normalized;
 }
 
 function decode64(value, code, maxBytes) {
-    if (typeof value !== 'string' || !value || value.length > Math.ceil(maxBytes * 4 / 3) ||
-        !/^[A-Za-z0-9_-]+$/.test(value)) fail(code);
+    if (
+        typeof value !== 'string' ||
+        !value ||
+        value.length > Math.ceil((maxBytes * 4) / 3) ||
+        !/^[A-Za-z0-9_-]+$/.test(value)
+    ) {
+        fail(code);
+    }
     const decoded = Buffer.from(value, 'base64url');
-    if (decoded.length > maxBytes || decoded.toString('base64url') !== value) fail(code);
+    if (decoded.length > maxBytes || decoded.toString('base64url') !== value) {
+        fail(code);
+    }
     return decoded;
 }
 
@@ -64,26 +83,36 @@ function parseJson(buffer, code) {
     try {
         // JSON.parse alone replaces malformed UTF-8 and is insufficient here.
         return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffer));
-    } catch (_) {
+    } catch {
         fail(code);
     }
 }
 
 function validatePublicKeys(publicKeys) {
-    if (!plain(publicKeys)) fail('TRUST_INVALID');
+    if (!plain(publicKeys)) {
+        fail('TRUST_INVALID');
+    }
     const entries = Object.entries(publicKeys);
-    if (entries.length < 1 || entries.length > 32) fail('TRUST_INVALID');
+    if (entries.length < 1 || entries.length > 32) {
+        fail('TRUST_INVALID');
+    }
     const result = Object.create(null);
     for (const [kid, pem] of entries) {
-        if (!KID_RE.test(kid) || typeof pem !== 'string' || pem.length > 1024 ||
-            !/^-----BEGIN PUBLIC KEY-----\r?\n[A-Za-z0-9+/=\r\n]+\r?\n-----END PUBLIC KEY-----\s*$/.test(pem)) {
+        if (
+            !KID_RE.test(kid) ||
+            typeof pem !== 'string' ||
+            pem.length > 1024 ||
+            !/^-----BEGIN PUBLIC KEY-----\r?\n[A-Za-z0-9+/=\r\n]+\r?\n-----END PUBLIC KEY-----\s*$/.test(pem)
+        ) {
             fail('TRUST_INVALID');
         }
         try {
             const key = crypto.createPublicKey(pem);
-            if (key.type !== 'public' || key.asymmetricKeyType !== 'ed25519') fail('TRUST_INVALID');
+            if (key.type !== 'public' || key.asymmetricKeyType !== 'ed25519') {
+                fail('TRUST_INVALID');
+            }
             result[kid] = key.export({ format: 'pem', type: 'spki' }).toString();
-        } catch (_) {
+        } catch {
             fail('TRUST_INVALID');
         }
     }
@@ -91,52 +120,92 @@ function validatePublicKeys(publicKeys) {
 }
 
 function verifyLicense(token, options = {}) {
-    if (!plain(options)) fail('LICENSE_OPTIONS_INVALID');
+    if (!plain(options)) {
+        fail('LICENSE_OPTIONS_INVALID');
+    }
     const uuid = normalizeUuid(options.uuid);
     const now = options.now === undefined ? Date.now() : options.now;
-    if (!validTime(now)) fail('LICENSE_TIME_INVALID');
+    if (!validTime(now)) {
+        fail('LICENSE_TIME_INVALID');
+    }
     if (typeof token !== 'string' || token.length > MAX_TOKEN_BYTES || !token.startsWith('NWL2.')) {
         fail('LICENSE_FORMAT_INVALID');
     }
     const parts = token.split('.');
-    if (parts.length !== 3 || parts[0] !== 'NWL2') fail('LICENSE_FORMAT_INVALID');
+    if (parts.length !== 3 || parts[0] !== 'NWL2') {
+        fail('LICENSE_FORMAT_INVALID');
+    }
     const payloadBytes = decode64(parts[1], 'LICENSE_FORMAT_INVALID', 10000);
     const signature = decode64(parts[2], 'LICENSE_FORMAT_INVALID', 64);
-    if (signature.length !== 64) fail('LICENSE_FORMAT_INVALID');
+    if (signature.length !== 64) {
+        fail('LICENSE_FORMAT_INVALID');
+    }
     const payload = parseJson(payloadBytes, 'LICENSE_FORMAT_INVALID');
     if (!plain(payload) || typeof payload.kid !== 'string' || !KID_RE.test(payload.kid)) {
         fail('LICENSE_CLAIMS_INVALID');
     }
     const publicKeys = validatePublicKeys(options.publicKeys);
-    if (!Object.prototype.hasOwnProperty.call(publicKeys, payload.kid)) fail('LICENSE_KEY_UNKNOWN');
+    if (!Object.prototype.hasOwnProperty.call(publicKeys, payload.kid)) {
+        fail('LICENSE_KEY_UNKNOWN');
+    }
     let authentic = false;
     try {
         authentic = crypto.verify(null, Buffer.from(`NWL2.${parts[1]}`, 'ascii'), publicKeys[payload.kid], signature);
-    } catch (_) {
+    } catch {
         fail('LICENSE_SIGNATURE_INVALID');
     }
-    if (!authentic) fail('LICENSE_SIGNATURE_INVALID');
-    if (!exactKeys(payload, ['v', 'kid', 'licenseId', 'uuid', 'edition', 'issuedAt', 'notBefore', 'expiresAt', 'adapters', 'limits']) ||
-        payload.v !== 2 || typeof payload.licenseId !== 'string' ||
+    if (!authentic) {
+        fail('LICENSE_SIGNATURE_INVALID');
+    }
+    if (
+        !exactKeys(payload, [
+            'v',
+            'kid',
+            'licenseId',
+            'uuid',
+            'edition',
+            'issuedAt',
+            'notBefore',
+            'expiresAt',
+            'adapters',
+            'limits',
+        ]) ||
+        payload.v !== 2 ||
+        typeof payload.licenseId !== 'string' ||
         !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(payload.licenseId) ||
-        !['home', 'pro'].includes(payload.edition) || !validTime(payload.issuedAt) ||
-        !validTime(payload.notBefore) || payload.notBefore < payload.issuedAt ||
+        !['home', 'pro'].includes(payload.edition) ||
+        !validTime(payload.issuedAt) ||
+        !validTime(payload.notBefore) ||
+        payload.notBefore < payload.issuedAt ||
         !(payload.expiresAt === null || (validTime(payload.expiresAt) && payload.expiresAt > payload.notBefore)) ||
-        !Array.isArray(payload.adapters) || payload.adapters.length < 1 || payload.adapters.length > 64 ||
+        !Array.isArray(payload.adapters) ||
+        payload.adapters.length < 1 ||
+        payload.adapters.length > 64 ||
         !payload.adapters.every(name => typeof name === 'string' && ADAPTER_RE.test(name)) ||
         new Set(payload.adapters).size !== payload.adapters.length ||
         !exactKeys(payload.limits, ['chargePoints', 'batteries']) ||
-        !Number.isSafeInteger(payload.limits.chargePoints) || payload.limits.chargePoints < 1 ||
+        !Number.isSafeInteger(payload.limits.chargePoints) ||
+        payload.limits.chargePoints < 1 ||
         payload.limits.chargePoints > (payload.edition === 'home' ? 3 : 1000) ||
-        !Number.isSafeInteger(payload.limits.batteries) || payload.limits.batteries < 0 ||
-        payload.limits.batteries > (payload.edition === 'home' ? 2 : 10)) {
+        !Number.isSafeInteger(payload.limits.batteries) ||
+        payload.limits.batteries < 0 ||
+        payload.limits.batteries > (payload.edition === 'home' ? 2 : 10)
+    ) {
         fail('LICENSE_CLAIMS_INVALID');
     }
-    if (normalizeUuid(payload.uuid) !== uuid) fail('LICENSE_UUID_MISMATCH');
-    if (now < payload.notBefore || now < payload.issuedAt) fail('LICENSE_NOT_YET_VALID');
-    if (payload.expiresAt !== null && now >= payload.expiresAt) fail('LICENSE_EXPIRED');
+    if (normalizeUuid(payload.uuid) !== uuid) {
+        fail('LICENSE_UUID_MISMATCH');
+    }
+    if (now < payload.notBefore || now < payload.issuedAt) {
+        fail('LICENSE_NOT_YET_VALID');
+    }
+    if (payload.expiresAt !== null && now >= payload.expiresAt) {
+        fail('LICENSE_EXPIRED');
+    }
     const features = ['energy', 'wallet', 'smartHome', 'microgridSlave'];
-    if (payload.edition === 'pro') features.push('microgridMaster', 'multisite', 'billing');
+    if (payload.edition === 'pro') {
+        features.push('microgridMaster', 'multisite', 'billing');
+    }
     // A fresh immutable result prevents consumer mutation from escalating rights.
     return Object.freeze({
         v: 2,
@@ -154,21 +223,28 @@ function verifyLicense(token, options = {}) {
 }
 
 function protectedStat(stat, directory = false) {
-    if ((directory ? !stat.isDirectory() : !stat.isFile()) ||
+    if (
+        (directory ? !stat.isDirectory() : !stat.isFile()) ||
         (POSIX && (stat.uid !== OWN_UID || (stat.mode & 0o077) !== 0)) ||
-        (!directory && stat.nlink !== 1)) fail('STORAGE_UNSAFE_PATH');
+        (!directory && stat.nlink !== 1)
+    ) {
+        fail('STORAGE_UNSAFE_PATH');
+    }
 }
 
 async function statIfExists(filename) {
     try {
         return await fsp.lstat(filename);
     } catch (error) {
-        if (error.code === 'ENOENT') return null;
+        if (error.code === 'ENOENT') {
+            return null;
+        }
         throw error;
     }
 }
 
-/** AES-256-GCM storage, scoped to one normalized device UUID.
+/**
+ * AES-256-GCM storage, scoped to one normalized device UUID.
  * POSIX: private directory/files, current owner, no symlinks/hard-linked files.
  * Windows additionally requires an installer-provisioned private account ACL.
  * Same-UID/root attackers and full-disk rollback require an external trust root.
@@ -179,7 +255,9 @@ class EncryptedLicenseStore {
             fail('STORAGE_DIRECTORY_INVALID');
         }
         this.directory = path.resolve(directory);
-        if (this.directory === path.parse(this.directory).root) fail('STORAGE_DIRECTORY_INVALID');
+        if (this.directory === path.parse(this.directory).root) {
+            fail('STORAGE_DIRECTORY_INVALID');
+        }
         this.uuid = normalizeUuid(uuid);
         this.keyPath = path.join(this.directory, 'storage.key');
         this.licensePath = path.join(this.directory, 'license.enc');
@@ -193,7 +271,9 @@ class EncryptedLicenseStore {
                 await this._prepareDirectory();
                 return await operation();
             } catch (error) {
-                if (error instanceof LicenseError) throw error;
+                if (error instanceof LicenseError) {
+                    throw error;
+                }
                 fail('STORAGE_IO_ERROR');
             }
         });
@@ -213,82 +293,122 @@ class EncryptedLicenseStore {
                 try {
                     await fsp.mkdir(current, { mode: 0o700 });
                 } catch (error) {
-                    if (error.code !== 'EEXIST') throw error;
+                    if (error.code !== 'EEXIST') {
+                        throw error;
+                    }
                 }
                 stat = await fsp.lstat(current);
             }
-            if (!stat.isDirectory() || stat.isSymbolicLink()) fail('STORAGE_UNSAFE_PATH');
-            if (POSIX && stat.uid !== OWN_UID && stat.uid !== 0) fail('STORAGE_UNSAFE_PATH');
+            if (!stat.isDirectory() || stat.isSymbolicLink()) {
+                fail('STORAGE_UNSAFE_PATH');
+            }
+            if (POSIX && stat.uid !== OWN_UID && stat.uid !== 0) {
+                fail('STORAGE_UNSAFE_PATH');
+            }
             // Shared temporary roots are allowed only with the sticky bit. The
             // private final directory must still be owned by this service UID.
-            if (POSIX && (stat.mode & 0o022) && !(stat.mode & 0o1000)) fail('STORAGE_UNSAFE_PATH');
-            if (index === segments.length - 1) protectedStat(stat, true);
+            if (POSIX && stat.mode & 0o022 && !(stat.mode & 0o1000)) {
+                fail('STORAGE_UNSAFE_PATH');
+            }
+            if (index === segments.length - 1) {
+                protectedStat(stat, true);
+            }
         }
     }
 
     async _read(filename, maxBytes) {
         const before = await statIfExists(filename);
-        if (!before) return null;
+        if (!before) {
+            return null;
+        }
         protectedStat(before);
         let handle;
         try {
             handle = await fsp.open(filename, fs.constants.O_RDONLY | NOFOLLOW);
             const stat = await handle.stat();
             protectedStat(stat);
-            if (before.dev !== stat.dev || before.ino !== stat.ino) fail('STORAGE_UNSAFE_PATH');
-            if (stat.size > maxBytes) fail('STORAGE_SIZE_INVALID');
+            if (before.dev !== stat.dev || before.ino !== stat.ino) {
+                fail('STORAGE_UNSAFE_PATH');
+            }
+            if (stat.size > maxBytes) {
+                fail('STORAGE_SIZE_INVALID');
+            }
             const buffer = Buffer.alloc(maxBytes + 1);
             let total = 0;
             while (total < buffer.length) {
                 const { bytesRead } = await handle.read(buffer, total, buffer.length - total, null);
-                if (bytesRead === 0) break;
+                if (bytesRead === 0) {
+                    break;
+                }
                 total += bytesRead;
             }
-            if (total > maxBytes) fail('STORAGE_SIZE_INVALID');
+            if (total > maxBytes) {
+                fail('STORAGE_SIZE_INVALID');
+            }
             return buffer.subarray(0, total);
         } finally {
-            if (handle) await handle.close();
+            if (handle) {
+                await handle.close();
+            }
         }
     }
 
     async _key(create, hasLicense) {
         let key = await this._read(this.keyPath, 32);
-        if (!key && hasLicense) fail('STORAGE_KEY_MISSING');
+        if (!key && hasLicense) {
+            fail('STORAGE_KEY_MISSING');
+        }
         if (!key && create) {
             const candidate = crypto.randomBytes(32);
             let handle;
             try {
-                handle = await fsp.open(this.keyPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | NOFOLLOW, 0o600);
+                handle = await fsp.open(
+                    this.keyPath,
+                    fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | NOFOLLOW,
+                    0o600,
+                );
                 await handle.writeFile(candidate);
                 await handle.sync();
             } catch (error) {
-                if (error.code !== 'EEXIST') throw error;
+                if (error.code !== 'EEXIST') {
+                    throw error;
+                }
             } finally {
                 candidate.fill(0);
-                if (handle) await handle.close();
+                if (handle) {
+                    await handle.close();
+                }
             }
             key = await this._read(this.keyPath, 32);
         }
-        if (key && key.length !== 32) fail('STORAGE_KEY_INVALID');
+        if (key && key.length !== 32) {
+            fail('STORAGE_KEY_INVALID');
+        }
         return key;
     }
 
     _decode(encrypted, key) {
         const envelope = parseJson(encrypted, 'STORAGE_FORMAT_INVALID');
-        if (!exactKeys(envelope, ['v', 'alg', 'iv', 'ciphertext', 'tag']) || envelope.v !== 1 || envelope.alg !== 'A256GCM') {
+        if (
+            !exactKeys(envelope, ['v', 'alg', 'iv', 'ciphertext', 'tag']) ||
+            envelope.v !== 1 ||
+            envelope.alg !== 'A256GCM'
+        ) {
             fail('STORAGE_FORMAT_INVALID');
         }
         const iv = decode64(envelope.iv, 'STORAGE_FORMAT_INVALID', 12);
         const tag = decode64(envelope.tag, 'STORAGE_FORMAT_INVALID', 16);
         const ciphertext = decode64(envelope.ciphertext, 'STORAGE_FORMAT_INVALID', 20000);
-        if (iv.length !== 12 || tag.length !== 16) fail('STORAGE_FORMAT_INVALID');
+        if (iv.length !== 12 || tag.length !== 16) {
+            fail('STORAGE_FORMAT_INVALID');
+        }
         let plaintext;
         try {
             const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv, { authTagLength: 16 });
             decipher.setAAD(this.aad);
             decipher.setAuthTag(tag);
             plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-        } catch (_) {
+        } catch {
             fail('STORAGE_AUTH_FAILED');
         }
         try {
@@ -301,14 +421,22 @@ class EncryptedLicenseStore {
     }
 
     _validateData(data) {
-        if (!exactKeys(data, ['token', 'highWaterMark']) || typeof data.token !== 'string' ||
-            !data.token.startsWith('NWL2.') || data.token.length > MAX_TOKEN_BYTES ||
-            !validTime(data.highWaterMark)) fail('STORAGE_DATA_INVALID');
+        if (
+            !exactKeys(data, ['token', 'highWaterMark']) ||
+            typeof data.token !== 'string' ||
+            !data.token.startsWith('NWL2.') ||
+            data.token.length > MAX_TOKEN_BYTES ||
+            !validTime(data.highWaterMark)
+        ) {
+            fail('STORAGE_DATA_INVALID');
+        }
     }
 
     async _syncDirectory() {
         // Directory fsync is a POSIX durability primitive, unavailable on Windows.
-        if (!POSIX) return;
+        if (!POSIX) {
+            return;
+        }
         const handle = await fsp.open(this.directory, fs.constants.O_RDONLY | NOFOLLOW);
         try {
             protectedStat(await handle.stat(), true);
@@ -321,30 +449,55 @@ class EncryptedLicenseStore {
     async _atomicWrite(content) {
         const temporary = path.join(this.directory, `.license-${crypto.randomBytes(12).toString('hex')}.tmp`);
         let handle;
+        const failures = [];
         try {
-            handle = await fsp.open(temporary, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | NOFOLLOW, 0o600);
+            handle = await fsp.open(
+                temporary,
+                fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | NOFOLLOW,
+                0o600,
+            );
             await handle.writeFile(content);
             await handle.sync();
             await handle.close();
             handle = null;
             const existing = await statIfExists(this.licensePath);
-            if (existing) protectedStat(existing);
+            if (existing) {
+                protectedStat(existing);
+            }
             await fsp.rename(temporary, this.licensePath);
             await this._syncDirectory();
+        } catch (error) {
+            failures.push(error);
         } finally {
-            if (handle) await handle.close();
+            if (handle) {
+                try {
+                    await handle.close();
+                } catch (error) {
+                    failures.push(error);
+                }
+            }
             try {
                 await fsp.unlink(temporary);
             } catch (error) {
-                if (error.code !== 'ENOENT') throw error;
+                if (error.code !== 'ENOENT') {
+                    failures.push(error);
+                }
             }
+        }
+        if (failures.length === 1) {
+            throw failures[0];
+        }
+        if (failures.length > 1) {
+            throw new AggregateError(failures, 'License persistence and cleanup failed');
         }
     }
 
     async load() {
         return this._run(async () => {
             const encrypted = await this._read(this.licensePath, MAX_STORE_BYTES);
-            if (!encrypted) return null;
+            if (!encrypted) {
+                return null;
+            }
             const key = await this._key(false, true);
             try {
                 return this._decode(encrypted, key);
@@ -381,7 +534,9 @@ class EncryptedLicenseStore {
                 await this._atomicWrite(envelope);
             } finally {
                 key.fill(0);
-                if (plaintext) plaintext.fill(0);
+                if (plaintext) {
+                    plaintext.fill(0);
+                }
             }
         });
     }
@@ -389,7 +544,9 @@ class EncryptedLicenseStore {
     async clear() {
         return this._run(async () => {
             const stat = await statIfExists(this.licensePath);
-            if (!stat) return;
+            if (!stat) {
+                return;
+            }
             protectedStat(stat);
             await fsp.unlink(this.licensePath);
             await this._syncDirectory();

@@ -1,0 +1,3 @@
+
+EOS lock repair stopped: REGISTRY_UNAVAILABLE. No package was installed or published.
+Check access to https://registry.npmjs.org and run npm run repair:eos-lock again. TLS validation remains enabled.

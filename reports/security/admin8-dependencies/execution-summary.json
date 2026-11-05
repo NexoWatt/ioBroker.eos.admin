@@ -1,0 +1,43 @@
+{
+  "utc": "2026-11-04T21:18:16.245Z",
+  "node": "v24.22.1",
+  "npm": "11.9.0",
+  "strictSsl": true,
+  "installs": [
+    {
+      "scope": "backend",
+      "finalInstallExit": 0,
+      "installScripts": false,
+      "successfulCiExit": 0
+    },
+    {
+      "scope": "frontend",
+      "finalInstallExit": 0,
+      "installScripts": false,
+      "successfulCiExit": 0
+    }
+  ],
+  "auditExits": {
+    "backendProduction": 0,
+    "backendAll": 1,
+    "frontendAll": 0
+  },
+  "auditMeaning": "Exit1 backendAll reflects15 known moderate development-only dependency labels; no high or critical findings.",
+  "published": false,
+  "lockRepair": {
+    "status": "REPAIRED",
+    "versionChanges": 0,
+    "locations": 323,
+    "exactMetadataRecords": 314,
+    "initialValidResponsesCollected": 323,
+    "finalReplay": "314 validated public receipts, original timestamps and response hashes retained",
+    "concurrentInputDetection": "Long fetch detected intentional manifest changes and did not write; exact replay against final manifests succeeded"
+  },
+  "tarballVerification": {
+    "status": "VERIFIED",
+    "uniqueTarballs": 1052,
+    "backendInstalled": 747,
+    "frontendInstalled": 559,
+    "failures": 0
+  }
+}

@@ -19,13 +19,15 @@ import {
     type IobTheme,
     type ThemeType,
     type Translate,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 import SlowConnectionWarningDialog, { SlowConnectionWarningDialogClass } from '@/dialogs/SlowConnectionWarningDialog';
 import type { HostsWorker, NotificationAnswer, HostAliveEvent, HostEvent } from '@/Workers/HostsWorker';
 import type { RepoAdapterObject } from '@/components/Adapters/Utils';
 import { blinkClasses } from '@/components/Hosts/HostGeneric';
+import { readRepository } from '@/helpers/repository';
 import HostCard from '../components/Hosts/HostCard';
+// import NewHosts from '../components/Hosts/NewHosts';
 import HostRow from '../components/Hosts/HostRow';
 
 const styles: Record<string, any> = {
@@ -208,7 +210,7 @@ export default class Hosts extends Component<HostsProps, HostsState> {
         for (let h = 0; h < hosts.length; h++) {
             if (_alive[hosts[h]._id]) {
                 const promise = this.props.socket
-                    .getHostInfo(hosts[h]._id, null, this.state.readTimeoutMs)
+                    .getHostInfo(hosts[h]._id, undefined, this.state.readTimeoutMs)
                     .catch((error: string) => {
                         console.error(`Cannot get getHostInfo: ${error}`);
                         if (error.toString().includes('timeout')) {
@@ -236,9 +238,11 @@ export default class Hosts extends Component<HostsProps, HostsState> {
     async readInfo(): Promise<void> {
         try {
             const hosts: ioBroker.HostObject[] = await this.props.socket.getHosts(true);
-            const repository: Record<string, RepoAdapterObject> = (await this.props.socket.getRepository(
+            // only the controller is shown here, the other entries of the repository are not needed
+            const repository: Record<string, RepoAdapterObject> = (await readRepository(
+                this.props.socket,
                 this.props.currentHost,
-                { update: false },
+                { update: false, lang: this.props.lang, adapters: ['js-controller'] },
                 false,
                 this.state.readTimeoutMs,
             )) as unknown as Record<string, RepoAdapterObject>;
@@ -287,7 +291,7 @@ export default class Hosts extends Component<HostsProps, HostsState> {
                     const state = await this.props.socket.getState(`${event.id}.alive`);
                     alive[event.id] = !!state?.val;
                     // new
-                    hosts.push(event.obj);
+                    hosts.push(event.obj as ioBroker.HostObject);
                 }
             }),
         ).then(() => {
@@ -322,7 +326,7 @@ export default class Hosts extends Component<HostsProps, HostsState> {
         }
     };
 
-    getPanelsOrRows(): string | JSX.Element[] {
+    getPanelsOrRows(): string | (JSX.Element | null)[] {
         const items = this.renderHosts().filter(host => host);
 
         return items.length ? items : this.t('All items are filtered out');
@@ -528,6 +532,15 @@ export default class Hosts extends Component<HostsProps, HostsState> {
                             </InfoBox>
                         </Box>
                     ) : null}
+                    {/* Hosts on the network that belong to no system yet - renders nothing when there are none */}
+                    {/*<Box sx={{ marginX: 2, width: 'calc(100% - 32px)', alignSelf: 'center' }}>
+                        <NewHosts
+                            socket={this.props.socket}
+                            currentHost={this.props.currentHost}
+                            t={this.props.t}
+                            theme={this.props.theme}
+                        />
+                    </Box>*/}
                     <div style={this.state.viewMode ? styles.cards : undefined}>
                         {!this.state.viewMode && this.renderTableHeader()}
                         {this.getPanelsOrRows()}

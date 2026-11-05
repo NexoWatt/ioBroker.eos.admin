@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "test/eos-lock-repair.test.cjs"
+  ],
+  "utc": "2026-10-25T15:50:12.755932+00:00",
+  "exit": 0,
+  "seconds": 0.205,
+  "limits": "Injected metadata and rename-error fixtures; Linux only; no live registry success or tarball byte verification"
+}

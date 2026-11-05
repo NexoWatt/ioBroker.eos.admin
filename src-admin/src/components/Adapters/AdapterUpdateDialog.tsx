@@ -9,7 +9,7 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Grid2,
+    Grid,
     IconButton,
     Typography,
 } from '@mui/material';
@@ -25,7 +25,7 @@ import {
     Language as LanguageIcon,
 } from '@mui/icons-material';
 
-import { I18n, Utils, type IobTheme, type Translate } from '@iobroker/adapter-react-v5';
+import { I18n, Utils, type IobTheme, type Translate } from '@iobroker/gui-components';
 
 import { MOBILE_WIDTH } from '@/helpers/MobileDialog';
 import type { RepoAdapterObject } from '@/components/Adapters/Utils';
@@ -43,8 +43,17 @@ import 'moment/locale/ru';
 import 'moment/locale/uk';
 import 'moment/locale/zh-cn';
 import type { AdapterDependencies } from './AddInstanceDialog';
+import NewsLine, { stripNewsMarker } from './NewsLine';
 
 const styles: Record<string, any> = {
+    dependencyEntry: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    dependencyWrongHosts: {
+        color: '#f5614d',
+        fontSize: 'smaller',
+    },
     closeButton: (theme: IobTheme) => ({
         position: 'absolute',
         right: 8,
@@ -212,7 +221,7 @@ export function checkCondition(
                     // - "vis-2>=1.0.0"
                     // - "vis"
                     // - "!vis-2"
-                    let version;
+                    let version: string | null | undefined;
                     let op;
                     let ver;
 
@@ -242,22 +251,22 @@ export function checkCondition(
                                     ver = split[3];
                                     try {
                                         if (op === '==') {
-                                            return semver.eq(version, ver);
+                                            return semver.eq(version || '', ver);
                                         }
                                         if (op === '>') {
-                                            return semver.gt(version, ver);
+                                            return semver.gt(version || '', ver);
                                         }
                                         if (op === '<') {
-                                            return semver.lt(version, ver);
+                                            return semver.lt(version || '', ver);
                                         }
                                         if (op === '>=') {
-                                            return semver.gte(version, ver);
+                                            return semver.gte(version || '', ver);
                                         }
                                         if (op === '<=') {
-                                            return semver.lte(version, ver);
+                                            return semver.lte(version || '', ver);
                                         }
                                         if (op === '!=') {
-                                            return semver.neq(version, ver);
+                                            return semver.neq(version || '', ver);
                                         }
                                         console.warn(`Unknown rule ${version}${rule}`);
                                         return false;
@@ -294,22 +303,22 @@ export function checkCondition(
                     }
                     try {
                         if (op === '==') {
-                            return semver.eq(version, ver);
+                            return semver.eq(version || '', ver);
                         }
                         if (op === '>') {
-                            return semver.gt(version, ver);
+                            return semver.gt(version || '', ver);
                         }
                         if (op === '<') {
-                            return semver.lt(version, ver);
+                            return semver.lt(version || '', ver);
                         }
                         if (op === '>=') {
-                            return semver.gte(version, ver);
+                            return semver.gte(version || '', ver);
                         }
                         if (op === '<=') {
-                            return semver.lte(version, ver);
+                            return semver.lte(version || '', ver);
                         }
                         if (op === '!=') {
-                            return semver.neq(version, ver);
+                            return semver.neq(version || '', ver);
                         }
                         console.warn(`Unknown rule ${version}${rule}`);
                     } catch {
@@ -319,7 +328,7 @@ export function checkCondition(
                 });
 
                 if (message.condition.operand === 'or') {
-                    show = results.find(res => res);
+                    show = !!results.find(res => res);
                 } else {
                     show = results.findIndex(res => !res) === -1;
                 }
@@ -356,6 +365,8 @@ interface AdapterUpdateDialogProps {
     rightDependencies: boolean;
     installedVersion: string;
     t: Translate;
+    /** Dialog title instead of 'Update "adapter" to vX' */
+    textTitle?: string;
     textUpdate?: string;
     textInstruction?: string;
     instances?: Record<string, CompactInstanceInfo>;
@@ -451,14 +462,40 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
     }
 
     getDependencies(): JSX.Element[] {
-        return (this.props.dependencies || []).map(dependency => (
-            <State
-                key={dependency.name}
-                state={dependency.rightVersion}
-            >
-                {`${dependency.name}${dependency.version ? ` (${dependency.version})` : ''}: ${dependency.installed ? dependency.installedVersion : '-'}`}
-            </State>
-        ));
+        return (this.props.dependencies || []).map(dependency => {
+            const text = `${dependency.name}${dependency.version ? ` (${dependency.version})` : ''}: ${dependency.installed ? dependency.installedVersion : '-'}`;
+
+            // A global dependency must be fulfilled on EVERY host of a multihost system, but only one
+            // version fits in the line above. Without naming the hosts that still run a too old version,
+            // the entry looks simply wrong (e.g. "admin (>=8.0.0): 8.0.14" marked with a red cross).
+            if (dependency.wrongHosts?.length) {
+                return (
+                    <State
+                        key={dependency.name}
+                        state={false}
+                    >
+                        <span style={styles.dependencyEntry}>
+                            <span>{text}</span>
+                            <span style={styles.dependencyWrongHosts}>
+                                {this.t(
+                                    'Not fulfilled on the following hosts: %s',
+                                    dependency.wrongHosts.map(h => `${h.host} (${h.installedVersion})`).join(', '),
+                                )}
+                            </span>
+                        </span>
+                    </State>
+                );
+            }
+
+            return (
+                <State
+                    key={dependency.name}
+                    state={dependency.rightVersion}
+                >
+                    {text}
+                </State>
+            );
+        });
     }
 
     getNews(): JSX.Element[] {
@@ -479,9 +516,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
         this.props.news?.forEach(entry => {
             const news: string[] = (entry.news ? entry.news.split('\n') : [])
                 .map((line: string) =>
-                    line
-                        .trim()
-                        .replace(/^\*\s*/, '')
+                    stripNewsMarker(line.trim())
                         .replace(/<!--[^>]*->/, '')
                         .replace(/<! -[^>]*->/, '')
                         .replace(/<!--|--!?>/g, '')
@@ -498,7 +533,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
             }
 
             result.push(
-                <Grid2 key={entry.version}>
+                <Grid key={entry.version}>
                     <Typography sx={styles.version}>
                         {entry.version}
                         {latestVersion && latestVersion === entry.version ? (
@@ -522,34 +557,31 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                         ) : null}
                     </Typography>
                     {news.map((value, index) => (
-                        <Typography
+                        <NewsLine
                             key={`${entry.version}-${index}`}
-                            component="div"
-                            variant="body2"
-                        >
-                            {`• ${value}`}
-                        </Typography>
+                            text={value}
+                        />
                     ))}
-                </Grid2>,
+                </Grid>,
             );
         });
 
         return result;
     }
 
-    getText(text: string | { [lang: string]: string }, noTranslation?: boolean): string {
+    getText(text: string | { [lang: string]: string } | undefined, noTranslation?: boolean): string {
         if (text && typeof text === 'object') {
             if (noTranslation) {
-                return text.en;
+                return text.en || '';
             }
-            return text[this.lang] || text.en;
+            return text[this.lang] || text.en || '';
         }
-        return typeof text === 'object' ? '' : text;
+        return typeof text === 'object' ? '' : text || '';
     }
 
     renderOneMessage(message: Message, index: number): JSX.Element {
         return (
-            <Grid2 key={index}>
+            <Grid key={index}>
                 <Typography sx={styles[`messageTitle_${message.level || 'warn'}`]}>
                     {this.getText(message.title, this.props.noTranslation) || ''}
                 </Typography>
@@ -563,8 +595,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                 {message.link ? (
                     <Button
                         onClick={() => {
-                            const w = window.open(message.link, '_blank');
-                            w.focus();
+                            window.open(message.link, '_blank')?.focus();
                         }}
                         startIcon={<IconWeb />}
                         variant="contained"
@@ -573,22 +604,21 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                         {this.getText(message.linkText, this.props.noTranslation) || this.props.t('More info')}
                     </Button>
                 ) : null}
-            </Grid2>
+            </Grid>
         );
     }
 
     renderMessages(): JSX.Element | null {
         if (this.messages) {
             return (
-                <Grid2
+                <Grid
                     container
                     spacing={2}
-                    direction="column"
                     wrap="nowrap"
-                    sx={{ marginBottom: 1 }}
+                    sx={{ marginBottom: 1, flexDirection: 'column' }}
                 >
                     {this.messages.map((message, i) => this.renderOneMessage(message, i))}
-                </Grid2>
+                </Grid>
             );
         }
         return null;
@@ -598,8 +628,11 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
         if (!this.state.showMessageDialog) {
             return null;
         }
-        const message = this.messages.find(m => m.buttons);
+        const message = this.messages?.find(m => m.buttons);
         const version = this.props.adapterObject?.version;
+        if (!message) {
+            return null;
+        }
 
         return (
             <Dialog
@@ -625,8 +658,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                     {message.link ? (
                         <Button
                             onClick={() => {
-                                const w = window.open(message.link, '_blank');
-                                w.focus();
+                                window.open(message.link, '_blank')?.focus();
                             }}
                             startIcon={<IconWeb />}
                             variant="contained"
@@ -636,7 +668,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                         </Button>
                     ) : null}
                     {message.link ? <div style={{ flexGrow: 1 }} /> : null}
-                    {message.buttons.map((button, i) => {
+                    {message.buttons?.map((button, i) => {
                         if (button === 'ok') {
                             return (
                                 <Button
@@ -708,7 +740,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                         sx={{ '&.MuiTypography-root': styles.typography }}
                     >
                         <div style={{ width: 'calc(100% - 60px)' }}>
-                            {this.t('Update "%s" to v%s', this.props.adapter, version)}
+                            {this.props.textTitle || this.t('Update "%s" to v%s', this.props.adapter, version)}
                         </div>
                         <IconButton
                             size="large"
@@ -717,7 +749,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                         >
                             <CloseIcon />
                         </IconButton>
-                        {this.lang !== 'en' && this.props.toggleTranslation && !allDownloaded ? (
+                        {this.lang !== 'en' && !allDownloaded ? (
                             <IconButton
                                 size="large"
                                 style={Utils.getStyle(
@@ -735,16 +767,16 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                 </DialogTitle>
                 <DialogContent dividers>
                     {this.renderMessages()}
-                    <Grid2
+                    <Grid
                         container
-                        direction="column"
                         spacing={2}
                         wrap="nowrap"
+                        sx={{ flexDirection: 'column' }}
                     >
                         {this.props.dependencies &&
                             this.props.dependencies.length > 0 &&
                             this.props.dependencies.find(dependency => !dependency.rightVersion) && (
-                                <Grid2>
+                                <Grid>
                                     <Typography
                                         variant="h6"
                                         gutterBottom
@@ -752,36 +784,36 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                                         {this.t('Dependencies')}
                                     </Typography>
                                     {this.getDependencies()}
-                                </Grid2>
+                                </Grid>
                             )}
                         {news.length ? (
-                            <Grid2>
+                            <Grid>
                                 <Typography
                                     variant="h6"
                                     gutterBottom
                                 >
                                     {this.t('Change log')}
                                 </Typography>
-                                <Grid2
+                                <Grid
                                     container
                                     spacing={2}
-                                    direction="column"
                                     wrap="nowrap"
+                                    sx={{ flexDirection: 'column' }}
                                 >
                                     {news}
-                                </Grid2>
-                            </Grid2>
+                                </Grid>
+                            </Grid>
                         ) : (
                             this.t('No change log available')
                         )}
-                    </Grid2>
+                    </Grid>
                 </DialogContent>
                 <DialogActions sx={styles.wrapperButton}>
                     {!!this.props.rightDependencies && this.props.onIgnore && version && (
                         <Button
                             id="adapter-update-dialog-ignore"
                             variant="outlined"
-                            onClick={() => this.props.onIgnore(version)}
+                            onClick={() => this.props.onIgnore?.(version)}
                             color="primary"
                         >
                             {this.t('Ignore version %s', version)}
@@ -814,7 +846,7 @@ class AdapterUpdateDialog extends Component<AdapterUpdateDialogProps, AdapterUpd
                                 if (this.messages?.find(message => message.buttons)) {
                                     this.setState({ showMessageDialog: true });
                                 } else {
-                                    this.props.onInstruction();
+                                    this.props.onInstruction?.();
                                 }
                             }}
                             color="primary"

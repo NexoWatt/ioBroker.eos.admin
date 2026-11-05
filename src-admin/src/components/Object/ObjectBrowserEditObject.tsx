@@ -1,4 +1,5 @@
 import React, { Component, type JSX } from 'react';
+import { validateAliasSyntax } from '@/helpers/configExpressionSafety';
 import moment from 'moment';
 
 import 'moment/locale/de';
@@ -24,7 +25,7 @@ import {
     Fab,
     FormControl,
     FormControlLabel,
-    Grid2,
+    Grid,
     IconButton,
     InputAdornment,
     InputLabel,
@@ -58,10 +59,12 @@ import {
     type IobUri,
     setAttrInObject,
     getAttrInObject,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 import { JsonConfigComponent, type ConfigItemPanel, type ConfigItemTabs } from '@iobroker/json-config';
 
 import Editor from '../Editor';
+import AceEditor from '../AceEditor';
+import { onCtrlEnter } from '@/helpers/ctrlEnter';
 
 const styles: Record<string, any> = {
     divWithoutTitle: {
@@ -135,36 +138,10 @@ const styles: Record<string, any> = {
             mr: '8px',
         },
     },
-    close: {
-        width: '20px',
-        height: '20px',
-        opacity: '0.9',
-        cursor: 'pointer',
-        position: 'relative',
-        top: 20,
-        marginTop: '10px',
-        transition: 'all 0.6s ease',
-        '&:hover': {
-            transform: 'rotate(90deg)',
-        },
-        '&:before': {
-            position: 'absolute',
-            left: '9px',
-            content: '""',
-            height: '20px',
-            width: '3px',
-            backgroundColor: '#ff4f4f',
-            transform: 'rotate(45deg)',
-        },
-        '&:after': {
-            position: 'absolute',
-            left: '9px',
-            content: '""',
-            height: '20px',
-            width: '3px',
-            backgroundColor: '#ff4f4f',
-            transform: 'rotate(-45deg)',
-        },
+    removeButton: {
+        mt: '23px',
+        alignSelf: 'flex-start',
+        flexShrink: 0,
     },
     color: {
         width: 70,
@@ -227,7 +204,7 @@ const styles: Record<string, any> = {
     },
 };
 
-function valueBlink(theme: IobTheme, color: string): any {
+function valueBlink(theme: IobTheme, color: string | undefined): any {
     return {
         '@keyframes newStateEditorAnimation': {
             '0%': {
@@ -640,8 +617,8 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
             error: false,
             customError: false,
             changed: false,
-            readError: this.checkFunction(aliasRead, false),
-            writeError: this.checkFunction(aliasWrite, true),
+            readError: this.checkFunction(aliasRead),
+            writeError: this.checkFunction(aliasWrite),
             tab,
             showCopyDialog: '',
             showCommonDeleteMessage: false,
@@ -693,12 +670,16 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                                     }
                                 }
                             } catch (e) {
-                                console.warn(`Cannot get icon for schema from "${schema.icon}": ${e}`);
+                                console.warn(
+                                    `Cannot get icon for schema from "${schema.icon}": ${e instanceof Error ? e.message : String(e)}`,
+                                );
                                 schema.icon = undefined;
                             }
                         }
                     } catch (e) {
-                        console.warn(`Cannot get edit schema for "${editSchemas[schemas[i]]}": ${e}`);
+                        console.warn(
+                            `Cannot get edit schema for "${editSchemas[schemas[i]]}": ${e instanceof Error ? e.message : String(e)}`,
+                        );
                     }
                 }
                 if (customEditTabs.length) {
@@ -712,13 +693,13 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                         if (b.order !== undefined) {
                             return 1;
                         }
-                        return a.key > b.key ? 1 : -1;
+                        return (a.key || '') > (b.key || '') ? 1 : -1;
                     });
                     this.setState({ customEditTabs });
                 }
             } else {
                 console.warn(
-                    `Invalid edit schema for "${editSchemas}": expected object, but got ${typeof editSchemas}`,
+                    `Invalid edit schema for "${String(editSchemas)}": expected object, but got ${typeof editSchemas}`,
                 );
             }
         }
@@ -767,7 +748,8 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
         void this.props.socket.unsubscribeObject(this.props.obj._id, this.onObjectUpdated);
     }
 
-    onObjectUpdated = (_id: string, obj: ioBroker.AnyObject): void => {
+    onObjectUpdated = (_id: string, _obj: ioBroker.Object | null | undefined): void => {
+        const obj = _obj as ioBroker.AnyObject;
         if (this.originalObj !== JSON.stringify(obj, null, 2)) {
             this.originalObj = JSON.stringify(obj, null, 2);
             if (!this.state.changed) {
@@ -778,67 +760,12 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
         }
     };
 
-    checkFunction(func: string, isWrite: boolean): string {
-        if (!func) {
-            return '';
-        }
-        if (func.includes('JSON.parse(')) {
-            // Unable to validate (a result is unknown)
-            return '';
-        }
-        let json;
-        try {
-            json = JSON.parse(this.state.text);
-        } catch {
-            // ignore
-        }
-
-        let jsFunc;
-        try {
-            // eslint-disable-next-line no-new-func
-            jsFunc = new Function('val', func.includes('return') ? func : `return ${func}`);
-        } catch {
-            return this.props.t('Cannot parse code!');
-        }
-
-        //  if source and target types exist
-        if (json?.common?.type && (this.props.objects[json.common.alias?.id]?.common as ioBroker.StateCommon)?.type) {
-            const initialType: ioBroker.CommonType = isWrite
-                ? json.common.type
-                : (this.props.objects[json.common.alias.id] as ioBroker.StateObject).common.type;
-            const finalType: ioBroker.CommonType = isWrite
-                ? (this.props.objects[json.common.alias.id] as ioBroker.StateObject).common.type
-                : json.common.type;
-            if (initialType && finalType) {
-                let arg = null;
-                if (initialType === 'boolean') {
-                    arg = true;
-                } else if (initialType === 'number') {
-                    arg = 1;
-                } else if (initialType === 'string' || initialType === 'mixed') {
-                    arg = 'string';
-                }
-                if (arg !== null) {
-                    try {
-                        const result = jsFunc(arg);
-                        if (finalType === 'mixed') {
-                            // we cannot check the value with type mixed
-                            return '';
-                        }
-                        return result !== null && typeof result !== finalType
-                            ? this.props.t('Type of result is not as expected: %s', finalType)
-                            : '';
-                    } catch (e) {
-                        return `${this.props.t('Cannot execute function')}: ${e.toString()}`;
-                    }
-                }
-            }
-        }
-
-        return '';
+    checkFunction(func: unknown): string {
+        const error = validateAliasSyntax(func);
+        return error ? this.props.t(error) : '';
     }
 
-    prepareObject(value: string): ioBroker.Object {
+    prepareObject(value: string): ioBroker.Object | null {
         value = value || this.state.text;
         try {
             const obj = JSON.parse(value);
@@ -900,8 +827,8 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
             }
 
             newState.error = false;
-            newState.readError = this.checkFunction(json.common?.alias?.read, false);
-            newState.writeError = this.checkFunction(json.common?.alias?.write, true);
+            newState.readError = this.checkFunction(json.common?.alias?.read);
+            newState.writeError = this.checkFunction(json.common?.alias?.write);
         } else {
             newState.showCommonDeleteMessage = false;
             newState.error = true;
@@ -909,6 +836,17 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
 
         this.setState(newState as ObjectBrowserEditObjectState, () => cb && cb());
     }
+
+    /** CTRL+ENTER triggers the same action as the "Write" button */
+    onCtrlEnter = (): void => {
+        // the sub-dialogs are rendered inside this dialog, so their events end up here too
+        if (this.state.showCopyDialog || this.state.selectId || this.state.selectRead || this.state.selectWrite) {
+            return;
+        }
+        if (!this.state.error && this.state.changed && !this.state.customError) {
+            this.onUpdate();
+        }
+    };
 
     onUpdate(): void {
         try {
@@ -965,7 +903,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
         if (data === undefined) {
             return text;
         }
-        data = setAttrInObject(data, path.split('.'), value);
+        data = setAttrInObject(data, (path || '').split('.'), value);
         return JSON.stringify(data, null, 2);
     }
 
@@ -978,7 +916,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
         try {
             data = ObjectBrowserEditObject.getPartOfObject(this.state.text, tab.path);
         } catch (e) {
-            console.error(`Cannot get data for ${tab.path}: ${e}`);
+            console.error(`Cannot get data for ${tab.path}: ${e instanceof Error ? e.message : String(e)}`);
             return <div>{I18n.t('Cannot get data for %s: %s', tab.path, e)}</div>;
         }
 
@@ -1001,7 +939,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                         const text = ObjectBrowserEditObject.setPartOfObject(this.state.text, data, tab.path);
                         this.onChange(text);
                     } catch (e) {
-                        console.error(`Cannot set data for ${tab.path}: ${e}`);
+                        console.error(`Cannot set data for ${tab.path}: ${e instanceof Error ? e.message : String(e)}`);
                     }
                 }}
                 adapterName={''}
@@ -1012,11 +950,12 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                         this.setState({ customError: error });
                     }
                 }}
+                AceEditor={AceEditor}
             />
         );
     }
 
-    renderCustomTab(tab: EditSchemaTabEditor, parsedObj: ioBroker.Object | null | undefined): JSX.Element {
+    renderCustomTab(tab: EditSchemaTabEditor, parsedObj: ioBroker.Object | null | undefined): JSX.Element | null {
         let style: React.CSSProperties | undefined;
         if (!parsedObj) {
             return null;
@@ -1029,16 +968,16 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
         if (tab.color) {
             style = {
                 backgroundColor: tab.color,
-                color: Utils.invertColor(tab.color, true),
+                color: Utils.invertColor(tab.color || '', true),
             };
         }
 
         const label: string | React.JSX.Element =
             tab.label && typeof tab.label === 'object'
-                ? tab.label[this.state.lang] || tab.label.en
+                ? tab.label[this.state.lang] || tab.label.en || ''
                 : tab.noTranslation
-                  ? (tab.label as string) || tab.key
-                  : this.props.t((tab.label as string) || tab.key);
+                  ? (tab.label as string) || tab.key || ''
+                  : this.props.t((tab.label as string) || tab.key || '');
 
         return (
             <Tab
@@ -1106,7 +1045,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
             styleValue.color = '#0047b1';
             styleValue.fontStyle = 'italic';
         } else if (
-            typeof this.props.obj.common.role === 'string' &&
+            typeof this.props.obj.common?.role === 'string' &&
             this.props.obj.common.role.match(/^value\.time|^date/)
         ) {
             // if timestamp
@@ -1159,7 +1098,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                     />
                 );
             } else {
-                strVal = v.toString();
+                strVal = v?.toString();
             }
         }
 
@@ -1400,7 +1339,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
         );
     }
 
-    renderSelectDialog(): JSX.Element {
+    renderSelectDialog(): JSX.Element | null {
         if (!this.state.selectId && !this.state.selectRead && !this.state.selectWrite) {
             return null;
         }
@@ -1444,11 +1383,11 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                     const stateId = Array.isArray(idx) ? idx[0] : idx;
                     this.setState({ selectId: false, selectRead: false, selectWrite: false }, () => {
                         if (selectRead) {
-                            this.setAliasItem(json, 'id.read', stateId);
+                            this.setAliasItem(json, 'id.read', stateId || '');
                         } else if (selectWrite) {
-                            this.setAliasItem(json, 'id.write', stateId);
+                            this.setAliasItem(json, 'id.write', stateId || '');
                         } else if (selectId) {
-                            this.setAliasItem(json, 'id', stateId);
+                            this.setAliasItem(json, 'id', stateId || '');
                         }
                     });
                 }}
@@ -1459,7 +1398,8 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
 
     setAliasItem(json: ioBroker.StateObject, name: string, value: string, cb?: () => void): void {
         json.common = json.common || ({} as ioBroker.StateCommon);
-        const commonAlias = json.common.alias || ({} as ioBroker.StateCommon['alias']);
+        const commonAlias: NonNullable<ioBroker.StateCommon['alias']> =
+            json.common.alias || ({} as NonNullable<ioBroker.StateCommon['alias']>);
 
         if (name === 'id.read') {
             if (commonAlias.id && typeof commonAlias.id === 'object') {
@@ -1514,12 +1454,14 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                 title={t('Remove attribute %s', t(nameKey))}
                 slotProps={{ popper: { sx: styles.tooltip } }}
             >
-                <Box
-                    component="div"
-                    sx={styles.close}
+                <IconButton
+                    size="small"
+                    sx={styles.removeButton}
                     style={style}
                     onClick={cb}
-                />
+                >
+                    <IconClose />
+                </IconButton>
             </Tooltip>
         );
     }
@@ -1702,7 +1644,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                                         </Select>
                                     </FormControl>
                                     {this.buttonRemoveKey('State type', () => this.removeCommonItem(json, 'type'), {
-                                        marginTop: 20,
+                                        marginTop: 33,
                                     })}
                                 </Box>
                             ) : (
@@ -1832,7 +1774,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                                         )}
                                     />
                                     {this.buttonRemoveKey('Role', () => this.removeCommonItem(json, 'role'), {
-                                        marginTop: 20,
+                                        marginTop: 33,
                                     })}
                                 </Box>
                             ) : (
@@ -2049,12 +1991,12 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
             const funcVisible = json.common?.alias?.read !== undefined || json.common?.alias?.write !== undefined;
 
             return (
-                <Grid2
+                <Grid
                     container
-                    direction="column"
                     style={styles.marginTop}
+                    sx={{ flexDirection: 'column' }}
                 >
-                    <Grid2>
+                    <Grid>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -2070,9 +2012,9 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                             }
                             label={this.props.t('Different IDs for read and write')}
                         />
-                    </Grid2>
+                    </Grid>
                     {typeof json.common?.alias?.id !== 'object' ? (
-                        <Grid2>
+                        <Grid>
                             <TextField
                                 variant="standard"
                                 label={this.props.t('Alias state')}
@@ -2108,11 +2050,11 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                             >
                                 ...
                             </Fab>
-                        </Grid2>
+                        </Grid>
                     ) : null}
 
                     {typeof json.common?.alias?.id === 'object' ? (
-                        <Grid2>
+                        <Grid>
                             <TextField
                                 variant="standard"
                                 label={this.props.t('Alias read state')}
@@ -2148,11 +2090,11 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                             >
                                 ...
                             </Fab>
-                        </Grid2>
+                        </Grid>
                     ) : null}
 
                     {typeof json.common?.alias?.id === 'object' ? (
-                        <Grid2>
+                        <Grid>
                             <TextField
                                 variant="standard"
                                 label={this.props.t('Alias write state')}
@@ -2188,9 +2130,9 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                             >
                                 ...
                             </Fab>
-                        </Grid2>
+                        </Grid>
                     ) : null}
-                    <Grid2 style={styles.marginTop}>
+                    <Grid style={styles.marginTop}>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -2214,9 +2156,9 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                             }
                             label={this.props.t('Use convert functions')}
                         />
-                    </Grid2>
+                    </Grid>
                     {funcVisible ? (
-                        <Grid2>
+                        <Grid>
                             <TextField
                                 variant="standard"
                                 label={this.props.t('Read converter')}
@@ -2250,21 +2192,23 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                                 }}
                                 onChange={e => this.setAliasItem(json, 'read', e.target.value)}
                                 helperText={
-                                    this.state.readError || `${this.props.t('JS function like')} "val / 5 + 21"`
+                                    this.state.readError ||
+                                    this.props.t('Syntax only; converter code is not executed in the browser')
                                 }
                                 margin="normal"
                             />
-                        </Grid2>
+                        </Grid>
                     ) : null}
                     {funcVisible ? (
-                        <Grid2>
+                        <Grid>
                             <TextField
                                 variant="standard"
                                 label={this.props.t('Write converter')}
                                 error={!!this.state.writeError}
                                 value={json.common?.alias?.write || 'val'}
                                 helperText={
-                                    this.state.writeError || `${this.props.t('JS function like')} "(val - 21) * 5"`
+                                    this.state.writeError ||
+                                    this.props.t('Syntax only; converter code is not executed in the browser')
                                 }
                                 style={styles.funcEdit}
                                 slotProps={{
@@ -2295,9 +2239,9 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                                 onChange={e => this.setAliasItem(json, 'write', e.target.value)}
                                 margin="normal"
                             />
-                        </Grid2>
+                        </Grid>
                     ) : null}
-                </Grid2>
+                </Grid>
             );
         } catch {
             return <div>{this.props.t('Cannot parse JSON!')}</div>;
@@ -2329,6 +2273,14 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                 maxWidth="md"
                 fullWidth
                 onClose={() => this.setState({ showCopyDialog: '' })}
+                onKeyDown={e =>
+                    onCtrlEnter(e, () => {
+                        if (!this.props.objects[this.state.newId]) {
+                            this.setState({ showCopyDialog: '' });
+                            this.onClone(this.state.showCopyDialog, this.state.newId);
+                        }
+                    })
+                }
             >
                 <DialogTitle>{this.props.t('Enter new ID for this object')}</DialogTitle>
                 <DialogContent>
@@ -2399,17 +2351,11 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                     ...(withAlias ? styles.divWithoutTitleAndTab : undefined),
                     ...(this.state.error ? styles.error : undefined),
                 }}
-                onKeyDown={e => {
-                    if (e.ctrlKey && e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.onUpdate();
-                    }
-                }}
             >
                 <Editor
                     value={this.state.text}
                     onChange={newValue => this.onChange(newValue)}
+                    onCtrlEnter={this.onCtrlEnter}
                     name="UNIQUE_ID_OF_DIV"
                     themeType={this.props.themeType}
                 />
@@ -2430,7 +2376,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
             dialogStyle = { ...dialogStyle, maxWidth: 'calc(100% - 150px)' };
         }
 
-        let parsedObj: ioBroker.Object;
+        let parsedObj: ioBroker.Object | undefined;
         try {
             parsedObj = JSON.parse(this.state.text);
         } catch {
@@ -2445,6 +2391,7 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                 fullWidth
                 fullScreen={false}
                 onClose={() => this.props.onClose()}
+                onKeyDown={e => onCtrlEnter(e, this.onCtrlEnter)}
                 aria-labelledby="edit-value-dialog-title"
                 aria-describedby="edit-value-dialog-description"
             >
@@ -2521,15 +2468,22 @@ class ObjectBrowserEditObject extends Component<ObjectBrowserEditObjectProps, Ob
                             )}
                         </Button>
                     )}
-                    <Button
-                        variant="contained"
-                        disabled={this.state.error || !this.state.changed || this.state.customError}
-                        onClick={() => this.onUpdate()}
-                        startIcon={this.props.width === 'xs' ? undefined : <IconCheck />}
-                        color="primary"
+                    <Tooltip
+                        title={this.props.t('Press CTRL+ENTER to confirm')}
+                        slotProps={{ popper: { sx: styles.tooltip } }}
                     >
-                        {this.props.width === 'xs' ? <IconCheck fontSize="large" /> : this.props.t('Write')}
-                    </Button>
+                        <span>
+                            <Button
+                                variant="contained"
+                                disabled={this.state.error || !this.state.changed || this.state.customError}
+                                onClick={() => this.onUpdate()}
+                                startIcon={this.props.width === 'xs' ? undefined : <IconCheck />}
+                                color="primary"
+                            >
+                                {this.props.width === 'xs' ? <IconCheck fontSize="large" /> : this.props.t('Write')}
+                            </Button>
+                        </span>
+                    </Tooltip>
                     <Button
                         color="grey"
                         variant="contained"

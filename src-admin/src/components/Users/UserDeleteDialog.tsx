@@ -3,14 +3,14 @@ import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, B
 
 import { Close as IconCancel, Delete as IconDelete } from '@mui/icons-material';
 
-import { type Translate } from '@iobroker/adapter-react-v5';
+import { type Translate } from '@iobroker/gui-components';
 
 interface UserDeleteDialogProps {
     t: Translate;
     onClose: () => void;
     user: ioBroker.UserObject;
     deleteUser: (userId: string) => void;
-    getText: (text: ioBroker.StringOrTranslated) => string;
+    getText: (text: ioBroker.StringOrTranslated | undefined) => string;
 }
 
 export default function UserDeleteDialog(props: UserDeleteDialogProps): JSX.Element {

@@ -36,6 +36,7 @@ import {
     Delete as DeleteIcon,
     Close as CloseIcon,
     Warning as WarningIcon,
+    Error as ErrorIcon,
     Settings as SettingsIcon,
     Schedule as ScheduleIcon,
     Memory as MemoryIcon,
@@ -49,6 +50,7 @@ import {
     ViewCompact as ViewCompactIcon,
     LowPriority as LowPriorityIcon,
     Storage as HostIcon,
+    SettingsEthernet as PortIcon,
 } from '@mui/icons-material';
 
 import {
@@ -61,16 +63,31 @@ import {
     type IobTheme,
     type ThemeType,
     type Translate,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 import { amber, blue, green, grey, orange, red } from '@mui/material/colors';
 
 import State from '@/components/State';
 import InstanceInfo from '@/components/Instances/InstanceInfo';
+import { usedResourceConflictText, usedResourceIcon, usedResourceTypeName } from '@/components/UsedResources';
+import { describeUsedResource, type HostUsedResource } from '@/helpers/usedResources';
 import sentry from '@/assets/sentry.svg';
 import noSentry from '@/assets/sentryNo.svg';
 import CustomModal from '../CustomModal';
 import LinksDialog, { type InstanceLink } from './LinksDialog';
 import AdminUtils from '../../helpers/AdminUtils';
+
+/** Whether both objects have the same attributes with identical values */
+function shallowEqual(a: object, b: object): boolean {
+    const keysA = Object.keys(a);
+    if (keysA.length !== Object.keys(b).length) {
+        return false;
+    }
+    return keysA.every(
+        key =>
+            Object.prototype.hasOwnProperty.call(b, key) &&
+            (a as Record<string, unknown>)[key] === (b as Record<string, unknown>)[key],
+    );
+}
 
 const arrayLogLevel = ['silly', 'debug', 'info', 'warn', 'error'];
 export const arrayTier = [
@@ -193,6 +210,13 @@ export const styles: Record<string, any> = {
     instanceStateAliveAndConnected2: {
         backgroundColor: 'rgba(0, 255, 0, 0.15)',
     },
+    // Runs as web-extension: green, but with a slightly different opacity to distinguish it from a normal running instance
+    instanceStateAliveAndConnectedWebExtension1: {
+        backgroundColor: 'rgba(0, 255, 0, 0.25)',
+    },
+    instanceStateAliveAndConnectedWebExtension2: {
+        backgroundColor: 'rgba(0, 255, 0, 0.3)',
+    },
     statusIcon_green: {
         // square
         border: '2px solid grey',
@@ -222,6 +246,11 @@ export const styles: Record<string, any> = {
         // circle ?
         border: '2px solid grey',
         borderRadius: 20,
+    },
+    statusIcon_missing: {
+        // the icon brings its own shape
+        border: 0,
+        borderRadius: 0,
     },
     orangeDevice: {
         // backgroundColor: orange[700]
@@ -358,6 +387,19 @@ export interface InstanceItem {
     compactGroup: number | null | string;
     tier: 1 | 2 | 3;
     memoryLimitMB: number;
+    /**
+     * The instance runs on Python rather than on Node.js (`common.platform`).
+     *
+     * A few of the controls below only mean something on Node: the RAM limit becomes
+     * `--max-old-space-size`, and compact mode loads an adapter into the controller's own Node.js
+     * process. js-controller ignores both for a Python instance -- so offering them here would let
+     * a user set a memory limit against an adapter they believe is leaking and never learn that
+     * nothing happened.
+     */
+    isPython: boolean;
+    port: number | null;
+    /** What the instance registered on its host: ports, serial ports, USB devices... (js-controller 8.0 on) */
+    usedResources: HostUsedResource[];
     name: string;
     stoppedWhenWebExtension: boolean | undefined;
     running: boolean;
@@ -368,7 +410,9 @@ export interface InstanceItem {
         stateInput: number;
         stateOutput: number;
     };
-    loglevelIcon: JSX.Element;
+    /** The memory used by the process of the instance in MB */
+    memRss: number;
+    loglevelIcon: JSX.Element | null;
     logLevelObject: ioBroker.LogLevel;
     modeSchedule: boolean;
     checkCompact: boolean;
@@ -379,6 +423,15 @@ export interface InstanceItem {
     sentry: boolean;
     host: string;
     status: InstanceStatusType;
+    /**
+     * The adapter of this instance is not installed on the host the instance is assigned to.
+     *
+     * Such an instance can never start, and nothing told about it so far: it simply stayed red like
+     * every stopped one. A restored backup leaves them behind - the objects of an adapter come back
+     * with the backup, while the code of an adapter that has left the repository cannot be installed
+     * any more. False as long as the host did not answer, see `getInstalledAdaptersPerHost`.
+     */
+    adapterMissing: boolean;
     allowInstanceSettings: boolean;
     allowInstanceDelete: boolean;
     allowInstanceLink: boolean;
@@ -401,6 +454,11 @@ export interface InstanceContext {
     states: Record<string, ioBroker.State>;
     onToggleExpanded: (inst: string, expanded: boolean) => void;
     onRegisterClose: (inst: string, close: (() => void) | null) => void;
+    /**
+     * True if at least one of the currently shown instances has a port or registered a resource on its
+     * host, so the resources column is displayed
+     */
+    hasAnyResource: boolean;
 }
 
 export interface InstanceGenericProps {
@@ -454,6 +512,53 @@ export default abstract class InstanceGeneric<
 
     componentWillUnmount(): void {
         this.props.context.onRegisterClose(this.props.id, null);
+    }
+
+    /**
+     * A row renders only when something it shows has changed.
+     *
+     * The list renders anew with every changed state of any instance (memRss, inputCount...), up to once
+     * a second, and rendering all rows took ~0.4 s with 120 instances. `item` and `context` are built anew
+     * for every rendering of the list, so they are compared by their content.
+     */
+    shouldComponentUpdate(nextProps: Readonly<TProps>, nextState: Readonly<TState>): boolean {
+        if (!shallowEqual(this.state, nextState)) {
+            return true;
+        }
+        const { item, context, ...rest } = this.props;
+        const { item: nextItem, context: nextContext, ...nextRest } = nextProps;
+        return (
+            !shallowEqual(rest, nextRest) ||
+            !shallowEqual(context, nextContext) ||
+            !InstanceGeneric.sameItem(item, nextItem)
+        );
+    }
+
+    /** Whether two list entries of an instance show the same */
+    static sameItem(a: InstanceItem, b: InstanceItem): boolean {
+        const keys = Object.keys(b) as (keyof InstanceItem)[];
+        if (keys.length !== Object.keys(a).length) {
+            return false;
+        }
+        return keys.every(key => {
+            if (a[key] === b[key] || key === 'loglevelIcon') {
+                // the icon is a new element every time and follows from `logLevel`
+                return true;
+            }
+            if (key === 'inputOutput') {
+                return (
+                    a.inputOutput.stateInput === b.inputOutput.stateInput &&
+                    a.inputOutput.stateOutput === b.inputOutput.stateOutput
+                );
+            }
+            if (key === 'usedResources') {
+                return (
+                    a.usedResources.length === b.usedResources.length &&
+                    a.usedResources.every((resource, i) => resource === b.usedResources[i])
+                );
+            }
+            return false;
+        });
     }
 
     // eslint-disable-next-line react/no-unused-class-component-methods,class-methods-use-this
@@ -560,7 +665,7 @@ export default abstract class InstanceGeneric<
             this.props.context.socket
                 .getObject(`system.adapter.${instance.id}`)
                 .then(obj => {
-                    if (obj.common.schedule !== '') {
+                    if (obj && obj.common.schedule !== '') {
                         obj.common.schedule = '';
                         this.props.context.socket
                             .setObject(obj._id, obj)
@@ -586,7 +691,7 @@ export default abstract class InstanceGeneric<
             void this.setCommonValue(`system.adapter.${instance.id}`, { restartSchedule });
         } else {
             void this.props.context.socket.getObject(`system.adapter.${instance.id}`).then(obj => {
-                if (obj.common.restartSchedule !== '') {
+                if (obj && obj.common.restartSchedule !== '') {
                     obj.common.restartSchedule = '';
                     void this.props.context.socket.setObject(obj._id, obj);
                 }
@@ -609,8 +714,7 @@ export default abstract class InstanceGeneric<
     }
 
     getMemory(): number {
-        const state = this.props.context.states[`${this.props.id}.memRss`];
-        return (state?.val as number) || 0;
+        return this.props.item.memRss;
     }
 
     renderDeleteDialog(): JSX.Element {
@@ -724,7 +828,7 @@ export default abstract class InstanceGeneric<
                         variant="standard"
                         value={this.state.logLevel}
                         fullWidth
-                        onChange={el => this.setState({ logLevel: el.target.value as ioBroker.LogLevel })}
+                        onChange={el => this.setState({ logLevel: el.target.value })}
                     >
                         {arrayLogLevel.map(el => (
                             <MenuItem
@@ -819,7 +923,7 @@ export default abstract class InstanceGeneric<
                     this.setState({
                         openDialogCompact: false,
                         openDialog: false,
-                        compactGroup: this.props.item.compactGroup,
+                        compactGroup: this.props.item.compactGroup || 0,
                         maxCompactGroupNumber: this.props.context.maxCompactGroupNumber,
                     })
                 }
@@ -907,7 +1011,7 @@ export default abstract class InstanceGeneric<
                         variant="standard"
                         value={this.state.tier}
                         fullWidth
-                        onChange={el => this.setState({ tier: parseInt(el.target.value as string, 10) as 1 | 2 | 3 })}
+                        onChange={el => this.setState({ tier: Number(el.target.value) as 1 | 2 | 3 })}
                     >
                         {arrayTier.map(el => (
                             <MenuItem
@@ -965,7 +1069,7 @@ export default abstract class InstanceGeneric<
                 title={this.props.context.t('Edit restart rule for %s', this.props.instance.id)}
                 clearButton
                 cron={InstanceGeneric.getRestartSchedule(this.props.instance.obj)}
-                onOk={(cron: string) => this.setRestartSchedule(this.props.instance, cron)}
+                onOk={(cron: string | false) => this.setRestartSchedule(this.props.instance, cron || '')}
                 onClose={() => this.setState({ openDialogCron: false, openDialog: false })}
             />
         );
@@ -977,7 +1081,7 @@ export default abstract class InstanceGeneric<
                 title={this.props.context.t('Edit schedule rule for %s', this.props.instance.id)}
                 clearButton
                 cron={InstanceGeneric.getSchedule(this.props.instance.obj)}
-                onOk={(cron: string) => this.setSchedule(this.props.instance, cron)}
+                onOk={(cron: string | false) => this.setSchedule(this.props.instance, cron || null)}
                 onClose={() => this.setState({ openDialogSchedule: false, openDialog: false })}
             />
         );
@@ -1026,6 +1130,23 @@ export default abstract class InstanceGeneric<
 
     // eslint-disable-next-line react/no-unused-class-component-methods
     renderModeIcon(status: InstanceStatusType): JSX.Element {
+        // Without its adapter the instance cannot start, whatever its mode says. The indicator shows
+        // the error instead of the usual icon, because a red dot alone cannot be told apart from an
+        // instance that is merely stopped - which is exactly what made this hard to recognize.
+        if (this.props.item.adapterMissing) {
+            return (
+                <div
+                    style={{
+                        ...this.styles.smallAvatar,
+                        ...this.styles.statusIndicator,
+                        ...this.styles.red,
+                    }}
+                >
+                    <ErrorIcon style={this.styles.statusIcon_missing} />
+                </div>
+            );
+        }
+
         return (
             <div
                 style={{
@@ -1108,6 +1229,14 @@ export default abstract class InstanceGeneric<
         }
 
         return [
+            item.adapterMissing ? (
+                <State
+                    key={0}
+                    state={false}
+                >
+                    {this.props.context.t('The adapter is not installed on host "%s"', item.host)}
+                </State>
+            ) : null,
             item.stoppedWhenWebExtension !== undefined ? (
                 <State
                     key={1}
@@ -1185,7 +1314,7 @@ export default abstract class InstanceGeneric<
     }
 
     // eslint-disable-next-line react/no-unused-class-component-methods
-    renderMemoryUsage(): JSX.Element {
+    renderMemoryUsage(): JSX.Element | false {
         return (
             this.props.item.running && (
                 <InstanceInfo
@@ -1195,6 +1324,104 @@ export default abstract class InstanceGeneric<
                     {`${this.props.instance.mode === 'daemon' && !InstanceGeneric.isCompact(this.props.instance.obj) ? this.getMemory() : '-.--'} MB`}
                 </InstanceInfo>
             )
+        );
+    }
+
+    renderPort(): JSX.Element | null {
+        if (!this.props.item.port) {
+            return null;
+        }
+        const ports = this.props.item.usedResources.filter(r => r.type === 'tcpPort' || r.type === 'udpPort');
+        const conflicts = ports.filter(r => r.conflicts.length);
+        return (
+            <InstanceInfo
+                icon={conflicts.length ? <WarningIcon color="warning" /> : <PortIcon />}
+                tooltip={
+                    conflicts.length
+                        ? conflicts.map(r => usedResourceConflictText(r, this.props.context.t)).join('\n')
+                        : this.props.context.t('Port')
+                }
+            >
+                {ports.length
+                    ? [...new Set(ports.map(r => String(r.data.port)))].join(', ')
+                    : this.props.item.port.toString()}
+            </InstanceInfo>
+        );
+    }
+
+    /**
+     * Everything the instance occupies, short enough for the column of the list: the first resource,
+     * how many others there are, and all of them in the tooltip. A conflict colors the whole entry.
+     */
+    // eslint-disable-next-line react/no-unused-class-component-methods
+    renderResourcesColumn(): JSX.Element | null {
+        const { t } = this.props.context;
+        const resources = this.props.item.usedResources;
+
+        // a controller before 8.0 keeps no registry, there the configured port is all that is known
+        if (!resources.length) {
+            return this.renderPort();
+        }
+
+        const conflicts = resources.filter(resource => resource.conflicts.length);
+        const first = resources[0];
+        const description = describeUsedResource(first);
+        const tooltip = resources
+            .map(resource => {
+                const line = `${usedResourceTypeName(resource.type, t)}: ${describeUsedResource(resource)}`;
+                return resource.conflicts.length ? `${line} - ${usedResourceConflictText(resource, t)}` : line;
+            })
+            .join('\n');
+
+        return (
+            <InstanceInfo
+                icon={conflicts.length ? <WarningIcon color="warning" /> : usedResourceIcon(first.type)}
+                tooltip={tooltip}
+                style={{
+                    ...(conflicts.length ? { color: this.props.context.theme.palette.warning.main } : undefined),
+                    // nothing of it is held at the moment: the instance does not run
+                    ...(resources.every(resource => !resource.isBlocked) ? { opacity: 0.6 } : undefined),
+                }}
+            >
+                {resources.length > 1 ? `${description} +${resources.length - 1}` : description}
+            </InstanceInfo>
+        );
+    }
+
+    /** Everything the instance registered on its host, one line per resource */
+    // eslint-disable-next-line react/no-unused-class-component-methods
+    renderUsedResources(): JSX.Element | null {
+        const { t } = this.props.context;
+        if (!this.props.item.usedResources.length) {
+            return null;
+        }
+        return (
+            <>
+                {this.props.item.usedResources.map(resource => {
+                    const description = describeUsedResource(resource);
+                    const state = resource.isBlocked
+                        ? t('The instance runs and holds the resource')
+                        : t('The instance does not run and would take the resource when started');
+                    return (
+                        <InstanceInfo
+                            key={`${resource.type}|${description}`}
+                            icon={
+                                resource.conflicts.length ? (
+                                    <WarningIcon color="warning" />
+                                ) : (
+                                    usedResourceIcon(resource.type)
+                                )
+                            }
+                            tooltip={
+                                resource.conflicts.length ? `${state}. ${usedResourceConflictText(resource, t)}` : state
+                            }
+                            style={resource.isBlocked ? undefined : { opacity: 0.6 }}
+                        >
+                            {`${usedResourceTypeName(resource.type, t)}: ${description}`}
+                        </InstanceInfo>
+                    );
+                })}
+            </>
         );
     }
 
@@ -1302,9 +1529,17 @@ export default abstract class InstanceGeneric<
 
     // eslint-disable-next-line react/no-unused-class-component-methods
     renderLink(): JSX.Element {
+        // Through the remote access only a part of the instances is published. If none of the links
+        // of this instance is among them, the button has nothing to offer.
+        const onlyLocal = !!this.props.instance.links?.length && this.props.instance.links.every(l => l.unreachable);
+
         return (
             <Tooltip
-                title={this.props.context.t('Instance link %s', this.props.instance.id)}
+                title={
+                    onlyLocal
+                        ? this.props.context.t('Only reachable in the local network')
+                        : this.props.context.t('Instance link %s', this.props.instance.id)
+                }
                 slotProps={{ popper: { sx: this.styles.tooltip } }}
             >
                 <div>
@@ -1316,7 +1551,7 @@ export default abstract class InstanceGeneric<
                                 ? this.styles.hide
                                 : undefined),
                         }}
-                        disabled={!this.props.item.running}
+                        disabled={!this.props.item.running || onlyLocal}
                         onClick={event => {
                             event.stopPropagation();
                             event.preventDefault();
@@ -1401,6 +1636,8 @@ export default abstract class InstanceGeneric<
                 removePrefix="system.host."
                 themeType={this.props.context.themeType}
                 lang={this.props.context.lang}
+                // not every host object has `common.icon`, but the names must stay aligned in the list
+                reserveIconSpace
             />
         );
     }
@@ -1428,7 +1665,7 @@ export default abstract class InstanceGeneric<
     }
 
     // eslint-disable-next-line react/no-unused-class-component-methods
-    renderSentry(): JSX.Element {
+    renderSentry(): JSX.Element | null {
         if (!this.props.item.checkSentry) {
             return null;
         }
@@ -1470,7 +1707,10 @@ export default abstract class InstanceGeneric<
                     size="small"
                     style={{
                         ...this.styles.button,
-                        ...(this.props.context.expertMode && this.props.item.checkCompact
+                        // A Python adapter cannot run inside the controller's Node.js process, and
+                        // js-controller refuses the combination with a warning. Hidden here rather
+                        // than left as a switch that silently does nothing.
+                        ...(this.props.context.expertMode && this.props.item.checkCompact && !this.props.item.isPython
                             ? undefined
                             : this.styles.hide),
                     }}
@@ -1496,6 +1736,11 @@ export default abstract class InstanceGeneric<
         return (
             <>
                 {!hideName ? <span style={this.styles.instanceName}>{this.props.instance.id}</span> : undefined}
+                {this.props.item.adapterMissing && (
+                    <State state={false}>
+                        {this.props.context.t('The adapter is not installed on host "%s"', this.props.item.host)}
+                    </State>
+                )}
                 {this.props.item.stoppedWhenWebExtension !== undefined && (
                     <State state={this.props.item.stoppedWhenWebExtension}>
                         {this.props.context.t('Runs as web-extension')}
@@ -1531,7 +1776,7 @@ export default abstract class InstanceGeneric<
         return (
             <>
                 <InstanceInfo
-                    icon={this.props.item.loglevelIcon}
+                    icon={this.props.item.loglevelIcon || undefined}
                     tooltip={
                         this.props.item.logLevelObject === this.props.item.logLevel
                             ? `${this.props.context.t('loglevel')} ${this.props.item.logLevel}`
@@ -1627,7 +1872,13 @@ export default abstract class InstanceGeneric<
     }
 
     // eslint-disable-next-line react/no-unused-class-component-methods
-    renderRamLimit(): JSX.Element {
+    renderRamLimit(): JSX.Element | null {
+        // Hidden rather than shown as unavailable: `--max-old-space-size` is a Node.js argument,
+        // and there is no Python equivalent to offer in its place.
+        if (this.props.item.isPython) {
+            return null;
+        }
+
         return (
             <>
                 <InstanceInfo
@@ -1658,7 +1909,11 @@ export default abstract class InstanceGeneric<
     }
 
     // eslint-disable-next-line react/no-unused-class-component-methods
-    renderCompactGroup(): JSX.Element {
+    renderCompactGroup(): JSX.Element | null {
+        if (this.props.item.isPython) {
+            return null;
+        }
+
         return (
             <>
                 <InstanceInfo

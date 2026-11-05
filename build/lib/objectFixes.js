@@ -1,11 +1,47 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkCommonObjects = checkCommonObjects;
 exports.validateUserData0 = validateUserData0;
 exports.updateIcons = updateIcons;
 exports.updateDevicesObject = updateDevicesObject;
+exports.verifyAdapterCore = verifyAdapterCore;
 const node_fs_1 = require("node:fs");
+const promises_1 = require("node:fs/promises");
 const node_path_1 = require("node:path");
+const semver = __importStar(require("semver"));
 const adapter_core_1 = require("@iobroker/adapter-core");
 // this function re-check if the common objects like '0_userdata.0' exist
 async function checkCommonObjects(adapter) {
@@ -70,6 +106,7 @@ async function checkCommonObjects(adapter) {
                     type: 'meta.user',
                     dontDelete: true,
                 },
+                native: {},
                 acl: {
                     owner: 'system.user.admin',
                     ownerGroup: 'system.group.administrator',
@@ -104,7 +141,7 @@ async function validateUserData0(adapter) {
             }
         }
         catch (e) {
-            adapter.log.error(`Cannot read ${adapter_core_1.controllerDir}/io-package.json: ${e}`);
+            adapter.log.error(`Cannot read ${adapter_core_1.controllerDir}/io-package.json: ${e.toString()}`);
         }
     }
 }
@@ -141,6 +178,44 @@ async function updateDevicesObject(adapter) {
                 await adapter.setForeignObjectAsync(obj._id, obj);
             }
         }
+    }
+}
+// This function checks if js-controller 7.2.2 is installed and if adapter-core 3.4.1 is available.
+// If not, it will try to reinstall adapter-core@3.4.1
+async function verifyAdapterCore(adapter) {
+    try {
+        const packController = JSON.parse(await (0, promises_1.readFile)((0, node_path_1.join)(adapter_core_1.controllerDir, 'package.json'), 'utf8'));
+        if (!packController ||
+            typeof packController !== 'object' ||
+            !('version' in packController) ||
+            typeof packController.version !== 'string' ||
+            !semver.valid(packController.version)) {
+            throw new Error('Invalid controller package version');
+        }
+        // The fix is only relevant (and possible) with js-controller >= 7.2.2
+        if (!semver.gte(packController.version, '7.2.2')) {
+            return;
+        }
+        // Read the version of the installed @iobroker/adapter-core (located next to the js-controller in node_modules)
+        const adapterCorePack = (0, node_path_1.join)(adapter_core_1.controllerDir, '..', '@iobroker', 'adapter-core', 'package.json');
+        let adapterCoreVersion;
+        if ((0, node_fs_1.existsSync)(adapterCorePack)) {
+            try {
+                adapterCoreVersion = JSON.parse((0, node_fs_1.readFileSync)(adapterCorePack).toString('utf8')).version;
+            }
+            catch {
+                // package.json of @iobroker/adapter-core cannot be read
+            }
+        }
+        // Nothing to do if adapter-core 3.4.1 or newer is already available
+        if (adapterCoreVersion && semver.gte(adapterCoreVersion, '3.4.1')) {
+            return;
+        }
+        adapter.log.warn(`js-controller ${packController.version} uses an outdated or missing shared @iobroker/adapter-core. ` +
+            'Update the controller environment through the approved maintenance process. EOS does not install packages at runtime.');
+    }
+    catch (e) {
+        adapter.log.warn(`Cannot verify @iobroker/adapter-core: ${e.toString()}`);
     }
 }
 //# sourceMappingURL=objectFixes.js.map

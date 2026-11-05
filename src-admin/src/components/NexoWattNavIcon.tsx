@@ -19,10 +19,34 @@ export type NexoWattNavIconName =
 const paths: Record<NexoWattNavIconName, JSX.Element> = {
     cockpit: (
         <>
-            <rect x="3.5" y="3.5" width="7" height="7" rx="1.7" />
-            <rect x="13.5" y="3.5" width="7" height="7" rx="1.7" />
-            <rect x="3.5" y="13.5" width="7" height="7" rx="1.7" />
-            <rect x="13.5" y="13.5" width="7" height="7" rx="1.7" />
+            <rect
+                x="3.5"
+                y="3.5"
+                width="7"
+                height="7"
+                rx="1.7"
+            />
+            <rect
+                x="13.5"
+                y="3.5"
+                width="7"
+                height="7"
+                rx="1.7"
+            />
+            <rect
+                x="3.5"
+                y="13.5"
+                width="7"
+                height="7"
+                rx="1.7"
+            />
+            <rect
+                x="13.5"
+                y="13.5"
+                width="7"
+                height="7"
+                rx="1.7"
+            />
         </>
     ),
     modules: (
@@ -33,24 +57,66 @@ const paths: Record<NexoWattNavIconName, JSX.Element> = {
     ),
     services: (
         <>
-            <rect x="4" y="4.5" width="16" height="5" rx="2" />
-            <rect x="4" y="14.5" width="16" height="5" rx="2" />
+            <rect
+                x="4"
+                y="4.5"
+                width="16"
+                height="5"
+                rx="2"
+            />
+            <rect
+                x="4"
+                y="14.5"
+                width="16"
+                height="5"
+                rx="2"
+            />
             <path d="M8 7h.01M8 17h.01M12 7h5M12 17h5" />
         </>
     ),
     datapoints: (
         <>
-            <circle cx="6" cy="12" r="2.3" />
-            <circle cx="18" cy="6" r="2.3" />
-            <circle cx="18" cy="18" r="2.3" />
+            <circle
+                cx="6"
+                cy="12"
+                r="2.3"
+            />
+            <circle
+                cx="18"
+                cy="6"
+                r="2.3"
+            />
+            <circle
+                cx="18"
+                cy="18"
+                r="2.3"
+            />
             <path d="M8.2 11 15.7 7M8.2 13l7.5 4" />
         </>
     ),
     structure: (
         <>
-            <rect x="3.5" y="4" width="7" height="4.5" rx="1.4" />
-            <rect x="13.5" y="4" width="7" height="4.5" rx="1.4" />
-            <rect x="8.5" y="15.5" width="7" height="4.5" rx="1.4" />
+            <rect
+                x="3.5"
+                y="4"
+                width="7"
+                height="4.5"
+                rx="1.4"
+            />
+            <rect
+                x="13.5"
+                y="4"
+                width="7"
+                height="4.5"
+                rx="1.4"
+            />
+            <rect
+                x="8.5"
+                y="15.5"
+                width="7"
+                height="4.5"
+                rx="1.4"
+            />
             <path d="M7 8.5v3h10v-3M12 11.5v4" />
         </>
     ),
@@ -69,14 +135,28 @@ const paths: Record<NexoWattNavIconName, JSX.Element> = {
     scripts: <path d="M8.8 7 4.5 12l4.3 5M15.2 7l4.3 5-4.3 5M13.2 5 10.8 19" />,
     hosts: (
         <>
-            <rect x="4" y="4.5" width="16" height="10" rx="2.2" />
+            <rect
+                x="4"
+                y="4.5"
+                width="16"
+                height="10"
+                rx="2.2"
+            />
             <path d="M8 19.5h8M12 14.5v5M7.5 8.5h.01M11 8.5h6" />
         </>
     ),
-    files: <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2h5.5A2.5 2.5 0 0 1 20 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />,
+    files: (
+        <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2h5.5A2.5 2.5 0 0 1 20 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />
+    ),
     devices: (
         <>
-            <rect x="4" y="5" width="16" height="14" rx="2.4" />
+            <rect
+                x="4"
+                y="5"
+                width="16"
+                height="14"
+                rx="2.4"
+            />
             <path d="M8 9h8M8 13h3M15.5 13h.01" />
         </>
     ),
@@ -88,13 +168,21 @@ const paths: Record<NexoWattNavIconName, JSX.Element> = {
     ),
     eos: (
         <>
-            <circle cx="12" cy="12" r="3.6" />
+            <circle
+                cx="12"
+                cy="12"
+                r="3.6"
+            />
             <path d="M12 3.5v4.2M12 16.3v4.2M3.5 12h4.2M16.3 12h4.2M5.9 5.9l3 3M15.1 15.1l3 3M5.9 18.1l3-3M15.1 8.9l3-3" />
         </>
     ),
     default: (
         <>
-            <circle cx="12" cy="12" r="8" />
+            <circle
+                cx="12"
+                cy="12"
+                r="8"
+            />
             <path d="M12 8v4l2.7 2.7" />
         </>
     ),
@@ -102,7 +190,10 @@ const paths: Record<NexoWattNavIconName, JSX.Element> = {
 
 export default function NexoWattNavIcon({ name }: { name: NexoWattNavIconName }): JSX.Element {
     return (
-        <span className="nexowatt-native-nav-icon eos-native-nav-icon eos-native-nav-icon-source" aria-hidden="true">
+        <span
+            className="nexowatt-native-nav-icon eos-native-nav-icon eos-native-nav-icon-source"
+            aria-hidden="true"
+        >
             <svg
                 viewBox="0 0 24 24"
                 fill="none"

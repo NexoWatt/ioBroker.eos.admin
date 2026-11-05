@@ -4,7 +4,7 @@ import { Popper, Typography, Fade, Paper, IconButton } from '@mui/material';
 
 import { Edit as EditIcon } from '@mui/icons-material';
 
-import { I18n } from '@iobroker/adapter-react-v5';
+import { I18n } from '@iobroker/gui-components';
 
 let timer: ReturnType<typeof setTimeout>;
 
@@ -15,15 +15,15 @@ interface CustomPopperProps {
 }
 
 const CustomPopper = ({ editMenuList, onClick, size }: CustomPopperProps): JSX.Element => {
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
     const [open, setOpen] = React.useState(false);
-    const [placement, setPlacement] = React.useState<'right' | null>(null);
+    const [placement, setPlacement] = React.useState<'right' | undefined>(undefined);
 
     return (
         <>
             <IconButton
                 size={size || 'large'}
-                style={editMenuList ? { color: 'red' } : null}
+                style={editMenuList ? { color: 'red' } : undefined}
                 onClick={el => {
                     onClick();
                     if (!editMenuList) {

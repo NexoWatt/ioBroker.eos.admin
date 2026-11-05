@@ -1,4 +1,4 @@
-import React, { useEffect, useState, type JSX } from 'react';
+import React, { useState, type JSX } from 'react';
 
 import {
     Dialog,
@@ -8,6 +8,7 @@ import {
     IconButton,
     TextField,
     Button,
+    Tooltip,
     InputAdornment,
     type Breakpoint,
     useMediaQuery,
@@ -16,7 +17,9 @@ import {
 
 import { Check as CheckIcon, Close as CloseIcon, Language as LanguageIcon } from '@mui/icons-material';
 
-import { I18n, type IobTheme, Utils } from '@iobroker/adapter-react-v5';
+import { I18n, type IobTheme, Utils } from '@iobroker/gui-components';
+
+import { onCtrlEnter } from '@/helpers/ctrlEnter';
 
 const styles: Record<string, any> = {
     modalDialog: {
@@ -89,9 +92,13 @@ const CustomModal = ({
     theme,
 }: CustomModalProps): JSX.Element => {
     const [value, setValue] = useState(defaultValue);
-    useEffect(() => {
+    // Reset the edited value when the caller supplies a new default. Adjusting during render is the
+    // documented alternative to an effect and avoids rendering the stale value for one frame.
+    const [appliedDefault, setAppliedDefault] = useState(defaultValue);
+    if (appliedDefault !== defaultValue) {
+        setAppliedDefault(defaultValue);
         setValue(defaultValue);
-    }, [defaultValue]);
+    }
 
     const muiTheme = useTheme();
     const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down('md'));
@@ -104,19 +111,28 @@ const CustomModal = ({
 
     const languageButtonActive = Utils.getStyle(theme, styles.languageButtonActive);
 
+    const applyDisabled = disableApply || progress || (disableApplyIfNotChanged && defaultValue === value);
+
+    /** CTRL+ENTER triggers the same action as the apply button */
+    const onConfirm = (): void => {
+        if (!applyDisabled && (applyButton === undefined || applyButton)) {
+            onApply?.(textInput ? (value ?? '') : '');
+        }
+    };
+
     return (
         <Dialog
             open={!0}
             maxWidth={isSmallScreen ? false : maxWidth || 'md'}
             fullWidth={!!fullWidth}
             fullScreen={isSmallScreen}
-            disableEscapeKeyDown={false}
             onClose={onClose}
+            onKeyDown={e => onCtrlEnter(e, onConfirm)}
             sx={{ '& .MuiPaper-root': isSmallScreen ? {} : styles.modalDialog /* paper: classes.background */ }}
         >
             {title && (
                 <DialogTitle>
-                    {icon ? <Icon style={styles.titleIcon} /> : null}
+                    {Icon ? <Icon style={styles.titleIcon} /> : null}
                     {title}
                     {I18n.getLanguage() !== 'en' && toggleTranslation ? (
                         <IconButton
@@ -168,15 +184,19 @@ const CustomModal = ({
             </DialogContent>
             <DialogActions>
                 {(applyButton === undefined || applyButton) && (
-                    <Button
-                        startIcon={<CheckIcon />}
-                        disabled={disableApply || progress || (disableApplyIfNotChanged && defaultValue === value)}
-                        onClick={() => onApply && onApply(textInput ? value : '')}
-                        variant="contained"
-                        color="primary"
-                    >
-                        {I18n.t(titleButtonApply || 'Ok')}
-                    </Button>
+                    <Tooltip title={I18n.t('Press CTRL+ENTER to confirm')}>
+                        <span>
+                            <Button
+                                startIcon={<CheckIcon />}
+                                disabled={applyDisabled}
+                                onClick={onConfirm}
+                                variant="contained"
+                                color="primary"
+                            >
+                                {I18n.t(titleButtonApply || 'Ok')}
+                            </Button>
+                        </span>
+                    </Tooltip>
                 )}
                 <Button
                     color="grey"

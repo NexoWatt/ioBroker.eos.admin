@@ -3,7 +3,7 @@ import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, B
 
 import { Close as IconCancel, Delete as IconDelete } from '@mui/icons-material';
 
-import { type Translate } from '@iobroker/adapter-react-v5';
+import { type Translate } from '@iobroker/gui-components';
 
 interface GroupDeleteDialogProps {
     t: Translate;
@@ -11,7 +11,7 @@ interface GroupDeleteDialogProps {
     group: ioBroker.GroupObject;
     deleteGroup: (groupId: string) => void;
     styles: Record<string, React.CSSProperties>;
-    getText: (text: ioBroker.StringOrTranslated) => string;
+    getText: (text: ioBroker.StringOrTranslated | undefined) => string;
 }
 
 export default function GroupDeleteDialog(props: GroupDeleteDialogProps): JSX.Element {

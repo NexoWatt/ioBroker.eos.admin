@@ -11,7 +11,7 @@ const fail = msg => {
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const readJson = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
-const canonicalPrepublishOnly = 'npm run sync:eos-version && npm run check:eos-production-release && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
+const canonicalPrepublishOnly = 'npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
 const canonicalPrepack = 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
 
 const pkg = readJson('package.json');
@@ -48,7 +48,9 @@ if (pkg.scripts['test:eos-auto-update-placement'] !== 'node tools/nexowatt-auto-
 if (pkg.scripts['test:eos-installer-ems'] !== 'node tools/nexowatt-installer-ems-selftest.cjs') fail('Installer EMS selftest script is missing or incorrect');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-installer-ems-selftest.cjs')) fail('Installer EMS selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-auto-update-placement-selftest.cjs')) fail('auto-update placement selftest is not part of check:eos-stability');
-if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must run the real production admission before release preparation');
+if (pkg.scripts.prepublishOnly !== canonicalPrepublishOnly) fail('prepublishOnly must repair absent lock metadata and run real admission before release preparation');
+if (pkg.scripts['repair:eos-lock'] !== 'node tools/nexowatt-repair-lock-metadata.cjs --write && npm run security:inventory && npm run check:eos-production-release') fail('lock repair must refresh inventory and then inspect the actual lockfiles');
+if (pkg.scripts['security:inventory'] !== 'node tools/nexowatt-security-inventory.cjs') fail('lock repair must use the actual inventory generator');
 if (pkg.scripts['check:eos-production-release'] !== 'node tools/nexowatt-lock-provenance-check.cjs') fail('production admission must inspect the actual lockfiles');
 if (pkg.scripts['check:eos-release'] !== 'npm run check:eos-production-release && npm run check:eos-package && npm run check:eos-stability && npm pack --dry-run') fail('release check must stop on blocked production admission');
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepublishOnly || '')) fail('prepublishOnly must not require local development dependencies');
@@ -94,7 +96,7 @@ if (io.common?.name !== 'eos-admin') fail(`io-package common.name must be eos-ad
 if (io.common?.packetName !== 'iobroker.eos-admin') fail(`io-package common.packetName must be iobroker.eos-admin, got ${io.common?.packetName}`);
 if (io.common?.npmPackage !== 'iobroker.eos-admin') fail(`io-package common.npmPackage must be iobroker.eos-admin, got ${io.common?.npmPackage}`);
 if (io.native?.port !== 8081) fail(`EOS Admin default port must be 8081, got ${io.native?.port}`);
-if (io.common?.stopBeforeUpdate !== false) fail('io-package common.stopBeforeUpdate must be false');
+if (io.common?.stopBeforeUpdate !== true) fail('Admin 8 must stop its listeners before update');
 if (io.common?.dontDelete === true || io.common?.nondeletable === true) fail('adapter-level delete flags must not block updates');
 
 const expectedBase = `https://unpkg.com/iobroker.eos-admin@${pkg.version}`;
@@ -199,16 +201,13 @@ const refs = [...index.matchAll(/(?:src|href)="\.\/([^"?#]+)(?:\?[^"#]*)?"/g)].m
 const missing = refs.filter(ref => !exists(path.join('adminWww', ref)));
 if (missing.length) fail(`adminWww/index.html references missing files:\n${missing.join('\n')}`);
 
-const runtime = buildInfo.runtimeEntry;
-const runtimeNumber = Number(String(runtime).replace(/^v/, ''));
-const shellCache = Number(buildInfo.shellCacheVersion ?? buildInfo.nativeShellVersion ?? runtimeNumber);
+const { verifyFrontendManifest, readModuleChunks } = require('./nexowatt-frontend-artifacts.cjs');
+const frontend = verifyFrontendManifest();
+const shellCache = Number(buildInfo.shellCacheVersion ?? buildInfo.nativeShellVersion);
 const shellTag = String(buildInfo.shellCacheTag || shellCache);
 const autoUpdateTag = String(buildInfo.autoUpdateCacheTag || buildInfo.autoUpdateCacheVersion || shellTag);
-if (!runtime || !Number.isFinite(runtimeNumber)) fail(`invalid runtimeEntry ${runtime}`);
 if (!Number.isFinite(shellCache)) fail(`invalid shellCacheVersion ${buildInfo.shellCacheVersion}`);
 for (const marker of [
-  `hostInit-${runtime}.js?v=${runtimeNumber}`,
-  `index-CQZugZ1z-${runtime}.js?v=${runtimeNumber}`,
   `eos-manual-write-policy.js?v=${shellTag}`,
   `nexowatt-native-shell.css?v=${shellTag}`,
   `nexowatt-native-shell.js?v=${shellTag}`,
@@ -227,27 +226,18 @@ if (!index.includes(`eos-assistant.js?v=${shellTag}`)) fail('EOS Assist cache ke
 if (!index.includes(`eos-ems-overview.js?v=${shellTag}`)) fail('EMS overview cache key mismatch');
 if (!index.includes(`eos-ems-overview.css?v=${shellTag}`)) fail('EMS overview CSS cache key mismatch');
 if (!index.includes(`nexowatt-stable-v${shellTag}.js?v=${shellTag}`)) fail('stable shell overlay cache key mismatch');
-if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`hostInit-${runtime}.js?v=${runtimeNumber}`)) fail('manual-write policy must load before the React runtime');
+if (index.indexOf(`eos-manual-write-policy.js?v=${shellTag}`) > index.indexOf(`eos-role-bootstrap.js?v=${shellTag}`)) fail('manual-write policy must load before role-gated startup');
 if (!index.includes('class="eos-native-shell"')) fail('native NexoWatt shell class missing');
 for (const legacy of ['eos-branding.js', 'eos-security-ui.js', 'eos-console-quiet.js', 'eos-objects-state-tools.js']) {
   if (index.includes(legacy)) fail(`legacy browser overlay still loaded: ${legacy}`);
 }
 
-const activeBootstrapFile = `adminWww/assets/bootstrap-COulQZax-${runtime}.js`;
-for (const file of [
-  `adminWww/assets/hostInit-${runtime}.js`,
-  `adminWww/assets/index-CQZugZ1z-${runtime}.js`,
-  activeBootstrapFile,
-  `adminWww/assets/Objects-DPan0bzw-${runtime}.js`,
-  `adminWww/assets/index-D2ymscJA-${runtime}.js`,
-  `adminWww/remoteEntry-${runtime}.js`,
-]) if (!exists(file)) fail(`missing active runtime file ${file}`);
-
-const bootstrap = read(activeBootstrapFile);
-if (!bootstrap.includes('window.adapterName="eos-admin"')) fail('frontend bootstrap does not set window.adapterName="eos-admin"');
-if (bootstrap.includes('window.adapterName="admin"')) fail('frontend bootstrap still contains window.adapterName="admin"');
-for (const marker of ['NEXOWATT_TAB_ICON', 'nexowatt-native-nav-item', 'nexowatt-native-nav-icon', 'tabName:h.name', 'NexoWatt EOS', 'Zugänge & Rechte']) {
-  if (!bootstrap.includes(marker)) fail(`active bootstrap missing native navigation marker ${marker}`);
+const bootstrap = readModuleChunks('src/bootstrap.tsx');
+if (!/window\.adapterName\s*=\s*["'`]eos-admin["'`]/.test(bootstrap)) fail('frontend must identify the EOS adapter');
+if (/window\.adapterName\s*=\s*["'`]admin["'`]/.test(bootstrap)) fail('frontend still identifies the upstream adapter');
+const navigation = readModuleChunks('src/components/Drawer.tsx');
+for (const marker of ['nexowatt-native-nav-item', 'nexowatt-native-nav-icon', 'NexoWatt EOS', 'Zugänge & Rechte']) {
+  if (!navigation.includes(marker)) fail(`active navigation missing ${marker}`);
 }
 
 const drawer = read('src-admin/src/components/Drawer.tsx');
@@ -286,12 +276,12 @@ if (roleBootstrap.includes('installPasswordlessFirstLoginLauncher')) fail('old f
 const assistant = read('adminWww/js/eos-assistant.js');
 if (!assistant.includes('NEXOWATT_EOS_ASSIST_DISABLED')) fail('EOS Assist must be disabled in stable');
 
-const mf = read('adminWww/mf-manifest.json');
-if (!mf.includes(`remoteEntry-${runtime}.js`) || !mf.includes(`index-D2ymscJA-${runtime}.js`)) fail('module federation manifest is not on the active runtime');
+const mf = readJson('adminWww/mf-manifest.json');
+if (!mf.metaData?.remoteEntry?.name || !exists(`adminWww/${mf.metaData.remoteEntry.path || ''}${mf.metaData.remoteEntry.name}`)) fail('module federation entry is missing');
 
 const webBuild = read('build/lib/web.js');
-if (!webBuild.includes('refreshLifetime: 60 * 60 * 24 * 7')) fail('build/lib/web.js must keep upstream-compatible refresh lifetime');
-if (!webBuild.includes('Follow upstream admin semantics again')) fail('build/lib/web.js lacks session compatibility fix');
+if (io.native.refreshTokenTtlDays !== 7) fail('Admin 8 refresh lifetime must default to seven days');
+if (!webBuild.includes('refreshLifetime: this.settings.refreshTokenTtlDays * 24 * 60 * 60') || !webBuild.includes('Math.max(1, Math.min(30, Math.round(Number(this.settings.refreshTokenTtlDays)) || 7))')) fail('Admin 8 refresh lifetime must be bounded to 1–30 days with the tested default');
 if (!exists('build/lib/eosRequestSecurity.js')) fail('build/lib/eosRequestSecurity.js is missing');
 const autoUpdateSource = read('src/lib/eosAutoUpdate.ts');
 if (autoUpdateSource.includes('extendForeignObjectAsync(this.instanceId')) fail('auto-update runtime must not write the running instance native configuration');
@@ -311,7 +301,7 @@ if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-entrypoint-smoke-sel
 if (pkg.scripts['clean:eos-runtime'] !== 'node tools/nexowatt-clean-legacy-runtime.cjs') fail('clean:eos-runtime script is missing or incorrect');
 if (pkg.scripts.prepack !== canonicalPrepack) fail('prepack must verify the sealed prebuilt artifact without tsc/tsx');
 if (/\b(?:tsc|tsx)\b|build:(?:backend|frontend)|\bnpx\b|npm\s+(?:i|install|ci)\b/i.test(pkg.scripts.prepack || '')) fail('prepack must not require local development dependencies');
-if (pkg.scripts.build !== 'npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run security:inventory && npm run seal:eos-prebuilt-release') fail('build must clean runtime, generate the reference inventory and seal after compilation');
+if (pkg.scripts.build !== 'npm run sync:eos-version && npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run security:inventory && npm run security:artifacts && npm run test:eos-admin8-development && npm run seal:eos-prebuilt-release') fail('build must clean runtime, generate the reference inventory and seal after compilation');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-role-access-selftest.cjs')) fail('role access selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password flow selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-account-password-flow-selftest.cjs')) fail('standard account-password management selftest is not part of check:eos-stability');
@@ -326,6 +316,6 @@ if (!exists('adminWww/img/eos/nexowatt-eos-brand-wide.png')) fail('new NexoWatt 
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-runtime-cleanup-selftest.cjs')) fail('runtime cleanup selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-ems-overview-selftest.cjs')) fail('EMS React overview selftest is not part of check:eos-stability');
 if (!pkg.scripts['check:eos-stability']?.includes('nexowatt-ui-overview-runtime-selftest.cjs')) fail('EMS runtime selftest is not part of check:eos-stability');
-if (!read('tasks.mts').includes('patchNexoWattBuiltFrontend')) fail('tasks.mts does not execute the EOS post-build frontend patch');
+if (!read('src-admin/vite.config.ts').includes('eosObjectBrowser') || !exists('adminWww/eos-object-browser-guards.json')) fail('reviewed source-level ObjectBrowser build guards are missing');
 
 console.log('[NexoWatt EOS package validation] OK');

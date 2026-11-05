@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import {
     Accordion,
     AccordionDetails,
@@ -28,10 +26,11 @@ import {
     AutoAwesome as AssistantIcon,
     Block as BlockIcon,
     Build as BuildIcon,
+    Cable as CableIcon,
     CheckCircle as CheckIcon,
     ChevronLeft as ChevronLeftIcon,
     Close as CloseIcon,
-    ErrorOutline as ErrorIcon,
+    ErrorOutlined as ErrorIcon,
     ExpandMore as ExpandMoreIcon,
     PlayArrow as PlayArrowIcon,
     Send as SendIcon,
@@ -40,9 +39,13 @@ import {
     ViewSidebar as DockIcon,
     WebAsset as OverlayIcon,
 } from '@mui/icons-material';
-import { I18n, type AdminConnection, type IobTheme, type ThemeType } from '@iobroker/adapter-react-v5';
+import { I18n, type AdminConnection, type IobTheme, type ThemeType } from '@iobroker/gui-components';
+import { MarkdownText } from '@iobroker/ai-gui';
 
 import ChatSettings from './ChatSettings';
+import { openAiSettings } from '../SystemSettings/aiProviders';
+import ChatMcpInfoDialog from './ChatMcpInfoDialog';
+import { sendPushRequest } from '../../helpers/pushRequest';
 import {
     CHAT_SETTINGS_OBJECT_ID,
     chatSettingsReady,
@@ -84,9 +87,17 @@ interface ChatPanelProps {
     /** Currently selected host id (e.g. `system.host.xxx`) — used for adapter installation. */
     host: string;
     /** Open the command dialog to run a CLI command (used to install adapters). */
-    executeCommand: (cmd: string, host?: string, callback?: (exitCode: number) => void) => void;
+    executeCommand: (cmd: string, host?: string, callback?: ((exitCode?: number) => void) | null) => void;
     /** Navigate the admin UI to a tab. */
     onNavigate: (tab: string, instance?: string) => void;
+    /**
+     * The assistant wants to open a route itself. The app owns the hash: the panel only exists on
+     * admin's own tabs, so the app asks the user before a custom tab closes the assistant.
+     * Resolves with false if the user refused.
+     */
+    onAssistantNavigate?: (hash: string) => Promise<boolean>;
+    /** Reports whether a request is in flight, so the app can ask before its answer gets lost. */
+    onBusyChange?: (busy: boolean) => void;
     /** Reports how many px to reserve on the right so admin content isn't hidden (0 = overlay/closed). */
     onDockWidthChange?: (width: number) => void;
 }
@@ -104,35 +115,20 @@ function asStr(value: unknown): string {
 }
 
 /**
- * Renders a markdown link. Internal admin routes (e.g. `#tab-instances`, `/#tab-objects/edit/<id>`)
- * navigate the SPA via the hash (no page reload); external links open in a new tab.
+ * A link in an answer was clicked. Internal admin routes (e.g. `#tab-instances`, `/#tab-objects/edit/<id>`,
+ * also a full address of this admin with `#tab-`) navigate the SPA via the hash - no page reload, and
+ * `/#` would leave an admin that is served under a path of a reverse proxy. Anything else opens in a new tab.
+ *
+ * @param href the address of the link
+ * @returns true when the click was handled here
  */
-function ChatLink({ href, children }: { href?: string; children?: React.ReactNode }): React.JSX.Element {
-    const url = href || '';
-    const hashAt = url.indexOf('#');
-    const internal = hashAt >= 0 && (url[0] === '#' || url.startsWith('/#') || url.includes('#tab-'));
-    if (internal) {
-        return (
-            <a
-                href={url}
-                onClick={e => {
-                    e.preventDefault();
-                    window.location.hash = url.substring(hashAt);
-                }}
-            >
-                {children}
-            </a>
-        );
+function onChatLink(href: string): boolean {
+    const hashAt = href.indexOf('#');
+    if (hashAt >= 0 && (href[0] === '#' || href.startsWith('/#') || href.includes('#tab-'))) {
+        window.location.hash = href.substring(hashAt);
+        return true;
     }
-    return (
-        <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            {children}
-        </a>
-    );
+    return false;
 }
 
 /** A short, human-readable description of a proposed action for the confirmation card. */
@@ -179,6 +175,7 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
     const [open, setOpen] = useState(() => loadChatOpen());
     const [settings, setSettings] = useState<ChatSettingsValue>(() => loadChatSettings());
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [mcpInfoOpen, setMcpInfoOpen] = useState(false);
     const [mode, setMode] = useState<ChatMode>(() => loadChatMode());
     const [items, setItems] = useState<DisplayItem[]>(restored.items);
     const [input, setInput] = useState('');
@@ -229,9 +226,18 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [displayMode, open, width]);
 
-    // Release the reserved room when the panel unmounts (e.g. on disconnect).
+    // Let the app know when an answer is pending: leaving this tab would discard it.
+    useEffect(() => {
+        props.onBusyChange?.(loading);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading]);
+
+    // Release the reserved room and the pending answer when the panel unmounts (e.g. on disconnect).
     useEffect(
-        () => () => props.onDockWidthChange?.(0),
+        () => () => {
+            props.onDockWidthChange?.(0);
+            props.onBusyChange?.(false);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
@@ -241,7 +247,6 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
     // otherwise block clicks on the admin UI in that corner.
     useEffect(() => {
         if (!hideFab || open) {
-            setPeek(false);
             return undefined;
         }
         const onMove = (e: MouseEvent): void => {
@@ -251,7 +256,12 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
             setPeek(prev => (prev === near ? prev : near));
         };
         window.addEventListener('mousemove', onMove);
-        return () => window.removeEventListener('mousemove', onMove);
+        // Hide the arrow again once the launcher reappears or the panel opens, so it does not show
+        // up already revealed the next time it is needed.
+        return () => {
+            window.removeEventListener('mousemove', onMove);
+            setPeek(false);
+        };
     }, [hideFab, open]);
 
     // The assistant configuration lives in the shared `system.ai` object so it is identical on every
@@ -315,8 +325,7 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
         window.addEventListener('mouseup', onUp);
     };
 
-    const addItem = (item: NewDisplayItem): void =>
-        setItems(prev => [...prev, { ...item, id: nextIdRef.current++ } as DisplayItem]);
+    const addItem = (item: NewDisplayItem): void => setItems(prev => [...prev, { ...item, id: nextIdRef.current++ }]);
 
     /** Run an `iobroker <command>` on the current host and stream its output live into the chat. */
     const runCliCommand = (command: string): void => {
@@ -389,8 +398,18 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
             props.executeCommand(`install ${action.adapter}`, props.host);
             addItem({ role: 'assistant', text: I18n.t('Started installation of %s.', action.adapter), steps: [] });
         } else if (action.type === 'navigate') {
-            // The assistant navigates the admin UI itself by setting the URL hash.
-            window.location.hash = action.hash.startsWith('#') ? action.hash : `#${action.hash}`;
+            // The assistant navigates the admin UI itself by setting the URL hash. The app gets the
+            // route first: it asks the user before a custom tab closes the assistant.
+            const hash = action.hash.startsWith('#') ? action.hash : `#${action.hash}`;
+            if (props.onAssistantNavigate) {
+                void props.onAssistantNavigate(hash).then(allowed => {
+                    if (!allowed) {
+                        addItem({ role: 'assistant', text: I18n.t('Navigation to %s was declined.', hash), steps: [] });
+                    }
+                });
+            } else {
+                window.location.hash = hash;
+            }
         } else if (action.type === 'command') {
             runCliCommand(action.command);
         }
@@ -402,13 +421,17 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
     ): Promise<void> => {
         setLoading(true);
         try {
-            const result = await props.socket.sendTo<ChatSendResponse>(props.instance, 'chat:send', {
+            /*
+             * Not a plain `sendTo`: a turn takes longer than the 30 s a socket callback lives, so the
+             * answer is pushed as an instance message (see `helpers/pushRequest.ts`), which is also what
+             * identifies this session to the backend.
+             *
+             * Which endpoint, model and credential are used is NOT sent along: the backend reads that
+             * from `system.ai` itself, so a request can neither point the stored key at another host nor
+             * pick a provider the settings do not name.
+             */
+            const result = await sendPushRequest<ChatSendResponse>(props.socket, props.instance, 'chat:send', {
                 messages: apiMessagesRef.current,
-                provider: settings.provider,
-                model: settings.model,
-                credentialId: settings.credentialId || undefined,
-                baseUrl: settings.baseUrl || undefined,
-                allowSelfSignedCerts: settings.allowSelfSignedCerts,
                 mode,
                 approvals,
                 autoApprove: autoApproveList,
@@ -445,7 +468,7 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
             return;
         }
         if (!ready) {
-            setSettingsOpen(true);
+            openAiSettings();
             return;
         }
         addItem({ role: 'user', text });
@@ -503,10 +526,12 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
     const onCloseSettings = (value?: ChatSettingsValue): void => {
         setSettingsOpen(false);
         if (value) {
-            setSettings(value);
-            saveChatSettings(value); // local cache
+            // Provider, key and model belong to the system settings: only what this dialog sets is saved
+            const next = { ...settings, hideFab: value.hideFab };
+            setSettings(next);
+            saveChatSettings(next); // local cache
             // Persist system-wide so the configuration is the same on every browser.
-            void saveChatSettingsToObject(props.socket, value).catch(() => {
+            void saveChatSettingsToObject(props.socket, { hideFab: value.hideFab }).catch(() => {
                 /* ignore — the local cache still holds the value */
             });
         }
@@ -558,6 +583,11 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
                         <AddIcon />
                     </IconButton>
                 </Tooltip>
+                <Tooltip title={I18n.t('Use without an API key (external MCP client)')}>
+                    <IconButton onClick={() => setMcpInfoOpen(true)}>
+                        <CableIcon />
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title={I18n.t('Settings')}>
                     <IconButton onClick={() => setSettingsOpen(true)}>
                         <SettingsIcon />
@@ -579,9 +609,9 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
                             <Button
                                 color="inherit"
                                 size="small"
-                                onClick={() => setSettingsOpen(true)}
+                                onClick={openAiSettings}
                             >
-                                {I18n.t('Settings')}
+                                {I18n.t('Go to the AI settings')}
                             </Button>
                         }
                     >
@@ -735,8 +765,10 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
                     onClose={() => setOpen(false)}
                     // disableScrollLock prevents the underlying page from shifting (scrollbar
                     // compensation) when the drawer opens/closes — that was the width "jumping".
-                    ModalProps={{ disableScrollLock: true }}
-                    PaperProps={{ style: { width, maxWidth: '100%' } }}
+                    slotProps={{
+                        root: { disableScrollLock: true },
+                        paper: { style: { width, maxWidth: '100%' } },
+                    }}
                 >
                     {panelBody}
                 </Drawer>
@@ -744,12 +776,20 @@ export default function ChatPanel(props: ChatPanelProps): React.JSX.Element {
 
             {settingsOpen ? (
                 <ChatSettings
-                    socket={props.socket}
-                    instance={props.instance}
                     value={settings}
                     autoApprove={autoApprove}
                     onChangeAutoApprove={setAutoApprove}
                     onClose={onCloseSettings}
+                />
+            ) : null}
+
+            {mcpInfoOpen ? (
+                <ChatMcpInfoDialog
+                    socket={props.socket}
+                    instance={props.instance}
+                    themeType={props.themeType}
+                    mode={mode}
+                    onClose={() => setMcpInfoOpen(false)}
                 />
             ) : null}
         </>
@@ -976,33 +1016,22 @@ function ChatItemView({
                     bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                     borderRadius: 2,
                     px: 1.5,
-                    py: 0.5,
-                    wordBreak: 'break-word',
-                    '& p': { my: 0.5 },
-                    '& ul, & ol': { my: 0.5, pl: 2.5 },
-                    '& pre': {
-                        m: 0,
-                        p: 1,
-                        borderRadius: 1,
-                        overflowX: 'auto',
-                        bgcolor: dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)',
-                    },
-                    '& code': { fontFamily: 'monospace' },
-                    '& table': { borderCollapse: 'collapse' },
-                    '& th, & td': { border: '1px solid', borderColor: 'divider', px: 0.75, py: 0.25 },
+                    py: 1,
                 }}
             >
-                <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{ a: ChatLink }}
-                >
-                    {item.text || ''}
-                </ReactMarkdown>
+                <MarkdownText
+                    text={item.text || ''}
+                    onLink={onChatLink}
+                />
             </Box>
             {item.steps.length ? (
                 <Accordion
                     disableGutters
                     elevation={0}
+                    // Expand automatically when a script/command was executed, so its raw output is visible.
+                    defaultExpanded={item.steps.some(
+                        step => step.tool === 'run_javascript' || step.tool === 'run_node_script',
+                    )}
                     sx={{ bgcolor: 'transparent', '&:before': { display: 'none' } }}
                 >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -1053,7 +1082,7 @@ function ChatItemView({
                                         whiteSpace: 'pre-wrap',
                                         wordBreak: 'break-word',
                                         color: 'text.secondary',
-                                        maxHeight: 160,
+                                        maxHeight: 300,
                                         overflow: 'auto',
                                     }}
                                 >

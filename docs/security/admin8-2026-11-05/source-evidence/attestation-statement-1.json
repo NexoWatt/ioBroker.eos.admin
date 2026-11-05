@@ -1,0 +1,47 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "pkg:npm/%40iobroker/admin-component-easy-access@3.0.8",
+      "digest": {
+        "sha512": "a38603ef8a70cfea6793f0198af4604bb30d5e3851215828060cfeaa7d3ba755d97fef45d7849483835d39f658652c88556f70b49b67c8da2f45f948a586bcf9"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+      "externalParameters": {
+        "workflow": {
+          "ref": "refs/tags/v3.0.8",
+          "repository": "https://github.com/ioBroker/ioBroker.admin-component-easy-access",
+          "path": ".github/workflows/test-and-release.yml"
+        }
+      },
+      "internalParameters": {
+        "github": {
+          "event_name": "push",
+          "repository_id": "496193520",
+          "repository_owner_id": "7231148"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "git+https://github.com/ioBroker/ioBroker.admin-component-easy-access@refs/tags/v3.0.8",
+          "digest": {
+            "gitCommit": "ae303bdabc73c2588b1194d2f0c4951ac0d8b00e"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/actions/runner/github-hosted"
+      },
+      "metadata": {
+        "invocationId": "https://github.com/ioBroker/ioBroker.admin-component-easy-access/actions/runs/33781989402/attempts/1"
+      }
+    }
+  }
+}
