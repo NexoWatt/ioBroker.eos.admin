@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const webserverVendor = require('./nexowatt-vendored-webserver.cjs');
 const TOOL_VERSION = '1.0.0';
 const LIMITATION = 'Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.';
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -172,7 +173,27 @@ function generate(rootDirectory, outputDirectory, timestamp = new Date().toISOSt
     for (const [label, directory] of [['backend', ''], ['frontend', 'src-admin']]) {
         const manifestPath = path.join(rootDirectory, directory, 'package.json');
         const lockPath = path.join(rootDirectory, directory, 'package-lock.json');
-        const result = buildLockInventory(readJSON(manifestPath), readJSON(lockPath), label, { manifest: hash(fs.readFileSync(manifestPath)), lock: hash(fs.readFileSync(lockPath)) }, timestamp);
+        const manifest = readJSON(manifestPath), lock = readJSON(lockPath);
+        const result = buildLockInventory(manifest, lock, label, { manifest: hash(fs.readFileSync(manifestPath)), lock: hash(fs.readFileSync(lockPath)) }, timestamp);
+        if (label === 'backend' && webserverVendor.required(manifest)) {
+            const issue = webserverVendor.inspectVendoredWebserver(manifest, lock, rootDirectory);
+            if (issue) throw new Error(issue);
+            const provenanceBytes = fs.readFileSync(path.join(rootDirectory, webserverVendor.PROVENANCE));
+            const provenance = JSON.parse(provenanceBytes);
+            const ref = 'nexowatt:backend:vendored-webserver';
+            result.bom.components.push({ type: 'library', 'bom-ref': ref, name: provenance.name, version: provenance.version,
+                purl: npmPurl(provenance.name, provenance.version), licenses: [{ license: { id: 'MIT' } }],
+                hashes: [{ alg: 'SHA-256', content: provenance.upstream.sha256 }],
+                properties: [{ name: 'nexowatt:delivery', value: 'source-vendored; all 39 upstream files byte-identical' },
+                    { name: 'nexowatt:runtime:location', value: webserverVendor.RUNTIME_ROOT },
+                    { name: 'nexowatt:provenance:sha256', value: hash(provenanceBytes) },
+                    { name: 'nexowatt:dependency-resolution', value: 'EOS root registry dependencies; upstream nested package manifest is not an npm install input' }] });
+            result.bom.dependencies.find(dependency => dependency.ref === 'nexowatt:backend:root').dependsOn.push(ref);
+            result.bom.dependencies.push({ ref, dependsOn: Object.keys(provenance.directDependencies).map(name => `nexowatt:backend:node_modules/${name}`) });
+            result.summary.componentCount++;
+            result.summary.vendoredSourceCount = 1;
+            result.summary.vendoredSourceProvenance = webserverVendor.PROVENANCE;
+        }
         summary.inventories.push(result.summary);
         artifacts.push([`sbom-${label}-lock.cdx.json`, result.bom]);
     }

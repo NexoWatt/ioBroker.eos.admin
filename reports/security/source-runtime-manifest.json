@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "timestamp": "2026-11-05T06:37:11.876Z",
+  "timestamp": "2026-11-05T08:26:41.589Z",
   "description": "Byte-level hashes of source and prebuilt files. A file hash does not prove that a build was generated from the source or which dependency code a bundle contains.",
   "sourceFiles": [
     {
@@ -110,8 +110,8 @@
     },
     {
       "path": "src/lib/eosSessionSecurity.js",
-      "size": 14351,
-      "sha256": "c408afc041cbe055dcacdd3aa16f65cac539ad0a9c830ee2204eed6f07d961bf"
+      "size": 14817,
+      "sha256": "666854dce2fb330f0d7802eeb0d4567ad90463986e464500cc588c94b22fe0f4"
     },
     {
       "path": "src/lib/eosUiSessionRegistry.ts",
@@ -154,9 +154,204 @@
       "sha256": "b68937ae7c4bcc1b73a4b05d943f9bf7d691ba819a71b62f5cef43c4419b3231"
     },
     {
+      "path": "src/lib/vendor/webserver/build/index.d.ts",
+      "size": 846,
+      "sha256": "9f98a0b18fe2c59aef32b53db855b91760664d2b79a58a3be4d9f56d2deabd1a"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/index.js",
+      "size": 3945,
+      "sha256": "c9f552e66b06cb2884c1122db0424698bce6a038f79fe0eb9690fae1c4c3aecf"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/index.js.map",
+      "size": 597,
+      "sha256": "e4a8fca4764823304f9405da77407da673edc5fc523885999e29ab8c73c962b1"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/acmeChallenge.d.ts",
+      "size": 2917,
+      "sha256": "b6cae135e2dce695d6b37535998ecced7ea1fe543307966e368d1554d6f1e696"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/acmeChallenge.js",
+      "size": 5933,
+      "sha256": "9fa156ba5961a7b3d16897a0c0054d4e5712dde32ca7754546a06499640bcc07"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/acmeChallenge.js.map",
+      "size": 2849,
+      "sha256": "eb5ae2d9af3f63aa8cb4b748528a32796df2dccc3aae4bff9944c4ca137ceede"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/certificateManager.d.ts",
+      "size": 2348,
+      "sha256": "faed9f8df8a074bc2e60f89fb15f68e48931f22fad1571c06a1c837d7f241721"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/certificateManager.js",
+      "size": 4999,
+      "sha256": "5a39b7b10fe7197cf846479a8873ca119d32177fc604cf359a7065f45345b980"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/certificateManager.js.map",
+      "size": 3403,
+      "sha256": "60198771e60c0b6767567712655d8be972c82560c3eb2fae36dc8dc5225804b2"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/http2Compat.d.ts",
+      "size": 1285,
+      "sha256": "5f49d6b8de92176c90a000e01328680f82710d370a024f37961908a30bf03351"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/http2Compat.js",
+      "size": 5842,
+      "sha256": "0822d5bcbf3157b5940dd027a36976aead38e407dfdb1911e1165a788148ef09"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/http2Compat.js.map",
+      "size": 3140,
+      "sha256": "6a522526272eb1c116bc94a534bbcccc93f74cde71e0db24ed7a920561f20d91"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-authcode.d.ts",
+      "size": 6752,
+      "sha256": "0bc02a98868697533a613b77f52692d9287545d40fd03514eba7c742ba813a5b"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-authcode.js",
+      "size": 28279,
+      "sha256": "ef4c3c13bfb3213fce33dd04a0ccc76fe2c705e18b99cabc1bbaa5114540bb71"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-authcode.js.map",
+      "size": 17168,
+      "sha256": "9f9fa457b60a2588176eeccdbad2a1e8968beb2a2cf94f3cc5df3f6b3e7d0f11"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-clients.d.ts",
+      "size": 4094,
+      "sha256": "5760c7cdec8acd699e97a2ea4279729c73dbd57833632b1f6dc83edc185a6452"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-clients.js",
+      "size": 10772,
+      "sha256": "8e3132f084aa43d06f599b90e9be7536bfd90be6f09d61f25682507ae68f53cb"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-clients.js.map",
+      "size": 6721,
+      "sha256": "6963ffba4664afef71b1e3405516abbfb1f055f9ab6758dfa4436369bbb926e6"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-model.d.ts",
+      "size": 3464,
+      "sha256": "a7667303fe7b4fcf7c53f78f36922156304ceb0815fb0f939d3effd3a7b624dd"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-model.js",
+      "size": 18232,
+      "sha256": "3c28f83e2d19e53bbec6722bf332b0996d6cd9f27c424eb6aced2e4f5f2172e6"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2-model.js.map",
+      "size": 13397,
+      "sha256": "c1b40e0ec9c34a0ab9bd219dffc0422db5b53362f99d86e09926d2916d82c6ca"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2.d.ts",
+      "size": 4141,
+      "sha256": "2477e031b84a9fb9d83548089b2838ac6af25639ab5e2c9611e1bb4c87356ae1"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2.js",
+      "size": 29682,
+      "sha256": "fd8df9984ce5d1bc91f6d6ceb01736baa3c625b18f0251e7c5aa824996194207"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/oauth2.js.map",
+      "size": 18401,
+      "sha256": "a7a7dec34e86e8af22fcc4e91f4fb58ca26d8a3c3e46b4fc3ccc1e0cab37b22e"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/securityChecker.d.ts",
+      "size": 262,
+      "sha256": "d5060ee1e796982efe6c2cdbe53bd79a6173bf56a5964e46028d294f4aae1f75"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/securityChecker.js",
+      "size": 3844,
+      "sha256": "e11aa966e39f2841086196d877693aa0a0153327377b214d7a15ab83a7f5ae9e"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/securityChecker.js.map",
+      "size": 3343,
+      "sha256": "7a67a00617809584b2aac656c5484bac7c11339f38eb8f79c6861082b13bcf6d"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/usedResources.d.ts",
+      "size": 3012,
+      "sha256": "693d47767d706722372f3bbee830309b69cd5195d72c1871623e50c8b3949ff9"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/usedResources.js",
+      "size": 10382,
+      "sha256": "f36a4a09decc157c7427660ed2003c5b27bbcb55bc0d87df430f3623c42a8420"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/usedResources.js.map",
+      "size": 4676,
+      "sha256": "424297f2dda07c7e288440a07b094dbfac408feebbbba12f270b6ccd0c0fffa4"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/utils.d.ts",
+      "size": 1481,
+      "sha256": "a4ff620f30cba1c777fed7c5ed2aeefa1aa375d6a5ab5e44163a23780b1c3337"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/utils.js",
+      "size": 3853,
+      "sha256": "aa0addf0a2cf77801d231d54bafa7fd5df94fccc3fe107cc07e44a3024d8fb3f"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/utils.js.map",
+      "size": 3043,
+      "sha256": "cf7999464f6df42b86b25e42bf6309eff3d1216b06c15496cc5687aa594bfdb4"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/webServer.d.ts",
+      "size": 6980,
+      "sha256": "de62ab1e7e9e795de518f829e9ace4ea47d5b915a439f26731f4f9cdbe67f0dc"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/webServer.js",
+      "size": 22191,
+      "sha256": "99fd42ad30ebc4a273a6ab86e475d04f9fddeac0d015811095c054e1b8738f50"
+    },
+    {
+      "path": "src/lib/vendor/webserver/build/lib/webServer.js.map",
+      "size": 13558,
+      "sha256": "9bc89141be382911bf380e4f9e78bf82c1d8f0e4bb749b37136334b178931216"
+    },
+    {
+      "path": "src/lib/vendor/webserver/LICENSE",
+      "size": 1117,
+      "sha256": "25eafd015052f4cacfaaecf7625544f1f546cf9ead289bd0e5b1f43f709db8a7"
+    },
+    {
+      "path": "src/lib/vendor/webserver/package.json",
+      "size": 1691,
+      "sha256": "36427ac6c75e2360a231b383ba2664273f903e92c0474ec66beffc10f66783d6"
+    },
+    {
+      "path": "src/lib/vendor/webserver/README.md",
+      "size": 26622,
+      "sha256": "0a2281681675298ae37784f9cb045ebd69293333b54ba246355a8d182e4cd39b"
+    },
+    {
       "path": "src/lib/web.ts",
-      "size": 142753,
-      "sha256": "2f51ea7d52aa35848bc91b5ba1ee48a64cf7f7db1fb1a6dd06773104880c1f30"
+      "size": 142752,
+      "sha256": "23cf79463978a4a8e16c40f534fba33940736603198fb9b2906373fd6b11bb59"
     },
     {
       "path": "src/main.ts",
@@ -463,7 +658,7 @@
     {
       "path": "adminWww/.vite/manifest.json",
       "size": 24689,
-      "sha256": "4210f63279ccac8f657cf87d687f57233adea363f327accfe0b6c4fe72b2b7dc"
+      "sha256": "faeb2f8f33996bedb7c423eac5ccc5ab419f226e5c5278f36e72e11a5bc57b62"
     },
     {
       "path": "adminWww/admin.svg",
@@ -486,14 +681,14 @@
       "sha256": "85e5f22ab3120a597ae326d8f74f57faae9a3ba978273a9cc6a4754e4a47a5c9"
     },
     {
-      "path": "adminWww/assets/Adapters-BDxfhfGe.js",
+      "path": "adminWww/assets/Adapters-WMGNQt7g.js",
       "size": 137038,
-      "sha256": "3ea1f6d8281e244f0f7d5055b319e274a05c5ca5b503e5c1e7b86e1eb341bf96"
+      "sha256": "a8646651eb0ceaef089b25bc1fdf74323807ac1c10585c825584ad6161b06d96"
     },
     {
-      "path": "adminWww/assets/AdapterUpdateDialog-B3y8RL_5.js",
+      "path": "adminWww/assets/AdapterUpdateDialog-D3y2bGHM.js",
       "size": 49746,
-      "sha256": "60715de5c6384cbd0a3afc8208fd62c6e3e61db7284550201d88335450197d00"
+      "sha256": "6b64ea12b0af69256a254de735a43e7c8b1d4f61eb6b598f53212cc362b98a11"
     },
     {
       "path": "adminWww/assets/AdminUtils-DDT_kD8H.js",
@@ -511,14 +706,14 @@
       "sha256": "bdfb56f3dadd513584a9aa0fbb78f6437b0c8a6f6070c67130c1807c708cc9a2"
     },
     {
-      "path": "adminWww/assets/bootstrap-Bs4TZ7iA.js",
-      "size": 1995798,
-      "sha256": "a877f460169b338b64c83eb5d46cc8f8273a43c3ab94485d63c5e62c5e9c4bdd"
-    },
-    {
       "path": "adminWww/assets/bootstrap-BxGG6BRn.css",
       "size": 9739,
       "sha256": "f8e167a4f80da7f494a85ba45eb1e6320d54c5a5fa78d62a17d51e009e01b334"
+    },
+    {
+      "path": "adminWww/assets/bootstrap-D-7xcwTc.js",
+      "size": 1995798,
+      "sha256": "2cd51174c4a120c9582a51292396b2f907de286f4a527a3cedc3c6ffbd3e6e2c"
     },
     {
       "path": "adminWww/assets/Cached-f77QQBQD.js",
@@ -541,9 +736,9 @@
       "sha256": "c5cdff8b20021da79dd77b6f600820704e688a9d37c6b9c07e499ad62ba47b84"
     },
     {
-      "path": "adminWww/assets/ConfigManager-CFuOc_kb.js",
+      "path": "adminWww/assets/ConfigManager-BMdQoiCg.js",
       "size": 2407,
-      "sha256": "c97dc1925e44af07f2f54dde534dde40b1e3dc58cfbc14e2a50c5f2400c6a865"
+      "sha256": "4e2bd308ada4700222aba25b8a40b2be4e394b7acf874816c539f731e0124e3d"
     },
     {
       "path": "adminWww/assets/ctrlEnter-CruFIPb_.js",
@@ -586,9 +781,9 @@
       "sha256": "a1fcfd27dc5a8a296c4b7a2f60a3167d9bbee6160d95e9191db92ac9e05a0bd9"
     },
     {
-      "path": "adminWww/assets/Enums-CSzSzWm7.js",
+      "path": "adminWww/assets/Enums-CHm2sGa-.js",
       "size": 83457,
-      "sha256": "92cbaedc798fbecc45c38262baea8ccb8212208f74a8aa3faa04bafa37b58f24"
+      "sha256": "1e4e9b196f2044efd40452b60672643b4ab4749a02baa522242fabaca8e26a3f"
     },
     {
       "path": "adminWww/assets/Extension-DU1jqvic.js",
@@ -596,14 +791,14 @@
       "sha256": "a060863608f4f523187cd94bfde7bd073856c882a8695b80bd83b084ace54706"
     },
     {
-      "path": "adminWww/assets/Fields-DnckPMA8.js",
+      "path": "adminWww/assets/Fields-Df7Llf6U.js",
       "size": 2383,
-      "sha256": "fd4ee6248355b7a165213ee1e4e2f9ae4b48af070431f2937625ddbd864358bf"
+      "sha256": "cc1716657457b3d962ec5791ccbb07f35bee97f82cecdc404152ce6b6a072852"
     },
     {
-      "path": "adminWww/assets/Files-CwUHx0pF.js",
+      "path": "adminWww/assets/Files-Bwbw17Fb.js",
       "size": 44165,
-      "sha256": "7aae8d5801a0e12cc21306eb68a29692dd67a8d61690518acb408be3539a84ea"
+      "sha256": "acacf94d10cced6b22a50a936508a1d8e89321dc4d6a39e6eef00a2a83be0e37"
     },
     {
       "path": "adminWww/assets/group1-CmFsZszo.svg",
@@ -656,14 +851,14 @@
       "sha256": "69c9c8bbcde8635db81c587f532e3e564952585cfd2925358e2a3b3d331d1202"
     },
     {
-      "path": "adminWww/assets/hostInit-2xIZYDSq.js",
+      "path": "adminWww/assets/hostInit-huY-0clu.js",
       "size": 6198,
-      "sha256": "ce9a1c19f546d2b581dfc9f686640e4e032fc25c3d505f1907537bf216900ab3"
+      "sha256": "b194988e2b8c1b9e219f91b3f61a2d4c4689b7a0fab6ce5dad5b42b9bbf527f2"
     },
     {
-      "path": "adminWww/assets/Hosts-QkyuASJy.js",
+      "path": "adminWww/assets/Hosts-BR0g-Wxo.js",
       "size": 136955,
-      "sha256": "83d7b551938066429aadc12620169edfb293ac31d1558e3c8161cf3b3609507e"
+      "sha256": "463ac1c35045351aac67112248035a9e50e7cdf23077b95c79eabf9969ec3c7d"
     },
     {
       "path": "adminWww/assets/iconLibraryData-B5fiyl1C.js",
@@ -671,14 +866,14 @@
       "sha256": "5e8ac03eba374bc8998f8e3a851cb9c8d6aa2e2fd9f4377164040fc9e78ab108"
     },
     {
-      "path": "adminWww/assets/icons-material-BLgrEUSv.js",
+      "path": "adminWww/assets/icons-material-Bu1f45BT.js",
       "size": 3816290,
-      "sha256": "f572b5180278e3c2676ff02aa4169e032660112e444608543ca9faa739d5412a"
+      "sha256": "dbaa2b734c37e51bcf025c986aed3ddb09dcb70aed3b0665bbba787e76f86acd"
     },
     {
-      "path": "adminWww/assets/index-BZifaJHi.js",
+      "path": "adminWww/assets/index-D8vmzGp8.js",
       "size": 1244,
-      "sha256": "c78f2a7dc558dc815d534abc1aa46610ab4cad1f50dca6add4c10924bde7cb54"
+      "sha256": "07560121bbad1ce69dd5ce9fcd92c95c703862fb7d39e10c972e79616c9afbc6"
     },
     {
       "path": "adminWww/assets/InfoOutlined-l86Si1qa.js",
@@ -686,19 +881,19 @@
       "sha256": "8b04a2937b34f251afe2728281afcddf6eba12289e02009c54b3836d3abbc37a"
     },
     {
-      "path": "adminWww/assets/installSVGRenderer-Pe6-VnD2.js",
+      "path": "adminWww/assets/installSVGRenderer-BkdptYag.js",
       "size": 525236,
-      "sha256": "75625531474a52a09a261d6ff36efb9185df2911bd69f3dac1a8a30f95d63df4"
+      "sha256": "a003c6ca25f95bef131a3336b99c60c6b26161122d34f22664636a0409f65b5c"
     },
     {
-      "path": "adminWww/assets/Instances-BaWBemTT.js",
+      "path": "adminWww/assets/Instances-BKydFSdw.js",
       "size": 199808,
-      "sha256": "75a098406b23263d1b58208b3aaf632c48614dcd0996364b802c3095c0762827"
+      "sha256": "3d0bf6c3557fbb97d4feef1309b646ed6cddcb7ba299dab10b99a58f5d168eaf"
     },
     {
-      "path": "adminWww/assets/Intro-DsfrPrWv.js",
+      "path": "adminWww/assets/Intro-Dt2GzmtW.js",
       "size": 57718,
-      "sha256": "a64a472b8ce9438d8c2355b431e522fc93f6a07189871fdbcad49b908e5c5b19"
+      "sha256": "c9038a21df4a9f20b067ad369dcd61f73285f5ab567fb15f763f9b6c255ad97b"
     },
     {
       "path": "adminWww/assets/isSameWeek-WMSJR5Qs.js",
@@ -731,9 +926,9 @@
       "sha256": "1167118074ff84d8cef82ad80c38609719dacfde9417126e46966c1ec986534b"
     },
     {
-      "path": "adminWww/assets/Logs-Cngy2Opt.js",
+      "path": "adminWww/assets/Logs-hbcdBDN3.js",
       "size": 25074,
-      "sha256": "6bfb8db46a9f73de7e6259e64993b38a905ec248dafa2f2df93e42621c3729d6"
+      "sha256": "c936b4eeb1fd788c9059e7783b146da73792e070c98b4f1eb1e3ea8c2f04a2d5"
     },
     {
       "path": "adminWww/assets/material-nACPaH8J.woff",
@@ -746,9 +941,9 @@
       "sha256": "4517f0a3893222df073141313c178ccbc99343f3903fb12023173b0d9de78ab9"
     },
     {
-      "path": "adminWww/assets/mf-entry-bootstrap-0-a6a54377.js",
+      "path": "adminWww/assets/mf-entry-bootstrap-0-f6098d8b.js",
       "size": 2162,
-      "sha256": "a6a54377b7a1108391fcbfb26ed08429deecead2530481500f8fbe510a4efb28"
+      "sha256": "f6098d8b2e981835d272e6afe3d8ae85f45729d25634ae3f19e65187230dd6e7"
     },
     {
       "path": "adminWww/assets/MoreHoriz-CR2kD-dc.js",
@@ -756,14 +951,14 @@
       "sha256": "c86cf8078de8ba3c02faac0f7f9ca464f2d37e775e1a3d19ed4d05081d5b49b1"
     },
     {
-      "path": "adminWww/assets/Objects-DY8KS7zK.js",
+      "path": "adminWww/assets/Objects-HPx0yuOk.js",
       "size": 374558,
-      "sha256": "4e78cc4f08f336192026e7ad7bee9863650ee827fca957dfb3c998c748d3662c"
+      "sha256": "f6e9a9789d810fdc2181a165de6704e1d19a98926874bee0570005c994899c31"
     },
     {
-      "path": "adminWww/assets/Overview-WwP6FjK-.js",
+      "path": "adminWww/assets/Overview-CDvnM655.js",
       "size": 35024,
-      "sha256": "d1f4023147de2e417a914e43306a56ad5a03efd47ff4d64fdf0bdda4092da009"
+      "sha256": "ac22e244c76358bfa4d3891c18b3bc34eefecf0fe177da1f15a881ff65edd2a3"
     },
     {
       "path": "adminWww/assets/Pageview-DBITLOzI.js",
@@ -821,9 +1016,9 @@
       "sha256": "c4b4cce76979eb58e3123b8f46d083855c3d086b9a80367bb5edecbbf7281daf"
     },
     {
-      "path": "adminWww/assets/State-vP1o2BCL.js",
+      "path": "adminWww/assets/State-Cc-tyuqB.js",
       "size": 533,
-      "sha256": "a9ffaae270fb2e2580efafa16eaa52933a0c18da48720d99875aebf493e69fa9"
+      "sha256": "a69185261d93e457a6d432104f5a721d199d260459f680ed2eca328d39d94aec"
     },
     {
       "path": "adminWww/assets/Storage-COo2RkS1.js",
@@ -856,9 +1051,9 @@
       "sha256": "0012e71bdd7999d2238f18d409577a72e3c707b65fb63599e9c1b09f8f230e7d"
     },
     {
-      "path": "adminWww/assets/UsedResources-CMTzFOX3.js",
+      "path": "adminWww/assets/UsedResources-BIdU7UPm.js",
       "size": 6692,
-      "sha256": "885339b22a78475528deda937fadaa79e357f304898a689410a6971532dff0c4"
+      "sha256": "a05601ce4a305b0c02355180d4ed26b9aa9cdbeede519bd68b8f0bbc94f2c9a3"
     },
     {
       "path": "adminWww/assets/user1-D1GAYfim.svg",
@@ -921,9 +1116,9 @@
       "sha256": "dbad972b0f7b4cab572bbcb6723510b9313d45378cb476225c6553bdfaec2cb1"
     },
     {
-      "path": "adminWww/assets/Users-BjTGOjzL.js",
+      "path": "adminWww/assets/Users-BruHA-yU.js",
       "size": 29779,
-      "sha256": "ac88270dc5ecc39ee7529a9feac8881a8497ba2e64bc760cfc377599d06cd68d"
+      "sha256": "11a13e82fd1aa17470842b37e8a7399e5f4e5583bc94b4dd6f9b1df0fb943dc8"
     },
     {
       "path": "adminWww/assets/ViewCompact-C3SC0jFF.js",
@@ -1163,7 +1358,7 @@
     {
       "path": "adminWww/index.html",
       "size": 9324,
-      "sha256": "48485c38952d7c7601e055994868394eb68053b1d694c8ab7d6f555a77da0dff"
+      "sha256": "175e22996382f417eec0c44819e03f94a60d45cb046581fa0d5c74fd614330a9"
     },
     {
       "path": "adminWww/js/adapter-settings.js",
@@ -2113,27 +2308,27 @@
     {
       "path": "adminWww/mf-manifest.json",
       "size": 5374,
-      "sha256": "cc0fa00f3ff84347c005f551919ab75df40416e10a4538570981cdfae4941ab4"
+      "sha256": "7ad42e2c1c9033bb8a7f10909515a9de2aa941b3aa9bb8ded4a4edc6d60c9c30"
     },
     {
       "path": "adminWww/mf-stats.json",
       "size": 17526,
-      "sha256": "bd2da02bca06ef550e639c1ff96ea27ffdf33043ef4687f1b7ef1c1cb5fe3866"
+      "sha256": "29b8991cdc1bd0d7c0dfd90ab2abfdbd86a60e34fc22009cd56fe641317963a9"
     },
     {
       "path": "adminWww/NEXOWATT_EOS_FRONTEND_MANIFEST.json",
       "size": 979071,
-      "sha256": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9"
+      "sha256": "2572db4e7fbcf781cecb65ff2150342fbc38740eb79d50db1182b931770e9b03"
     },
     {
-      "path": "adminWww/remoteEntry-eos-8.0.0.js",
+      "path": "adminWww/remoteEntry-eos-8.0.1.js",
       "size": 22984,
-      "sha256": "d645f7a204b34ee039c50a28b9d432ac26d7d232fabbd0281c9cef9f042a9fa0"
+      "sha256": "56521b02c0f8a409d343ef8499af9c18044dc969c8b2d970c86db49b1e6dfa6b"
     },
     {
       "path": "adminWww/remoteEntry.js",
       "size": 44,
-      "sha256": "1d3d0abd54f46b1a73b2b930cc94f0e19d3265715059a0fe8b480a8c3aa21feb"
+      "sha256": "549b22ab84d357d9c3397ebd20bb9b56bc0aac0fbbac7046b5b392f87393a988"
     },
     {
       "path": "adminWww/robots.txt",
@@ -2332,13 +2527,13 @@
     },
     {
       "path": "build/lib/eosSessionSecurity.js",
-      "size": 13848,
-      "sha256": "a20576c7d7321527737e43322a6d8c8a77231727e2d018d97d447a025f65c567"
+      "size": 14286,
+      "sha256": "17687af5aed33a5740bfe04b3ff43c7fbfa2a79b81b75049f643b7b279d853b6"
     },
     {
       "path": "build/lib/eosSessionSecurity.js.map",
-      "size": 14195,
-      "sha256": "7d7391d8c52f0987f76a6366d38f679ea81821484456dc5dfec451591e7cccac"
+      "size": 14545,
+      "sha256": "08893d78c6c5b58d52aedfccc0d02bb1499d861cd50808ddfd79c027a1af7308"
     },
     {
       "path": "build/lib/eosUiSessionRegistry.js",
@@ -2421,14 +2616,209 @@
       "sha256": "1242ba9d118a60d5316f3ca8a1384db97d9c62b08b0262cfaaf52555673966a6"
     },
     {
+      "path": "build/lib/vendor/webserver/build/index.d.ts",
+      "size": 846,
+      "sha256": "9f98a0b18fe2c59aef32b53db855b91760664d2b79a58a3be4d9f56d2deabd1a"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/index.js",
+      "size": 3945,
+      "sha256": "c9f552e66b06cb2884c1122db0424698bce6a038f79fe0eb9690fae1c4c3aecf"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/index.js.map",
+      "size": 597,
+      "sha256": "e4a8fca4764823304f9405da77407da673edc5fc523885999e29ab8c73c962b1"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/acmeChallenge.d.ts",
+      "size": 2917,
+      "sha256": "b6cae135e2dce695d6b37535998ecced7ea1fe543307966e368d1554d6f1e696"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/acmeChallenge.js",
+      "size": 5933,
+      "sha256": "9fa156ba5961a7b3d16897a0c0054d4e5712dde32ca7754546a06499640bcc07"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/acmeChallenge.js.map",
+      "size": 2849,
+      "sha256": "eb5ae2d9af3f63aa8cb4b748528a32796df2dccc3aae4bff9944c4ca137ceede"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/certificateManager.d.ts",
+      "size": 2348,
+      "sha256": "faed9f8df8a074bc2e60f89fb15f68e48931f22fad1571c06a1c837d7f241721"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/certificateManager.js",
+      "size": 4999,
+      "sha256": "5a39b7b10fe7197cf846479a8873ca119d32177fc604cf359a7065f45345b980"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/certificateManager.js.map",
+      "size": 3403,
+      "sha256": "60198771e60c0b6767567712655d8be972c82560c3eb2fae36dc8dc5225804b2"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/http2Compat.d.ts",
+      "size": 1285,
+      "sha256": "5f49d6b8de92176c90a000e01328680f82710d370a024f37961908a30bf03351"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/http2Compat.js",
+      "size": 5842,
+      "sha256": "0822d5bcbf3157b5940dd027a36976aead38e407dfdb1911e1165a788148ef09"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/http2Compat.js.map",
+      "size": 3140,
+      "sha256": "6a522526272eb1c116bc94a534bbcccc93f74cde71e0db24ed7a920561f20d91"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-authcode.d.ts",
+      "size": 6752,
+      "sha256": "0bc02a98868697533a613b77f52692d9287545d40fd03514eba7c742ba813a5b"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-authcode.js",
+      "size": 28279,
+      "sha256": "ef4c3c13bfb3213fce33dd04a0ccc76fe2c705e18b99cabc1bbaa5114540bb71"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-authcode.js.map",
+      "size": 17168,
+      "sha256": "9f9fa457b60a2588176eeccdbad2a1e8968beb2a2cf94f3cc5df3f6b3e7d0f11"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-clients.d.ts",
+      "size": 4094,
+      "sha256": "5760c7cdec8acd699e97a2ea4279729c73dbd57833632b1f6dc83edc185a6452"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-clients.js",
+      "size": 10772,
+      "sha256": "8e3132f084aa43d06f599b90e9be7536bfd90be6f09d61f25682507ae68f53cb"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-clients.js.map",
+      "size": 6721,
+      "sha256": "6963ffba4664afef71b1e3405516abbfb1f055f9ab6758dfa4436369bbb926e6"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-model.d.ts",
+      "size": 3464,
+      "sha256": "a7667303fe7b4fcf7c53f78f36922156304ceb0815fb0f939d3effd3a7b624dd"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-model.js",
+      "size": 18232,
+      "sha256": "3c28f83e2d19e53bbec6722bf332b0996d6cd9f27c424eb6aced2e4f5f2172e6"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2-model.js.map",
+      "size": 13397,
+      "sha256": "c1b40e0ec9c34a0ab9bd219dffc0422db5b53362f99d86e09926d2916d82c6ca"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2.d.ts",
+      "size": 4141,
+      "sha256": "2477e031b84a9fb9d83548089b2838ac6af25639ab5e2c9611e1bb4c87356ae1"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2.js",
+      "size": 29682,
+      "sha256": "fd8df9984ce5d1bc91f6d6ceb01736baa3c625b18f0251e7c5aa824996194207"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/oauth2.js.map",
+      "size": 18401,
+      "sha256": "a7a7dec34e86e8af22fcc4e91f4fb58ca26d8a3c3e46b4fc3ccc1e0cab37b22e"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/securityChecker.d.ts",
+      "size": 262,
+      "sha256": "d5060ee1e796982efe6c2cdbe53bd79a6173bf56a5964e46028d294f4aae1f75"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/securityChecker.js",
+      "size": 3844,
+      "sha256": "e11aa966e39f2841086196d877693aa0a0153327377b214d7a15ab83a7f5ae9e"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/securityChecker.js.map",
+      "size": 3343,
+      "sha256": "7a67a00617809584b2aac656c5484bac7c11339f38eb8f79c6861082b13bcf6d"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/usedResources.d.ts",
+      "size": 3012,
+      "sha256": "693d47767d706722372f3bbee830309b69cd5195d72c1871623e50c8b3949ff9"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/usedResources.js",
+      "size": 10382,
+      "sha256": "f36a4a09decc157c7427660ed2003c5b27bbcb55bc0d87df430f3623c42a8420"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/usedResources.js.map",
+      "size": 4676,
+      "sha256": "424297f2dda07c7e288440a07b094dbfac408feebbbba12f270b6ccd0c0fffa4"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/utils.d.ts",
+      "size": 1481,
+      "sha256": "a4ff620f30cba1c777fed7c5ed2aeefa1aa375d6a5ab5e44163a23780b1c3337"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/utils.js",
+      "size": 3853,
+      "sha256": "aa0addf0a2cf77801d231d54bafa7fd5df94fccc3fe107cc07e44a3024d8fb3f"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/utils.js.map",
+      "size": 3043,
+      "sha256": "cf7999464f6df42b86b25e42bf6309eff3d1216b06c15496cc5687aa594bfdb4"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/webServer.d.ts",
+      "size": 6980,
+      "sha256": "de62ab1e7e9e795de518f829e9ace4ea47d5b915a439f26731f4f9cdbe67f0dc"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/webServer.js",
+      "size": 22191,
+      "sha256": "99fd42ad30ebc4a273a6ab86e475d04f9fddeac0d015811095c054e1b8738f50"
+    },
+    {
+      "path": "build/lib/vendor/webserver/build/lib/webServer.js.map",
+      "size": 13558,
+      "sha256": "9bc89141be382911bf380e4f9e78bf82c1d8f0e4bb749b37136334b178931216"
+    },
+    {
+      "path": "build/lib/vendor/webserver/LICENSE",
+      "size": 1117,
+      "sha256": "25eafd015052f4cacfaaecf7625544f1f546cf9ead289bd0e5b1f43f709db8a7"
+    },
+    {
+      "path": "build/lib/vendor/webserver/package.json",
+      "size": 1691,
+      "sha256": "36427ac6c75e2360a231b383ba2664273f903e92c0474ec66beffc10f66783d6"
+    },
+    {
+      "path": "build/lib/vendor/webserver/README.md",
+      "size": 26622,
+      "sha256": "0a2281681675298ae37784f9cb045ebd69293333b54ba246355a8d182e4cd39b"
+    },
+    {
       "path": "build/lib/web.js",
-      "size": 129666,
-      "sha256": "4fb9e25861498971bd59dc2b922964d6a49624c2377f7b68c8c9b50e5f640703"
+      "size": 129665,
+      "sha256": "954bd7ea9b1d7d4e25857bc0ff76eeca9d90c0ebfbd9a1e9c558d522e958b0e5"
     },
     {
       "path": "build/lib/web.js.map",
       "size": 106395,
-      "sha256": "63d701fe1f98ab91d4ecd369a9bbdbe0ea809814779e45c9f4017e23fda31199"
+      "sha256": "463ce33c775271677cbbad807cffc0c0f0f33fea42445cb3f431772466b2b4ec"
     },
     {
       "path": "build/main.js",

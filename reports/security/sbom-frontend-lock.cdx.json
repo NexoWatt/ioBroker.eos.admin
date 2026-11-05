@@ -3,7 +3,7 @@
   "specVersion": "1.5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-05T06:37:11.876Z",
+    "timestamp": "2026-11-05T08:26:41.589Z",
     "tools": [
       {
         "vendor": "NexoWatt",
@@ -15,8 +15,8 @@
       "type": "application",
       "bom-ref": "nexowatt:frontend:root",
       "name": "src-rx",
-      "version": "8.0.0",
-      "purl": "pkg:npm/src-rx@8.0.0"
+      "version": "8.0.1",
+      "purl": "pkg:npm/src-rx@8.0.1"
     },
     "properties": [
       {
@@ -29,11 +29,11 @@
       },
       {
         "name": "nexowatt:input:package-json-sha256",
-        "value": "d510290b70940e3a4683d0056d75159c049bdc660462f68582fe724e3c1de062"
+        "value": "0137c5c2cab065f4181f810c30e9c88e44f1508a27eb5a3d09d6100b00553662"
       },
       {
         "name": "nexowatt:input:package-lock-sha256",
-        "value": "a310b3b6fd8f42ffc5783f62ce6142f09329c1fbe87d324a3439873382dc2cd3"
+        "value": "e2286dfc4a0ab1c2a435cf3a5f081b6fc319f07f7d8708d0c363f92d91656fa4"
       },
       {
         "name": "nexowatt:unresolved-edges",

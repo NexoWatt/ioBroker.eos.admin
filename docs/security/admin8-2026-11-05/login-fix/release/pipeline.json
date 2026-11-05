@@ -1,0 +1,72 @@
+[
+  {
+    "name": "sync",
+    "command": [
+      "npm",
+      "run",
+      "sync:eos-version"
+    ],
+    "exitCode": 0,
+    "seconds": 0.24
+  },
+  {
+    "name": "backend-build",
+    "command": [
+      "npm",
+      "run",
+      "build:backend"
+    ],
+    "exitCode": 0,
+    "seconds": 3.46
+  },
+  {
+    "name": "admission",
+    "command": [
+      "npm",
+      "run",
+      "check:eos-production-release"
+    ],
+    "exitCode": 0,
+    "seconds": 0.24
+  },
+  {
+    "name": "inventory",
+    "command": [
+      "npm",
+      "run",
+      "security:inventory"
+    ],
+    "exitCode": 0,
+    "seconds": 0.34
+  },
+  {
+    "name": "artifacts",
+    "command": [
+      "npm",
+      "run",
+      "security:artifacts"
+    ],
+    "exitCode": 0,
+    "seconds": 0.5
+  },
+  {
+    "name": "development",
+    "command": [
+      "npm",
+      "run",
+      "test:eos-admin8-development"
+    ],
+    "exitCode": 0,
+    "seconds": 10.03
+  },
+  {
+    "name": "seal",
+    "command": [
+      "npm",
+      "run",
+      "seal:eos-prebuilt-release"
+    ],
+    "exitCode": 0,
+    "seconds": 0.32
+  }
+]

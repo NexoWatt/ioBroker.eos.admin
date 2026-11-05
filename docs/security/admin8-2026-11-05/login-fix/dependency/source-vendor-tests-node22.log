@@ -1,0 +1,224 @@
+(node:91) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:98) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Admin8 serialized log buffers validate bytes and transfer size before conversion
+ok 1 - Admin8 serialized log buffers validate bytes and transfer size before conversion
+  ---
+  duration_ms: 1.324994
+  type: 'test'
+  ...
+# Subtest: serialized and compressed logs render escaped text and ignore forged size metadata
+ok 2 - serialized and compressed logs render escaped text and ignore forged size metadata
+  ---
+  duration_ms: 19.172088
+  type: 'test'
+  ...
+# Subtest: Admin8 public path survives login, iframe socket info and escaped 404 details
+ok 3 - Admin8 public path survives login, iframe socket info and escaped 404 details
+  ---
+  duration_ms: 1.052021
+  type: 'test'
+  ...
+# Subtest: configured external SSO cannot become active through Admin8 config
+ok 4 - configured external SSO cannot become active through Admin8 config
+  ---
+  duration_ms: 0.154027
+  type: 'test'
+  ...
+# Subtest: proxy revocation and shutdown are wired to the Web lifecycle
+ok 5 - proxy revocation and shutdown are wired to the Web lifecycle
+  ---
+  duration_ms: 0.243819
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible
+ok 6 - installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible
+  ---
+  duration_ms: 74.182165
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens
+ok 7 - installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens
+  ---
+  duration_ms: 19.379049
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth accepts official controller standard groups and rejects duplicate identities
+ok 8 - installed Admin8 OAuth accepts official controller standard groups and rejects duplicate identities
+  ---
+  duration_ms: 24.524138
+  type: 'test'
+  ...
+# Subtest: Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes
+ok 9 - Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes
+  ---
+  duration_ms: 60.314426
+  type: 'test'
+  ...
+# (node:99) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks
+ok 10 - exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks
+  ---
+  duration_ms: 10.550102
+  type: 'test'
+  ...
+# Subtest: dry run and already complete locks do not mutate inputs or fetch unnecessary metadata
+ok 11 - dry run and already complete locks do not mutate inputs or fetch unnecessary metadata
+  ---
+  duration_ms: 5.303199
+  type: 'test'
+  ...
+# Subtest: aliases use actual package name, not installation directory
+ok 12 - aliases use actual package name, not installation directory
+  ---
+  duration_ms: 0.441571
+  type: 'test'
+  ...
+# Subtest: network failure leaves every input unchanged and never writes a success report
+ok 13 - network failure leaves every input unchanged and never writes a success report
+  ---
+  duration_ms: 2.216638
+  type: 'test'
+  ...
+# Subtest: wrong package/version, weak or malformed digest and foreign tarball are rejected before writing
+ok 14 - wrong package/version, weak or malformed digest and foreign tarball are rejected before writing
+  ---
+  duration_ms: 9.930149
+  type: 'test'
+  ...
+# Subtest: existing conflicting or malformed metadata is never overwritten
+ok 15 - existing conflicting or malformed metadata is never overwritten
+  ---
+  duration_ms: 3.241329
+  type: 'test'
+  ...
+# Subtest: concurrent package or lock changes are preserved and stop repair
+ok 16 - concurrent package or lock changes are preserved and stop repair
+  ---
+  duration_ms: 1.454504
+  type: 'test'
+  ...
+# Subtest: second-lock commit failure restores both original locks and records rollback evidence
+ok 17 - second-lock commit failure restores both original locks and records rollback evidence
+  ---
+  duration_ms: 2.851483
+  type: 'test'
+  ...
+# Subtest: rollback preserves a concurrent developer edit and reports that backup review is required
+ok 18 - rollback preserves a concurrent developer edit and reports that backup review is required
+  ---
+  duration_ms: 3.049185
+  type: 'test'
+  ...
+# Subtest: registry transport has fixed five-second budget, TLS validation and no redirect/retry
+ok 19 - registry transport has fixed five-second budget, TLS validation and no redirect/retry
+  ---
+  duration_ms: 0.371107
+  type: 'test'
+  ...
+# (node:100) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: local publish and release paths require actual admission; candidate packaging remains separate
+ok 20 - local publish and release paths require actual admission; candidate packaging remains separate
+  ---
+  duration_ms: 1.352905
+  type: 'test'
+  ...
+# Subtest: actual repository CLI returns nonzero whenever its current lock metadata is blocked
+ok 21 - actual repository CLI returns nonzero whenever its current lock metadata is blocked
+  ---
+  duration_ms: 154.541005
+  type: 'test'
+  ...
+# Subtest: complete fixture metadata admits without fetching or executing any package
+ok 22 - complete fixture metadata admits without fetching or executing any package
+  ---
+  duration_ms: 67.13458
+  type: 'test'
+  ...
+# Subtest: missing integrity in one scope rejects the real admission process
+ok 23 - missing integrity in one scope rejects the real admission process
+  ---
+  duration_ms: 58.780304
+  type: 'test'
+  ...
+# Subtest: missing lockfile fails closed instead of permitting a publish check
+ok 24 - missing lockfile fails closed instead of permitting a publish check
+  ---
+  duration_ms: 61.86774
+  type: 'test'
+  ...
+# (node:101) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: exact upstream source and emitted copies admit without installed dependencies or network repair
+ok 25 - exact upstream source and emitted copies admit without installed dependencies or network repair
+  ---
+  duration_ms: 34.856597
+  type: 'test'
+  ...
+# Subtest: modified source cannot be repaired or silently resealed
+ok 26 - modified source cannot be repaired or silently resealed
+  ---
+  duration_ms: 8.875304
+  type: 'test'
+  ...
+# Subtest: modified emitted JavaScript fails the upstream byte gate
+ok 27 - modified emitted JavaScript fails the upstream byte gate
+  ---
+  duration_ms: 10.304711
+  type: 'test'
+  ...
+# Subtest: missing source and additional runtime files fail closed
+ok 28 - missing source and additional runtime files fail closed
+  ---
+  duration_ms: 17.264611
+  type: 'test'
+  ...
+# Subtest: symlinked source file is rejected even with correct target bytes
+ok 29 - symlinked source file is rejected even with correct target bytes
+  ---
+  duration_ms: 7.24399
+  type: 'test'
+  ...
+# Subtest: symlinked source directory is rejected
+ok 30 - symlinked source directory is rejected
+  ---
+  duration_ms: 6.991056
+  type: 'test'
+  ...
+# Subtest: modified provenance cannot bless different source bytes
+ok 31 - modified provenance cannot bless different source bytes
+  ---
+  duration_ms: 6.609653
+  type: 'test'
+  ...
+# Subtest: root identity enforces vendoring when alias marker and lock entry are deleted
+ok 32 - root identity enforces vendoring when alias marker and lock entry are deleted
+  ---
+  duration_ms: 7.263497
+  type: 'test'
+  ...
+# Subtest: registry package substitution and file dependencies remain forbidden
+ok 33 - registry package substitution and file dependencies remain forbidden
+  ---
+  duration_ms: 7.160266
+  type: 'test'
+  ...
+# Subtest: runtime uses local upstream source and declared maintained registry dependencies
+ok 34 - runtime uses local upstream source and declared maintained registry dependencies
+  ---
+  duration_ms: 5.761033
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 514.430414

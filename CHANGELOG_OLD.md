@@ -2423,3 +2423,10 @@
 
 -   (hobbyquaker) show an available version, show update button if not up-to-date
 -   (hobbyquaker) minor fixes
+
+
+## 7.9.87-rc.1 (aus common.news bei 8.0.1 archiviert)
+
+- en: Role access RC1: end users can open EOS Admin for Smart Home and released NexoWatt UI areas; installers receive commissioning, adapter, instance, datapoint and log diagnostics plus a safe basic-settings dialog. NexoWatt Admin/Service alone retains full system, security, user and expert-mode access.
+- de: Rollen-Zugriff RC1: Endkunden können EOS Admin für Smart Home und freigegebene NexoWatt-UI-Bereiche öffnen; Installateure erhalten Inbetriebnahme, Adapter-, Instanz-, Datenpunkt- und Logdiagnose sowie einen sicheren Basis-Einstellungsdialog. Nur NexoWatt Admin/Service behält vollständigen System-, Sicherheits-, Benutzer- und Expertenmodus-Zugriff.
+- nl: Roltoegang RC1: eindgebruikers kunnen EOS Admin openen voor Smart Home en vrijgegeven NexoWatt-UI-onderdelen; installateurs krijgen inbedrijfstelling, adapter-, instantie-, datapunt- en logdiagnose plus een veilig basisinstellingendialoog. Alleen NexoWatt Admin/Service behoudt volledige systeem-, beveiligings-, gebruikers- en expertmodustoegang.

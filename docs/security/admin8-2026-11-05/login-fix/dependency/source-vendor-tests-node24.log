@@ -1,0 +1,42 @@
+✔ Admin8 serialized log buffers validate bytes and transfer size before conversion (14.09184ms)
+✔ serialized and compressed logs render escaped text and ignore forged size metadata (18.176135ms)
+✔ Admin8 public path survives login, iframe socket info and escaped 404 details (0.717558ms)
+✔ configured external SSO cannot become active through Admin8 config (0.205723ms)
+✔ proxy revocation and shutdown are wired to the Web lifecycle (0.723887ms)
+✔ installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible (94.628486ms)
+✔ installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens (23.905993ms)
+✔ installed Admin8 OAuth accepts official controller standard groups and rejects duplicate identities (18.216134ms)
+✔ Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes (76.2317ms)
+✔ exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks (9.019896ms)
+✔ dry run and already complete locks do not mutate inputs or fetch unnecessary metadata (5.3893ms)
+✔ aliases use actual package name, not installation directory (0.24358ms)
+✔ network failure leaves every input unchanged and never writes a success report (1.79605ms)
+✔ wrong package/version, weak or malformed digest and foreign tarball are rejected before writing (18.957101ms)
+✔ existing conflicting or malformed metadata is never overwritten (5.60611ms)
+✔ concurrent package or lock changes are preserved and stop repair (1.833219ms)
+✔ second-lock commit failure restores both original locks and records rollback evidence (3.776591ms)
+✔ rollback preserves a concurrent developer edit and reports that backup review is required (7.7602ms)
+✔ registry transport has fixed five-second budget, TLS validation and no redirect/retry (0.28507ms)
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.298926ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (177.192597ms)
+✔ complete fixture metadata admits without fetching or executing any package (94.760377ms)
+✔ missing integrity in one scope rejects the real admission process (111.696928ms)
+✔ missing lockfile fails closed instead of permitting a publish check (94.126708ms)
+✔ exact upstream source and emitted copies admit without installed dependencies or network repair (58.241731ms)
+✔ modified source cannot be repaired or silently resealed (9.354881ms)
+✔ modified emitted JavaScript fails the upstream byte gate (9.439496ms)
+✔ missing source and additional runtime files fail closed (13.931157ms)
+✔ symlinked source file is rejected even with correct target bytes (7.476522ms)
+✔ symlinked source directory is rejected (7.611481ms)
+✔ modified provenance cannot bless different source bytes (5.52848ms)
+✔ root identity enforces vendoring when alias marker and lock entry are deleted (7.869611ms)
+✔ registry package substitution and file dependencies remain forbidden (6.560422ms)
+✔ runtime uses local upstream source and declared maintained registry dependencies (7.612632ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 633.484842

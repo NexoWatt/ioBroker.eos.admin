@@ -83,6 +83,9 @@ async function treeTableCSS(): Promise<void> {
 function build(): void {
     prepareRuntimeAssets();
     runNode(join(frontend, 'node_modules/typescript/bin/tsc'), ['--project', 'tsconfig.json', '--noEmit'], frontend);
+    // Only the staging output is cleared here. Keep the shipped runtime until
+    // the new build is complete; obsolete hashed chunks must not be recopied.
+    rmSync(output, { recursive: true, force: true });
     runNode(join(frontend, 'node_modules/vite/bin/vite.js'), ['build'], frontend);
     if (!existsSync(join(output, 'NEXOWATT_EOS_FRONTEND_MANIFEST.json'))) {
         throw new Error('Frontend build did not produce its source-bound EOS artifact manifest');
@@ -133,6 +136,9 @@ async function main(): Promise<void> {
     const mode = process.argv.slice(2).map(arg => arg.replace(/^-+/, ''));
     if (mode.includes('backend-i18n')) {
         copy(join(root, 'src/i18n'), join(root, 'build/i18n'));
+        // Preserve upstream vendor bytes instead of delivering TypeScript's rewritten JS/maps.
+        rmSync(join(root, 'build/lib/vendor/webserver'), { recursive: true, force: true });
+        copy(join(root, 'src/lib/vendor/webserver'), join(root, 'build/lib/vendor/webserver')); 
     } else if (mode.includes('react-0-configCSS')) {
         await configCSS();
     } else if (mode.includes('react-0-iobCSS')) {

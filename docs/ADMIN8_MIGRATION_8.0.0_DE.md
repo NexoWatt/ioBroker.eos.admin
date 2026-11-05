@@ -1,3 +1,5 @@
+> Korrektur vom 05.11.2026: EOS **8.0.1** behebt die Gruppen-ID-Verwechslung in der Anmeldung von 8.0.0. Siehe `../START_HERE_8.0.1.md` und `security/admin8-2026-11-05/login-fix/REPORT_DE.md`. Die ursprüngliche Migration ist nachfolgend historisch dokumentiert.
+
 # NexoWatt EOS Admin 8.0.0 – Migration und Betrieb
 
 Stand: 04.11.2026. Eigene Produktversion: **8.0.0**. Offizielle ioBroker-Admin-Basis: **8.3.5**, Git-Commit `6f77eedf525813a7a61d79188d1ff05dffd05086`.

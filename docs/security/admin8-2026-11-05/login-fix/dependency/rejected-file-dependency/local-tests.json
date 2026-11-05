@@ -1,0 +1,38 @@
+{
+  "utc": "2026-11-05T07:33:26.042121+00:00",
+  "platform": "linux-x64",
+  "tests": [
+    {
+      "log": "tests-node24.log",
+      "exitCode": 0,
+      "command": [
+        "node",
+        "--test",
+        "test/eos-vendored-webserver.test.cjs",
+        "test/eos-lock-repair.test.cjs",
+        "test/eos-release-admission.test.cjs",
+        "test/eos-direct-publish.test.cjs"
+      ]
+    },
+    {
+      "log": "tests-node22.log",
+      "exitCode": 0,
+      "command": [
+        "/workspace/scratch/c16def314bc5/admin8-copy-update/node22/node-v22.23.4-linux-x64/bin/node",
+        "--test",
+        "test/eos-vendored-webserver.test.cjs",
+        "test/eos-lock-repair.test.cjs",
+        "test/eos-release-admission.test.cjs"
+      ]
+    },
+    {
+      "log": "admission.log",
+      "exitCode": 0,
+      "command": [
+        "node",
+        "tools/nexowatt-lock-provenance-check.cjs"
+      ]
+    }
+  ],
+  "limitations": "No native Windows or real appliance execution."
+}

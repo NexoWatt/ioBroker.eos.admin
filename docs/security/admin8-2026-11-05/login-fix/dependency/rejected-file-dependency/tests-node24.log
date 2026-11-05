@@ -1,0 +1,36 @@
+✔ plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch (4881.719103ms)
+✔ plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging (861.417038ms)
+✔ plain publish lifecycle stops a rejected copy preparation before version sync or lock repair (381.026359ms)
+✔ exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks (9.735853ms)
+✔ dry run and already complete locks do not mutate inputs or fetch unnecessary metadata (4.030727ms)
+✔ aliases use actual package name, not installation directory (1.279098ms)
+✔ network failure leaves every input unchanged and never writes a success report (4.921231ms)
+✔ wrong package/version, weak or malformed digest and foreign tarball are rejected before writing (7.547375ms)
+✔ existing conflicting or malformed metadata is never overwritten (2.165675ms)
+✔ concurrent package or lock changes are preserved and stop repair (1.324985ms)
+✔ second-lock commit failure restores both original locks and records rollback evidence (2.824397ms)
+✔ rollback preserves a concurrent developer edit and reports that backup review is required (2.262858ms)
+✔ registry transport has fixed five-second budget, TLS validation and no redirect/retry (0.254485ms)
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.080415ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (117.143014ms)
+✔ complete fixture metadata admits without fetching or executing any package (81.847648ms)
+✔ missing integrity in one scope rejects the real admission process (83.009912ms)
+✔ missing lockfile fails closed instead of permitting a publish check (72.599037ms)
+✔ reviewed local archive is admitted without installed dependencies or network repair (8.803677ms)
+✔ modified archive fails admission and cannot be repaired or resealed automatically (4.510114ms)
+✔ absent and oversized archives fail closed (3.602044ms)
+✔ symlinked archive is not admitted even if target bytes are correct (3.129517ms)
+✔ symlinked archive directory is not admitted (1.75585ms)
+✔ modified provenance cannot bless a different archive (1.411091ms)
+✔ version, dependency, origin, integrity, name and link metadata are exact (1.20672ms)
+✔ unrelated file dependencies remain forbidden (1.889127ms)
+✔ declared vendor dependency cannot bypass byte admission by deleting its lock entry (2.196881ms)
+✔ package declares and ships the pinned archive and its dependency-free admission helper (5.679358ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6234.980682

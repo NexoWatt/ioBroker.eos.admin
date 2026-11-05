@@ -37,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const adapter_core_1 = require("@iobroker/adapter-core");
-const webserver_1 = require("@iobroker/webserver");
+const webserver_1 = require("./vendor/webserver");
 const express_1 = __importDefault(require("express"));
 const node_fs_1 = require("node:fs");
 const node_path_1 = require("node:path");

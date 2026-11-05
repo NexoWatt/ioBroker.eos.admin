@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-05T05:54:15.836Z",
+  "generatedAt": "2026-11-05T07:47:18.775Z",
   "scope": "Unmodified LICENSE/NOTICE/COPYING/COPYRIGHT files from actual bundled frontend packages plus maintained OAuth fork and Acorn; missing tarball texts may be supplied from verified exact-release repository sources. Package license fields and README declarations are not substitutes for missing full license text.",
   "limitations": "No legal compliance certification. Missing upstream notice files remain explicitly listed for review. Unknown third-party fragments and runtime federation providers are outside this collection.",
   "records": [
@@ -3265,7 +3265,7 @@
       "name": "@node-oauth/oauth2-server",
       "version": "5.3.1",
       "scope": "backend",
-      "location": "node_modules/@iobroker/webserver/node_modules/oauth2-server",
+      "location": "node_modules/oauth2-server",
       "assertedLicense": "MIT",
       "resolved": "https://registry.npmjs.org/@node-oauth/oauth2-server/-/oauth2-server-5.3.1.tgz",
       "tarballIntegrity": "sha512-zT822tqX/Y7VWTcxN02uzeYn8RirKpRAuX56JARb0Bl5RIL+LBMjkW5GAPAl0yZps3ReqNT5J+Mn58Oyljy3Lw==",
@@ -3273,7 +3273,7 @@
       "status": "UPSTREAM_NOTICE_FILES_COPIED",
       "files": [
         {
-          "source": "node_modules/@iobroker/webserver/node_modules/oauth2-server/LICENSE",
+          "source": "node_modules/oauth2-server/LICENSE",
           "delivered": "docs/third-party/admin8/_node-oauth_oauth2-server-5.3.1/LICENSE",
           "bytes": 1074,
           "sha256": "7972ac274d0639758cd86caeab9eedece7e96c7132ac4ac8f85aec1959435912"

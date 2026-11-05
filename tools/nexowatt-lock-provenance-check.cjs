@@ -5,10 +5,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { integrityHashes, manifestDrift } = require('./nexowatt-security-inventory.cjs');
-function inspect(manifest, lock) {
+const vendor = require('./nexowatt-vendored-webserver.cjs');
+function inspect(manifest, lock, root = path.resolve(__dirname, '..')) {
     const issues = [];
     if (![2, 3].includes(lock?.lockfileVersion) || !lock.packages || Array.isArray(lock.packages)) return [{ code: 'LOCK_STRUCTURE' }];
     for (const issue of manifestDrift(manifest, lock)) issues.push({ code: 'MANIFEST_DRIFT', item: issue });
+    if (vendor.required(manifest)) {
+        const code = vendor.inspectVendoredWebserver(manifest, lock, root);
+        if (code) issues.push({ code, location: vendor.SOURCE_ROOT });
+    }
     for (const [location, entry] of Object.entries(lock.packages)) {
         if (!location) continue;
         if (entry?.link) { issues.push({ code: 'LINK_REQUIRES_REVIEW', location }); continue; }
@@ -26,10 +31,10 @@ function inspect(manifest, lock) {
 }
 function run(root = path.resolve(__dirname, '..')) {
     const report = { schemaVersion: 1, generatedAt: new Date().toISOString(), status: 'PASS',
-        limitations: 'Lock metadata admission only; not a downloaded-byte verification, CVE scan or publisher attestation.', scopes: [] };
+        limitations: 'Registry lock metadata admission plus exact source/runtime-byte verification of the vendored original WebServer and its direct dependencies; no CVE scan or publisher attestation.', scopes: [] };
     for (const [name, folder] of [['backend', ''], ['frontend', 'src-admin']]) {
         const read = file => JSON.parse(fs.readFileSync(path.join(root, folder, file), 'utf8'));
-        const issues = inspect(read('package.json'), read('package-lock.json'));
+        const issues = inspect(read('package.json'), read('package-lock.json'), path.join(root, folder));
         report.scopes.push({ name, issues });
         if (issues.length) report.status = 'BLOCKED';
     }

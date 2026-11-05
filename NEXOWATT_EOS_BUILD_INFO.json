@@ -1,17 +1,18 @@
 {
-  "version": "8.0.0",
+  "version": "8.0.1",
   "channel": "stable",
   "baseFrontend": "Rebuilt from official Admin 8.3.5 sources plus reviewed EOS integration using React 19 and Vite; see source-bound frontend manifest.",
   "runtimeEntry": "vite-manifest",
-  "releaseType": "admin8-native-migration",
-  "release": "admin8-native-migration",
-  "label": "v8-0-0",
+  "releaseType": "admin8-login-correction",
+  "release": "admin8-login-correction",
+  "label": "v8-0-1",
   "notes": [
-    "Own EOS version 8.0.0; upstream base 8.3.5. This is a real source migration and fresh build.",
+    "Own EOS version 8.0.1; upstream base 8.3.5. Corrects canonical group identity in the EOS session boundary.",
     "Retains NWL2 licensing, UUID binding, Home/Pro verification and encrypted local license storage.",
     "Local validation does not constitute IEC certification, CRA conformity or target-device deployment acceptance."
   ],
   "changes": [
+    "Use validated group object IDs from actual js-controller group views during login and session revocation",
     "React 19/gui-components frontend with source-bound build receipt and role-gated startup",
     "Strict TypeScript Admin 8 backend, bounded native instance proxy and session revocation",
     "Reviewed ObjectBrowser write guards applied before bundling",
@@ -22,7 +23,7 @@
   "shellCacheVersion": 7109,
   "nativeShellVersion": 7109,
   "shellCacheTag": "7109",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v8-0-0.json",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v8-0-1.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103",
   "upstream": {

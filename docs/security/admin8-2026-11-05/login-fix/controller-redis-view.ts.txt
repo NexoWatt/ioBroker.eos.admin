@@ -1,0 +1,471 @@
+private async _applyViewFunc(
+        func: ObjectViewFunction,
+        params: ioBroker.GetObjectViewParams | undefined,
+        userContext: UserContext,
+    ): ioBroker.GetObjectViewPromise<ioBroker.AnyObject> {
+        if (!this.client) {
+            throw new Error(ERRORS.ERROR_DB_CLOSED);
+        }
+        let rows: { id: string; value: ioBroker.AnyObject | null }[] = [];
+
+        /**
+         * filters objs which are already present (and parse Errors) in an array by property 'id'
+         *
+         * @param arr - Array of objects which should be filtered
+         * @param duplicateFiltering - if duplicates need to be filtered
+         */
+        const filterEntries = (
+            arr: {
+                id: string;
+                value: ioBroker.AnyObject | null;
+            }[],
+            duplicateFiltering: boolean,
+        ): ObjectIdValue[] => {
+            if (duplicateFiltering) {
+                const included = new Map<string, boolean>();
+                return arr.filter(obj => {
+                    if (included.has(obj.id) || obj.value === null) {
+                        return false;
+                    }
+                    included.set(obj.id, true);
+                    return true;
+                }) as ObjectIdValue[];
+            }
+            return arr.filter(obj => {
+                // only filter parse Errors
+                return obj.value !== null;
+            }) as ObjectIdValue[];
+        };
+
+        params ||= {};
+        params.startkey ||= '';
+        params.endkey ||= '\u9999';
+        const wildcardPos = params.endkey.indexOf('\u9999');
+        let wildCardLastPos = true;
+        if (wildcardPos !== -1 && wildcardPos !== params.endkey.length - 1) {
+            wildCardLastPos = false; // TODO do in LUA
+        }
+
+        // if start and end keys are equal modify end key
+        if (params.startkey === params.endkey) {
+            params.endkey = `${params.endkey}\u0000`;
+        }
+
+        const matches: string[] | null = func.map.match(
+            /if\s\(doc\.type\s?===?\s?'(\w+)'\)\semit\(([^,]+),\s?doc\s?\)/,
+        );
+
+        // filter by type
+        if (wildCardLastPos && func?.map && this.scripts.filter && matches) {
+            let cursor = '0';
+            let filterRequired = true;
+            do {
+                if (!this.client) {
+                    throw new Error(ERRORS.ERROR_DB_CLOSED);
+                }
+
+                let objs: string[];
+                try {
+                    objs = (await this.client.evalsha(
+                        this.scripts.filter,
+                        6,
+                        this.objNamespace,
+                        params.startkey,
+                        params.endkey,
+                        matches[1],
+                        cursor,
+                        `${this.setNamespace}object.type.${matches[1]}`,
+                    )) as string[];
+                } catch (e) {
+                    this.log.warn(`${this.namespace} Cannot get view: ${e.message}`);
+                    throw e;
+                }
+                objs = objs || [];
+                // if real redis we will have e.g. [[objs..], '0'], else [{}, .., {}]
+                if (Array.isArray(objs[0])) {
+                    cursor = objs[1] || '0';
+                    objs = objs[0];
+                } else {
+                    cursor = '0';
+                    filterRequired = false;
+                }
+
+                const currRows = objs.map(_obj => {
+                    let obj: ioBroker.AnyObject;
+                    try {
+                        obj = JSON.parse(_obj);
+                    } catch {
+                        this.log.error(`${this.namespace} Cannot parse JSON: ${_obj}`);
+                        return { id: 'parseError', value: null };
+                    }
+
+                    if (!obj) {
+                        this.log.error(`${this.namespace} empty object!`);
+                        return { id: 'parseError', value: null };
+                    }
+
+                    if (matches[2] && matches[2].trim() === 'doc._id') {
+                        return { id: obj._id, value: obj };
+                    }
+                    if (matches[2] && matches[2].trim() === 'doc.common.name' && obj.common) {
+                        if (typeof obj.common.name === 'object') {
+                            if (obj.common.name.en) {
+                                return { id: obj.common.name.en, value: obj };
+                            }
+                            return { id: JSON.stringify(obj.common.name), value: obj };
+                        }
+                        return { id: obj.common.name, value: obj };
+                    }
+                    this.log.error(`${this.namespace} Cannot filter "${matches[2]}": ${JSON.stringify(obj)}`);
+                    return { id: 'parseError', value: null };
+                });
+                if (currRows.length) {
+                    rows = [...rows, ...currRows];
+                } // endIf
+            } while (cursor !== '0');
+
+            // Now we have all objects -> calculate max if desired
+            if (func.reduce === '_stats') {
+                let max = null;
+                for (let i = 0; i < rows.length; i++) {
+                    const _value = rows[i].value;
+                    if (max === null || (_value !== null && _value > max)) {
+                        max = _value;
+                    }
+                }
+                if (max !== null) {
+                    // @ts-expect-error missing typing
+                    rows = [{ id: '_stats', value: { max } }];
+                } else {
+                    rows = [];
+                }
+            }
+
+            // apply filter if needed
+            return { rows: filterEntries(rows, filterRequired) };
+        }
+        if (
+            // filter by script
+            wildCardLastPos &&
+            func?.map &&
+            this.scripts.script &&
+            func.map.includes('doc.common.engineType')
+        ) {
+            let cursor = '0';
+            let filterRequired = true;
+            do {
+                if (!this.client) {
+                    throw new Error(ERRORS.ERROR_DB_CLOSED);
+                }
+                let res: string[] | [objStrings: string[], cursor: string];
+                try {
+                    res = (await this.client.evalsha(
+                        this.scripts.script,
+                        5,
+                        this.objNamespace,
+                        params.startkey,
+                        params.endkey,
+                        cursor,
+                        `${this.setNamespace}object.type.script`,
+                    )) as string[];
+                } catch (e) {
+                    this.log.warn(`${this.namespace} Cannot get "scripts" view: ${e.message}`);
+                    throw e;
+                }
+
+                let objs: string[];
+                // if real redis we will have e.g. [[objs..], '0'], else [{}, .., {}]
+                if (Array.isArray(res[0])) {
+                    cursor = res[1] || '0';
+                    objs = res[0];
+                } else {
+                    cursor = '0';
+                    filterRequired = false;
+                    objs = res;
+                }
+
+                const currRows = objs.map(obj => {
+                    try {
+                        const scriptObj: ioBroker.ScriptObject = JSON.parse(obj);
+                        return { id: scriptObj._id, value: scriptObj };
+                    } catch {
+                        this.log.error(`${this.namespace} Cannot parse JSON: ${obj}`);
+                        return { id: 'parseError', value: null };
+                    }
+                });
+                if (currRows.length) {
+                    rows = [...rows, ...currRows];
+                } // endIf
+            } while (cursor !== '0');
+
+            // apply filter if needed
+            return { rows: filterEntries(rows, filterRequired) };
+        }
+        if (
+            // filter by hm-rega programs
+            wildCardLastPos &&
+            func?.map &&
+            this.scripts.programs &&
+            func.map.includes("doc.native.TypeName === 'PROGRAM'")
+        ) {
+            let cursor = '0';
+            let filterRequired = true;
+            do {
+                if (!this.client) {
+                    throw new Error(ERRORS.ERROR_DB_CLOSED);
+                }
+
+                let objs: string[];
+                try {
+                    objs = (await this.client.evalsha(
+                        this.scripts.programs,
+                        5,
+                        `${this.objNamespace}hm-rega.`,
+                        params.startkey,
+                        params.endkey,
+                        cursor,
+                        `${this.setNamespace}object.type.channel`,
+                    )) as string[];
+                } catch (e) {
+                    this.log.warn(`${this.namespace} Cannot get view: ${e.message}`);
+                    throw e;
+                }
+                // if real redis we will have e.g. [[objs..], '0'], else [{}, .., {}]
+                if (Array.isArray(objs[0])) {
+                    cursor = objs[1] || '0';
+                    objs = objs[0];
+                } else {
+                    cursor = '0';
+                    filterRequired = false;
+                }
+
+                const currRows = objs.map(_obj => {
+                    try {
+                        const obj: ioBroker.AnyObject = JSON.parse(_obj);
+                        return { id: obj._id, value: obj };
+                    } catch {
+                        this.log.error(`${this.namespace} Cannot parse JSON: ${_obj}`);
+                        return { id: 'parseError', value: null };
+                    }
+                });
+                if (currRows.length) {
+                    rows = [...rows, ...currRows];
+                } // endIf
+            } while (cursor !== '0');
+
+            // apply filter if needed
+            return { rows: filterEntries(rows, filterRequired) };
+        }
+        if (
+            // filter by hm-rega variables
+            wildCardLastPos &&
+            func?.map &&
+            this.scripts.variables &&
+            func.map.includes("doc.native.TypeName === 'ALARMDP'")
+        ) {
+            let cursor = '0';
+            let filterRequired = true;
+            do {
+                if (!this.client) {
+                    throw new Error(ERRORS.ERROR_DB_CLOSED);
+                }
+
+                let objs: string[];
+                try {
+                    objs = (await this.client.evalsha(
+                        this.scripts.variables,
+                        5,
+                        `${this.objNamespace}hm-rega.`,
+                        params.startkey,
+                        params.endkey,
+                        cursor,
+                        `${this.setNamespace}object.type.state`,
+                    )) as string[];
+                } catch (e) {
+                    this.log.warn(`${this.namespace} Cannot get view ${e.message}`);
+                    throw e;
+                }
+                // if real redis we will have e.g. [[objs..], '0'], else [{}, .., {}]
+                if (Array.isArray(objs[0])) {
+                    cursor = objs[1] || '0';
+                    objs = objs[0];
+                } else {
+                    cursor = '0';
+                    filterRequired = false;
+                }
+
+                const currRows = objs.map(_obj => {
+                    try {
+                        const obj: ioBroker.AnyObject = JSON.parse(_obj);
+                        return { id: obj._id, value: obj };
+                    } catch {
+                        this.log.error(`${this.namespace} Cannot parse JSON: ${_obj}`);
+                        return { id: 'parseError', value: null };
+                    }
+                });
+                if (currRows.length) {
+                    rows = [...rows, ...currRows];
+                } // endIf
+            } while (cursor !== '0');
+
+            // apply filter if needed
+            return { rows: filterEntries(rows, filterRequired) };
+        }
+        if (
+            // filter by custom, redis also returns if common.custom is not present
+            wildCardLastPos &&
+            func?.map &&
+            this.scripts.custom &&
+            func.map.includes('doc.common.custom')
+        ) {
+            let cursor = '0';
+            let filterRequired = true;
+            do {
+                if (!this.client) {
+                    throw new Error(ERRORS.ERROR_DB_CLOSED);
+                }
+                let objs: string[];
+                try {
+                    objs = (await this.client.evalsha(
+                        this.scripts.custom,
+                        5,
+                        this.objNamespace,
+                        params.startkey,
+                        params.endkey,
+                        cursor,
+                        `${this.setNamespace}object.common.custom`,
+                    )) as string[];
+                } catch (e) {
+                    this.log.warn(`${this.namespace} Cannot get view: ${e.message}`);
+                    throw e;
+                }
+                // if real redis we will have e.g. [[objs..], '0'], else [{}, .., {}]
+                if (Array.isArray(objs[0])) {
+                    cursor = objs[1] || '0';
+                    objs = objs[0];
+                } else {
+                    cursor = '0';
+                    filterRequired = false;
+                }
+
+                const useFullObject = func.map.includes('emit(doc._id, doc)');
+
+                for (const _obj of objs) {
+                    let obj: ioBroker.AnyObject;
+                    try {
+                        obj = JSON.parse(_obj);
+                    } catch {
+                        this.log.error(`${this.namespace} Cannot parse JSON: ${_obj}`);
+                        continue;
+                    }
+
+                    if (obj?.common?.custom) {
+                        if (useFullObject) {
+                            rows.push({ id: obj._id, value: obj });
+                        } else {
+                            // @ts-expect-error missing typing
+                            rows.push({ id: obj._id, value: obj.common.custom });
+                        }
+                    }
+                }
+            } while (cursor !== '0');
+
+            // apply filter if needed
+            return { rows: filterEntries(rows, filterRequired) };
+        }
+        if (!wildCardLastPos) {
+            this.log.debug(
+                `${this.namespace} Search can't be optimized because wildcard not at the end, fallback to keys!: ${func.map}`,
+            );
+        } else {
+            this.log.debug(`${this.namespace} No suitable Lua script, fallback to keys!: ${func.map}`);
+        }
+
+        let searchKeys = `${this.objNamespace}*`;
+        if (wildcardPos !== -1) {
+            // Wildcard included
+            searchKeys = this.objNamespace + params.endkey.replace(/\u9999/g, '*');
+        }
+
+        let keys;
+        keys = await this._getKeysViaScan(searchKeys);
+
+        if (!this.client) {
+            throw new Error(ERRORS.ERROR_DB_CLOSED);
+        }
+
+        const endAfterWildcard = params.endkey.substr(wildcardPos + 1);
+        params.startkey = this.objNamespace + params.startkey;
+        params.endkey = this.objNamespace + params.endkey;
+
+        keys = keys.sort().filter(key => {
+            if (key && !utils.REG_CHECK_ID.test(key)) {
+                if (params && wildcardPos > 0) {
+                    if (params.startkey && key < params.startkey) {
+                        return false;
+                    }
+                    if (params.endkey && key > params.endkey) {
+                        return false;
+                    }
+                } else if (params && wildcardPos === 0) {
+                    if (!key.endsWith(endAfterWildcard)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        });
+
+        let objs: (null | string)[];
+        try {
+            objs = await this.client.mget(keys);
+        } catch {
+            objs = [];
+        }
+
+        const _emit_ = (id: string, obj: ioBroker.AnyObject): void => {
+            rows.push({ id: id, value: obj });
+        };
+
+        const f = eval(`(${func.map.replace(/^function\(([a-z0-9A-Z_]+)\)/g, 'function($1, emit)')})`);
+
+        for (let i = 0; i < keys.length; i++) {
+            const strObj = objs[i];
+            let obj: ioBroker.AnyObject | null;
+            try {
+                obj = strObj !== null ? JSON.parse(strObj) : null;
+            } catch {
+                this.log.error(`${this.namespace} Cannot parse JSON ${keys[i]}: ${objs[i]}`);
+                continue;
+            }
+            if (!utils.checkObject(obj, userContext, CONSTS.ACCESS_READ)) {
+                continue;
+            }
+
+            if (obj) {
+                try {
+                    f(obj, _emit_);
+                } catch (e) {
+                    this.log.error(`${this.namespace} Cannot execute map: ${e.message}`);
+                }
+            }
+        }
+        // Calculate max
+        if (func.reduce === '_stats') {
+            let max = null;
+            for (let i = 0; i < rows.length; i++) {
+                const _value = rows[i].value;
+                if (max === null || (_value !== null && _value > max)) {
+                    max = rows[i].value;
+                }
+            }
+            if (max !== null) {
+                // @ts-expect-error the _stats reduce result is not a regular object value
+                rows = [{ id: '_stats', value: { max } }];
+            } else {
+                rows = [];
+            }
+        }
+        return { rows: rows as ObjectIdValue[] };
+    }

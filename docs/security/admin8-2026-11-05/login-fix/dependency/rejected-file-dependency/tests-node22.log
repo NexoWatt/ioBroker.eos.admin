@@ -1,0 +1,168 @@
+TAP version 13
+# (node:606) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks
+ok 1 - exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks
+  ---
+  duration_ms: 10.856493
+  type: 'test'
+  ...
+# Subtest: dry run and already complete locks do not mutate inputs or fetch unnecessary metadata
+ok 2 - dry run and already complete locks do not mutate inputs or fetch unnecessary metadata
+  ---
+  duration_ms: 5.335104
+  type: 'test'
+  ...
+# Subtest: aliases use actual package name, not installation directory
+ok 3 - aliases use actual package name, not installation directory
+  ---
+  duration_ms: 0.416235
+  type: 'test'
+  ...
+# Subtest: network failure leaves every input unchanged and never writes a success report
+ok 4 - network failure leaves every input unchanged and never writes a success report
+  ---
+  duration_ms: 2.201569
+  type: 'test'
+  ...
+# Subtest: wrong package/version, weak or malformed digest and foreign tarball are rejected before writing
+ok 5 - wrong package/version, weak or malformed digest and foreign tarball are rejected before writing
+  ---
+  duration_ms: 10.381703
+  type: 'test'
+  ...
+# Subtest: existing conflicting or malformed metadata is never overwritten
+ok 6 - existing conflicting or malformed metadata is never overwritten
+  ---
+  duration_ms: 3.376814
+  type: 'test'
+  ...
+# Subtest: concurrent package or lock changes are preserved and stop repair
+ok 7 - concurrent package or lock changes are preserved and stop repair
+  ---
+  duration_ms: 1.419535
+  type: 'test'
+  ...
+# Subtest: second-lock commit failure restores both original locks and records rollback evidence
+ok 8 - second-lock commit failure restores both original locks and records rollback evidence
+  ---
+  duration_ms: 3.366258
+  type: 'test'
+  ...
+# Subtest: rollback preserves a concurrent developer edit and reports that backup review is required
+ok 9 - rollback preserves a concurrent developer edit and reports that backup review is required
+  ---
+  duration_ms: 3.601997
+  type: 'test'
+  ...
+# Subtest: registry transport has fixed five-second budget, TLS validation and no redirect/retry
+ok 10 - registry transport has fixed five-second budget, TLS validation and no redirect/retry
+  ---
+  duration_ms: 0.360432
+  type: 'test'
+  ...
+# (node:607) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: local publish and release paths require actual admission; candidate packaging remains separate
+ok 11 - local publish and release paths require actual admission; candidate packaging remains separate
+  ---
+  duration_ms: 1.21233
+  type: 'test'
+  ...
+# Subtest: actual repository CLI returns nonzero whenever its current lock metadata is blocked
+ok 12 - actual repository CLI returns nonzero whenever its current lock metadata is blocked
+  ---
+  duration_ms: 132.668402
+  type: 'test'
+  ...
+# Subtest: complete fixture metadata admits without fetching or executing any package
+ok 13 - complete fixture metadata admits without fetching or executing any package
+  ---
+  duration_ms: 69.885473
+  type: 'test'
+  ...
+# Subtest: missing integrity in one scope rejects the real admission process
+ok 14 - missing integrity in one scope rejects the real admission process
+  ---
+  duration_ms: 72.06524
+  type: 'test'
+  ...
+# Subtest: missing lockfile fails closed instead of permitting a publish check
+ok 15 - missing lockfile fails closed instead of permitting a publish check
+  ---
+  duration_ms: 53.932963
+  type: 'test'
+  ...
+# (node:608) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: reviewed local archive is admitted without installed dependencies or network repair
+ok 16 - reviewed local archive is admitted without installed dependencies or network repair
+  ---
+  duration_ms: 8.834548
+  type: 'test'
+  ...
+# Subtest: modified archive fails admission and cannot be repaired or resealed automatically
+ok 17 - modified archive fails admission and cannot be repaired or resealed automatically
+  ---
+  duration_ms: 3.204799
+  type: 'test'
+  ...
+# Subtest: absent and oversized archives fail closed
+ok 18 - absent and oversized archives fail closed
+  ---
+  duration_ms: 2.030206
+  type: 'test'
+  ...
+# Subtest: symlinked archive is not admitted even if target bytes are correct
+ok 19 - symlinked archive is not admitted even if target bytes are correct
+  ---
+  duration_ms: 1.727599
+  type: 'test'
+  ...
+# Subtest: symlinked archive directory is not admitted
+ok 20 - symlinked archive directory is not admitted
+  ---
+  duration_ms: 2.045118
+  type: 'test'
+  ...
+# Subtest: modified provenance cannot bless a different archive
+ok 21 - modified provenance cannot bless a different archive
+  ---
+  duration_ms: 1.963739
+  type: 'test'
+  ...
+# Subtest: version, dependency, origin, integrity, name and link metadata are exact
+ok 22 - version, dependency, origin, integrity, name and link metadata are exact
+  ---
+  duration_ms: 1.719909
+  type: 'test'
+  ...
+# Subtest: unrelated file dependencies remain forbidden
+ok 23 - unrelated file dependencies remain forbidden
+  ---
+  duration_ms: 2.318993
+  type: 'test'
+  ...
+# Subtest: declared vendor dependency cannot bypass byte admission by deleting its lock entry
+ok 24 - declared vendor dependency cannot bypass byte admission by deleting its lock entry
+  ---
+  duration_ms: 2.230552
+  type: 'test'
+  ...
+# Subtest: package declares and ships the pinned archive and its dependency-free admission helper
+ok 25 - package declares and ships the pinned archive and its dependency-free admission helper
+  ---
+  duration_ms: 7.855093
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 426.450599
+(node:599) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -3,7 +3,7 @@
   "specVersion": "1.5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-05T06:37:11.876Z",
+    "timestamp": "2026-11-05T08:26:41.589Z",
     "tools": [
       {
         "vendor": "NexoWatt",
@@ -15,8 +15,8 @@
       "type": "application",
       "bom-ref": "nexowatt:backend:root",
       "name": "iobroker.eos-admin",
-      "version": "8.0.0",
-      "purl": "pkg:npm/iobroker.eos-admin@8.0.0"
+      "version": "8.0.1",
+      "purl": "pkg:npm/iobroker.eos-admin@8.0.1"
     },
     "properties": [
       {
@@ -29,11 +29,11 @@
       },
       {
         "name": "nexowatt:input:package-json-sha256",
-        "value": "ae3e5d4be255dff9341892b043e0c5aac0e2ff388ce063f29acd33d0bdcf820a"
+        "value": "5413fac923c591278377fed1efde9d82704a1a3f5c7eb83bb7200fa36be1476e"
       },
       {
         "name": "nexowatt:input:package-lock-sha256",
-        "value": "f21cdbd90e1c0629df36fdd4a3b3a05be4e5685ab89ed91e4e8ca11a7da570e7"
+        "value": "168f14d1ee7c6822d67e28ebefe4bc2c488376752d57fb7709e04bedea30fb9b"
       },
       {
         "name": "nexowatt:unresolved-edges",
@@ -4418,94 +4418,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/@iobroker/types/-/types-7.2.5.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nexowatt:backend:node_modules/@iobroker/webserver",
-      "name": "@iobroker/webserver",
-      "version": "3.4.0",
-      "purl": "pkg:npm/%40iobroker/webserver@3.4.0",
-      "properties": [
-        {
-          "name": "nexowatt:lockfile:location",
-          "value": "node_modules/@iobroker/webserver"
-        },
-        {
-          "name": "nexowatt:lockfile:dev",
-          "value": "false"
-        },
-        {
-          "name": "nexowatt:lockfile:optional",
-          "value": "false"
-        },
-        {
-          "name": "nexowatt:lockfile:hasInstallScript",
-          "value": "false"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "name": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "a3d20cf7fb99b01ff00204e2a15b173d49e645152e826a247d0f7cb9ce6fc2f9432ade6f361695c2b1324a4f63e525b09b3f02ee6e895f9cfcc798738576f035"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@iobroker/webserver/-/webserver-3.4.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "nexowatt:backend:node_modules/@iobroker/webserver/node_modules/oauth2-server",
-      "name": "@node-oauth/oauth2-server",
-      "version": "5.3.1",
-      "purl": "pkg:npm/%40node-oauth/oauth2-server@5.3.1",
-      "properties": [
-        {
-          "name": "nexowatt:lockfile:location",
-          "value": "node_modules/@iobroker/webserver/node_modules/oauth2-server"
-        },
-        {
-          "name": "nexowatt:lockfile:dev",
-          "value": "false"
-        },
-        {
-          "name": "nexowatt:lockfile:optional",
-          "value": "false"
-        },
-        {
-          "name": "nexowatt:lockfile:hasInstallScript",
-          "value": "false"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "name": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "cd3f36dada97fd8ed5593731374daecde627f118ab2a9440b97e7a24045bd019794482fe2c1323916e4600f025d32669b3745ea8d4f927e327e7c3b2963cb72f"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@node-oauth/oauth2-server/-/oauth2-server-5.3.1.tgz"
         }
       ]
     },
@@ -24672,6 +24584,50 @@
     },
     {
       "type": "library",
+      "bom-ref": "nexowatt:backend:node_modules/oauth2-server",
+      "name": "@node-oauth/oauth2-server",
+      "version": "5.3.1",
+      "purl": "pkg:npm/%40node-oauth/oauth2-server@5.3.1",
+      "properties": [
+        {
+          "name": "nexowatt:lockfile:location",
+          "value": "node_modules/oauth2-server"
+        },
+        {
+          "name": "nexowatt:lockfile:dev",
+          "value": "false"
+        },
+        {
+          "name": "nexowatt:lockfile:optional",
+          "value": "false"
+        },
+        {
+          "name": "nexowatt:lockfile:hasInstallScript",
+          "value": "false"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cd3f36dada97fd8ed5593731374daecde627f118ab2a9440b97e7a24045bd019794482fe2c1323916e4600f025d32669b3745ea8d4f927e327e7c3b2963cb72f"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@node-oauth/oauth2-server/-/oauth2-server-5.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "nexowatt:backend:node_modules/object-assign",
       "name": "object-assign",
       "version": "4.1.1",
@@ -33962,6 +33918,44 @@
           "url": "https://registry.npmjs.org/zod-validation-error/-/zod-validation-error-4.0.2.tgz"
         }
       ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "nexowatt:backend:vendored-webserver",
+      "name": "@iobroker/webserver",
+      "version": "3.4.0",
+      "purl": "pkg:npm/%40iobroker/webserver@3.4.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9da0473e723b0863ac1e1d2622e4ed268fa332d7f82448201692f213346ebf32"
+        }
+      ],
+      "properties": [
+        {
+          "name": "nexowatt:delivery",
+          "value": "source-vendored; all 39 upstream files byte-identical"
+        },
+        {
+          "name": "nexowatt:runtime:location",
+          "value": "build/lib/vendor/webserver"
+        },
+        {
+          "name": "nexowatt:provenance:sha256",
+          "value": "75384d81f77481f76c76c143d68ba2a7526f58dbb3dae772243f3708bc92b302"
+        },
+        {
+          "name": "nexowatt:dependency-resolution",
+          "value": "EOS root registry dependencies; upstream nested package manifest is not an npm install input"
+        }
+      ]
     }
   ],
   "dependencies": [
@@ -33981,7 +33975,6 @@
         "nexowatt:backend:node_modules/@iobroker/socket-classes",
         "nexowatt:backend:node_modules/@iobroker/testing",
         "nexowatt:backend:node_modules/@iobroker/types",
-        "nexowatt:backend:node_modules/@iobroker/webserver",
         "nexowatt:backend:node_modules/@iobroker/ws",
         "nexowatt:backend:node_modules/@iobroker/ws-server",
         "nexowatt:backend:node_modules/@tsconfig/node22",
@@ -34011,12 +34004,16 @@
         "nexowatt:backend:node_modules/express-fileupload",
         "nexowatt:backend:node_modules/express-session",
         "nexowatt:backend:node_modules/json5",
+        "nexowatt:backend:node_modules/jsonwebtoken",
+        "nexowatt:backend:node_modules/jwks-rsa",
         "nexowatt:backend:node_modules/less",
         "nexowatt:backend:node_modules/mime-types",
+        "nexowatt:backend:node_modules/oauth2-server",
         "nexowatt:backend:node_modules/puppeteer",
         "nexowatt:backend:node_modules/semver",
         "nexowatt:backend:node_modules/tsx",
-        "nexowatt:backend:node_modules/typescript"
+        "nexowatt:backend:node_modules/typescript",
+        "nexowatt:backend:vendored-webserver"
       ]
     },
     {
@@ -34687,22 +34684,6 @@
     {
       "ref": "nexowatt:backend:node_modules/@iobroker/types",
       "dependsOn": []
-    },
-    {
-      "ref": "nexowatt:backend:node_modules/@iobroker/webserver",
-      "dependsOn": [
-        "nexowatt:backend:node_modules/@iobroker/webserver/node_modules/oauth2-server",
-        "nexowatt:backend:node_modules/jsonwebtoken",
-        "nexowatt:backend:node_modules/jwks-rsa"
-      ]
-    },
-    {
-      "ref": "nexowatt:backend:node_modules/@iobroker/webserver/node_modules/oauth2-server",
-      "dependsOn": [
-        "nexowatt:backend:node_modules/@node-oauth/formats",
-        "nexowatt:backend:node_modules/basic-auth",
-        "nexowatt:backend:node_modules/type-is"
-      ]
     },
     {
       "ref": "nexowatt:backend:node_modules/@iobroker/ws",
@@ -37576,6 +37557,14 @@
       ]
     },
     {
+      "ref": "nexowatt:backend:node_modules/oauth2-server",
+      "dependsOn": [
+        "nexowatt:backend:node_modules/@node-oauth/formats",
+        "nexowatt:backend:node_modules/basic-auth",
+        "nexowatt:backend:node_modules/type-is"
+      ]
+    },
+    {
       "ref": "nexowatt:backend:node_modules/object-assign",
       "dependsOn": []
     },
@@ -38991,6 +38980,14 @@
       "ref": "nexowatt:backend:node_modules/zod-validation-error",
       "dependsOn": [
         "nexowatt:backend:node_modules/zod"
+      ]
+    },
+    {
+      "ref": "nexowatt:backend:vendored-webserver",
+      "dependsOn": [
+        "nexowatt:backend:node_modules/oauth2-server",
+        "nexowatt:backend:node_modules/jsonwebtoken",
+        "nexowatt:backend:node_modules/jwks-rsa"
       ]
     }
   ]

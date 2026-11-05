@@ -1,0 +1,124 @@
+{
+  "source": {
+    "tag": "v7.2.5",
+    "commit": "e4c842b9056eb5b0b18bb56e70611821ecb3cc80",
+    "url": "https://github.com/ioBroker/ioBroker.js-controller/blob/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/controller/io-package.json",
+    "sha256": "d5b4e15ff0ffca3d0f0c2691271b6a2d5562f6edd0a68aefa3f1326a0017c6c6",
+    "projection": "Unchanged group.map and only _id/type/common.name/common.members/common.acl from standard group objects; icons and unrelated metadata omitted."
+  },
+  "view": {
+    "map": "function(doc) { if (doc.type === 'group') emit(doc.common.name, doc) }"
+  },
+  "groups": [
+    {
+      "_id": "system.group.administrator",
+      "type": "group",
+      "common": {
+        "name": {
+          "en": "Administrator",
+          "de": "Administrator",
+          "ru": "Администратор",
+          "pt": "Administrador",
+          "nl": "Beheerder",
+          "fr": "Administrateur",
+          "it": "Amministratore",
+          "es": "Administrador",
+          "pl": "Administrator",
+          "uk": "Адміністратор",
+          "zh-cn": "管理员"
+        },
+        "members": [
+          "system.user.admin"
+        ],
+        "acl": {
+          "object": {
+            "list": true,
+            "read": true,
+            "write": true,
+            "delete": true
+          },
+          "state": {
+            "list": true,
+            "read": true,
+            "write": true,
+            "create": true,
+            "delete": true
+          },
+          "users": {
+            "list": true,
+            "read": true,
+            "write": true,
+            "create": true,
+            "delete": true
+          },
+          "other": {
+            "execute": true,
+            "http": true,
+            "sendto": true
+          },
+          "file": {
+            "list": true,
+            "read": true,
+            "write": true,
+            "create": true,
+            "delete": true
+          }
+        }
+      }
+    },
+    {
+      "_id": "system.group.user",
+      "type": "group",
+      "common": {
+        "name": {
+          "en": "User",
+          "de": "Benutzer",
+          "ru": "Пользователь",
+          "pt": "Do utilizador",
+          "nl": "Gebruiker",
+          "fr": "Utilisateur",
+          "it": "Utente",
+          "es": "Usuario",
+          "pl": "Użytkownik",
+          "uk": "Користувач",
+          "zh-cn": "用户"
+        },
+        "members": [],
+        "acl": {
+          "object": {
+            "list": true,
+            "read": true,
+            "write": false,
+            "delete": false
+          },
+          "state": {
+            "list": true,
+            "read": true,
+            "write": true,
+            "create": true,
+            "delete": false
+          },
+          "users": {
+            "list": true,
+            "read": true,
+            "write": false,
+            "create": false,
+            "delete": false
+          },
+          "other": {
+            "execute": false,
+            "http": true,
+            "sendto": false
+          },
+          "file": {
+            "list": true,
+            "read": true,
+            "write": false,
+            "create": false,
+            "delete": false
+          }
+        }
+      }
+    }
+  ]
+}

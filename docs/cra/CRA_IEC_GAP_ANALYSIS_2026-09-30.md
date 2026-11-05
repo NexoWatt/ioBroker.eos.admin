@@ -119,3 +119,8 @@ Abrufdatum 30.09.2026. Die folgenden Quellen wurden über Webrecherche geprüft.
 | S11 | [Node.js: Releaseübersicht](https://nodejs.org/en/about/previous-releases) – Supportstatus der Node-Hauptlinien am Prüfdatum |
 
 Erstellt als Bestandteil des beauftragten Repositoryumbaus. Keine Produktionseinrichtung, Meldung, externe Veröffentlichung oder unabhängige Zertifizierung wurde durch diese Teilprüfung vorgenommen.
+
+
+## Nachtrag 05.11.2026 – EOS Admin 8.0.1
+
+Befund `EOS-A8-LOGIN-001`: Verfügbarkeitsfehler der Anmeldung durch unzutreffende Annahme über die Controller-Gruppenansicht. Korrektur, Bedrohungs-/Rechtebezug, Quellnachweise, Regressionstests und offene Anlagenabnahme: `../security/admin8-2026-11-05/login-fix/REPORT_DE.md`. Dieser Nachtrag ist technische Nachweisfortschreibung; er erklärt keine allgemeine CRA-/IEC-Konformität.

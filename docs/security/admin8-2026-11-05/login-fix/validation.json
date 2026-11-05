@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-05T07:52:24.349611+00:00",
+  "product": "iobroker.eos-admin",
+  "version": "8.0.1",
+  "rootCause": "EOS-A8-LOGIN-001: controller group display key mistaken for canonical ID",
+  "sourceVendor": "39 byte-identical upstream files in source and runtime; root OAuth alias 5.3.1",
+  "checks": {
+    "packageTests": 74,
+    "eosTests": 242,
+    "developmentGroups": 8,
+    "developmentInputCount": 767,
+    "allPassed": true,
+    "node22FullConsumerInstall": {
+      "node": "22.23.4",
+      "npm": "10.9.9",
+      "exitCode": 0,
+      "scriptsEnabled": true,
+      "isolatedPackageDirectory": true,
+      "freshNpmCache": true
+    },
+    "httpNode22": {
+      "node": "v22.23.4",
+      "eosName": "iobroker.eos-admin",
+      "eosVersion": "8.0.1",
+      "oauthName": "@node-oauth/oauth2-server",
+      "oauthVersion": "5.3.1",
+      "badCredentialStatus": 400,
+      "loginStatus": 200,
+      "identityStatus": 200,
+      "refreshStatus": 200,
+      "allSessionsStamped": true,
+      "passwordRevokedAccessStatus": 401,
+      "passwordRevokedRefreshStatus": 400,
+      "limitations": "Actual packaged dependencies and HTTP; controller persistence is simulated."
+    },
+    "httpNode24": {
+      "node": "v24.22.1",
+      "eosName": "iobroker.eos-admin",
+      "eosVersion": "8.0.1",
+      "oauthName": "@node-oauth/oauth2-server",
+      "oauthVersion": "5.3.1",
+      "badCredentialStatus": 400,
+      "loginStatus": 200,
+      "identityStatus": 200,
+      "refreshStatus": 200,
+      "allSessionsStamped": true,
+      "passwordRevokedAccessStatus": 401,
+      "passwordRevokedRefreshStatus": 400,
+      "limitations": "Actual packaged dependencies and HTTP; controller persistence is simulated."
+    },
+    "npmProductionAudit": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "overlayPublishDryRun": {
+      "node": "22.23.4",
+      "npm": "10.9.9",
+      "exitCode": 0,
+      "retiredOriginalFiles": 22,
+      "backupHashesVerified": true,
+      "gitMetadataStillPresent": true,
+      "dependencyMarkerPreserved": true,
+      "userNotesPreserved": true,
+      "currentSealedFilesUnchanged": true
+    }
+  },
+  "hashes": {
+    "prebuiltManifest": "eee7336e14fb6e83958da3baf45cbee83bd20bcb43625aca666895cd333a1599",
+    "sessionSource": "666854dce2fb330f0d7802eeb0d4567ad90463986e464500cc588c94b22fe0f4",
+    "sessionBuild": "17687af5aed33a5740bfe04b3ff43c7fbfa2a79b81b75049f643b7b279d853b6",
+    "testedNpmPackage": "dbe331e854ca0c96175545c77cc1ead866a4a7661289c96f97d63e61c0cd4daa"
+  },
+  "limits": [
+    "Linux x64; no native Windows run",
+    "HTTP and packaged modules real; controller persistence simulated",
+    "No target-appliance login or hardware acceptance performed",
+    "No npm publication or Git push performed",
+    "Node24 HTTP used the same dependency tree installed with Node22/npm10",
+    "0 npm audit findings is not proof of absence of vulnerabilities; source vendor separately provenance-reviewed"
+  ]
+}

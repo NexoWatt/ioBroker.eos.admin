@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const { stripTypeScriptTypes } = require('node:module');
 assert.equal(typeof stripTypeScriptTypes, 'function', 'Release tests require a supported Node.js 22/24 version (or a supported Node.js version exposing stripTypeScriptTypes). Run node --version.');
 const { EosSessionSecurity } = require('../src/lib/eosSessionSecurity');
@@ -12,10 +13,19 @@ const upstreamSource = fs.readFileSync(path.join(__dirname, 'fixtures/oauth2-mod
 const upstream = import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(upstreamSource, { mode: 'transform' }).replace("import 'oauth2-server';", '')).toString('base64')}`);
 const clone = value => JSON.parse(JSON.stringify(value));
 const STAMP = 'nexowattEosSessionV1';
+const controllerGroupView = require('./fixtures/controller-7.2.5-group-view.json');
+function groupRows(documents) {
+    const rows = [];
+    const map = vm.runInNewContext(`(${controllerGroupView.view.map})`, {
+        emit(id, value) { rows.push({ id, value }); },
+    }, { timeout: 1000 });
+    documents.forEach(map);
+    return rows;
+}
 async function setup(options) {
     const sessions = new Map();
     const users = { 'system.user.operator': { type: 'user', common: { enabled: true, password: 'test-password-hash-1' }, native: {} } };
-    const groups = [{ id: 'system.group.eos-installer', value: { type: 'group', common: { members: ['system.user.operator'], acl: { object: { read: true } } } } }];
+    const groups = groupRows([{ _id: 'system.group.eos-installer', type: 'group', common: { name: 'EOS Installer', members: ['system.user.operator'], acl: { object: { read: true } } } }]);
     const adapter = {
         config: {}, log: { warn() {}, info() {}, debug() {}, error() {} },
         getSession(id, cb) { cb(sessions.has(id) ? clone(sessions.get(id)) : null); },
@@ -48,6 +58,68 @@ test('pinned upstream password login, token pair and refresh work with security 
     const next = await x.issue(refresh.user);
     assert.ok(await x.model.getAccessToken(next.accessToken));
     x.security.stop();
+});
+
+test('real controller group view accepts string and translated display keys using canonical object IDs', async () => {
+    for (const name of ['Administrators', { en: 'Administrators', de: 'Administratoren' }]) {
+        const x = await setup();
+        const documents = clone(controllerGroupView.groups);
+        documents[0].common.name = name;
+        x.groups.splice(0, x.groups.length, ...groupRows(documents));
+        assert.deepEqual(x.groups[0].id, name);
+        assert.notEqual(x.groups[0].id, x.groups[0].value._id);
+        const token = await x.issue();
+        assert.ok(await x.model.getAccessToken(token.accessToken));
+        x.security.stop();
+    }
+});
+
+test('group display names, metadata and row order do not change credential proofs', async () => {
+    const x = await setup();
+    x.groups.push(...groupRows([{ _id: 'system.group.other', type: 'group', common: { name: 'Other', members: [], acl: {} } }]));
+    const token = await x.issue();
+    const before = await x.security.snapshot('operator');
+    x.groups[0].id = { en: 'Renamed', de: 'Umbenannt' };
+    x.groups[0].value.common.name = x.groups[0].id;
+    x.groups[0].value.native = { unrelated: true };
+    x.groups.reverse();
+    assert.deepEqual(await x.security.snapshot('operator'), before);
+    assert.ok(await x.model.getAccessToken(token.accessToken));
+    x.security.stop();
+});
+
+test('missing, foreign, empty and duplicate canonical group IDs fail closed despite valid view keys', async () => {
+    for (const mutate of [
+        x => { delete x.groups[0].value._id; },
+        x => { x.groups[0].value._id = 'system.user.admin'; },
+        x => { x.groups[0].value._id = 'system.group.'; },
+        x => { x.groups[0].value._id = 42; },
+        x => { x.groups.push(clone(x.groups[0])); x.groups[1].id = 'Different display name'; },
+    ]) {
+        const x = await setup();
+        const token = await x.issue();
+        x.groups[0].id = 'system.group.looks-valid';
+        mutate(x);
+        assert.equal(await x.model.getUser('operator', 'test-only-passphrase'), null);
+        assert.ok(!await x.model.getAccessToken(token.accessToken));
+        assert.ok(!await x.model.getRefreshToken(token.refreshToken));
+        x.security.stop();
+    }
+});
+
+test('canonical group identity and ACL mutations revoke established capabilities', async () => {
+    for (const mutate of [
+        x => { x.groups[0].value._id = 'system.group.replaced'; },
+        x => { x.groups[0].value.common.acl.object.read = false; },
+        x => { x.groups[0].value.acl = { owner: 'system.user.operator', object: 0x600 }; },
+    ]) {
+        const x = await setup();
+        const token = await x.issue();
+        mutate(x);
+        assert.ok(!await x.model.getAccessToken(token.accessToken));
+        assert.ok(!await x.model.getRefreshToken(token.refreshToken));
+        x.security.stop();
+    }
 });
 
 test('all devices access and refresh tokens reject changed password without waiting for object event', async () => {

@@ -57,7 +57,7 @@ async function repair({ root = path.resolve(__dirname, '..'), fetchMetadata = de
         const manifestRaw = fs.readFileSync(manifestPath);
         const lock = JSON.parse(original);
         const manifest = JSON.parse(manifestRaw);
-        const issues = inspect(manifest, lock);
+        const issues = inspect(manifest, lock, path.join(root, folder));
         if (issues.some(issue => !['STRONG_INTEGRITY_MISSING', 'REGISTRY_ORIGIN_UNVERIFIED'].includes(issue.code))) throw fail('LOCK_REQUIRES_MANUAL_REVIEW');
         const locations = [...new Set(issues.map(issue => issue.location))];
         for (const location of locations) {
@@ -71,7 +71,7 @@ async function repair({ root = path.resolve(__dirname, '..'), fetchMetadata = de
             if (!tasks.has(key)) tasks.set(key, { expected, targets: [] });
             tasks.get(key).targets.push({ scope, location, entry });
         }
-        scopes.push({ scope, manifestPath, lockPath, manifestRaw, manifest, original, lock, locations });
+        scopes.push({ scope, scopeRoot: path.join(root, folder), manifestPath, lockPath, manifestRaw, manifest, original, lock, locations });
     }
     const queue = [...tasks.values()];
     let cursor = 0, completed = 0, firstFailure;
@@ -99,7 +99,7 @@ async function repair({ root = path.resolve(__dirname, '..'), fetchMetadata = de
     await Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
     if (firstFailure) throw firstFailure;
     for (const item of scopes) {
-        if (inspect(item.manifest, item.lock).length) throw fail('REPAIRED_LOCK_NOT_ADMITTED');
+        if (inspect(item.manifest, item.lock, item.scopeRoot).length) throw fail('REPAIRED_LOCK_NOT_ADMITTED');
         if (!fs.readFileSync(item.lockPath).equals(item.original) || !fs.readFileSync(item.manifestPath).equals(item.manifestRaw)) throw fail('CONCURRENT_INPUT_CHANGE');
         item.output = Buffer.from(`${JSON.stringify(item.lock, null, 2)}\n`);
     }

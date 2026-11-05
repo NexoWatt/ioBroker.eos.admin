@@ -1,0 +1,15 @@
+{
+  "node": "v24.22.1",
+  "eosName": "iobroker.eos-admin",
+  "eosVersion": "8.0.1",
+  "oauthName": "@node-oauth/oauth2-server",
+  "oauthVersion": "5.3.1",
+  "badCredentialStatus": 400,
+  "loginStatus": 200,
+  "identityStatus": 200,
+  "refreshStatus": 200,
+  "allSessionsStamped": true,
+  "passwordRevokedAccessStatus": 401,
+  "passwordRevokedRefreshStatus": 400,
+  "limitations": "Actual packaged dependencies and HTTP; controller persistence is simulated."
+}

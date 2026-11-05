@@ -1,0 +1,21 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.1 check:eos-production-release
+> node tools/nexowatt-lock-provenance-check.cjs
+
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-05T07:47:17.913Z",
+  "status": "PASS",
+  "limitations": "Registry lock metadata admission plus exact source/runtime-byte verification of the vendored original WebServer and its direct dependencies; no CVE scan or publisher attestation.",
+  "scopes": [
+    {
+      "name": "backend",
+      "issues": []
+    },
+    {
+      "name": "frontend",
+      "issues": []
+    }
+  ]
+}

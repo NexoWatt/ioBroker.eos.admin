@@ -1,3 +1,5 @@
+> Aktueller Korrekturstand: **8.0.1**. Einstieg und PuTTY-Update: `START_HERE_8.0.1.md`. Die Anleitung unten zur ursprünglichen 8.0.0-Übernahme gilt für den Kopierablauf weiterhin.
+
 # ZIP in den bestehenden Git-Ordner kopieren und veröffentlichen
 
 Stand: 05.11.2026, EOS Admin 8.0.0. Der gewünschte Ablauf ist **ZIP-Inhalt über den bestehenden Projektordner kopieren → in VS Code npm publish ausführen**. Der Git-Ordner muss dafür weder gelöscht noch neu aufgebaut werden.

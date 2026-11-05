@@ -3,7 +3,7 @@
   Reviewed EOS package-validation profile
     ✔ uses the reviewed upstream validator version and exact source
     ✔ pins both official schemas by immutable commit and SHA-256
-    ✔ keeps the official schema immutable and validates the actual complete EOS metadata (528ms)
+    ✔ keeps the official schema immutable and validates the actual complete EOS metadata (507ms)
     ✔ ships the concrete proprietary license link as actual nonempty files
 
   Validate the package files
@@ -39,7 +39,7 @@
       ✔ The property "common.type" exists
       ✔ The property "common.authors" exists
       ✔ The property "native" exists
-      ✔ io-package.json matches the strict EOS profile of the pinned official schema (342ms)
+      ✔ io-package.json matches the strict EOS profile of the pinned official schema (332ms)
       ✔ The title does not contain "adapter" or "iobroker"
       ✔ titleLang is an object to support multiple languages
       ✔ titleLang does not contain "adapter" or "iobroker"
@@ -51,7 +51,7 @@
       ✔ common.tier must be 1, 2 or 3
       ✔ The adapter uses a supported admin UI
       ✔ The JSON config file exists
-      ✔ Check JSON config file (398ms)
+      ✔ Check JSON config file (396ms)
     Compare contents of package.json and io-package.json
       ✔ The name matches
       ✔ The version matches

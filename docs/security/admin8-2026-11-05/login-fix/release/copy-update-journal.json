@@ -1,0 +1,165 @@
+{
+  "format": 1,
+  "package": "iobroker.eos-admin",
+  "version": "8.0.1",
+  "manifestSha256": "eee7336e14fb6e83958da3baf45cbee83bd20bcb43625aca666895cd333a1599",
+  "started": "2026-11-05T07:48:55.332Z",
+  "status": "COMPLETE",
+  "files": [
+    {
+      "path": "adminWww/assets/AdapterUpdateDialog-B3y8RL_5.js",
+      "sha256": "60715de5c6384cbd0a3afc8208fd62c6e3e61db7284550201d88335450197d00",
+      "bytes": 49746,
+      "snapshot": "000001.bin",
+      "retired": "000001.retired"
+    },
+    {
+      "path": "adminWww/assets/Adapters-BDxfhfGe.js",
+      "sha256": "3ea1f6d8281e244f0f7d5055b319e274a05c5ca5b503e5c1e7b86e1eb341bf96",
+      "bytes": 137038,
+      "snapshot": "000002.bin",
+      "retired": "000002.retired"
+    },
+    {
+      "path": "adminWww/assets/ConfigManager-CFuOc_kb.js",
+      "sha256": "c97dc1925e44af07f2f54dde534dde40b1e3dc58cfbc14e2a50c5f2400c6a865",
+      "bytes": 2407,
+      "snapshot": "000003.bin",
+      "retired": "000003.retired"
+    },
+    {
+      "path": "adminWww/assets/Enums-CSzSzWm7.js",
+      "sha256": "92cbaedc798fbecc45c38262baea8ccb8212208f74a8aa3faa04bafa37b58f24",
+      "bytes": 83457,
+      "snapshot": "000004.bin",
+      "retired": "000004.retired"
+    },
+    {
+      "path": "adminWww/assets/Fields-DnckPMA8.js",
+      "sha256": "fd4ee6248355b7a165213ee1e4e2f9ae4b48af070431f2937625ddbd864358bf",
+      "bytes": 2383,
+      "snapshot": "000005.bin",
+      "retired": "000005.retired"
+    },
+    {
+      "path": "adminWww/assets/Files-CwUHx0pF.js",
+      "sha256": "7aae8d5801a0e12cc21306eb68a29692dd67a8d61690518acb408be3539a84ea",
+      "bytes": 44165,
+      "snapshot": "000006.bin",
+      "retired": "000006.retired"
+    },
+    {
+      "path": "adminWww/assets/Hosts-QkyuASJy.js",
+      "sha256": "83d7b551938066429aadc12620169edfb293ac31d1558e3c8161cf3b3609507e",
+      "bytes": 136955,
+      "snapshot": "000007.bin",
+      "retired": "000007.retired"
+    },
+    {
+      "path": "adminWww/assets/Instances-BaWBemTT.js",
+      "sha256": "75a098406b23263d1b58208b3aaf632c48614dcd0996364b802c3095c0762827",
+      "bytes": 199808,
+      "snapshot": "000008.bin",
+      "retired": "000008.retired"
+    },
+    {
+      "path": "adminWww/assets/Intro-DsfrPrWv.js",
+      "sha256": "a64a472b8ce9438d8c2355b431e522fc93f6a07189871fdbcad49b908e5c5b19",
+      "bytes": 57718,
+      "snapshot": "000009.bin",
+      "retired": "000009.retired"
+    },
+    {
+      "path": "adminWww/assets/Logs-Cngy2Opt.js",
+      "sha256": "6bfb8db46a9f73de7e6259e64993b38a905ec248dafa2f2df93e42621c3729d6",
+      "bytes": 25074,
+      "snapshot": "000010.bin",
+      "retired": "000010.retired"
+    },
+    {
+      "path": "adminWww/assets/Objects-DY8KS7zK.js",
+      "sha256": "4e78cc4f08f336192026e7ad7bee9863650ee827fca957dfb3c998c748d3662c",
+      "bytes": 374558,
+      "snapshot": "000011.bin",
+      "retired": "000011.retired"
+    },
+    {
+      "path": "adminWww/assets/Overview-WwP6FjK-.js",
+      "sha256": "d1f4023147de2e417a914e43306a56ad5a03efd47ff4d64fdf0bdda4092da009",
+      "bytes": 35024,
+      "snapshot": "000012.bin",
+      "retired": "000012.retired"
+    },
+    {
+      "path": "adminWww/assets/State-vP1o2BCL.js",
+      "sha256": "a9ffaae270fb2e2580efafa16eaa52933a0c18da48720d99875aebf493e69fa9",
+      "bytes": 533,
+      "snapshot": "000013.bin",
+      "retired": "000013.retired"
+    },
+    {
+      "path": "adminWww/assets/UsedResources-CMTzFOX3.js",
+      "sha256": "885339b22a78475528deda937fadaa79e357f304898a689410a6971532dff0c4",
+      "bytes": 6692,
+      "snapshot": "000014.bin",
+      "retired": "000014.retired"
+    },
+    {
+      "path": "adminWww/assets/Users-BjTGOjzL.js",
+      "sha256": "ac88270dc5ecc39ee7529a9feac8881a8497ba2e64bc760cfc377599d06cd68d",
+      "bytes": 29779,
+      "snapshot": "000015.bin",
+      "retired": "000015.retired"
+    },
+    {
+      "path": "adminWww/assets/bootstrap-Bs4TZ7iA.js",
+      "sha256": "a877f460169b338b64c83eb5d46cc8f8273a43c3ab94485d63c5e62c5e9c4bdd",
+      "bytes": 1995798,
+      "snapshot": "000016.bin",
+      "retired": "000016.retired"
+    },
+    {
+      "path": "adminWww/assets/hostInit-2xIZYDSq.js",
+      "sha256": "ce9a1c19f546d2b581dfc9f686640e4e032fc25c3d505f1907537bf216900ab3",
+      "bytes": 6198,
+      "snapshot": "000017.bin",
+      "retired": "000017.retired"
+    },
+    {
+      "path": "adminWww/assets/icons-material-BLgrEUSv.js",
+      "sha256": "f572b5180278e3c2676ff02aa4169e032660112e444608543ca9faa739d5412a",
+      "bytes": 3816290,
+      "snapshot": "000018.bin",
+      "retired": "000018.retired"
+    },
+    {
+      "path": "adminWww/assets/index-BZifaJHi.js",
+      "sha256": "c78f2a7dc558dc815d534abc1aa46610ab4cad1f50dca6add4c10924bde7cb54",
+      "bytes": 1244,
+      "snapshot": "000019.bin",
+      "retired": "000019.retired"
+    },
+    {
+      "path": "adminWww/assets/installSVGRenderer-Pe6-VnD2.js",
+      "sha256": "75625531474a52a09a261d6ff36efb9185df2911bd69f3dac1a8a30f95d63df4",
+      "bytes": 525236,
+      "snapshot": "000020.bin",
+      "retired": "000020.retired"
+    },
+    {
+      "path": "adminWww/assets/mf-entry-bootstrap-0-a6a54377.js",
+      "sha256": "a6a54377b7a1108391fcbfb26ed08429deecead2530481500f8fbe510a4efb28",
+      "bytes": 2162,
+      "snapshot": "000021.bin",
+      "retired": "000021.retired"
+    },
+    {
+      "path": "adminWww/remoteEntry-eos-8.0.0.js",
+      "sha256": "d645f7a204b34ee039c50a28b9d432ac26d7d232fabbd0281c9cef9f042a9fa0",
+      "bytes": 22984,
+      "snapshot": "000022.bin",
+      "retired": "000022.retired"
+    }
+  ],
+  "completed": "2026-11-05T07:48:55.593Z"
+}

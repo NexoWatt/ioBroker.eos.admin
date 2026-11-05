@@ -1,0 +1,85 @@
+{
+  "utc": "2026-11-05T07:33:26.042945+00:00",
+  "files": [
+    {
+      "file": "LICENSE-webserver-3.4.0",
+      "bytes": 1117,
+      "sha256": "25eafd015052f4cacfaaecf7625544f1f546cf9ead289bd0e5b1f43f709db8a7"
+    },
+    {
+      "file": "REPORT_DE.md",
+      "bytes": 4422,
+      "sha256": "ac7766d51e0fe7b83b83527866cee41187bdde7c098cbeacc0ba86506811f8ff"
+    },
+    {
+      "file": "admission.log",
+      "bytes": 391,
+      "sha256": "5b2dd7c04429a96ffceaf29b915d16700f6597c50b7525ad0c36965fc38541d1"
+    },
+    {
+      "file": "consumer-audit-stderr.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "file": "consumer-audit.json",
+      "bytes": 360,
+      "sha256": "7f0f91830389a0004cc7ee6e3040fe69d006281ba3be53c7bd9f8aa877dd3477"
+    },
+    {
+      "file": "consumer-fixture-1.0.0.tgz",
+      "bytes": 75803,
+      "sha256": "ce8207401e0e5b2f034bcf9eb9b7696e7aab77dba8e94140491140b03e789e1d"
+    },
+    {
+      "file": "consumer-fixture-package.json",
+      "bytes": 228,
+      "sha256": "ff8be6e3fe2de0a0d23436018442dcac38ce1b4b1096be8a8407c5c6114f157b"
+    },
+    {
+      "file": "consumer-npm10-package-lock.json",
+      "bytes": 14953,
+      "sha256": "c0df5aa1457236f27ed5eac861a994aeca1e87328ce7b554c695ee80cef1c7a7"
+    },
+    {
+      "file": "consumer-npm11-package-lock.json",
+      "bytes": 14953,
+      "sha256": "c0df5aa1457236f27ed5eac861a994aeca1e87328ce7b554c695ee80cef1c7a7"
+    },
+    {
+      "file": "http-consumer-check.cjs",
+      "bytes": 3920,
+      "sha256": "473e4493acae4bdb5f558d24c628835923da1b148621eb4779c454a6fc6c021e"
+    },
+    {
+      "file": "http-consumer-npm10-node22.json",
+      "bytes": 323,
+      "sha256": "9592910adc15278fd6d4ec2082f405fdcf2524aeb7f198452979544323f53f35"
+    },
+    {
+      "file": "http-consumer-npm11-node24.json",
+      "bytes": 323,
+      "sha256": "2e7f1aedb42e5ab68ee74331370ee6e4ecf4df36643206715979a9ee260628a5"
+    },
+    {
+      "file": "local-tests.json",
+      "bytes": 973,
+      "sha256": "f2311c0456437e61d055f0761229bafe460e8647f6a2977ad5630b08aa734a52"
+    },
+    {
+      "file": "tests-node22.log",
+      "bytes": 6306,
+      "sha256": "7f21cd2414a69def85dec6b7e42769e3bf5cd4371836e33396867729a77d2e61"
+    },
+    {
+      "file": "tests-node24.log",
+      "bytes": 2809,
+      "sha256": "f5de5d65544a30be1b1ca0d04066b1e50299999a47268170488ba6a2a5f09eb6"
+    },
+    {
+      "file": "webserver-3.4.0-upstream.tgz",
+      "bytes": 75349,
+      "sha256": "9da0473e723b0863ac1e1d2622e4ed268fa332d7f82448201692f213346ebf32"
+    }
+  ]
+}

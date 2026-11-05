@@ -1,6 +1,6 @@
 {
   "tool": "nexowatt-security-inventory@1.0.0",
-  "timestamp": "2026-11-05T06:37:11.876Z",
+  "timestamp": "2026-11-05T08:26:41.589Z",
   "environment": {
     "node": "v24.22.1",
     "platform": "win32",
@@ -11,15 +11,15 @@
     {
       "label": "backend",
       "name": "iobroker.eos-admin",
-      "version": "8.0.0",
+      "version": "8.0.1",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "ae3e5d4be255dff9341892b043e0c5aac0e2ff388ce063f29acd33d0bdcf820a",
-        "lock": "f21cdbd90e1c0629df36fdd4a3b3a05be4e5685ab89ed91e4e8ca11a7da570e7"
+        "manifest": "5413fac923c591278377fed1efde9d82704a1a3f5c7eb83bb7200fa36be1476e",
+        "lock": "168f14d1ee7c6822d67e28ebefe4bc2c488376752d57fb7709e04bedea30fb9b"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
       "componentCount": 773,
-      "lockNonDevCount": 293,
+      "lockNonDevCount": 292,
       "lockDevCount": 480,
       "installScriptCount": 9,
       "withoutIntegrityCount": 0,
@@ -43,12 +43,6 @@
           "declared": "^2.10.0",
           "locked": "2.10.0",
           "location": "node_modules/@iobroker/socket-classes"
-        },
-        {
-          "name": "@iobroker/webserver",
-          "declared": "^3.4.0",
-          "locked": "3.4.0",
-          "location": "node_modules/@iobroker/webserver"
         },
         {
           "name": "@iobroker/ws-server",
@@ -117,10 +111,28 @@
           "location": "node_modules/json5"
         },
         {
+          "name": "jsonwebtoken",
+          "declared": "9.0.3",
+          "locked": "9.0.3",
+          "location": "node_modules/jsonwebtoken"
+        },
+        {
+          "name": "jwks-rsa",
+          "declared": "4.1.0",
+          "locked": "4.1.0",
+          "location": "node_modules/jwks-rsa"
+        },
+        {
           "name": "mime-types",
           "declared": "^3.0.2",
           "locked": "3.0.2",
           "location": "node_modules/mime-types"
+        },
+        {
+          "name": "oauth2-server",
+          "declared": "npm:@node-oauth/oauth2-server@5.3.1",
+          "locked": "5.3.1",
+          "location": "node_modules/oauth2-server"
         },
         {
           "name": "semver",
@@ -169,16 +181,18 @@
       ],
       "rootEngines": {
         "node": ">=22.23.4 <23 || >=24.22.1 <25"
-      }
+      },
+      "vendoredSourceCount": 1,
+      "vendoredSourceProvenance": "tools/vendor/webserver-3.4.0-source.provenance.json"
     },
     {
       "label": "frontend",
       "name": "src-rx",
-      "version": "8.0.0",
+      "version": "8.0.1",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "d510290b70940e3a4683d0056d75159c049bdc660462f68582fe724e3c1de062",
-        "lock": "a310b3b6fd8f42ffc5783f62ce6142f09329c1fbe87d324a3439873382dc2cd3"
+        "manifest": "0137c5c2cab065f4181f810c30e9c88e44f1508a27eb5a3d09d6100b00553662",
+        "lock": "e2286dfc4a0ab1c2a435cf3a5f081b6fc319f07f7d8708d0c363f92d91656fa4"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
       "componentCount": 582,
@@ -363,8 +377,8 @@
       "rootEngines": {}
     }
   ],
-  "runtimeFileCount": 460,
-  "sourceFileCount": 33,
+  "runtimeFileCount": 499,
+  "sourceFileCount": 72,
   "vendoredPackageManifests": [
     {
       "path": "adminWww/lib/js/crypto-js/package.json",
@@ -372,6 +386,14 @@
       "version": "4.2.0",
       "license": "MIT",
       "manifestSha256": "011d61589c95ad4e16051c492565f7c19c6a7832580674503cceeca612e7a6cd",
+      "limitation": "Version is asserted by the shipped manifest; tarball authenticity and actual browser inclusion are not established."
+    },
+    {
+      "path": "build/lib/vendor/webserver/package.json",
+      "name": "@iobroker/webserver",
+      "version": "3.4.0",
+      "license": "MIT",
+      "manifestSha256": "36427ac6c75e2360a231b383ba2664273f903e92c0474ec66beffc10f66783d6",
       "limitation": "Version is asserted by the shipped manifest; tarball authenticity and actual browser inclusion are not established."
     }
   ],

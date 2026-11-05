@@ -117,11 +117,6 @@
       "sha256": "ce2dd3448d26575438b450e951764379ea6f7189122f6b2250cc939a2849757a"
     },
     {
-      "file": "path-budget.json",
-      "bytes": 1379,
-      "sha256": "e08115bfaecb132e1d1b24832df754144a735bcf4254aabc394fde9ccd472ccd"
-    },
-    {
       "file": "validation.json",
       "bytes": 3797,
       "sha256": "7dd83b207dadfdee06d77c42183a503d367aaedb2101dfe8969e68c3175110e9"

@@ -7,7 +7,7 @@ const http = require('node:http');
 const { once } = require('node:events');
 const { gzipSync } = require('node:zlib');
 const express = require('express');
-const { createOAuth2Server } = require('@iobroker/webserver');
+const { createOAuth2Server } = require('../build/lib/vendor/webserver');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -27,6 +27,15 @@ const { EosSessionSecurity } = require('../build/lib/eosSessionSecurity');
 const { hasEosUrlCredentials } = require('../build/lib/eosRequestSecurity');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const log = { debug() {}, info() {}, warn() {}, error() {} };
+const controllerGroupView = require('./fixtures/controller-7.2.5-group-view.json');
+function groupRows(documents) {
+    const rows = [];
+    const map = vm.runInNewContext(`(${controllerGroupView.view.map})`, {
+        emit(id, value) { rows.push({ id, value }); },
+    }, { timeout: 1000 });
+    documents.forEach(map);
+    return rows;
+}
 function webFixture() {
     return Object.assign(Object.create(Web.prototype), {
         publicPath: '/admin/', systemLanguage: 'en', settings: { auth: true, secure: true },
@@ -86,7 +95,7 @@ test('proxy revocation and shutdown are wired to the Web lifecycle', () => {
 async function oauthFixture(t) {
     const sessions = new Map();
     const users = { 'system.user.operator': { type: 'user', common: { enabled: true, password: 'fixture-hash' }, native: {} } };
-    const groups = [{ id: 'system.group.eos-installer', value: { type: 'group', common: { members: ['system.user.operator'], acl: {} } } }];
+    const groups = groupRows([{ _id: 'system.group.eos-installer', type: 'group', common: { name: { en: 'EOS Installer', de: 'EOS Installateur' }, members: ['system.user.operator'], acl: {} } }]);
     const adapter = { config: {}, log,
         getSession(id, callback) { callback(clone(sessions.get(id))); },
         setSession(id, _ttl, value, callback) { sessions.set(id, clone(value)); callback?.(null); },
@@ -115,10 +124,10 @@ async function oauthFixture(t) {
     return { token, login, base, users, groups, sessions, model };
 }
 test('installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible', async t => {
-    const serverRequire = createRequire(require.resolve('@iobroker/webserver/package.json'));
+    const serverRequire = createRequire(require.resolve('../build/lib/vendor/webserver/package.json'));
     assert.equal(serverRequire('oauth2-server/package.json').name, '@node-oauth/oauth2-server');
     assert.equal(serverRequire('oauth2-server/package.json').version, '5.3.1');
-    assert.equal(require('@iobroker/webserver/package.json').version, '3.4.0');
+    assert.equal(require('../build/lib/vendor/webserver/package.json').version, '3.4.0');
     const f = await oauthFixture(t); const first = await f.login();
     assert.equal(first.status, 200, JSON.stringify(first.body));
     assert.equal(typeof first.body.access_token, 'string'); assert.equal(typeof first.body.refresh_token, 'string');
@@ -144,11 +153,25 @@ test('installed Admin8 OAuth denies bad credentials, unbound minting and URL tok
     const urlToken = await fetch(`${f.base}/identity?token=${first.body.access_token}`);
     assert.equal(urlToken.status, 400); assert.equal((await urlToken.json()).error, 'credentialsInUrlForbidden');
 });
+test('installed Admin8 OAuth accepts official controller standard groups and rejects duplicate identities', async t => {
+    const f = await oauthFixture(t);
+    f.groups.splice(0, f.groups.length, ...groupRows(clone(controllerGroupView.groups)));
+    const first = await f.login();
+    assert.equal(first.status, 200, JSON.stringify(first.body));
+    f.groups.push(clone(f.groups[0]));
+    f.groups.at(-1).id = 'Another display key for the same object';
+    const duplicate = await f.login();
+    assert.ok(duplicate.status >= 400 && duplicate.status < 500);
+    const refresh = await f.token({ grant_type: 'refresh_token', refresh_token: first.body.refresh_token });
+    assert.ok(refresh.status >= 400 && refresh.status < 500);
+});
 test('Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes', async t => {
     for (const mutate of [
         f => { f.users['system.user.operator'].common.password = 'changed-fixture-hash'; },
         f => { f.users['system.user.operator'].common.enabled = false; },
         f => { f.groups[0].value.common.members = []; },
+        f => { f.groups[0].value.common.acl = { object: { read: false } }; },
+        f => { f.groups[0].value._id = 'system.group.replaced'; },
     ]) {
         const f = await oauthFixture(t); const first = await f.login(); assert.equal(first.status, 200);
         mutate(f);

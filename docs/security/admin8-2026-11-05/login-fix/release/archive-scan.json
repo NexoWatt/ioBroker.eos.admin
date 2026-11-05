@@ -1,0 +1,13 @@
+{
+  "scope": "All delivered archive members scanned heuristically for PEM private key markers and common GitHub/npm/AWS/OpenAI credential patterns.",
+  "findings": [
+    {
+      "path": "CHANGELOG_OLD.md",
+      "line": 2002,
+      "classification": "false positive",
+      "reason": "Historical upstream changelog mentions the PEM opening marker as certificate format support; no closing marker or private key body."
+    }
+  ],
+  "newCredentialsFound": false,
+  "limitation": "Heuristic pattern scan is not exhaustive secret detection."
+}

@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const webserverVendor = require('./nexowatt-vendored-webserver.cjs');
 const root = path.resolve(__dirname, '..');
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function read(base, relative, max = 32 * 1024 * 1024) {
@@ -169,11 +170,17 @@ function notices(frontend, backend) {
 function main() {
     if (process.argv.length !== 2) throw new Error('Usage: node tools/nexowatt-artifact-inventory.cjs');
     const installed = [tree('backend', root), tree('frontend', path.join(root, 'src-admin'))];
+    const vendorIssue = webserverVendor.inspectVendoredWebserver(json(root, 'package.json').value, json(root, 'package-lock.json').value, root);
+    if (vendorIssue) throw new Error(vendorIssue);
+    const vendorProof = json(root, webserverVendor.PROVENANCE);
+    const vendoredBackend = { ...vendorProof.value, provenanceSha256: hash(vendorProof.raw),
+        verification: 'All 39 source and emitted runtime files matched the pinned upstream-byte inventory',
+        limitation: 'Source delivery uses EOS root dependency resolution, not the retained upstream package manifest.' };
     const frontend = composition(installed[1], installed[0]), references = peers(installed), licenseNotices = notices(frontend, installed[0]);
     const failures = installed.reduce((total, item) => total + item.failures.length, 0) + frontend.unclassifiedModules.length + references.scopes.reduce((total, scope) => total + scope.unresolvedReferenceCount - scope.optionalPeersVerified, 0);
     const report = { schemaVersion: 1, generatedAt: new Date().toISOString(), toolSha256: hash(fs.readFileSync(__filename)),
         environment: { node: process.version, platform: process.platform, arch: process.arch }, status: failures ? 'REVIEW_REQUIRED' : 'RESOLVED_WITH_DECLARED_LIMITATIONS',
-        limitations: 'Snapshot of local installed packages and built frontend; no CVE assessment, IEC/CRA certification, native-module execution or deployed-device attestation.', installed, frontend, references, licenseNotices };
+        limitations: 'Snapshot of local installed packages, source-vendored backend and built frontend; no CVE assessment, IEC/CRA certification, native-module execution or deployed-device attestation.', installed, vendoredBackend, frontend, references, licenseNotices };
     fs.mkdirSync(path.join(root, 'reports/security'), { recursive: true });
     fs.writeFileSync(path.join(root, 'reports/security/artifact-inventory.json'), `${JSON.stringify(report, null, 2)}\n`);
     console.log(JSON.stringify({ status: report.status, installed: installed.map(item => ({ label: item.label, count: item.components.length, absentOptional: item.absentOptional.length, failures: item.failures.length })), frontend: { chunks: frontend.chunks.length, packages: frontend.packages.length, vendoredPackages: frontend.vendoredPackages.length, modules: frontend.uniqueDeclaredModules, unclassified: frontend.unclassifiedModules.length }, optionalPeers: references.scopes.map(scope => ({ label: scope.label, unresolved: scope.unresolvedReferenceCount, verifiedOptional: scope.optionalPeersVerified })), licenseNotices }));

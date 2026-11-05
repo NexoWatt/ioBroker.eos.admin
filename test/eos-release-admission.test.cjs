@@ -24,7 +24,7 @@ function fixture(t) {
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     fs.mkdirSync(path.join(directory, 'tools'));
     fs.mkdirSync(path.join(directory, 'src-admin'));
-    for (const tool of ['nexowatt-lock-provenance-check.cjs', 'nexowatt-security-inventory.cjs']) {
+    for (const tool of ['nexowatt-lock-provenance-check.cjs', 'nexowatt-security-inventory.cjs', 'nexowatt-vendored-webserver.cjs']) {
         fs.copyFileSync(path.join(root, 'tools', tool), path.join(directory, 'tools', tool));
     }
     for (const folder of ['', 'src-admin']) {

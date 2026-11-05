@@ -1,0 +1,18 @@
+✔ exact upstream source and emitted copies admit without installed dependencies or network repair (38.61291ms)
+✔ modified source cannot be repaired or silently resealed (8.963198ms)
+✔ modified emitted JavaScript fails the upstream byte gate (7.997185ms)
+✔ missing source and additional runtime files fail closed (11.766753ms)
+✔ symlinked source file is rejected even with correct target bytes (9.518021ms)
+✔ symlinked source directory is rejected (8.782912ms)
+✔ modified provenance cannot bless different source bytes (7.107248ms)
+✔ root identity enforces vendoring when alias marker and lock entry are deleted (8.478013ms)
+✔ registry package substitution and file dependencies remain forbidden (5.375441ms)
+✔ runtime uses local upstream source and declared maintained registry dependencies (7.581242ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.650908

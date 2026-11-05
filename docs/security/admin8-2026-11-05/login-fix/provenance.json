@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-05",
+  "controllerVersion": "7.2.5",
+  "commit": "e4c842b9056eb5b0b18bb56e70611821ecb3cc80",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/controller/io-package.json",
+      "sha256": "d5b4e15ff0ffca3d0f0c2691271b6a2d5562f6edd0a68aefa3f1326a0017c6c6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/db-objects-redis/src/lib/objects/objectsInRedisClient.ts",
+      "sha256": "935c9816147bfbc3612fcbe133a1b2c280d7fcc6ffd63fb68884938dc94360e8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/db-objects-file/src/lib/objects/objectsInMemFileDB.ts",
+      "sha256": "5fb4e31c49e1aa0f6446554725dc2dfcfbb21ef468671084c601913cd231b6a6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/adapter/src/lib/adapter/adapter.ts",
+      "sha256": "65ee2afaa2250258e850b50e01be14fad7f276bb92f329a68bccc6f2dcc43f1b"
+    }
+  ],
+  "excerpts": [
+    {
+      "file": "controller-file-view.ts.txt",
+      "kind": "exact method extraction",
+      "method": "_applyView",
+      "sourceUrl": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/db-objects-file/src/lib/objects/objectsInMemFileDB.ts",
+      "sourceSha256": "5fb4e31c49e1aa0f6446554725dc2dfcfbb21ef468671084c601913cd231b6a6",
+      "sourceStartLine": 1127,
+      "sourceEndLine": 1201,
+      "sha256": "6d33874c283db09212cc2de1e9713ea3363778a99c4989824a5ec041fe6b1681"
+    },
+    {
+      "file": "controller-redis-view.ts.txt",
+      "kind": "exact method extraction",
+      "method": "_applyViewFunc",
+      "sourceUrl": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/db-objects-redis/src/lib/objects/objectsInRedisClient.ts",
+      "sourceSha256": "935c9816147bfbc3612fcbe133a1b2c280d7fcc6ffd63fb68884938dc94360e8",
+      "sourceStartLine": 4604,
+      "sourceEndLine": 5074,
+      "sha256": "116bc9dbced45f5a4b033038726ebf7af14a53fff8eb7669e562d04b811abf61"
+    }
+  ],
+  "oldSessionSourceSha256": "c408afc041cbe055dcacdd3aa16f65cac539ad0a9c830ee2204eed6f07d961bf",
+  "fixture": {
+    "path": "test/fixtures/controller-7.2.5-group-view.json",
+    "sha256": "8096a59c3a8551e7983ccd6cf58acaf61ae350276921fe5ed875bc603ec8b8f9"
+  },
+  "license": "Upstream controller excerpts: MIT; Copyright 2013-2026 bluefox <dogafox@gmail.com>. See upstream-LICENSE.txt."
+}

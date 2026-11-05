@@ -1,5 +1,5 @@
 import { commonTools, EXIT_CODES, I18n } from '@iobroker/adapter-core';
-import { checkPublicIP, WebServer, createOAuth2Server, type OAuth2Model, type OidcConfig } from '@iobroker/webserver';
+import { checkPublicIP, WebServer, createOAuth2Server, type OAuth2Model, type OidcConfig } from './vendor/webserver';
 import express from 'express';
 import type { Express, Response, Request, NextFunction } from 'express';
 import type { Server } from 'node:http';

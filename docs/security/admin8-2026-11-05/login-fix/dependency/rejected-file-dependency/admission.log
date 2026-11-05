@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-05T07:33:26.013Z",
+  "status": "PASS",
+  "limitations": "Registry lock metadata admission plus exact local-byte verification of the reviewed WebServer manifest patch; no CVE scan or publisher attestation.",
+  "scopes": [
+    {
+      "name": "backend",
+      "issues": []
+    },
+    {
+      "name": "frontend",
+      "issues": []
+    }
+  ]
+}

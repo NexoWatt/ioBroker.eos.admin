@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "name": "@iobroker/webserver",
+  "version": "3.4.0",
+  "upstream": {
+    "url": "https://registry.npmjs.org/@iobroker/webserver/-/webserver-3.4.0.tgz",
+    "integrity": "sha512-o9IM9/uZsB/wAgTioVsXPUnmRRUugmokfQ98uc5vwvlDKt5vNhaVwrEySk9j5SWwmz8C7m6JX5z8x5hzhXbwNQ==",
+    "sha256": "9da0473e723b0863ac1e1d2622e4ed268fa332d7f82448201692f213346ebf32",
+    "archive": "docs/security/admin8-2026-11-05/login-fix/dependency/webserver-3.4.0-upstream.tgz",
+    "license": "MIT"
+  },
+  "patched": {
+    "relativePath": "tools/vendor/webserver-3.4.0-eos-oauth.tgz",
+    "integrity": "sha512-1iv2SebSOn4c2elKKU7OuUmvvF8qyfTf68ZUS7cKD66Y1vIXuMOcGSRCL3qbvlrkwS+t+m7vEDoIOmO5u0lETA==",
+    "sha256": "f573360951178d7bd2f99f21c2eaf0387e49c7eda600e73c208b7ab9c75a834b",
+    "sizeBytes": 75416
+  },
+  "change": {
+    "file": "package/package.json",
+    "field": "dependencies.oauth2-server",
+    "before": "^3.1.1",
+    "after": "npm:@node-oauth/oauth2-server@5.3.1",
+    "otherManifestFieldsUnchanged": true,
+    "executableFilesChanged": 0
+  },
+  "files": [
+    {
+      "path": "package/LICENSE",
+      "upstreamSha256": "25eafd015052f4cacfaaecf7625544f1f546cf9ead289bd0e5b1f43f709db8a7",
+      "patchedSha256": "25eafd015052f4cacfaaecf7625544f1f546cf9ead289bd0e5b1f43f709db8a7",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/README.md",
+      "upstreamSha256": "0a2281681675298ae37784f9cb045ebd69293333b54ba246355a8d182e4cd39b",
+      "patchedSha256": "0a2281681675298ae37784f9cb045ebd69293333b54ba246355a8d182e4cd39b",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/index.d.ts",
+      "upstreamSha256": "9f98a0b18fe2c59aef32b53db855b91760664d2b79a58a3be4d9f56d2deabd1a",
+      "patchedSha256": "9f98a0b18fe2c59aef32b53db855b91760664d2b79a58a3be4d9f56d2deabd1a",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/index.js",
+      "upstreamSha256": "c9f552e66b06cb2884c1122db0424698bce6a038f79fe0eb9690fae1c4c3aecf",
+      "patchedSha256": "c9f552e66b06cb2884c1122db0424698bce6a038f79fe0eb9690fae1c4c3aecf",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/index.js.map",
+      "upstreamSha256": "e4a8fca4764823304f9405da77407da673edc5fc523885999e29ab8c73c962b1",
+      "patchedSha256": "e4a8fca4764823304f9405da77407da673edc5fc523885999e29ab8c73c962b1",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/acmeChallenge.d.ts",
+      "upstreamSha256": "b6cae135e2dce695d6b37535998ecced7ea1fe543307966e368d1554d6f1e696",
+      "patchedSha256": "b6cae135e2dce695d6b37535998ecced7ea1fe543307966e368d1554d6f1e696",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/acmeChallenge.js",
+      "upstreamSha256": "9fa156ba5961a7b3d16897a0c0054d4e5712dde32ca7754546a06499640bcc07",
+      "patchedSha256": "9fa156ba5961a7b3d16897a0c0054d4e5712dde32ca7754546a06499640bcc07",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/acmeChallenge.js.map",
+      "upstreamSha256": "eb5ae2d9af3f63aa8cb4b748528a32796df2dccc3aae4bff9944c4ca137ceede",
+      "patchedSha256": "eb5ae2d9af3f63aa8cb4b748528a32796df2dccc3aae4bff9944c4ca137ceede",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/certificateManager.d.ts",
+      "upstreamSha256": "faed9f8df8a074bc2e60f89fb15f68e48931f22fad1571c06a1c837d7f241721",
+      "patchedSha256": "faed9f8df8a074bc2e60f89fb15f68e48931f22fad1571c06a1c837d7f241721",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/certificateManager.js",
+      "upstreamSha256": "5a39b7b10fe7197cf846479a8873ca119d32177fc604cf359a7065f45345b980",
+      "patchedSha256": "5a39b7b10fe7197cf846479a8873ca119d32177fc604cf359a7065f45345b980",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/certificateManager.js.map",
+      "upstreamSha256": "60198771e60c0b6767567712655d8be972c82560c3eb2fae36dc8dc5225804b2",
+      "patchedSha256": "60198771e60c0b6767567712655d8be972c82560c3eb2fae36dc8dc5225804b2",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/http2Compat.d.ts",
+      "upstreamSha256": "5f49d6b8de92176c90a000e01328680f82710d370a024f37961908a30bf03351",
+      "patchedSha256": "5f49d6b8de92176c90a000e01328680f82710d370a024f37961908a30bf03351",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/http2Compat.js",
+      "upstreamSha256": "0822d5bcbf3157b5940dd027a36976aead38e407dfdb1911e1165a788148ef09",
+      "patchedSha256": "0822d5bcbf3157b5940dd027a36976aead38e407dfdb1911e1165a788148ef09",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/http2Compat.js.map",
+      "upstreamSha256": "6a522526272eb1c116bc94a534bbcccc93f74cde71e0db24ed7a920561f20d91",
+      "patchedSha256": "6a522526272eb1c116bc94a534bbcccc93f74cde71e0db24ed7a920561f20d91",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-authcode.d.ts",
+      "upstreamSha256": "0bc02a98868697533a613b77f52692d9287545d40fd03514eba7c742ba813a5b",
+      "patchedSha256": "0bc02a98868697533a613b77f52692d9287545d40fd03514eba7c742ba813a5b",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-authcode.js",
+      "upstreamSha256": "ef4c3c13bfb3213fce33dd04a0ccc76fe2c705e18b99cabc1bbaa5114540bb71",
+      "patchedSha256": "ef4c3c13bfb3213fce33dd04a0ccc76fe2c705e18b99cabc1bbaa5114540bb71",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-authcode.js.map",
+      "upstreamSha256": "9f9fa457b60a2588176eeccdbad2a1e8968beb2a2cf94f3cc5df3f6b3e7d0f11",
+      "patchedSha256": "9f9fa457b60a2588176eeccdbad2a1e8968beb2a2cf94f3cc5df3f6b3e7d0f11",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-clients.d.ts",
+      "upstreamSha256": "5760c7cdec8acd699e97a2ea4279729c73dbd57833632b1f6dc83edc185a6452",
+      "patchedSha256": "5760c7cdec8acd699e97a2ea4279729c73dbd57833632b1f6dc83edc185a6452",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-clients.js",
+      "upstreamSha256": "8e3132f084aa43d06f599b90e9be7536bfd90be6f09d61f25682507ae68f53cb",
+      "patchedSha256": "8e3132f084aa43d06f599b90e9be7536bfd90be6f09d61f25682507ae68f53cb",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-clients.js.map",
+      "upstreamSha256": "6963ffba4664afef71b1e3405516abbfb1f055f9ab6758dfa4436369bbb926e6",
+      "patchedSha256": "6963ffba4664afef71b1e3405516abbfb1f055f9ab6758dfa4436369bbb926e6",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-model.d.ts",
+      "upstreamSha256": "a7667303fe7b4fcf7c53f78f36922156304ceb0815fb0f939d3effd3a7b624dd",
+      "patchedSha256": "a7667303fe7b4fcf7c53f78f36922156304ceb0815fb0f939d3effd3a7b624dd",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-model.js",
+      "upstreamSha256": "3c28f83e2d19e53bbec6722bf332b0996d6cd9f27c424eb6aced2e4f5f2172e6",
+      "patchedSha256": "3c28f83e2d19e53bbec6722bf332b0996d6cd9f27c424eb6aced2e4f5f2172e6",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2-model.js.map",
+      "upstreamSha256": "c1b40e0ec9c34a0ab9bd219dffc0422db5b53362f99d86e09926d2916d82c6ca",
+      "patchedSha256": "c1b40e0ec9c34a0ab9bd219dffc0422db5b53362f99d86e09926d2916d82c6ca",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2.d.ts",
+      "upstreamSha256": "2477e031b84a9fb9d83548089b2838ac6af25639ab5e2c9611e1bb4c87356ae1",
+      "patchedSha256": "2477e031b84a9fb9d83548089b2838ac6af25639ab5e2c9611e1bb4c87356ae1",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2.js",
+      "upstreamSha256": "fd8df9984ce5d1bc91f6d6ceb01736baa3c625b18f0251e7c5aa824996194207",
+      "patchedSha256": "fd8df9984ce5d1bc91f6d6ceb01736baa3c625b18f0251e7c5aa824996194207",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/oauth2.js.map",
+      "upstreamSha256": "a7a7dec34e86e8af22fcc4e91f4fb58ca26d8a3c3e46b4fc3ccc1e0cab37b22e",
+      "patchedSha256": "a7a7dec34e86e8af22fcc4e91f4fb58ca26d8a3c3e46b4fc3ccc1e0cab37b22e",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/securityChecker.d.ts",
+      "upstreamSha256": "d5060ee1e796982efe6c2cdbe53bd79a6173bf56a5964e46028d294f4aae1f75",
+      "patchedSha256": "d5060ee1e796982efe6c2cdbe53bd79a6173bf56a5964e46028d294f4aae1f75",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/securityChecker.js",
+      "upstreamSha256": "e11aa966e39f2841086196d877693aa0a0153327377b214d7a15ab83a7f5ae9e",
+      "patchedSha256": "e11aa966e39f2841086196d877693aa0a0153327377b214d7a15ab83a7f5ae9e",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/securityChecker.js.map",
+      "upstreamSha256": "7a67a00617809584b2aac656c5484bac7c11339f38eb8f79c6861082b13bcf6d",
+      "patchedSha256": "7a67a00617809584b2aac656c5484bac7c11339f38eb8f79c6861082b13bcf6d",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/usedResources.d.ts",
+      "upstreamSha256": "693d47767d706722372f3bbee830309b69cd5195d72c1871623e50c8b3949ff9",
+      "patchedSha256": "693d47767d706722372f3bbee830309b69cd5195d72c1871623e50c8b3949ff9",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/usedResources.js",
+      "upstreamSha256": "f36a4a09decc157c7427660ed2003c5b27bbcb55bc0d87df430f3623c42a8420",
+      "patchedSha256": "f36a4a09decc157c7427660ed2003c5b27bbcb55bc0d87df430f3623c42a8420",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/usedResources.js.map",
+      "upstreamSha256": "424297f2dda07c7e288440a07b094dbfac408feebbbba12f270b6ccd0c0fffa4",
+      "patchedSha256": "424297f2dda07c7e288440a07b094dbfac408feebbbba12f270b6ccd0c0fffa4",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/utils.d.ts",
+      "upstreamSha256": "a4ff620f30cba1c777fed7c5ed2aeefa1aa375d6a5ab5e44163a23780b1c3337",
+      "patchedSha256": "a4ff620f30cba1c777fed7c5ed2aeefa1aa375d6a5ab5e44163a23780b1c3337",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/utils.js",
+      "upstreamSha256": "aa0addf0a2cf77801d231d54bafa7fd5df94fccc3fe107cc07e44a3024d8fb3f",
+      "patchedSha256": "aa0addf0a2cf77801d231d54bafa7fd5df94fccc3fe107cc07e44a3024d8fb3f",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/utils.js.map",
+      "upstreamSha256": "cf7999464f6df42b86b25e42bf6309eff3d1216b06c15496cc5687aa594bfdb4",
+      "patchedSha256": "cf7999464f6df42b86b25e42bf6309eff3d1216b06c15496cc5687aa594bfdb4",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/webServer.d.ts",
+      "upstreamSha256": "de62ab1e7e9e795de518f829e9ace4ea47d5b915a439f26731f4f9cdbe67f0dc",
+      "patchedSha256": "de62ab1e7e9e795de518f829e9ace4ea47d5b915a439f26731f4f9cdbe67f0dc",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/webServer.js",
+      "upstreamSha256": "99fd42ad30ebc4a273a6ab86e475d04f9fddeac0d015811095c054e1b8738f50",
+      "patchedSha256": "99fd42ad30ebc4a273a6ab86e475d04f9fddeac0d015811095c054e1b8738f50",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/build/lib/webServer.js.map",
+      "upstreamSha256": "9bc89141be382911bf380e4f9e78bf82c1d8f0e4bb749b37136334b178931216",
+      "patchedSha256": "9bc89141be382911bf380e4f9e78bf82c1d8f0e4bb749b37136334b178931216",
+      "bytesUnchanged": true
+    },
+    {
+      "path": "package/package.json",
+      "upstreamSha256": "36427ac6c75e2360a231b383ba2664273f903e92c0474ec66beffc10f66783d6",
+      "patchedSha256": "d744b30cc67e818abe2fa890e2152cd956a1d46c0ac7378912278f0b5860308e",
+      "bytesUnchanged": false
+    }
+  ],
+  "limitations": "Manifest-only vendoring. Upstream executable bytes are unchanged; this is not a publisher signature or a live-device attestation."
+}

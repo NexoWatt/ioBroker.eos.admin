@@ -15,7 +15,7 @@ const runtimeRole = read('adminWww/js/eos-role-ui.js');
 const sourceWeb = read('src/lib/web.ts');
 const runtimeWeb = read('build/lib/web.js');
 
-assert.equal(pkg.version, '8.0.0', 'Installer EMS regression must run on Admin 8 release 8.0.0');
+assert.equal(pkg.version, '8.0.1', 'Installer EMS regression must run on Admin 8 release 8.0.1');
 assert.equal(runtimeRole, sourceRole, 'built and source role runtimes must be identical');
 
 for (const code of [sourceRole, runtimeRole]) {

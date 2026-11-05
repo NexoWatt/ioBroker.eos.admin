@@ -1,0 +1,75 @@
+_applyView(
+        func: {
+            map: string;
+            reduce?: '_stats';
+        },
+        params?: {
+            startkey?: string;
+            endkey?: string;
+            include_docs?: boolean;
+        } | null,
+    ): {
+        rows: {
+            id: string;
+            value:
+                | ioBroker.AnyObject
+                | ioBroker.DesignObject
+                | MetaObject
+                | { max: ioBroker.AnyObject | ioBroker.DesignObject | MetaObject | null };
+        }[];
+    } {
+        const result: {
+            rows: {
+                id: string;
+                value:
+                    | ioBroker.AnyObject
+                    | ioBroker.DesignObject
+                    | MetaObject
+                    | { max: ioBroker.AnyObject | ioBroker.DesignObject | MetaObject | null };
+            }[];
+        } = {
+            rows: [],
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        function _emit_(id: string, value: ioBroker.AnyObject | ioBroker.DesignObject | MetaObject): void {
+            result.rows.push({ id, value });
+        }
+
+        const f = eval(`(${func.map.replace(/emit/g, '_emit_')})`);
+
+        for (const [id, obj] of Object.entries(this.dataset)) {
+            if (params) {
+                if (params.startkey && id < params.startkey) {
+                    continue;
+                }
+                if (params.endkey && id > params.endkey) {
+                    continue;
+                }
+            }
+
+            if (obj) {
+                try {
+                    f(obj);
+                } catch (e) {
+                    this.log.warn(`${this.namespace} Cannot execute map: ${e.message}`);
+                }
+            }
+        }
+        // Calculate max
+        if (func.reduce === '_stats') {
+            let max: ioBroker.AnyObject | ioBroker.DesignObject | MetaObject | null = null;
+            for (const row of result.rows) {
+                if (max === null || row.value > max) {
+                    max = row.value as ioBroker.AnyObject | ioBroker.DesignObject | MetaObject;
+                }
+            }
+            if (max !== null) {
+                result.rows = [{ id: '_stats', value: { max } }];
+            } else {
+                result.rows = [];
+            }
+        }
+
+        return result;
+    }

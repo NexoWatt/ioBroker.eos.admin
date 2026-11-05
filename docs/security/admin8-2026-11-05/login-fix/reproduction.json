@@ -1,0 +1,80 @@
+{
+  "node": "v24.22.1",
+  "controller": {
+    "tag": "v7.2.5",
+    "commit": "e4c842b9056eb5b0b18bb56e70611821ecb3cc80",
+    "url": "https://github.com/ioBroker/ioBroker.js-controller/blob/e4c842b9056eb5b0b18bb56e70611821ecb3cc80/packages/controller/io-package.json",
+    "sha256": "d5b4e15ff0ffca3d0f0c2691271b6a2d5562f6edd0a68aefa3f1326a0017c6c6",
+    "projection": "Unchanged group.map and only _id/type/common.name/common.members/common.acl from standard group objects; icons and unrelated metadata omitted."
+  },
+  "webserver": "3.4.0",
+  "scope": "Exact official view methods and shipped OAuth model; in-memory DB/credential transport, not a live controller or appliance",
+  "results": [
+    {
+      "backend": "controller-file-view",
+      "rows": [
+        {
+          "emittedKey": {
+            "en": "Administrator",
+            "de": "Administrator",
+            "ru": "Администратор",
+            "pt": "Administrador",
+            "nl": "Beheerder",
+            "fr": "Administrateur",
+            "it": "Amministratore",
+            "es": "Administrador",
+            "pl": "Administrator",
+            "uk": "Адміністратор",
+            "zh-cn": "管理员"
+          },
+          "canonicalId": "system.group.administrator"
+        },
+        {
+          "emittedKey": {
+            "en": "User",
+            "de": "Benutzer",
+            "ru": "Пользователь",
+            "pt": "Do utilizador",
+            "nl": "Gebruiker",
+            "fr": "Utilisateur",
+            "it": "Utente",
+            "es": "Usuario",
+            "pl": "Użytkownik",
+            "uk": "Користувач",
+            "zh-cn": "用户"
+          },
+          "canonicalId": "system.group.user"
+        }
+      ],
+      "before": {
+        "authenticated": false,
+        "credentialChecks": 0
+      },
+      "after": {
+        "authenticated": true,
+        "credentialChecks": 1
+      }
+    },
+    {
+      "backend": "controller-redis-view",
+      "rows": [
+        {
+          "emittedKey": "Administrator",
+          "canonicalId": "system.group.administrator"
+        },
+        {
+          "emittedKey": "User",
+          "canonicalId": "system.group.user"
+        }
+      ],
+      "before": {
+        "authenticated": false,
+        "credentialChecks": 0
+      },
+      "after": {
+        "authenticated": true,
+        "credentialChecks": 1
+      }
+    }
+  ]
+}

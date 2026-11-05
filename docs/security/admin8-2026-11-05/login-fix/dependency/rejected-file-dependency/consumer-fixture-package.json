@@ -1,0 +1,11 @@
+{
+  "name": "eos-vendored-oauth-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "files": [
+    "tools/vendor/*.tgz"
+  ],
+  "dependencies": {
+    "@iobroker/webserver": "file:tools/vendor/webserver-3.4.0-eos-oauth.tgz"
+  }
+}

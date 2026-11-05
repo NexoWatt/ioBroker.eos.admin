@@ -145,17 +145,25 @@ class EosSessionSecurity {
             this.stopped) {
             throw failure();
         }
+        const groupIds = new Set();
         const groups = result.rows
             .map(row => {
+            // The controller's system/group view emits common.name as row.id.
+            // That view key may be translated and is not the object's identity.
+            const groupId = row?.value?._id;
             if (!row?.value ||
                 row.value.type !== 'group' ||
-                typeof row.id !== 'string' ||
-                !row.id.startsWith('system.group.')) {
+                typeof groupId !== 'string' ||
+                !groupId.startsWith('system.group.') ||
+                groupId.length <= 'system.group.'.length ||
+                groupId.length > 1024 ||
+                groupIds.has(groupId)) {
                 throw failure();
             }
-            return [row.id, securityProjection(row.id, row.value)];
+            groupIds.add(groupId);
+            return [groupId, securityProjection(groupId, row.value)];
         })
-            .sort((a, b) => a[0].localeCompare(b[0]));
+            .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
         const text = JSON.stringify(stable([userId, securityProjection(userId, user), groups]));
         if (Buffer.byteLength(text) > 1024 * 1024) {
             throw failure();
