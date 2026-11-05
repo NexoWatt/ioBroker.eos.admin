@@ -1,9 +1,9 @@
 {
   "tool": "nexowatt-security-inventory@1.0.0",
-  "timestamp": "2026-11-05T05:54:15.273Z",
+  "timestamp": "2026-11-05T06:37:11.876Z",
   "environment": {
     "node": "v24.22.1",
-    "platform": "linux",
+    "platform": "win32",
     "arch": "x64"
   },
   "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
