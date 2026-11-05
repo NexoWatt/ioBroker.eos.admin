@@ -1,11 +1,11 @@
 {
-  "version": "8.0.1",
+  "version": "8.0.2",
   "channel": "stable",
   "baseFrontend": "Rebuilt from official Admin 8.3.5 sources plus reviewed EOS integration using React 19 and Vite; see source-bound frontend manifest.",
   "runtimeEntry": "vite-manifest",
   "releaseType": "admin8-login-correction",
   "release": "admin8-login-correction",
-  "label": "v8-0-1",
+  "label": "v8-0-2",
   "notes": [
     "Own EOS version 8.0.1; upstream base 8.3.5. Corrects canonical group identity in the EOS session boundary.",
     "Retains NWL2 licensing, UUID binding, Home/Pro verification and encrypted local license storage.",
@@ -23,7 +23,7 @@
   "shellCacheVersion": 7109,
   "nativeShellVersion": 7109,
   "shellCacheTag": "7109",
-  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v8-0-1.json",
+  "repositoryEntry": "nexowatt-eos-admin-repository-entry-v8-0-2.json",
   "autoUpdateCacheVersion": 7103,
   "autoUpdateCacheTag": "7103",
   "upstream": {

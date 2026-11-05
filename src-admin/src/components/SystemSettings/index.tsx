@@ -13,6 +13,7 @@ import {
     IconButton,
     Box,
     CircularProgress,
+    Alert,
 } from '@mui/material';
 
 import {
@@ -45,6 +46,7 @@ import AdminUtils from '@/helpers/AdminUtils';
 import MainSettingsDialog from './MainSettingsDialog';
 import RepositoriesDialog, { type Repository } from './RepositoriesDialog';
 import LicensesDialog from './LicensesDialog';
+import EosLicenseDialog from './EosLicenseDialog';
 import CertificatesDialog from './CertificatesDialog';
 import CredentialsDialog from './CredentialsDialog';
 import { CREDENTIALS_PREFIX } from './credentialTypes';
@@ -131,10 +133,13 @@ interface SystemSettingsDialogProps {
     adminGuiConfig: AdminGuiConfig;
     expertModeFunc: (value: boolean) => void;
     currentHost: string;
+    eosAccessRole: string;
 }
 
 interface SystemSettingsDialogState {
     loading: boolean;
+    loadError: boolean;
+    saveError: boolean;
     confirmExit: boolean;
     systemConfig: ioBroker.SystemConfigObject | null;
     systemCertificates: ioBroker.Object | null;
@@ -190,6 +195,8 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
         super(props);
         this.state = {
             loading: true,
+            loadError: false,
+            saveError: false,
             confirmExit: false,
             systemConfig: null,
             systemCertificates: null,
@@ -203,21 +210,26 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             instance: '',
             repoInfo: {},
         };
-        this.getSettings(/* this.state.currentHost */).catch(e => window.alert(`Cannot read settings: ${e}`));
+        void this.getSettings();
     }
 
     async componentDidMount(): Promise<void> {
-        const multipleRepos = await this.props.socket.checkFeatureSupported('CONTROLLER_MULTI_REPO');
-        const licenseManager = await this.props.socket.checkFeatureSupported('CONTROLLER_LICENSE_MANAGER');
-        const namespace = await this.props.socket.getCurrentInstance();
-        const obj = (await this.props.socket.getObject(
-            `system.adapter.${namespace}`,
-        )) as any as ioBroker.InstanceObject;
-        this.setState({ host: obj.common.host, instance: namespace, multipleRepos, licenseManager });
+        try {
+            const multipleRepos = await this.props.socket.checkFeatureSupported('CONTROLLER_MULTI_REPO');
+            const licenseManager = await this.props.socket.checkFeatureSupported('CONTROLLER_LICENSE_MANAGER');
+            const namespace = await this.props.socket.getCurrentInstance();
+            const obj = (await this.props.socket.getObject(
+                `system.adapter.${namespace}`,
+            )) as any as ioBroker.InstanceObject;
+            this.setState({ host: obj.common.host, instance: namespace, multipleRepos, licenseManager });
+        } catch {
+            // Feature metadata must not leave an unhandled rejection or discard the editable base settings.
+            this.setState({ host: this.props.currentHost });
+        }
     }
 
     async getSettings(): Promise<void> {
-        const newState: Partial<SystemSettingsDialogState> = { loading: false };
+        const newState: Partial<SystemSettingsDialogState> = { loading: false, loadError: false };
         try {
             let systemRepositories = await this.props.socket.getObject('system.repositories');
             systemRepositories = AdminUtils.clone(systemRepositories);
@@ -355,8 +367,8 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             });
             newState.systemLicenses = systemLicenses;
             this.setState(newState as SystemSettingsDialogState);
-        } catch (e) {
-            window.alert(`Cannot read settings: ${e}`);
+        } catch {
+            this.setState({ loading: false, loadError: true });
         }
     }
 
@@ -389,7 +401,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
         ) {
             return;
         }
-        this.setState({ saving: true }, async () => {
+        this.setState({ saving: true, saveError: false }, async () => {
             try {
                 let systemConfig = await this.props.socket.getSystemConfig(true);
                 systemConfig = systemConfig || ({} as ioBroker.SystemConfigObject);
@@ -488,22 +500,14 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
 
                     if (stateSystemLicenses.native.password !== SOME_PASSWORD && stateSystemLicenses.native.password) {
                         // encode it
-                        try {
-                            systemLicenses.native.password = await this.props.socket.encrypt(
-                                stateSystemLicenses.native.password,
-                            );
-                        } catch (error) {
-                            window.alert(this.props.t('Cannot update licenses: %s', (error as Error).toString()));
-                        }
+                        systemLicenses.native.password = await this.props.socket.encrypt(
+                            stateSystemLicenses.native.password,
+                        );
                     } else if (!stateSystemLicenses.native.password) {
                         systemLicenses.native.password = '';
                     }
-                    try {
-                        await this.props.socket.setObject('system.licenses', systemLicenses);
-                        await this.props.socket.updateLicenses('', '');
-                    } catch (error) {
-                        window.alert(this.props.t('Cannot update licenses: %s', (error as Error).toString()));
-                    }
+                    await this.props.socket.setObject('system.licenses', systemLicenses);
+                    await this.props.socket.updateLicenses('', '');
                 }
 
                 // this.getSettings();
@@ -520,8 +524,10 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                     window.location.reload();
                 }
                 this.setState({ saving: false });
-            } catch (e) {
-                window.alert(`Cannot save system configuration: ${e}`);
+            } catch {
+                this.setState({ saveError: true });
+            } finally {
+                this.setState({ saving: false });
             }
         });
     }
@@ -539,6 +545,15 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                 handle: undefined,
             },
             {
+                id: 9,
+                title: 'EOS Home / Pro',
+                icon: <LicensesIcon />,
+                component: EosLicenseDialog,
+                data: '',
+                name: 'tabEosLicenses',
+                dataAux: '',
+            },
+            {
                 id: 1,
                 title: 'Repositories',
                 icon: <RepositoriesIcon />,
@@ -551,7 +566,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             },
             {
                 id: 2,
-                title: 'Licenses',
+                title: 'Adapter licenses',
                 icon: <LicensesIcon />,
                 component: LicensesDialog as unknown as React.FC<BaseSystemSettingsDialogProps>,
                 data: 'systemLicenses',
@@ -652,6 +667,24 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
     }
 
     getDialogContent(tabsList: SystemSettingsDialogTab[], currentTabId: string): JSX.Element {
+        // The license API is independent of optional controller settings and remains available for recovery.
+        if (currentTabId === 'tabEosLicenses' && this.props.eosAccessRole === 'admin') {
+            return <EosLicenseDialog />;
+        }
+        if (this.state.loadError) {
+            return (
+                <Box sx={{ p: 3 }}>
+                    <Alert severity="error">{this.props.t('Cannot read settings')}</Alert>
+                    <Button
+                        onClick={() =>
+                            this.setState({ loading: true, loadError: false }, () => void this.getSettings())
+                        }
+                    >
+                        {this.props.t('Retry')}
+                    </Button>
+                </Box>
+            );
+        }
         if (this.state.loading) {
             return (
                 <Box sx={styles.tabPanel}>
@@ -728,6 +761,7 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
         // nothing can be changed before everything is loaded - the originals are still empty until then
         const changed =
             !this.state.loading &&
+            !this.state.loadError &&
             !(
                 JSON.stringify(this.state.systemRepositories) === this.originalRepositories &&
                 JSON.stringify(this.state.systemConfig) === this.originalConfig &&
@@ -741,6 +775,9 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
             );
 
         const tabsList = this.getTabs().filter(tab => {
+            if (tab.name === 'tabEosLicenses') {
+                return this.props.eosAccessRole === 'admin';
+            }
             if (!this.state.licenseManager && tab.name === 'tabLicenses') {
                 return false;
             }
@@ -843,10 +880,18 @@ class SystemSettingsDialog extends Component<SystemSettingsDialogProps, SystemSe
                     </Box>
                     {this.renderDialogConfirm()}
                 </DialogContent>
+                {this.state.saveError ? (
+                    <Alert
+                        severity="error"
+                        data-eos-system-save-error="1"
+                    >
+                        {this.props.t('Cannot save system configuration')}. {this.props.t('Please try again')}
+                    </Alert>
+                ) : null}
                 <DialogActions>
                     <Button
                         variant="contained"
-                        disabled={!changed || this.state.saving || tabError}
+                        disabled={!changed || this.state.saving || tabError || this.state.loadError}
                         onClick={() => this.onSave()}
                         color="primary"
                         startIcon={this.state.saving ? <CircularProgress size={20} /> : <CheckIcon />}

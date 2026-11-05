@@ -23,7 +23,7 @@ const frontend = verifyFrontendManifest();
 const shellNo = Number(info.shellCacheVersion ?? info.brandingCacheVersion);
 const shellTag = String(info.shellCacheTag || shellNo);
 const autoUpdateTag = String(info.autoUpdateCacheTag || info.autoUpdateCacheVersion || shellTag);
-if (!/^8\.0\.1(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
+if (!/^8\.0\.2(?:-rc\.\d+)?$/.test(version)) fail(`unexpected version ${version}`);
 if (!Number.isFinite(shellNo)) fail('invalid shell cache version');
 for (const [name, value] of [
   ['build info', info.version],

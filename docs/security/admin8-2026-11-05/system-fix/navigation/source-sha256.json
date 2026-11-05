@@ -1,0 +1,11 @@
+{
+  "src-admin/src/App.tsx": "29a6af2282b685a134596530df4c5c8f58b4e3f47d3647b7c970b4ddfeaef503",
+  "src-admin/src/components/Drawer.tsx": "df9a882ee3bc5a2d4f7a02be29db4c0cdefa45d5a0f28f072de04b058e888aaf",
+  "src-admin/public/js/nexowatt-native-shell.js": "75233bc0befda8f1bd4973f408fa5ed95d06fd39ef70d684fbf7c001cd7b96fc",
+  "src-admin/public/css/nexowatt-native-shell.css": "7838f023a362e3401a4b1ed1294245be7c4a4298f9851d570fa02ae27cff648c",
+  "test/eos-admin8-navigation.test.cjs": "42a327dff8a5fe407443ecb6aa4c0932cb8bbf692fbd520b5000b932b14036db",
+  "tools/nexowatt-role-security-selftest.cjs": "a5e660af2a9ffee5c078f6702ee5caaf500db643c2c091aa9c260751c65667d0",
+  "src-admin/src/i18n/en.json": "781ede9b9117451e996e712f77c230ff2cc851a8dc424bfcab7a558511f342ce",
+  "src-admin/src/i18n/de.json": "5e423dd6e3a4767e9dba356126c1cfe792ee72e8e97619d82ad6834f5a2da7c4",
+  "src-admin/src/i18n/nl.json": "edc203d3fcaf2143e89cd9db2c960a43e10140148d5e4d6beefe198b090cbb73"
+}

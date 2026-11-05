@@ -852,22 +852,42 @@ class Web {
                 startkey: 'system.group.',
                 endkey: 'system.group.香',
             });
+            if (!Array.isArray(result?.rows) || result.rows.length > 1024) {
+                throw new Error('invalidGroupView');
+            }
+            const groupIds = new Set();
             for (const row of result.rows) {
-                const group = row.value;
+                const group = row?.value;
+                // The controller emits common.name as the view key. Only the object ID
+                // is an identity; translated or user-editable display names grant no role.
+                const groupId = group?._id;
+                if (!group ||
+                    group.type !== 'group' ||
+                    typeof groupId !== 'string' ||
+                    !groupId.startsWith('system.group.') ||
+                    groupId.length <= 'system.group.'.length ||
+                    groupId.length > 1024 ||
+                    groupIds.has(groupId) ||
+                    (group.common?.members !== undefined && !Array.isArray(group.common.members))) {
+                    throw new Error('invalidGroupIdentity');
+                }
+                groupIds.add(groupId);
                 const members = Array.isArray(group?.common?.members) ? group.common.members : [];
                 if (members.includes(userId)) {
                     groups.push({
-                        id: row.id,
+                        id: groupId,
                         name: this.getTranslatedName(group?.common?.name),
                         desc: this.getTranslatedName(group?.common?.desc),
                     });
                 }
             }
         }
-        catch (e) {
-            this.adapter.log.debug(`Cannot resolve EOS security groups for ${userId}: ${e instanceof Error ? e.message : 'unknown error'}`);
+        catch {
+            // Never return a partial or guessed role after an unavailable/invalid view.
+            this.adapter.log.debug('Cannot resolve EOS security groups: group view unavailable or invalid');
+            throw new Error('EOS_SECURITY_GROUPS_UNAVAILABLE');
         }
-        return groups.sort((a, b) => a.id.localeCompare(b.id));
+        return groups.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     }
     async getEosGroupsForUser(userId) {
         return (await this.getEosGroupDetailsForUser(userId)).map(group => group.id);

@@ -1786,3 +1786,75 @@ html.eos-route-logs #app-paper code {
         margin-right: 9px !important;
     }
 }
+
+/* Admin8: keep native System/expert controls outside the scrolling tab list.
+   The former vertical footer is not compatible with the fixed-height EOS row. */
+html.eos-app .MuiDrawer-paper,
+html.eos-app .eos-drawer { overflow-x: hidden !important; }
+html.eos-app .eos-system-navigation {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    height: 56px;
+}
+html.eos-app .eos-system-navigation [data-eos-expert-control="1"] {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+}
+html.eos-app .eos-scroll-nav,
+html.eos-app .MuiDrawer-paper > .MuiList-root {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin;
+}
+html.eos-app .eos-drawer-account {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: 56px;
+    border-top: 0;
+}
+html.eos-app .eos-drawer-account .nexowatt-native-nav-item {
+    min-width: 44px !important;
+    width: 44px !important;
+    padding: 0 6px !important;
+}
+html.eos-app .eos-drawer-account .MuiListItemText-root { display: none !important; }
+html.eos-app .eos-header-controls { display: flex; align-items: center; flex-wrap: nowrap; }
+@media (max-width: 700px) {
+    html.eos-app .eos-brand-badge { padding: 5px; }
+    html.eos-app .eos-brand-badge-full-logo { width: 105px; }
+    html.eos-app .eos-top-toolbar { overflow-x: auto !important; }
+    html.eos-app .eos-system-navigation { gap: 0; }
+    html.eos-app .eos-system-navigation .nexowatt-native-nav-item { padding: 0 8px !important; gap: 5px !important; }
+    html.eos-app .eos-system-navigation [data-eos-expert-control="1"] { width: 40px; height: 40px; flex-basis: 40px; }
+    html.eos-app .eos-standalone-nav-toggle { width: 36px; min-width: 36px; }
+}
+
+/* Native System tabs must keep contrast when the EOS shell supplies a dark panel,
+   independently of the user's underlying MUI theme. Disabled controls remain disabled. */
+html.eos-app [role="dialog"][aria-labelledby="system-settings-dialog-title"] .MuiTab-root {
+    color: var(--nx-text) !important;
+}
+html.eos-app [role="dialog"][aria-labelledby="system-settings-dialog-title"] .MuiTab-root .MuiSvgIcon-root {
+    color: inherit !important;
+}
+html.eos-app [role="dialog"][aria-labelledby="system-settings-dialog-title"] .MuiTab-root.Mui-selected {
+    color: var(--nx-accent) !important;
+    background-color: rgba(0, 255, 136, .08);
+}
+html.eos-app [role="dialog"][aria-labelledby="system-settings-dialog-title"] .MuiTabs-indicator {
+    background-color: var(--nx-accent) !important;
+}
+html.eos-app [role="dialog"][aria-labelledby="system-settings-dialog-title"] .MuiTab-root.Mui-disabled {
+    color: var(--nx-muted) !important;
+    opacity: .55;
+}
+html.eos-app [role="dialog"][aria-labelledby="system-settings-dialog-title"] .MuiTab-root:focus-visible {
+    outline: 2px solid var(--nx-accent);
+    outline-offset: -2px;
+}

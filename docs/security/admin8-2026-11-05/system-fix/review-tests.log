@@ -1,0 +1,30 @@
+✔ System and expert controls are rendered for administrative policy only (195.110946ms)
+✔ expert mode keeps confirmation and toggles both directions within the browser session (33.860236ms)
+✔ cancelling expert confirmation preserves mode; settings link opens native System dialog (19.039987ms)
+✔ saved expert default and suppressed confirmation still allow disabling and reenabling (19.943737ms)
+✔ policy arriving after launch updates React controls and restores session preference (15.184021ms)
+✔ revoked, unresolved and first-login policies cannot retain expert or system controls (110.058816ms)
+✔ a later legacy global role write cannot restore revoked React controls or an old click handler (19.053974ms)
+✔ public status projection preserves Home/Pro and rejects hidden activation-code fields (1.711795ms)
+✔ license URL preserves root and prefixed Admin deployment paths (0.201427ms)
+✔ invalid or inconsistent status never becomes a valid license (0.561227ms)
+✔ activation and removal use existing same-origin authenticated routes and exact CSRF bodies (5.612488ms)
+✔ bad codes and invalid route names are rejected before any request (9.212952ms)
+✔ denied or unavailable API produces a safe error and never a false no-license status (4.841776ms)
+✔ oversized and malformed response bodies are rejected and stream cancelled (1.6596ms)
+✔ one total five-second deadline aborts the live response stream (5063.447871ms)
+✔ closing the panel cancels the live response without waiting for the deadline (115.666204ms)
+✔ activation never reports success for a response without a valid entitlement (0.921981ms)
+✔ removal never reports success when the server still confirms an active license (0.394432ms)
+✔ System save keeps edits open and reports failure after encrypt rejection (95.432474ms)
+✔ System save keeps edits open and reports failure after write rejection (42.178353ms)
+✔ System save keeps edits open and reports failure after update rejection (55.928649ms)
+✔ System save confirms only after encrypted license credential write and refresh complete (34.414675ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5384.545308

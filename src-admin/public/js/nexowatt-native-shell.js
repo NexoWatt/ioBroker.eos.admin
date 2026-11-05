@@ -113,7 +113,7 @@
         if (!drawer) return;
         drawer.classList.add('eos-drawer');
 
-        const nativeHeader = drawer.querySelector(':scope > div:first-child:not(.MuiList-root)');
+        const nativeHeader = drawer.querySelector('[data-eos-drawer-header="1"]');
         if (nativeHeader && nativeHeader.querySelector('button, a, img, .MuiAvatar-root')) {
             nativeHeader.classList.add('eos-native-drawer-header');
             nativeHeader.setAttribute('aria-hidden', 'true');
@@ -138,7 +138,7 @@
                 safe(() => localStorage.setItem('nexowatt:eosNavCompact', compact ? '1' : '0'));
                 toggle.setAttribute('aria-pressed', compact ? 'true' : 'false');
             }, { signal: abort.signal });
-            drawer.insertBefore(toggle, list || drawer.firstChild || null);
+            drawer.insertBefore(toggle, drawer.querySelector('.eos-system-navigation') || list || drawer.firstChild || null);
         }
 
         const compact = safe(() => localStorage.getItem('nexowatt:eosNavCompact') === '1') || false;

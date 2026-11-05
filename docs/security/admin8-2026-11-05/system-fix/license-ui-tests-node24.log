@@ -1,0 +1,19 @@
+✔ public status projection preserves Home/Pro and rejects hidden activation-code fields (2.453398ms)
+✔ license URL preserves root and prefixed Admin deployment paths (0.278401ms)
+✔ invalid or inconsistent status never becomes a valid license (0.792429ms)
+✔ activation and removal use existing same-origin authenticated routes and exact CSRF bodies (7.220057ms)
+✔ bad codes and invalid route names are rejected before any request (1.707938ms)
+✔ denied or unavailable API produces a safe error and never a false no-license status (1.678025ms)
+✔ oversized and malformed response bodies are rejected and stream cancelled (1.849547ms)
+✔ one total five-second deadline aborts the live response stream (5064.148052ms)
+✔ closing the panel cancels the live response without waiting for the deadline (114.273589ms)
+✔ activation never reports success for a response without a valid entitlement (1.017493ms)
+✔ removal never reports success when the server still confirms an active license (0.398469ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5344.520318

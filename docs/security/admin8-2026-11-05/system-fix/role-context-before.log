@@ -1,0 +1,86 @@
+✖ controller translated view keys resolve canonical admin membership for any username (2.204176ms)
+✖ configured service and installer groups use canonical IDs; display text cannot elevate privileges (2.022387ms)
+✖ role context rejects malformed views and duplicate IDs instead of returning partial roles (1.292368ms)
+✖ role context ignores presentation key type and orders distinct identities deterministically (1.111321ms)
+✖ real OAuth tokens authenticate role context and protected license status via cookie and bearer (67.850464ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 837.688296
+
+✖ failing tests:
+
+test at test/role-context-baseline-repro.cjs:50:1
+✖ controller translated view keys resolve canonical admin membership for any username (2.204176ms)
+  TypeError [Error]: a.id.localeCompare is not a function
+      at /workspace/scratch/c16def314bc5/admin8-login-fix/ioBroker.eos-admin/src/lib/web.ts:870:43
+      at Array.sort (<anonymous>)
+      at Web.getEosGroupDetailsForUser (/workspace/scratch/c16def314bc5/admin8-login-fix/ioBroker.eos-admin/src/lib/web.ts:870:23)
+      at async Web.getEosAccessForUserId (/workspace/scratch/c16def314bc5/admin8-login-fix/ioBroker.eos-admin/src/lib/web.ts:903:39)
+      at async TestContext.<anonymous> (/workspace/scratch/c16def314bc5/admin8-system-fix/ioBroker.eos-admin/test/role-context-baseline-repro.cjs:56:24)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/role-context-baseline-repro.cjs:63:1
+✖ configured service and installer groups use canonical IDs; display text cannot elevate privileges (2.022387ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'enduser' !== 'admin'
+  
+      at TestContext.<anonymous> (/workspace/scratch/c16def314bc5/admin8-system-fix/ioBroker.eos-admin/test/role-context-baseline-repro.cjs:70:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'enduser',
+    expected: 'admin',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/role-context-baseline-repro.cjs:78:1
+✖ role context rejects malformed views and duplicate IDs instead of returning partial roles (1.292368ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (/workspace/scratch/c16def314bc5/admin8-system-fix/ioBroker.eos-admin/test/role-context-baseline-repro.cjs:90:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /EOS_SECURITY_GROUPS_UNAVAILABLE/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/role-context-baseline-repro.cjs:101:1
+✖ role context ignores presentation key type and orders distinct identities deterministically (1.111321ms)
+  TypeError [Error]: a.id.localeCompare is not a function
+      at /workspace/scratch/c16def314bc5/admin8-login-fix/ioBroker.eos-admin/src/lib/web.ts:870:43
+      at Array.sort (<anonymous>)
+      at Web.getEosGroupDetailsForUser (/workspace/scratch/c16def314bc5/admin8-login-fix/ioBroker.eos-admin/src/lib/web.ts:870:23)
+      at async Web.getEosAccessForUserId (/workspace/scratch/c16def314bc5/admin8-login-fix/ioBroker.eos-admin/src/lib/web.ts:903:39)
+      at async TestContext.<anonymous> (/workspace/scratch/c16def314bc5/admin8-system-fix/ioBroker.eos-admin/test/role-context-baseline-repro.cjs:108:34)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at test/role-context-baseline-repro.cjs:112:1
+✖ real OAuth tokens authenticate role context and protected license status via cookie and bearer (67.850464ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  503 !== 200
+  
+      at TestContext.<anonymous> (/workspace/scratch/c16def314bc5/admin8-system-fix/ioBroker.eos-admin/test/role-context-baseline-repro.cjs:167:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 503,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

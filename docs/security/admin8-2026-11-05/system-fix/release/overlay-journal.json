@@ -1,0 +1,452 @@
+{
+  "format": 1,
+  "package": "iobroker.eos-admin",
+  "version": "8.0.2",
+  "manifestSha256": "d0836a5a55d78ec3b679b319ebf1ee46d03c7dd750f8730f4878e9853ed971c9",
+  "started": "2026-11-05T11:41:43.595Z",
+  "status": "COMPLETE",
+  "files": [
+    {
+      "path": "adminWww/assets/AccessTime-Dpa6PKHY.js",
+      "sha256": "160cffcc51cc2f67b4b60280ded212f6e1ea7a33e8986410222fa7b6e47b87c6",
+      "bytes": 321,
+      "snapshot": "000001.bin",
+      "retired": "000001.retired"
+    },
+    {
+      "path": "adminWww/assets/AceEditor-DTzNaeVy.js",
+      "sha256": "85e5f22ab3120a597ae326d8f74f57faae9a3ba978273a9cc6a4754e4a47a5c9",
+      "bytes": 153339,
+      "snapshot": "000002.bin",
+      "retired": "000002.retired"
+    },
+    {
+      "path": "adminWww/assets/AdapterUpdateDialog-D3y2bGHM.js",
+      "sha256": "6b64ea12b0af69256a254de735a43e7c8b1d4f61eb6b598f53212cc362b98a11",
+      "bytes": 49746,
+      "snapshot": "000003.bin",
+      "retired": "000003.retired"
+    },
+    {
+      "path": "adminWww/assets/Adapters-WMGNQt7g.js",
+      "sha256": "a8646651eb0ceaef089b25bc1fdf74323807ac1c10585c825584ad6161b06d96",
+      "bytes": 137038,
+      "snapshot": "000004.bin",
+      "retired": "000004.retired"
+    },
+    {
+      "path": "adminWww/assets/AdminUtils-DDT_kD8H.js",
+      "sha256": "c1266121680b50a659530d8488a4c9a8ea580dadb727aa9806fec7e2c411c785",
+      "bytes": 16347,
+      "snapshot": "000005.bin",
+      "retired": "000005.retired"
+    },
+    {
+      "path": "adminWww/assets/Apps-C8LE9l6Z.js",
+      "sha256": "cbffc2569c49daf9d66a0cb65ac17d1722b017d2c8e15a542217f3d52e533435",
+      "bytes": 221,
+      "snapshot": "000006.bin",
+      "retired": "000006.retired"
+    },
+    {
+      "path": "adminWww/assets/Book-QmHxDaHb.js",
+      "sha256": "bdfb56f3dadd513584a9aa0fbb78f6437b0c8a6f6070c67130c1807c708cc9a2",
+      "bytes": 205,
+      "snapshot": "000007.bin",
+      "retired": "000007.retired"
+    },
+    {
+      "path": "adminWww/assets/Cached-f77QQBQD.js",
+      "sha256": "835bbf2ae267d6c5ab412c4eca2a56eb0d464ee5d47273ef67fca0c92685054f",
+      "bytes": 327,
+      "snapshot": "000008.bin",
+      "retired": "000008.retired"
+    },
+    {
+      "path": "adminWww/assets/Computer-DFIUq-fL.js",
+      "sha256": "624927baedda19332a69a9853615754ba4b9f828896ddecdee0f0376fcc863c8",
+      "bytes": 217,
+      "snapshot": "000009.bin",
+      "retired": "000009.retired"
+    },
+    {
+      "path": "adminWww/assets/Config-BZDUILCW.js",
+      "sha256": "c5cdff8b20021da79dd77b6f600820704e688a9d37c6b9c07e499ad62ba47b84",
+      "bytes": 13310,
+      "snapshot": "000010.bin",
+      "retired": "000010.retired"
+    },
+    {
+      "path": "adminWww/assets/ConfigManager-BMdQoiCg.js",
+      "sha256": "4e2bd308ada4700222aba25b8a40b2be4e394b7acf874816c539f731e0124e3d",
+      "bytes": 2407,
+      "snapshot": "000011.bin",
+      "retired": "000011.retired"
+    },
+    {
+      "path": "adminWww/assets/CustomModal-B8vdCRn1.js",
+      "sha256": "3902dd715c9095b7f34c7c35681744f6a11b6dee999f66f3047c6029e5ed002c",
+      "bytes": 2083,
+      "snapshot": "000012.bin",
+      "retired": "000012.retired"
+    },
+    {
+      "path": "adminWww/assets/CustomTab-DSPqif6P.js",
+      "sha256": "2614e663fd389686c789c09dcab3bb3b1a7b764c524e2e3a359ffb7bfd658f98",
+      "bytes": 6084,
+      "snapshot": "000013.bin",
+      "retired": "000013.retired"
+    },
+    {
+      "path": "adminWww/assets/DeleteForever-BnEM-6_v.js",
+      "sha256": "ad94726c9a2c531676b89988ba6297c44cdb128df9e535ee2058cf60467512ee",
+      "bytes": 305,
+      "snapshot": "000014.bin",
+      "retired": "000014.retired"
+    },
+    {
+      "path": "adminWww/assets/EasyMode-TwIN5yxu.js",
+      "sha256": "452928049622a8160bedd0831f4c6ebf75dadfbbd8765e8134d7e47d11974d7a",
+      "bytes": 4575,
+      "snapshot": "000015.bin",
+      "retired": "000015.retired"
+    },
+    {
+      "path": "adminWww/assets/Enums-CHm2sGa-.js",
+      "sha256": "1e4e9b196f2044efd40452b60672643b4ab4749a02baa522242fabaca8e26a3f",
+      "bytes": 83457,
+      "snapshot": "000016.bin",
+      "retired": "000016.retired"
+    },
+    {
+      "path": "adminWww/assets/Extension-DU1jqvic.js",
+      "sha256": "a060863608f4f523187cd94bfde7bd073856c882a8695b80bd83b084ace54706",
+      "bytes": 396,
+      "snapshot": "000017.bin",
+      "retired": "000017.retired"
+    },
+    {
+      "path": "adminWww/assets/Fields-Df7Llf6U.js",
+      "sha256": "cc1716657457b3d962ec5791ccbb07f35bee97f82cecdc404152ce6b6a072852",
+      "bytes": 2383,
+      "snapshot": "000018.bin",
+      "retired": "000018.retired"
+    },
+    {
+      "path": "adminWww/assets/Files-Bwbw17Fb.js",
+      "sha256": "acacf94d10cced6b22a50a936508a1d8e89321dc4d6a39e6eef00a2a83be0e37",
+      "bytes": 44165,
+      "snapshot": "000019.bin",
+      "retired": "000019.retired"
+    },
+    {
+      "path": "adminWww/assets/Hosts-BR0g-Wxo.js",
+      "sha256": "463ac1c35045351aac67112248035a9e50e7cdf23077b95c79eabf9969ec3c7d",
+      "bytes": 136955,
+      "snapshot": "000020.bin",
+      "retired": "000020.retired"
+    },
+    {
+      "path": "adminWww/assets/InfoOutlined-l86Si1qa.js",
+      "sha256": "8b04a2937b34f251afe2728281afcddf6eba12289e02009c54b3836d3abbc37a",
+      "bytes": 261,
+      "snapshot": "000021.bin",
+      "retired": "000021.retired"
+    },
+    {
+      "path": "adminWww/assets/Instances-BKydFSdw.js",
+      "sha256": "3d0bf6c3557fbb97d4feef1309b646ed6cddcb7ba299dab10b99a58f5d168eaf",
+      "bytes": 199808,
+      "snapshot": "000022.bin",
+      "retired": "000022.retired"
+    },
+    {
+      "path": "adminWww/assets/Intro-Dt2GzmtW.js",
+      "sha256": "c9038a21df4a9f20b067ad369dcd61f73285f5ab567fb15f763f9b6c255ad97b",
+      "bytes": 57718,
+      "snapshot": "000023.bin",
+      "retired": "000023.retired"
+    },
+    {
+      "path": "adminWww/assets/KeyboardArrowRight-zZUJhG9e.js",
+      "sha256": "4020316585c69a294090f36f30a4478e2ccf18a68247de4d65434ba748310382",
+      "bytes": 329,
+      "snapshot": "000024.bin",
+      "retired": "000024.retired"
+    },
+    {
+      "path": "adminWww/assets/Logs-hbcdBDN3.js",
+      "sha256": "c936b4eeb1fd788c9059e7783b146da73792e070c98b4f1eb1e3ea8c2f04a2d5",
+      "bytes": 25074,
+      "snapshot": "000025.bin",
+      "retired": "000025.retired"
+    },
+    {
+      "path": "adminWww/assets/MoreHoriz-CR2kD-dc.js",
+      "sha256": "c86cf8078de8ba3c02faac0f7f9ca464f2d37e775e1a3d19ed4d05081d5b49b1",
+      "bytes": 1043,
+      "snapshot": "000026.bin",
+      "retired": "000026.retired"
+    },
+    {
+      "path": "adminWww/assets/Objects-HPx0yuOk.js",
+      "sha256": "f6e9a9789d810fdc2181a165de6704e1d19a98926874bee0570005c994899c31",
+      "bytes": 374558,
+      "snapshot": "000027.bin",
+      "retired": "000027.retired"
+    },
+    {
+      "path": "adminWww/assets/Overview-CDvnM655.js",
+      "sha256": "ac22e244c76358bfa4d3891c18b3bc34eefecf0fe177da1f15a881ff65edd2a3",
+      "bytes": 35024,
+      "snapshot": "000028.bin",
+      "retired": "000028.retired"
+    },
+    {
+      "path": "adminWww/assets/Pageview-DBITLOzI.js",
+      "sha256": "fc4c16dbfd9179f23763da6a459ca70b3b68a61a07651ce253522ee0eb36a223",
+      "bytes": 1161,
+      "snapshot": "000029.bin",
+      "retired": "000029.retired"
+    },
+    {
+      "path": "adminWww/assets/PersonOff-ANdO5Nu4.js",
+      "sha256": "fe037fa9838075be44c84f8083a51a47636f5201524185582b9ccd3d9c309ce5",
+      "bytes": 889,
+      "snapshot": "000030.bin",
+      "retired": "000030.retired"
+    },
+    {
+      "path": "adminWww/assets/PushPinOutlined-DvxsqPHo.js",
+      "sha256": "057a83cebbfe50cbb6e5dd6337cfe4da937334bbabe845a1a140b4ed5d1828cc",
+      "bytes": 483,
+      "snapshot": "000031.bin",
+      "retired": "000031.retired"
+    },
+    {
+      "path": "adminWww/assets/Remove-DplJatnC.js",
+      "sha256": "5b06a909ff8c1c2f951087ac47b6a25f774f4a68e254cff8d70742cb70f80bf2",
+      "bytes": 124,
+      "snapshot": "000032.bin",
+      "retired": "000032.retired"
+    },
+    {
+      "path": "adminWww/assets/Schedule-BMMrgd7j.js",
+      "sha256": "d97a72e9c5b4b9402f92a26e104170393fbda3fad299c8661b383b3da871c661",
+      "bytes": 319,
+      "snapshot": "000033.bin",
+      "retired": "000033.retired"
+    },
+    {
+      "path": "adminWww/assets/Star-DNdm064z.js",
+      "sha256": "c4b4cce76979eb58e3123b8f46d083855c3d086b9a80367bb5edecbbf7281daf",
+      "bytes": 2822,
+      "snapshot": "000034.bin",
+      "retired": "000034.retired"
+    },
+    {
+      "path": "adminWww/assets/State-Cc-tyuqB.js",
+      "sha256": "a69185261d93e457a6d432104f5a721d199d260459f680ed2eca328d39d94aec",
+      "bytes": 533,
+      "snapshot": "000035.bin",
+      "retired": "000035.retired"
+    },
+    {
+      "path": "adminWww/assets/Storage-COo2RkS1.js",
+      "sha256": "9a4d8a2bfccf97a01ee9331966cde2e53b286647ca7dc9789fd32a6843242759",
+      "bytes": 183,
+      "snapshot": "000036.bin",
+      "retired": "000036.retired"
+    },
+    {
+      "path": "adminWww/assets/TextSnippet-Bywi1YuG.js",
+      "sha256": "4215dfade2f183765fd80538f30bd9bdafdd52c9e7af56a9c3c58a7781779711",
+      "bytes": 282,
+      "snapshot": "000037.bin",
+      "retired": "000037.retired"
+    },
+    {
+      "path": "adminWww/assets/Timeline-IQCnSLiw.js",
+      "sha256": "d863fd80259461e043893eb7e8250df169d19e9ddff9966029703032c2aa33c1",
+      "bytes": 651,
+      "snapshot": "000038.bin",
+      "retired": "000038.retired"
+    },
+    {
+      "path": "adminWww/assets/Timer-Be9yF62g.js",
+      "sha256": "98add37becf949886d858d73cc631a6ad615542498d2ab59418bab9165c07a5b",
+      "bytes": 1173,
+      "snapshot": "000039.bin",
+      "retired": "000039.retired"
+    },
+    {
+      "path": "adminWww/assets/UnfoldMore-Du7-8wYn.js",
+      "sha256": "694a5664db2f907cc90f9316cc2bfc69d15105a95b102748c1ec9769abb6bc9d",
+      "bytes": 357,
+      "snapshot": "000040.bin",
+      "retired": "000040.retired"
+    },
+    {
+      "path": "adminWww/assets/Usb-Ca47vqRv.js",
+      "sha256": "0012e71bdd7999d2238f18d409577a72e3c707b65fb63599e9c1b09f8f230e7d",
+      "bytes": 1034,
+      "snapshot": "000041.bin",
+      "retired": "000041.retired"
+    },
+    {
+      "path": "adminWww/assets/UsedResources-BIdU7UPm.js",
+      "sha256": "a05601ce4a305b0c02355180d4ed26b9aa9cdbeede519bd68b8f0bbc94f2c9a3",
+      "bytes": 6692,
+      "snapshot": "000042.bin",
+      "retired": "000042.retired"
+    },
+    {
+      "path": "adminWww/assets/Users-BruHA-yU.js",
+      "sha256": "11a13e82fd1aa17470842b37e8a7399e5f4e5583bc94b4dd6f9b1df0fb943dc8",
+      "bytes": 29779,
+      "snapshot": "000043.bin",
+      "retired": "000043.retired"
+    },
+    {
+      "path": "adminWww/assets/ViewCompact-C3SC0jFF.js",
+      "sha256": "d44012077ed7c7ad4daaef818b5ed8c5f6ec04e5250b9c4bafbbc56ffbfda2c1",
+      "bytes": 814,
+      "snapshot": "000044.bin",
+      "retired": "000044.retired"
+    },
+    {
+      "path": "adminWww/assets/ViewList-DuKCnBnc.js",
+      "sha256": "24ba34f27d9f14f20650c6a2d2940db7af6533738b3857e2ebf987ac412c0e7a",
+      "bytes": 185,
+      "snapshot": "000045.bin",
+      "retired": "000045.retired"
+    },
+    {
+      "path": "adminWww/assets/ViewSidebar-kHvah-XS.js",
+      "sha256": "2e5bc9134710729ce0c72b9ed15476bc252ab2aee64881f900dcb49719a5a2fe",
+      "bytes": 1304,
+      "snapshot": "000046.bin",
+      "retired": "000046.retired"
+    },
+    {
+      "path": "adminWww/assets/VpnKey-iMA7KrB-.js",
+      "sha256": "af8d96cd8cb6d6a996f8a65aa425b8d6e7dc6d2ea0fc8c81aa793f5ab4602fc1",
+      "bytes": 258,
+      "snapshot": "000047.bin",
+      "retired": "000047.retired"
+    },
+    {
+      "path": "adminWww/assets/WifiTethering-Da8nW7Do.js",
+      "sha256": "202de0db765842b09bfb93a7e4f85dc0e85839b7a5e63ade09b27d544bab71bf",
+      "bytes": 7293,
+      "snapshot": "000048.bin",
+      "retired": "000048.retired"
+    },
+    {
+      "path": "adminWww/assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js",
+      "sha256": "4d58795e4cf42210da768f0383b82b32f2b7d24540e4fbcd84e25c81d4a7124f",
+      "bytes": 12809,
+      "snapshot": "000049.bin",
+      "retired": "000049.retired"
+    },
+    {
+      "path": "adminWww/assets/bootstrap-D-7xcwTc.js",
+      "sha256": "2cd51174c4a120c9582a51292396b2f907de286f4a527a3cedc3c6ffbd3e6e2c",
+      "bytes": 1995798,
+      "snapshot": "000050.bin",
+      "retired": "000050.retired"
+    },
+    {
+      "path": "adminWww/assets/date-fns-Bpgjk9P-.js",
+      "sha256": "301e19e26ffdbd03b95cebc952039925ddb809a2c1a81b2ee24b0e396f52e06d",
+      "bytes": 32874,
+      "snapshot": "000051.bin",
+      "retired": "000051.retired"
+    },
+    {
+      "path": "adminWww/assets/helpers-DBoACUHw.js",
+      "sha256": "69c9c8bbcde8635db81c587f532e3e564952585cfd2925358e2a3b3d331d1202",
+      "bytes": 99,
+      "snapshot": "000052.bin",
+      "retired": "000052.retired"
+    },
+    {
+      "path": "adminWww/assets/hostInit-huY-0clu.js",
+      "sha256": "b194988e2b8c1b9e219f91b3f61a2d4c4689b7a0fab6ce5dad5b42b9bbf527f2",
+      "bytes": 6198,
+      "snapshot": "000053.bin",
+      "retired": "000053.retired"
+    },
+    {
+      "path": "adminWww/assets/icons-material-Bu1f45BT.js",
+      "sha256": "dbaa2b734c37e51bcf025c986aed3ddb09dcb70aed3b0665bbba787e76f86acd",
+      "bytes": 3816290,
+      "snapshot": "000054.bin",
+      "retired": "000054.retired"
+    },
+    {
+      "path": "adminWww/assets/index-D8vmzGp8.js",
+      "sha256": "07560121bbad1ce69dd5ce9fcd92c95c703862fb7d39e10c972e79616c9afbc6",
+      "bytes": 1244,
+      "snapshot": "000055.bin",
+      "retired": "000055.retired"
+    },
+    {
+      "path": "adminWww/assets/installSVGRenderer-BkdptYag.js",
+      "sha256": "a003c6ca25f95bef131a3336b99c60c6b26161122d34f22664636a0409f65b5c",
+      "bytes": 525236,
+      "snapshot": "000056.bin",
+      "retired": "000056.retired"
+    },
+    {
+      "path": "adminWww/assets/lib-CE1B3iHH.js",
+      "sha256": "9128c860ec093935819519cd182daf5ed2ecb8b0c6cc6ec725d2186002531163",
+      "bytes": 23205,
+      "snapshot": "000057.bin",
+      "retired": "000057.retired"
+    },
+    {
+      "path": "adminWww/assets/loadShare-eager-CRNcc8D7.js",
+      "sha256": "236557accf0d9bf7fade0278b9389b9f2ca0b923e88259f6b22c7a542d36c073",
+      "bytes": 4268118,
+      "snapshot": "000058.bin",
+      "retired": "000058.retired"
+    },
+    {
+      "path": "adminWww/assets/mf-entry-bootstrap-0-f6098d8b.js",
+      "sha256": "f6098d8b2e981835d272e6afe3d8ae85f45729d25634ae3f19e65187230dd6e7",
+      "bytes": 2162,
+      "snapshot": "000059.bin",
+      "retired": "000059.retired"
+    },
+    {
+      "path": "adminWww/assets/pendingShares-CuQbFsaK.js",
+      "sha256": "36b7bbb95a928c09a98e8c2320bffc6ce08c661000856476e0667d1a1bad8f2d",
+      "bytes": 1559,
+      "snapshot": "000060.bin",
+      "retired": "000060.retired"
+    },
+    {
+      "path": "adminWww/assets/sentry-B4uGc7ut.js",
+      "sha256": "1c639c1fb4c83c2952a91d520981db7a04da59ccd1327da62e5aaf0d209ddba6",
+      "bytes": 4088,
+      "snapshot": "000061.bin",
+      "retired": "000061.retired"
+    },
+    {
+      "path": "adminWww/assets/setYear-DurmWw03.js",
+      "sha256": "281449d82d6ba369f1c1dcf7057a12c926224ec8df88f04a74257ebe0061f49f",
+      "bytes": 38819,
+      "snapshot": "000062.bin",
+      "retired": "000062.retired"
+    },
+    {
+      "path": "adminWww/remoteEntry-eos-8.0.1.js",
+      "sha256": "56521b02c0f8a409d343ef8499af9c18044dc969c8b2d970c86db49b1e6dfa6b",
+      "bytes": 22984,
+      "snapshot": "000063.bin",
+      "retired": "000063.retired"
+    }
+  ],
+  "completed": "2026-11-05T11:41:43.862Z"
+}

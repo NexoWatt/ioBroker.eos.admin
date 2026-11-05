@@ -1,3 +1,5 @@
+> Aktueller Stand: **8.0.2**. Sichtbarer Systembereich, Expertenmodus und integrierte EOS-Lizenzverwaltung: siehe `START_HERE_8.0.2.md`. Die folgenden älteren Versionsangaben bleiben als Verlauf erhalten.
+
 > Aktueller Korrekturstand: **8.0.1**. Einstieg und PuTTY-Update: `START_HERE_8.0.1.md`. Die Anleitung unten zur ursprünglichen 8.0.0-Übernahme gilt für den Kopierablauf weiterhin.
 
 # ZIP in den bestehenden Git-Ordner kopieren und veröffentlichen

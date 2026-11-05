@@ -124,3 +124,8 @@ Erstellt als Bestandteil des beauftragten Repositoryumbaus. Keine Produktionsein
 ## Nachtrag 05.11.2026 – EOS Admin 8.0.1
 
 Befund `EOS-A8-LOGIN-001`: Verfügbarkeitsfehler der Anmeldung durch unzutreffende Annahme über die Controller-Gruppenansicht. Korrektur, Bedrohungs-/Rechtebezug, Quellnachweise, Regressionstests und offene Anlagenabnahme: `../security/admin8-2026-11-05/login-fix/REPORT_DE.md`. Dieser Nachtrag ist technische Nachweisfortschreibung; er erklärt keine allgemeine CRA-/IEC-Konformität.
+
+
+## Technischer Nachtrag 05.11.2026 – EOS Admin 8.0.2
+
+Der Nutzer bestätigt die behobene Anmeldung in 8.0.1 und meldet danach nicht sichtbare System-/Expertenbedienelemente. 8.0.2 stellt diese Bedienelemente im EOS-Layout wieder her und integriert die vorhandene Home-/Pro-Lizenzverwaltung in den Systembereich. Bestehende Konfigurations- und Lizenzpfade bleiben erhalten. Sicherheitsanforderungen, Rollen-/Fehlerprüfung und tatsächliche Nachweise: `docs/security/admin8-2026-11-05/system-fix/`. Die offenen allgemeinen IEC-/CRA-Nachweispunkte werden dadurch nicht automatisch geschlossen.

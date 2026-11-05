@@ -1,7 +1,7 @@
 {
   "name": "iobroker.eos-admin",
   "description": "NexoWatt EOS Admin 8 – based on ioBroker Admin 8.3.5 with EOS roles, licensing and security hardening.",
-  "version": "8.0.1",
+  "version": "8.0.2",
   "contributors": [
     "bluefox <dogafox@gmail.com>",
     "apollon77",
@@ -184,7 +184,8 @@
     "tools/vendor/eos-retired-release-files.json",
     "START_HERE_8.0.1.md",
     "tools/nexowatt-vendored-webserver.cjs",
-    "tools/vendor/webserver-3.4.0-source.provenance.json"
+    "tools/vendor/webserver-3.4.0-source.provenance.json",
+    "START_HERE_8.0.2.md"
   ],
   "scripts": {
     "npm": "npm ci && npm --prefix src-admin ci",

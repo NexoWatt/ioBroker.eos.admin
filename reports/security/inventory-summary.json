@@ -1,6 +1,6 @@
 {
   "tool": "nexowatt-security-inventory@1.0.0",
-  "timestamp": "2026-11-05T08:26:41.589Z",
+  "timestamp": "2026-11-05T12:10:00.281Z",
   "environment": {
     "node": "v24.22.1",
     "platform": "win32",
@@ -11,11 +11,11 @@
     {
       "label": "backend",
       "name": "iobroker.eos-admin",
-      "version": "8.0.1",
+      "version": "8.0.2",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "5413fac923c591278377fed1efde9d82704a1a3f5c7eb83bb7200fa36be1476e",
-        "lock": "168f14d1ee7c6822d67e28ebefe4bc2c488376752d57fb7709e04bedea30fb9b"
+        "manifest": "8024cbd228332a744424a502d0f9228616dbaae36d528407b9a4528a5d6131c5",
+        "lock": "7e94fcf1c3a4458f4201fdca5999662c005c3382f04e4be5bcfc4f68f7b22b69"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
       "componentCount": 773,
@@ -188,11 +188,11 @@
     {
       "label": "frontend",
       "name": "src-rx",
-      "version": "8.0.1",
+      "version": "8.0.2",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "0137c5c2cab065f4181f810c30e9c88e44f1508a27eb5a3d09d6100b00553662",
-        "lock": "e2286dfc4a0ab1c2a435cf3a5f081b6fc319f07f7d8708d0c363f92d91656fa4"
+        "manifest": "fb50743690d14b06c191dc469245364767b6aca647daa4adc109d145c722696c",
+        "lock": "0253b7bb749f9be4781899136fc004320e7f05d527d09971b5cda1ce0b872a37"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
       "componentCount": 582,

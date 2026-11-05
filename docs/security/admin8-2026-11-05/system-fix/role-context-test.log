@@ -1,0 +1,13 @@
+✔ controller translated view keys resolve canonical admin membership for any username (2.853741ms)
+✔ configured service and installer groups use canonical IDs; display text cannot elevate privileges (1.563066ms)
+✔ role context rejects malformed views and duplicate IDs instead of returning partial roles (4.651364ms)
+✔ role context ignores presentation key type and orders distinct identities deterministically (1.236775ms)
+✔ real OAuth tokens authenticate role context and protected license status via cookie and bearer (88.646862ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 838.079935

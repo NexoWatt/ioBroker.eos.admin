@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-05T07:47:18.775Z",
+  "generatedAt": "2026-11-05T11:39:15.212Z",
   "scope": "Unmodified LICENSE/NOTICE/COPYING/COPYRIGHT files from actual bundled frontend packages plus maintained OAuth fork and Acorn; missing tarball texts may be supplied from verified exact-release repository sources. Package license fields and README declarations are not substitutes for missing full license text.",
   "limitations": "No legal compliance certification. Missing upstream notice files remain explicitly listed for review. Unknown third-party fragments and runtime federation providers are outside this collection.",
   "records": [

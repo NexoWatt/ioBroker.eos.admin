@@ -535,6 +535,7 @@
     "Filter instances": "Instanzen filtern",
     "Filter local connection type": "Lokalen Verbindungstyp filtern",
     "Filter menu": "Menü filtern",
+    "Open menu": "Menü öffnen",
     "Filter specific compact group": "Eine bestimmte kompakte Gruppe filtern",
     "Filter:": "Filter",
     "Filtered out": "Alles wird herausgefiltert",
@@ -2002,5 +2003,10 @@
     "Adapter \"%s\" allows only one instance, and %s exists already": "Adapter \"%s\" erlaubt nur eine Instanz, und %s existiert bereits",
     "Adapter \"%s\" allows only one instance per host, and %s exists already on host \"%s\"": "Adapter \"%s\" erlaubt nur eine Instanz pro Host, und %s existiert bereits auf Host \"%s\"",
     "The admin was updated. Please load the page anew.": "Der Admin wurde aktualisiert. Bitte laden Sie die Seite neu.",
-    "The connection is not ready yet. Please wait a moment and try again.": "Die Verbindung ist noch nicht bereit. Bitte einen Moment warten und erneut versuchen."
+    "The connection is not ready yet. Please wait a moment and try again.": "Die Verbindung ist noch nicht bereit. Bitte einen Moment warten und erneut versuchen.",
+    "Adapter licenses": "Adapter-Lizenzen",
+    "Cannot read settings": "Einstellungen konnten nicht geladen werden",
+    "Cannot save system configuration": "Systemeinstellungen konnten nicht vollständig gespeichert werden",
+    "Please try again": "Bitte erneut versuchen",
+    "Retry": "Erneut versuchen"
 }

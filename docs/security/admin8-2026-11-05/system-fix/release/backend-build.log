@@ -1,0 +1,5 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.2 build:backend
+> tsc -p tsconfig.build.json && node --import tsx tasks.mts --backend-i18n
+

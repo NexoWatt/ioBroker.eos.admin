@@ -1,0 +1,16 @@
+{
+  "productVersion": "8.0.2",
+  "status": "passed",
+  "testedAt": "2026-11-05T11:39:09.614Z",
+  "manifestSha256": "0a996d86e1f8f3ac8021a5c7d89107ac2278b4afff2db023c4155d0cb687a540",
+  "sourceHash": "503be04585dc2868a42e940a737e4166f86a666997c1aebc1bc50f063f39590d",
+  "node": "v24.22.1",
+  "browser": "153.0.8010.0",
+  "browserBinarySha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+  "files": {
+    "system-browser.cjs": "c5c6d78faebcb538a2da2d1edf9e0d9ed6c619f8d5a8c6bc306b73e23e3c42ec",
+    "system-fixture.cjs": "598c34096c0f7d777d0c9b1171b15a893bc72d5f16956db4f0674ed2df92f5f6",
+    "system-browser-result.json": "f3145f882bbb9bf89046121b99ed970deb66ab6b1e0fcee984aaa8f14629a3fd",
+    "README.md": "1b8b8c76dbda38dbaa2f99a60a3268cd2af2614c44ee24716d6f8acb24184d9a"
+  }
+}

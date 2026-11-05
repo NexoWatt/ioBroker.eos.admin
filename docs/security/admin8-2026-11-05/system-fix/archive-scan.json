@@ -1,0 +1,12 @@
+{
+  "scope": "Complete final repository files; heuristic pattern scan, not exhaustive",
+  "findings": [
+    {
+      "path": "CHANGELOG_OLD.md",
+      "pattern": 0,
+      "completePrivateKeyBlock": false
+    }
+  ],
+  "classification": "Existing changelog mentions PEM opening marker only; no private-key block",
+  "newCredentialPatternFindings": 0
+}

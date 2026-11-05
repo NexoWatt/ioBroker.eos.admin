@@ -64,8 +64,8 @@ for (const code of [sourceMain, builtMain]) {
 }
 
 // Expert mode is an Admin-only control, but the administrator can freely toggle both directions.
-assert.match(appSource, /const isEosAdministrator = \(\): boolean => \['admin', 'service'\]\.includes/);
-assert.match(appSource, /isEosAdministrator\(\) &&/, 'expert mode must remain role-gated');
+assert.match(appSource, /const isEosAdministrator = \(role = getEosAccessRole\(\)\): boolean => \['admin', 'service'\]\.includes\(role\)/);
+assert.match(appSource, /isEosAdministrator\(this\.state\.eosAccessRole\) &&/, 'expert mode must remain role-gated');
 assert.match(appSource, /data-eos-expert-control="1"/);
 assert.match(appSource, /this\.setState\(\{ expertMode: !this\.state\.expertMode \}\)/);
 assert.match(bootstrapBundle, /["'`]data-eos-expert-control["'`]:["'`]1["'`]/);

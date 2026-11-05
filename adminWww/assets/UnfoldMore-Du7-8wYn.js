@@ -1,1 +1,0 @@
-import{Ds as e,Hs as t}from"./loadShare-eager-CRNcc8D7.js";var n=e(t(`path`,{d:`M7.41 18.59 8.83 20 12 16.83 15.17 20l1.41-1.41L12 14zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10z`}),`UnfoldLess`),r=e(t(`path`,{d:`M12 5.83 15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15z`}),`UnfoldMore`);export{n,r as t};

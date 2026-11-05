@@ -1,1 +1,0 @@
-import{Ds as e,Hs as t}from"./loadShare-eager-CRNcc8D7.js";var n=e(t(`path`,{d:`M19 13H5v-2h14z`}),`Remove`);export{n as t};

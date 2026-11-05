@@ -1,0 +1,15 @@
+✔ System and expert controls are rendered for administrative policy only (131.874626ms)
+✔ expert mode keeps confirmation and toggles both directions within the browser session (15.777602ms)
+✔ cancelling expert confirmation preserves mode; settings link opens native System dialog (11.928667ms)
+✔ saved expert default and suppressed confirmation still allow disabling and reenabling (10.309232ms)
+✔ policy arriving after launch updates React controls and restores session preference (10.426756ms)
+✔ revoked, unresolved and first-login policies cannot retain expert or system controls (63.780286ms)
+✔ a later legacy global role write cannot restore revoked React controls or an old click handler (9.327294ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 644.750849

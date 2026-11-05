@@ -1,0 +1,80 @@
+(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:12) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public status projection preserves Home/Pro and rejects hidden activation-code fields
+ok 1 - public status projection preserves Home/Pro and rejects hidden activation-code fields
+  ---
+  duration_ms: 1.778973
+  type: 'test'
+  ...
+# Subtest: license URL preserves root and prefixed Admin deployment paths
+ok 2 - license URL preserves root and prefixed Admin deployment paths
+  ---
+  duration_ms: 0.236799
+  type: 'test'
+  ...
+# Subtest: invalid or inconsistent status never becomes a valid license
+ok 3 - invalid or inconsistent status never becomes a valid license
+  ---
+  duration_ms: 0.743716
+  type: 'test'
+  ...
+# Subtest: activation and removal use existing same-origin authenticated routes and exact CSRF bodies
+ok 4 - activation and removal use existing same-origin authenticated routes and exact CSRF bodies
+  ---
+  duration_ms: 4.982007
+  type: 'test'
+  ...
+# Subtest: bad codes and invalid route names are rejected before any request
+ok 5 - bad codes and invalid route names are rejected before any request
+  ---
+  duration_ms: 0.597562
+  type: 'test'
+  ...
+# Subtest: denied or unavailable API produces a safe error and never a false no-license status
+ok 6 - denied or unavailable API produces a safe error and never a false no-license status
+  ---
+  duration_ms: 1.590255
+  type: 'test'
+  ...
+# Subtest: oversized and malformed response bodies are rejected and stream cancelled
+ok 7 - oversized and malformed response bodies are rejected and stream cancelled
+  ---
+  duration_ms: 1.630544
+  type: 'test'
+  ...
+# Subtest: one total five-second deadline aborts the live response stream
+ok 8 - one total five-second deadline aborts the live response stream
+  ---
+  duration_ms: 5062.689108
+  type: 'test'
+  ...
+# Subtest: closing the panel cancels the live response without waiting for the deadline
+ok 9 - closing the panel cancels the live response without waiting for the deadline
+  ---
+  duration_ms: 116.244309
+  type: 'test'
+  ...
+# Subtest: activation never reports success for a response without a valid entitlement
+ok 10 - activation never reports success for a response without a valid entitlement
+  ---
+  duration_ms: 1.502037
+  type: 'test'
+  ...
+# Subtest: removal never reports success when the server still confirms an active license
+ok 11 - removal never reports success when the server still confirms an active license
+  ---
+  duration_ms: 0.716017
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5318.354183

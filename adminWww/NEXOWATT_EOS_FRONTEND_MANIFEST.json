@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "productVersion": "8.0.1",
+  "productVersion": "8.0.2",
   "upstream": {
     "version": "8.3.5",
     "commit": "6f77eedf525813a7a61d79188d1ff05dffd05086"
   },
-  "entry": "assets/mf-entry-bootstrap-0-f6098d8b.js",
+  "entry": "assets/mf-entry-bootstrap-0-2d631020.js",
   "roleBootstrap": "js/eos-role-bootstrap.js",
-  "sourceHash": "0ad22a2ee3c1a43a759c77479d56f0acd49a8f544979a93d69a34d4bba61b900",
+  "sourceHash": "503be04585dc2868a42e940a737e4166f86a666997c1aebc1bc50f063f39590d",
   "sources": {
-    "src/App.tsx": "2f2cb9b7d6e0daeb96739458af06d2cf6cae182daa6352490d2f48ada77580ca",
+    "src/App.tsx": "29a6af2282b685a134596530df4c5c8f58b4e3f47d3647b7c970b4ddfeaef503",
     "src/assets/administrator.svg": "b63ed70664b07efbe04231cc17f7c7719b4d570e983e01fbe21c6e6c8ded99d2",
     "src/assets/backitup.png": "9771edeffb4f9a86ca566678565b16ffa5b744f540b583c1f4c531567b4e9b02",
     "src/assets/building-types/Apartment Building.svg": "3ae6ac32cad8fc12a8bbc00b243e0c23775cdab3011f843a313801900f39920d",
@@ -101,7 +101,7 @@
     "src/components/CustomPopper.tsx": "266846c3f5fdacf5a6407c9a3810236cdc8de76df5972460bc4fdf947341ee64",
     "src/components/CustomSelectButton.tsx": "7b21d16b869f9c389d253d9f07268831cf75c0c8064410cb89fd14c746612d56",
     "src/components/DragWrapper.tsx": "a7eebc341a3aa0edfb0d114938e4a5b80df6c0892f3298662244f8bb85406279",
-    "src/components/Drawer.tsx": "a846875c5c6068617290629706274e8a0aa20047aabbafe8e3bea2dfa21a4a85",
+    "src/components/Drawer.tsx": "df9a882ee3bc5a2d4f7a02be29db4c0cdefa45d5a0f28f072de04b058e888aaf",
     "src/components/DrawerItem.tsx": "4b3e9536f92906fccbf84dbee9e20fe2614c0ecbebe7017d15cd7a60036a36c6",
     "src/components/EasyModeCard.tsx": "079061424edaac9f37c0ea82c0a469fbf2b7ccd2af774e85dbc7316d7d867811",
     "src/components/Editor.tsx": "b0f68232a8cbad9e1b50ecc80517fbb01488fa68d86347afe9a6d43fdbbe284c",
@@ -171,9 +171,11 @@
     "src/components/SystemSettings/credentialIcons.ts": "ce19ac35e3ff4da3b92cd07cce5689677b7470800f2ffacaea127006f4420bc0",
     "src/components/SystemSettings/CredentialsDialog.tsx": "14a4414e5b49e6d4a2d82976b3ff7fc051428815cfb2441a5624cb012ef34317",
     "src/components/SystemSettings/credentialTypes.ts": "8ca8fa7a9c8ddd76ca124bb5d1f580ba09519bff8215b35e4987309084eba370",
-    "src/components/SystemSettings/index.tsx": "308f9f4e5900fb0904fe06de994b52e80b0d484273d8ebcccb23f4ce95b0641d",
+    "src/components/SystemSettings/eosLicenseApi.ts": "8a202f2c12ccb423ca70fd0e7675e22f5803c80202c3e73b62d18b222d5478a8",
+    "src/components/SystemSettings/EosLicenseDialog.tsx": "340f1d0d13014641ce00870b5667ed34c14f464dfb350b44e7ed1561170d308d",
+    "src/components/SystemSettings/index.tsx": "3d567f55e39206988e727beafd385ceed5de3a35dff7b204f9e0cb47ac96d8f5",
     "src/components/SystemSettings/LicensesDialog.tsx": "901258e2b74cbdc233db5a569ba447878860b241dbc8f7afc33a6f610716f9fe",
-    "src/components/SystemSettings/MainSettingsDialog.tsx": "34dc1d25468d2578602f16510309145e3a41b067d42c4e32ddbb187c2252326c",
+    "src/components/SystemSettings/MainSettingsDialog.tsx": "3e9d88f87cd35bebed1336498d8266d6c8a0aaefe6f664bc6fdcaace7ea85369",
     "src/components/SystemSettings/RepositoriesDialog.tsx": "ee52c88e6d790d3a3eaa303703e8c07db7f27a29719d946d8ef407ef5a839bc7",
     "src/components/SystemSettings/SSLDialog.tsx": "e0f4bf6bec2f7a0d3b25d8d73a104265639cdcda8858f02237bf663a5834213e",
     "src/components/SystemSettings/StatisticsDialog.tsx": "f181610c89f9968b48604011f2f7ee03695d50ced660b74a1e198fb68925a936",
@@ -235,12 +237,12 @@
     "src/helpers/tips.tsx": "aa59110ace36a6017943257a923fb94afd03fdb574c21ef11524f742acf10095",
     "src/helpers/usedResources.ts": "06a70e2fbde97d256c82f1b6f4c49055fa38398e7fa692f22a086cad169946df",
     "src/helpers/utils.ts": "b68937ae7c4bcc1b73a4b05d943f9bf7d691ba819a71b62f5cef43c4419b3231",
-    "src/i18n/de.json": "23372ce89072234dd511940244aeb30414522f45c6ba464b215b76333dcd2a3b",
-    "src/i18n/en.json": "4086d2601c3da67e68a6b45cd6ad282add44baa7122dd3ccb7383f307165c9d1",
+    "src/i18n/de.json": "5e423dd6e3a4767e9dba356126c1cfe792ee72e8e97619d82ad6834f5a2da7c4",
+    "src/i18n/en.json": "781ede9b9117451e996e712f77c230ff2cc851a8dc424bfcab7a558511f342ce",
     "src/i18n/es.json": "777ad770931c07768ee05a868aaef1848aca2125fa3d66ea738a8a114467cf29",
     "src/i18n/fr.json": "f4ead169ecb3074b92a4902f9c7f1c87b8048349c943d74f42aed88cbac9489d",
     "src/i18n/it.json": "3bfa0f857b9b7246fc0373c76ce11576e40e41465bb2e9cfa42783cd1c001131",
-    "src/i18n/nl.json": "dae1c7ad2629b1046e1909a403432a5fb44c8fff9f9ce17ef21530666f9aa654",
+    "src/i18n/nl.json": "edc203d3fcaf2143e89cd9db2c960a43e10140148d5e4d6beefe198b090cbb73",
     "src/i18n/pl.json": "f3508757eb8102539e026845e3c801f8fec6297d25f3e9f6aa2ff34787be1213",
     "src/i18n/pt.json": "520e57c66fe924ce2a2e6c1ea989a7e0018de497474735f8ca6bfb8e6007c317",
     "src/i18n/ru.json": "88ee5ae5ab566455e83b1ab099ea0c1edab24dac713d71bfce6ba8b907b4fcf3",
@@ -282,7 +284,7 @@
     "src/vendor/acorn/acorn.mjs": "1cbcbf252a5800e496dc505c706f309a9dd4e1789392e12963c77ae9497ff6f7",
     "src/vendor/acorn/LICENSE": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
     "src/vendor/acorn/PROVENANCE.json": "1b2826aab7230a406674c13ba0ab4213e791038d2204e292ee5bcb283869ad36",
-    "src/version.json": "7dcdd4f3ef1b1854c40cf58dedac7f99ddb8f9ee033a0d8ee920e032d776a29a",
+    "src/version.json": "af73bf555f3ab3a0856d35bdc1f25d73ffb24ba239644393b73d2d4300b6f7b3",
     "src/Workers/AdaptersWorker.tsx": "b58ed18758874cfb9c7aa7f19712d1e5c0920ef6d3f7f0b1036adb366c3cda45",
     "src/Workers/GenericWorker.tsx": "c12e531250122c6db78e7b5818d67884ae023b2db56412a1c8b8ee570b6abb6e",
     "src/Workers/HostAdapterWorker.tsx": "293722955fb91b531ebbd0db3bc5ec5c044027da6b932e464c71fb2caee259ef",
@@ -305,7 +307,7 @@
     "public/css/images/marker-icon.png": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
     "public/css/images/marker-shadow.png": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
     "public/css/leaflet.css": "7a30116fa3852c0ff7e556bb2e80b0dc89c5bca8e725bbe3948af1746ca55103",
-    "public/css/nexowatt-native-shell.css": "f26fa7593b2853860c17470627377513624006ff61c5973c22c6c8900a98b2b6",
+    "public/css/nexowatt-native-shell.css": "7838f023a362e3401a4b1ed1294245be7c4a4298f9851d570fa02ae27cff648c",
     "public/favicon.ico": "3a357e949ab04b9f7bb1539764419ade50d1b4fc7caa51b8f33202a3f57a1f74",
     "public/img/admin.png": "f4c004482fa2623bea6f7e83df40fdda2e07334f61d5ae27eb0aba186c10ca97",
     "public/img/admin.svg": "1167118074ff84d8cef82ad80c38609719dacfde9417126e46966c1ec986534b",
@@ -335,7 +337,7 @@
     "public/js/eos-basic-settings.js": "deb942d2a0d7385743b27ed1562ce19fead693582e9baa2c9eaccaa3aa401728",
     "public/js/eos-branding-sanitizer.js": "de6f30e7758d552f52a0c84f02861e24f290ef872957f7b58d80f873d66c934c",
     "public/js/eos-ems-overview.js": "532916f615b2502039c605e9eeb25f36227f6b41ad8c06636083c32420b04902",
-    "public/js/eos-license-link.js": "1e84513da2c098f55281bb1c1539b87cc52ecf17b98b6fc8710fa7ac51dfafb3",
+    "public/js/eos-license-link.js": "037654d1f3e8653ed2759cf6c52dd7370b518e78aae4bc06cbbed4121f3775b6",
     "public/js/eos-manual-write-policy.js": "3c93487146b4fd5f681aa45a6bb137d9a91c3fa145ebfa94ec5ccb6b15498e8b",
     "public/js/eos-native-security.js": "33098b98164623fc133314658bca2f622d19971795dd8bd3c90aca68598aab90",
     "public/js/eos-policy-client.js": "5ffd32270307137fbec69a9b9bea57ca1d2e27ede987ce1eb37ff1df6677d8d2",
@@ -343,7 +345,7 @@
     "public/js/eos-role-ui.js": "2cb2f087afaebe8dd077d42f3e87f847d58aee45f76dfaec0ff82b9807810b7e",
     "public/js/license.js": "13798e577c82d7a5549b07a244b8b8453ef43e53fc7789f565c35b56e6654007",
     "public/js/listHeader.js": "ed336a68a64e16a062d1af2269428fd20a08a4b695f17635f55a18bc1ef693a4",
-    "public/js/nexowatt-native-shell.js": "3f43a6f6b2d0b904537f959686867d7e08466ce03e9b63ddc8a3a2a1b54580f0",
+    "public/js/nexowatt-native-shell.js": "75233bc0befda8f1bd4973f408fa5ed95d06fd39ef70d684fbf7c001cd7b96fc",
     "public/js/tableEditor.js": "5508044619fec70071895d0ae3ab6ff75dd03bd936e7b133f98d098d4245ec20",
     "public/js/translate.js": "264442c0f42a10148057125532bf55b7672c4cc051c28e7cbb922984a558f8d3",
     "public/js/treeTable.js": "7e544791336ebd9a442a9e5b6466a3946ec72d06ebd5962bf87f52a992b662be",
@@ -468,32 +470,32 @@
     "build-tools/eos-object-browser-patches.json": "76b14fd11483bb82192ed764e1306ecaa423003cad6e0adfd0bb3137f75c78b8",
     "build-tools/eos-object-browser-transform.mjs": "f77cbcc30cb16be98eb67a5aaee580df120e34cd354133ddc9a74f265fd06eb4",
     "build-tools/eos-public-assets.mjs": "fa3b63b0846e607d3676b487bcb43e44781565d35db08cfbf9184e022a474a53",
-    "package.json": "0137c5c2cab065f4181f810c30e9c88e44f1508a27eb5a3d09d6100b00553662",
-    "package-lock.json": "e2286dfc4a0ab1c2a435cf3a5f081b6fc319f07f7d8708d0c363f92d91656fa4",
+    "package.json": "fb50743690d14b06c191dc469245364767b6aca647daa4adc109d145c722696c",
+    "package-lock.json": "0253b7bb749f9be4781899136fc004320e7f05d527d09971b5cda1ce0b872a37",
     "vite.config.ts": "473921197963363e739df01e348bc3962446c4e9dfa6107f5e6cbfd0061380a8",
     "tsconfig.json": "feb429c06900f61a731c6f677b974b077a672c9a9653784225bea69493b8203d",
     "index.html": "dccd99e0eeb877b1a394a696c5c645e44a450ddd7b95dad089523bc42f244527"
   },
   "chunks": {
-    "assets/hostInit-huY-0clu.js": {
+    "assets/hostInit-Cd61hJHh.js": {
       "imports": [
         "assets/vite-preload-helper-BbbETgeG.js",
-        "assets/helpers-DBoACUHw.js"
+        "assets/helpers-CDcY0YJ-.js"
       ],
       "dynamicImports": [
-        "remoteEntry-eos-8.0.1.js",
-        "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js"
+        "remoteEntry-eos-8.0.2.js",
+        "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-uaKFfE5p.js"
       ],
       "modules": [
         "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js"
       ]
     },
-    "assets/index-D8vmzGp8.js": {
+    "assets/index-D6uhIclX.js": {
       "imports": [
         "assets/vite-preload-helper-BbbETgeG.js"
       ],
       "dynamicImports": [
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "modules": [
         "\u0000vite/modulepreload-polyfill.js",
@@ -501,44 +503,44 @@
         "index.html"
       ]
     },
-    "assets/pendingShares-CuQbFsaK.js": {
+    "assets/pendingShares-D1Vr_qYv.js": {
       "imports": [
         "assets/vite-preload-helper-BbbETgeG.js"
       ],
       "dynamicImports": [
-        "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js"
+        "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-uaKFfE5p.js"
       ],
       "modules": [
         "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__1__P_S__pendingShares__P_S__.js"
       ]
     },
-    "remoteEntry-eos-8.0.1.js": {
+    "remoteEntry-eos-8.0.2.js": {
       "imports": [
         "assets/vite-preload-helper-BbbETgeG.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/helpers-DBoACUHw.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/helpers-CDcY0YJ-.js"
       ],
       "dynamicImports": [
-        "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js"
+        "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-uaKFfE5p.js"
       ],
       "modules": [
-        "virtual:mf-exposes:__mfe_internal__iobroker_admin__remoteEntry-eos-8_0_1_js",
-        "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__iobroker_admin__remoteEntry-eos-8_0_1_js"
+        "virtual:mf-exposes:__mfe_internal__iobroker_admin__remoteEntry-eos-8_0_2_js",
+        "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__iobroker_admin__remoteEntry-eos-8_0_2_js"
       ]
     },
-    "assets/AccessTime-Dpa6PKHY.js": {
+    "assets/AccessTime-5f47qrw7.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/AccessTime.mjs"
       ]
     },
-    "assets/AceEditor-DTzNaeVy.js": {
+    "assets/AceEditor-CJ-_Ev2E.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -553,13 +555,13 @@
         "src/components/AceEditor.tsx"
       ]
     },
-    "assets/AdapterUpdateDialog-D3y2bGHM.js": {
+    "assets/AdapterUpdateDialog-QwlPbETd.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Book-QmHxDaHb.js",
-        "assets/bootstrap-D-7xcwTc.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Book-DrhneQH0.js",
+        "assets/bootstrap-DSDOwKWU.js",
         "assets/zh-cn-B6dBxOyw.js",
-        "assets/State-Cc-tyuqB.js"
+        "assets/State-UGfoS6qW.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -624,19 +626,19 @@
         "src/components/Adapters/AdapterUpdateDialog.tsx"
       ]
     },
-    "assets/Adapters-WMGNQt7g.js": {
+    "assets/Adapters-gKngfaOu.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Star-DNdm064z.js",
-        "assets/WifiTethering-Da8nW7Do.js",
-        "assets/DeleteForever-BnEM-6_v.js",
-        "assets/Remove-DplJatnC.js",
-        "assets/ViewList-DuKCnBnc.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/sentry-B4uGc7ut.js",
-        "assets/AdapterUpdateDialog-D3y2bGHM.js",
-        "assets/CustomModal-B8vdCRn1.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Star-ChMjBwLn.js",
+        "assets/WifiTethering-Cp63fmkC.js",
+        "assets/DeleteForever-Caoe64_y.js",
+        "assets/Remove-BPxvNccW.js",
+        "assets/ViewList-1pB5VinA.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/sentry-BFzW-2KQ.js",
+        "assets/AdapterUpdateDialog-QwlPbETd.js",
+        "assets/CustomModal-DjI4oCb8.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -661,9 +663,9 @@
         "src/tabs/Adapters.tsx"
       ]
     },
-    "assets/AdminUtils-DDT_kD8H.js": {
+    "assets/AdminUtils-CopxRJZ2.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -671,67 +673,67 @@
         "src/helpers/AdminUtils.tsx"
       ]
     },
-    "assets/Apps-C8LE9l6Z.js": {
+    "assets/Apps-BKnx1gzD.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Apps.mjs"
       ]
     },
-    "assets/Book-QmHxDaHb.js": {
+    "assets/Book-DrhneQH0.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Book.mjs"
       ]
     },
-    "assets/Cached-f77QQBQD.js": {
+    "assets/Cached-XJmxLN4E.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Cached.mjs"
       ]
     },
-    "assets/Computer-DFIUq-fL.js": {
+    "assets/Computer-DDMBRY5r.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Computer.mjs"
       ]
     },
-    "assets/Config-BZDUILCW.js": {
+    "assets/Config-BwTa1LdH.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/AceEditor-DTzNaeVy.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/AceEditor-CJ-_Ev2E.js"
       ],
       "dynamicImports": [],
       "modules": [
         "src/tabs/Config.tsx"
       ]
     },
-    "assets/ConfigManager-BMdQoiCg.js": {
+    "assets/ConfigManager-DYwC4yq9.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/PushPinOutlined-DvxsqPHo.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/PushPinOutlined-CEBeTmNm.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
         "src/tabs/ConfigManager.tsx"
       ]
     },
-    "assets/CustomModal-B8vdCRn1.js": {
+    "assets/CustomModal-DjI4oCb8.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
         "assets/ctrlEnter-CruFIPb_.js"
       ],
       "dynamicImports": [],
@@ -739,31 +741,31 @@
         "src/components/CustomModal.tsx"
       ]
     },
-    "assets/CustomTab-DSPqif6P.js": {
+    "assets/CustomTab-_HYUrXsZ.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/AceEditor-DTzNaeVy.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/AceEditor-CJ-_Ev2E.js"
       ],
       "dynamicImports": [],
       "modules": [
         "src/tabs/CustomTab.tsx"
       ]
     },
-    "assets/DeleteForever-BnEM-6_v.js": {
+    "assets/DeleteForever-Caoe64_y.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/DeleteForever.mjs"
       ]
     },
-    "assets/EasyMode-TwIN5yxu.js": {
+    "assets/EasyMode-CCRqFtQq.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Config-BZDUILCW.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Config-BwTa1LdH.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -771,18 +773,18 @@
         "src/tabs/EasyMode.tsx"
       ]
     },
-    "assets/Enums-CHm2sGa-.js": {
+    "assets/Enums-BTurn3-x.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/ViewSidebar-kHvah-XS.js",
-        "assets/Pageview-DBITLOzI.js",
-        "assets/KeyboardArrowRight-zZUJhG9e.js",
-        "assets/InfoOutlined-l86Si1qa.js",
-        "assets/UnfoldMore-Du7-8wYn.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/Fields-Df7Llf6U.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/ViewSidebar-DdedDirX.js",
+        "assets/Pageview-DFHddrKX.js",
+        "assets/KeyboardArrowRight-DVPBjTKi.js",
+        "assets/InfoOutlined-DIGDQvu6.js",
+        "assets/UnfoldMore-_DDSfPKk.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/Fields-C2Bn4V04.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -804,19 +806,19 @@
         "src/tabs/Enums.tsx"
       ]
     },
-    "assets/Extension-DU1jqvic.js": {
+    "assets/Extension-D-tNJv4S.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Extension.mjs"
       ]
     },
-    "assets/Fields-Df7Llf6U.js": {
+    "assets/Fields-C2Bn4V04.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -824,13 +826,13 @@
         "src/components/IOFields/Fields.tsx"
       ]
     },
-    "assets/Files-Bwbw17Fb.js": {
+    "assets/Files-XdmhxGOR.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/CustomModal-B8vdCRn1.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/CustomModal-DjI4oCb8.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -843,19 +845,19 @@
         "src/tabs/Files.tsx"
       ]
     },
-    "assets/Hosts-BR0g-Wxo.js": {
+    "assets/Hosts-DiTMe9fw.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Usb-Ca47vqRv.js",
-        "assets/Cached-f77QQBQD.js",
-        "assets/Computer-DFIUq-fL.js",
-        "assets/ViewList-DuKCnBnc.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/AdapterUpdateDialog-D3y2bGHM.js",
-        "assets/CustomModal-B8vdCRn1.js",
-        "assets/UsedResources-BIdU7UPm.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Usb-Dwk7qdYu.js",
+        "assets/Cached-XJmxLN4E.js",
+        "assets/Computer-DDMBRY5r.js",
+        "assets/ViewList-1pB5VinA.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/AdapterUpdateDialog-QwlPbETd.js",
+        "assets/CustomModal-DjI4oCb8.js",
+        "assets/UsedResources-B6HWeXGX.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -877,32 +879,32 @@
         "src/tabs/Hosts.tsx"
       ]
     },
-    "assets/InfoOutlined-l86Si1qa.js": {
+    "assets/InfoOutlined-DIGDQvu6.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/InfoOutlined.mjs"
       ]
     },
-    "assets/Instances-BKydFSdw.js": {
+    "assets/Instances-DA6FIgRs.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/WifiTethering-Da8nW7Do.js",
-        "assets/Usb-Ca47vqRv.js",
-        "assets/ViewCompact-C3SC0jFF.js",
-        "assets/Schedule-BMMrgd7j.js",
-        "assets/Storage-COo2RkS1.js",
-        "assets/ViewList-DuKCnBnc.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/sentry-B4uGc7ut.js",
-        "assets/State-Cc-tyuqB.js",
-        "assets/CustomModal-B8vdCRn1.js",
-        "assets/Config-BZDUILCW.js",
-        "assets/UsedResources-BIdU7UPm.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/WifiTethering-Cp63fmkC.js",
+        "assets/Usb-Dwk7qdYu.js",
+        "assets/ViewCompact-BbfomOIi.js",
+        "assets/Schedule-BQlh1nhQ.js",
+        "assets/Storage-DrC3j-wf.js",
+        "assets/ViewList-1pB5VinA.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/sentry-BFzW-2KQ.js",
+        "assets/State-UGfoS6qW.js",
+        "assets/CustomModal-DjI4oCb8.js",
+        "assets/Config-BwTa1LdH.js",
+        "assets/UsedResources-B6HWeXGX.js",
         "assets/classPrivateFieldGet2-CBZxMSQ4.js"
       ],
       "dynamicImports": [],
@@ -940,18 +942,18 @@
         "src/tabs/Instances.tsx"
       ]
     },
-    "assets/Intro-Dt2GzmtW.js": {
+    "assets/Intro-CJpwLg8Q.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Apps-C8LE9l6Z.js",
-        "assets/Computer-DFIUq-fL.js",
-        "assets/Timer-Be9yF62g.js",
-        "assets/Extension-DU1jqvic.js",
-        "assets/InfoOutlined-l86Si1qa.js",
-        "assets/Schedule-BMMrgd7j.js",
-        "assets/Storage-COo2RkS1.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Apps-BKnx1gzD.js",
+        "assets/Computer-DDMBRY5r.js",
+        "assets/Timer-I0twtyWh.js",
+        "assets/Extension-D-tNJv4S.js",
+        "assets/InfoOutlined-DIGDQvu6.js",
+        "assets/Schedule-BQlh1nhQ.js",
+        "assets/Storage-DrC3j-wf.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
         "assets/classPrivateFieldGet2-CBZxMSQ4.js"
       ],
       "dynamicImports": [],
@@ -965,9 +967,9 @@
         "src/tabs/Intro.tsx"
       ]
     },
-    "assets/KeyboardArrowRight-zZUJhG9e.js": {
+    "assets/KeyboardArrowRight-DVPBjTKi.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -975,22 +977,22 @@
         "node_modules/@mui/icons-material/KeyboardArrowRight.mjs"
       ]
     },
-    "assets/Logs-hbcdBDN3.js": {
+    "assets/Logs-CA0mEMlO.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/DeleteForever-BnEM-6_v.js",
-        "assets/TextSnippet-Bywi1YuG.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/DeleteForever-Caoe64_y.js",
+        "assets/TextSnippet-BQ4TSmvS.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
         "src/tabs/Logs.tsx"
       ]
     },
-    "assets/MoreHoriz-CR2kD-dc.js": {
+    "assets/MoreHoriz-BYaCptH0.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1003,22 +1005,22 @@
         "node_modules/@mui/icons-material/MoreHoriz.mjs"
       ]
     },
-    "assets/Objects-HPx0yuOk.js": {
+    "assets/Objects-B2IC3Bce.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/MoreHoriz-CR2kD-dc.js",
-        "assets/KeyboardArrowRight-zZUJhG9e.js",
-        "assets/Remove-DplJatnC.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/MoreHoriz-BYaCptH0.js",
+        "assets/KeyboardArrowRight-DVPBjTKi.js",
+        "assets/Remove-BPxvNccW.js",
         "assets/en-US-BjjaEI6N.js",
         "assets/locale-DN6Bdkdt.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/AceEditor-DTzNaeVy.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/AceEditor-CJ-_Ev2E.js",
         "assets/ctrlEnter-CruFIPb_.js",
-        "assets/bootstrap-D-7xcwTc.js",
+        "assets/bootstrap-DSDOwKWU.js",
         "assets/zh-cn-B6dBxOyw.js",
-        "assets/CustomModal-B8vdCRn1.js",
-        "assets/installSVGRenderer-BkdptYag.js"
+        "assets/CustomModal-DjI4oCb8.js",
+        "assets/installSVGRenderer-BR-zIijZ.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1081,16 +1083,16 @@
         "src/tabs/Objects.tsx"
       ]
     },
-    "assets/Overview-CDvnM655.js": {
+    "assets/Overview-HG8fAMFM.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Extension-DU1jqvic.js",
-        "assets/Timeline-IQCnSLiw.js",
-        "assets/Storage-COo2RkS1.js",
-        "assets/UnfoldMore-Du7-8wYn.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/installSVGRenderer-BkdptYag.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Extension-D-tNJv4S.js",
+        "assets/Timeline-CEyldmz2.js",
+        "assets/Storage-DrC3j-wf.js",
+        "assets/UnfoldMore-_DDSfPKk.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/installSVGRenderer-BR-zIijZ.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1109,9 +1111,9 @@
         "src/tabs/Overview.tsx"
       ]
     },
-    "assets/Pageview-DBITLOzI.js": {
+    "assets/Pageview-DFHddrKX.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1120,9 +1122,9 @@
         "node_modules/@mui/icons-material/Pageview.mjs"
       ]
     },
-    "assets/PersonOff-ANdO5Nu4.js": {
+    "assets/PersonOff-BwYQLD1M.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1131,9 +1133,9 @@
         "node_modules/@mui/icons-material/PersonOff.mjs"
       ]
     },
-    "assets/PushPinOutlined-DvxsqPHo.js": {
+    "assets/PushPinOutlined-CEBeTmNm.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1141,27 +1143,27 @@
         "node_modules/@mui/icons-material/PushPinOutlined.mjs"
       ]
     },
-    "assets/Remove-DplJatnC.js": {
+    "assets/Remove-BPxvNccW.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Remove.mjs"
       ]
     },
-    "assets/Schedule-BMMrgd7j.js": {
+    "assets/Schedule-BQlh1nhQ.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Schedule.mjs"
       ]
     },
-    "assets/Star-DNdm064z.js": {
+    "assets/Star-ChMjBwLn.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1180,37 +1182,37 @@
         "node_modules/@mui/icons-material/Star.mjs"
       ]
     },
-    "assets/State-Cc-tyuqB.js": {
+    "assets/State-UGfoS6qW.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
         "src/components/State.tsx"
       ]
     },
-    "assets/Storage-COo2RkS1.js": {
+    "assets/Storage-DrC3j-wf.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/Storage.mjs"
       ]
     },
-    "assets/TextSnippet-Bywi1YuG.js": {
+    "assets/TextSnippet-BQ4TSmvS.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/TextSnippet.mjs"
       ]
     },
-    "assets/Timeline-IQCnSLiw.js": {
+    "assets/Timeline-CEyldmz2.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1218,9 +1220,9 @@
         "node_modules/@mui/icons-material/Timeline.mjs"
       ]
     },
-    "assets/Timer-Be9yF62g.js": {
+    "assets/Timer-I0twtyWh.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1231,9 +1233,9 @@
         "node_modules/@mui/icons-material/Timer.mjs"
       ]
     },
-    "assets/UnfoldMore-Du7-8wYn.js": {
+    "assets/UnfoldMore-_DDSfPKk.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1241,9 +1243,9 @@
         "node_modules/@mui/icons-material/UnfoldMore.mjs"
       ]
     },
-    "assets/Usb-Ca47vqRv.js": {
+    "assets/Usb-Dwk7qdYu.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1253,12 +1255,12 @@
         "node_modules/@mui/icons-material/Usb.mjs"
       ]
     },
-    "assets/UsedResources-BIdU7UPm.js": {
+    "assets/UsedResources-B6HWeXGX.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Usb-Ca47vqRv.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Usb-Dwk7qdYu.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1266,15 +1268,15 @@
         "src/components/UsedResources.tsx"
       ]
     },
-    "assets/Users-BruHA-yU.js": {
+    "assets/Users-DFeYuC5y.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/Pageview-DBITLOzI.js",
-        "assets/PersonOff-ANdO5Nu4.js",
-        "assets/VpnKey-iMA7KrB-.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/bootstrap-D-7xcwTc.js",
-        "assets/Fields-Df7Llf6U.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/Pageview-DFHddrKX.js",
+        "assets/PersonOff-BwYQLD1M.js",
+        "assets/VpnKey-o8QeqmnU.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/bootstrap-DSDOwKWU.js",
+        "assets/Fields-C2Bn4V04.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1310,9 +1312,9 @@
         "src/tabs/Users.tsx"
       ]
     },
-    "assets/ViewCompact-C3SC0jFF.js": {
+    "assets/ViewCompact-BbfomOIi.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1322,18 +1324,18 @@
         "node_modules/@mui/icons-material/ViewCompact.mjs"
       ]
     },
-    "assets/ViewList-DuKCnBnc.js": {
+    "assets/ViewList-1pB5VinA.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/ViewList.mjs"
       ]
     },
-    "assets/ViewSidebar-kHvah-XS.js": {
+    "assets/ViewSidebar-DdedDirX.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1346,18 +1348,18 @@
         "node_modules/@mui/icons-material/ViewSidebar.mjs"
       ]
     },
-    "assets/VpnKey-iMA7KrB-.js": {
+    "assets/VpnKey-o8QeqmnU.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
         "node_modules/@mui/icons-material/VpnKey.mjs"
       ]
     },
-    "assets/WifiTethering-Da8nW7Do.js": {
+    "assets/WifiTethering-Cp63fmkC.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -1385,47 +1387,47 @@
         "node_modules/@mui/icons-material/WifiTethering.mjs"
       ]
     },
-    "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js": {
+    "assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-uaKFfE5p.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__leaflet__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__leaflet__prebuild__.js",
         "\u0000virtual:mf-localSharedImportMap:__mfe_internal__iobroker_admin__mf_owner__1"
       ]
     },
-    "assets/bootstrap-D-7xcwTc.js": {
+    "assets/bootstrap-DSDOwKWU.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
         "assets/vite-preload-helper-BbbETgeG.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/AccessTime-Dpa6PKHY.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/AccessTime-5f47qrw7.js",
         "assets/prod-ChPGnyiA.js",
         "assets/en-US-BjjaEI6N.js",
-        "assets/setYear-DurmWw03.js",
-        "assets/AdminUtils-DDT_kD8H.js",
-        "assets/AceEditor-DTzNaeVy.js",
+        "assets/setYear-DhVdgUBF.js",
+        "assets/AdminUtils-CopxRJZ2.js",
+        "assets/AceEditor-CJ-_Ev2E.js",
         "assets/ctrlEnter-CruFIPb_.js"
       ],
       "dynamicImports": [
-        "assets/icons-material-Bu1f45BT.js",
-        "assets/date-fns-Bpgjk9P-.js",
+        "assets/icons-material-Dms1APQk.js",
+        "assets/date-fns-ukillHs-.js",
         "assets/locale-DN6Bdkdt.js",
-        "assets/Overview-CDvnM655.js",
-        "assets/Adapters-WMGNQt7g.js",
-        "assets/Instances-BKydFSdw.js",
-        "assets/Intro-Dt2GzmtW.js",
-        "assets/Logs-hbcdBDN3.js",
-        "assets/Files-Bwbw17Fb.js",
-        "assets/Objects-HPx0yuOk.js",
-        "assets/Users-BruHA-yU.js",
-        "assets/Enums-CHm2sGa-.js",
-        "assets/CustomTab-DSPqif6P.js",
-        "assets/ConfigManager-BMdQoiCg.js",
-        "assets/Hosts-BR0g-Wxo.js",
-        "assets/EasyMode-TwIN5yxu.js"
+        "assets/Overview-HG8fAMFM.js",
+        "assets/Adapters-gKngfaOu.js",
+        "assets/Instances-DA6FIgRs.js",
+        "assets/Intro-CJpwLg8Q.js",
+        "assets/Logs-CA0mEMlO.js",
+        "assets/Files-XdmhxGOR.js",
+        "assets/Objects-B2IC3Bce.js",
+        "assets/Users-DFeYuC5y.js",
+        "assets/Enums-BTurn3-x.js",
+        "assets/CustomTab-_HYUrXsZ.js",
+        "assets/ConfigManager-DYwC4yq9.js",
+        "assets/Hosts-DiTMe9fw.js",
+        "assets/EasyMode-CCRqFtQq.js"
       ],
       "modules": [
         "node_modules/@mui/icons-material/ArrowForward.mjs",
@@ -1610,6 +1612,8 @@
         "src/components/SystemSettings/MainSettingsDialog.tsx",
         "src/components/SystemSettings/RepositoriesDialog.tsx",
         "src/components/SystemSettings/LicensesDialog.tsx",
+        "src/components/SystemSettings/eosLicenseApi.ts",
+        "src/components/SystemSettings/EosLicenseDialog.tsx",
         "src/components/SystemSettings/CertificatesDialog.tsx",
         "src/components/SystemSettings/credentialTypes.ts",
         "src/components/SystemSettings/credentialIcons.ts",
@@ -1826,10 +1830,10 @@
         "src/helpers/ctrlEnter.ts"
       ]
     },
-    "assets/date-fns-Bpgjk9P-.js": {
+    "assets/date-fns-ukillHs-.js": {
       "imports": [
         "assets/en-US-BjjaEI6N.js",
-        "assets/setYear-DurmWw03.js",
+        "assets/setYear-DhVdgUBF.js",
         "assets/isSameWeek-WMSJR5Qs.js"
       ],
       "dynamicImports": [],
@@ -2043,9 +2047,9 @@
         "node_modules/date-fns/locale/en-US.js"
       ]
     },
-    "assets/helpers-DBoACUHw.js": {
+    "assets/helpers-CDcY0YJ-.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -2059,37 +2063,37 @@
         "node_modules/@iobroker/gui-components/build/Components/IconLibrary/iconLibraryData.js"
       ]
     },
-    "assets/icons-material-Bu1f45BT.js": {
+    "assets/icons-material-Dms1APQk.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/AccessTime-Dpa6PKHY.js",
-        "assets/MoreHoriz-CR2kD-dc.js",
-        "assets/Star-DNdm064z.js",
-        "assets/WifiTethering-Da8nW7Do.js",
-        "assets/Apps-C8LE9l6Z.js",
-        "assets/ViewSidebar-kHvah-XS.js",
-        "assets/Book-QmHxDaHb.js",
-        "assets/Usb-Ca47vqRv.js",
-        "assets/Cached-f77QQBQD.js",
-        "assets/Pageview-DBITLOzI.js",
-        "assets/Computer-DFIUq-fL.js",
-        "assets/Timer-Be9yF62g.js",
-        "assets/DeleteForever-BnEM-6_v.js",
-        "assets/Extension-DU1jqvic.js",
-        "assets/KeyboardArrowRight-zZUJhG9e.js",
-        "assets/PersonOff-ANdO5Nu4.js",
-        "assets/InfoOutlined-l86Si1qa.js",
-        "assets/ViewCompact-C3SC0jFF.js",
-        "assets/PushPinOutlined-DvxsqPHo.js",
-        "assets/Remove-DplJatnC.js",
-        "assets/Schedule-BMMrgd7j.js",
-        "assets/Timeline-IQCnSLiw.js",
-        "assets/Storage-COo2RkS1.js",
-        "assets/TextSnippet-Bywi1YuG.js",
-        "assets/UnfoldMore-Du7-8wYn.js",
-        "assets/ViewList-DuKCnBnc.js",
-        "assets/VpnKey-iMA7KrB-.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/AccessTime-5f47qrw7.js",
+        "assets/MoreHoriz-BYaCptH0.js",
+        "assets/Star-ChMjBwLn.js",
+        "assets/WifiTethering-Cp63fmkC.js",
+        "assets/Apps-BKnx1gzD.js",
+        "assets/ViewSidebar-DdedDirX.js",
+        "assets/Book-DrhneQH0.js",
+        "assets/Usb-Dwk7qdYu.js",
+        "assets/Cached-XJmxLN4E.js",
+        "assets/Pageview-DFHddrKX.js",
+        "assets/Computer-DDMBRY5r.js",
+        "assets/Timer-I0twtyWh.js",
+        "assets/DeleteForever-Caoe64_y.js",
+        "assets/Extension-D-tNJv4S.js",
+        "assets/KeyboardArrowRight-DVPBjTKi.js",
+        "assets/PersonOff-BwYQLD1M.js",
+        "assets/InfoOutlined-DIGDQvu6.js",
+        "assets/ViewCompact-BbfomOIi.js",
+        "assets/PushPinOutlined-CEBeTmNm.js",
+        "assets/Remove-BPxvNccW.js",
+        "assets/Schedule-BQlh1nhQ.js",
+        "assets/Timeline-CEyldmz2.js",
+        "assets/Storage-DrC3j-wf.js",
+        "assets/TextSnippet-BQ4TSmvS.js",
+        "assets/UnfoldMore-_DDSfPKk.js",
+        "assets/ViewList-1pB5VinA.js",
+        "assets/VpnKey-o8QeqmnU.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -12585,11 +12589,11 @@
         "node_modules/@mui/icons-material/index.mjs"
       ]
     },
-    "assets/installSVGRenderer-BkdptYag.js": {
+    "assets/installSVGRenderer-BR-zIijZ.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/bootstrap-D-7xcwTc.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/bootstrap-DSDOwKWU.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -12864,10 +12868,10 @@
         "node_modules/date-fns/isSameWeek.js"
       ]
     },
-    "assets/lib-CE1B3iHH.js": {
+    "assets/lib-BZRGBDoe.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
-        "assets/loadShare-eager-CRNcc8D7.js"
+        "assets/loadShare-eager-BpwDZfDr.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -12875,7 +12879,7 @@
         "node_modules/react-qr-code/lib/index.mjs"
       ]
     },
-    "assets/loadShare-eager-CRNcc8D7.js": {
+    "assets/loadShare-eager-BpwDZfDr.js": {
       "imports": [
         "assets/rolldown-runtime-sJBDdmOt.js",
         "assets/vite-preload-helper-BbbETgeG.js"
@@ -12883,7 +12887,7 @@
       "dynamicImports": [
         "assets/prod-ChPGnyiA.js",
         "assets/iconLibraryData-B5fiyl1C.js",
-        "assets/lib-CE1B3iHH.js"
+        "assets/lib-BZRGBDoe.js"
       ],
       "modules": [
         "node_modules/@module-federation/sdk/dist/constant.js",
@@ -12935,19 +12939,19 @@
         "node_modules/@module-federation/runtime/dist/index.js",
         "node_modules/react/cjs/react.production.js",
         "node_modules/react/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__react__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__react__prebuild__.js",
         "node_modules/react/cjs/react-jsx-runtime.production.js",
         "node_modules/react/jsx-runtime.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__.js",
         "node_modules/react-dom/cjs/react-dom.production.js",
         "node_modules/react-dom/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__react_mf_2_dom__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__react_mf_2_dom__prebuild__.js",
         "node_modules/scheduler/cjs/scheduler.production.js",
         "node_modules/scheduler/index.js",
         "node_modules/react-dom/cjs/react-dom-client.production.js",
         "node_modules/react-dom/client.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__react_mf_2_dom_mf_1_client__prebuild__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__react__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__react_mf_2_dom_mf_1_client__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__react__loadShare__.js",
         "node_modules/@emotion/sheet/dist/emotion-sheet.esm.js",
         "node_modules/stylis/src/Enum.js",
         "node_modules/stylis/src/Utility.js",
@@ -12970,18 +12974,18 @@
         "node_modules/@emotion/use-insertion-effect-with-fallbacks/dist/emotion-use-insertion-effect-with-fallbacks.browser.esm.js",
         "node_modules/@emotion/react/dist/emotion-element-f0de968e.browser.esm.js",
         "node_modules/@emotion/react/dist/emotion-react.browser.esm.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild___mf_0_emotion_mf_1_react__prebuild__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_emotion_mf_1_react__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild___mf_0_emotion_mf_1_react__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_emotion_mf_1_react__loadShare__.js",
         "node_modules/@emotion/is-prop-valid/dist/emotion-is-prop-valid.esm.js",
         "node_modules/@emotion/styled/base/dist/emotion-styled-base.browser.esm.js",
         "node_modules/@emotion/styled/dist/emotion-styled.browser.esm.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild___mf_0_emotion_mf_1_styled__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild___mf_0_emotion_mf_1_styled__prebuild__.js",
         "node_modules/file-selector/dist/mime-default.js",
         "node_modules/file-selector/dist/index.js",
         "node_modules/attr-accept/dist/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js",
         "node_modules/react-dropzone/dist/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__react_mf_2_dropzone__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__react_mf_2_dropzone__prebuild__.js",
         "node_modules/@mui/material/colors/common.mjs",
         "node_modules/@mui/material/colors/red.mjs",
         "node_modules/@mui/material/colors/pink.mjs",
@@ -13005,7 +13009,7 @@
         "node_modules/@mui/material/colors/index.mjs",
         "node_modules/@mui/utils/formatMuiErrorMessage/formatMuiErrorMessage.mjs",
         "node_modules/@mui/material/styles/identifier.mjs",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_emotion_mf_1_styled__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_emotion_mf_1_styled__loadShare__.js",
         "node_modules/prop-types/lib/ReactPropTypesSecret.js",
         "node_modules/prop-types/factoryWithThrowingShims.js",
         "node_modules/prop-types/index.js",
@@ -13294,7 +13298,7 @@
         "node_modules/@popperjs/core/lib/createPopper.js",
         "node_modules/@popperjs/core/lib/popper.js",
         "node_modules/@mui/utils/useSlotProps/useSlotProps.mjs",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__react_mf_2_dom__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__react_mf_2_dom__loadShare__.js",
         "node_modules/@mui/utils/getReactElementRef/getReactElementRef.mjs",
         "node_modules/@mui/material/Portal/Portal.mjs",
         "node_modules/@mui/material/Popper/popperClasses.mjs",
@@ -13573,7 +13577,7 @@
         "node_modules/@mui/material/useScrollTrigger/useScrollTrigger.mjs",
         "node_modules/@mui/material/version/index.mjs",
         "node_modules/@mui/material/index.mjs",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild___mf_0_mui_mf_1_material__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild___mf_0_mui_mf_1_material__prebuild__.js",
         "node_modules/@iobroker/gui-components/build/ThemeModern.js",
         "node_modules/@iobroker/gui-components/build/Theme.js",
         "node_modules/@iobroker/socket-client/build/esm/DeferredPromise.js",
@@ -13581,7 +13585,7 @@
         "node_modules/@iobroker/socket-client/build/esm/Connection.js",
         "node_modules/@iobroker/socket-client/build/esm/AdminConnection.js",
         "node_modules/@iobroker/socket-client/build/esm/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_mui_mf_1_material__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_mui_mf_1_material__loadShare__.js",
         "node_modules/@mui/icons-material/Close.mjs",
         "node_modules/@iobroker/gui-components/build/Prompt.js",
         "node_modules/@iobroker/gui-components/build/Components/Loaders/MV.js",
@@ -13632,7 +13636,7 @@
         "node_modules/@iobroker/gui-components/build/Components/ComplexCron.js",
         "node_modules/@mui/icons-material/Language.mjs",
         "node_modules/@iobroker/gui-components/build/Components/CustomModal.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__react_mf_2_dropzone__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__react_mf_2_dropzone__loadShare__.js",
         "node_modules/@mui/icons-material/ArrowBack.mjs",
         "node_modules/@mui/icons-material/AudioFile.mjs",
         "node_modules/@mui/icons-material/Bookmark.mjs",
@@ -13837,7 +13841,7 @@
         "node_modules/@iobroker/gui-components/build/Components/IobUri.js",
         "node_modules/@iobroker/gui-components/build/modulefederation.admin.config.js",
         "node_modules/@iobroker/gui-components/build/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild___mf_0_iobroker_mf_1_gui_mf_2_components__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild___mf_0_iobroker_mf_1_gui_mf_2_components__prebuild__.js",
         "node_modules/@base-ui/utils/formatErrorMessage.mjs",
         "node_modules/@mui/x-internals/formatErrorMessage/index.mjs",
         "node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js",
@@ -14015,12 +14019,12 @@
         "node_modules/@mui/x-date-pickers/DateTimePicker/DateTimePicker.mjs",
         "node_modules/@mui/x-date-pickers/StaticDateTimePicker/StaticDateTimePicker.mjs",
         "node_modules/@mui/x-date-pickers/index.mjs",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild___mf_0_mui_mf_1_x_mf_2_date_mf_2_pickers__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild___mf_0_mui_mf_1_x_mf_2_date_mf_2_pickers__prebuild__.js",
         "node_modules/json5/dist/index.js",
         "__vite-browser-external",
         "node_modules/crypto-js/core.js",
         "node_modules/crypto-js/md5.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js",
         "node_modules/@iobroker/json-config/build/encryptedNative.js",
         "node_modules/@iobroker/json-config/build/fileContent.js",
         "node_modules/@mui/icons-material/Key.mjs",
@@ -14074,7 +14078,7 @@
         "node_modules/@iobroker/json-config/build/JsonConfigComponent/ConfigCustomErrorBoundary.js",
         "node_modules/@iobroker/json-config/build/JsonConfigComponent/guiApiGate.js",
         "node_modules/@iobroker/json-config/build/JsonConfigComponent/ConfigCustom.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_mui_mf_1_x_mf_2_date_mf_2_pickers__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_mui_mf_1_x_mf_2_date_mf_2_pickers__loadShare__.js",
         "node_modules/@iobroker/json-config/build/JsonConfigComponent/ConfigDatePicker.js",
         "node_modules/@iobroker/json-config/build/JsonConfigComponent/ConfigDeviceManager.js",
         "node_modules/@mui/icons-material/Article.mjs",
@@ -14223,7 +14227,7 @@
         "node_modules/@iobroker/json-config/build/JsonConfigComponent/index.js",
         "node_modules/@iobroker/json-config/build/JsonConfig.js",
         "node_modules/@iobroker/json-config/build/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild___mf_0_iobroker_mf_1_json_mf_2_config__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild___mf_0_iobroker_mf_1_json_mf_2_config__prebuild__.js",
         "node_modules/@mui/icons-material/QuestionMark.mjs",
         "node_modules/@mui/icons-material/SystemUpdateAlt.mjs",
         "node_modules/@mui/icons-material/BatteryAlert.mjs",
@@ -14253,7 +14257,7 @@
         "node_modules/@iobroker/dm-gui-components/build/hooks.js",
         "node_modules/@iobroker/dm-gui-components/build/Switch.js",
         "node_modules/@iobroker/dm-gui-components/build/DeviceStatus.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js",
         "node_modules/@iobroker/dm-gui-components/build/JsonConfig.js",
         "node_modules/@iobroker/dm-gui-components/build/StatusIndicator.js",
         "node_modules/@iobroker/dm-gui-components/build/DeviceCard.js",
@@ -14281,9 +14285,9 @@
         "node_modules/@iobroker/dm-gui-components/build/DeviceList.js",
         "node_modules/@iobroker/dm-gui-components/build/index.js",
         "node_modules/leaflet/dist/leaflet-src.esm.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__leaflet__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__leaflet__loadShare__.js",
         "node_modules/leaflet-geosearch/dist/geosearch.module.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__leaflet_mf_2_geosearch__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__leaflet_mf_2_geosearch__prebuild__.js",
         "node_modules/ace-builds/src-noconflict/ace.js",
         "node_modules/react-ace/lib/editorOptions.mjs",
         "node_modules/fast-equals/dist/es/index.mjs",
@@ -14293,7 +14297,7 @@
         "node_modules/diff-match-patch/index.js",
         "node_modules/react-ace/lib/diff.mjs",
         "node_modules/react-ace/lib/index.mjs",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__react_mf_2_ace__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__react_mf_2_ace__prebuild__.js",
         "node_modules/semver/internal/constants.js",
         "node_modules/semver/internal/debug.js",
         "node_modules/semver/internal/re.js",
@@ -14340,12 +14344,12 @@
         "node_modules/semver/ranges/simplify.js",
         "node_modules/semver/ranges/subset.js",
         "node_modules/semver/index.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__prebuild__semver__prebuild__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__leaflet_mf_2_geosearch__loadShare__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__react_mf_2_ace__loadShare__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__semver__loadShare__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js",
-        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__172172186934728__loadShare___mf_0_iobroker_mf_1_dm_mf_2_gui_mf_2_components__loadShare__.js"
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__prebuild__semver__prebuild__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__leaflet_mf_2_geosearch__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__react_mf_2_ace__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__semver__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js",
+        "\u0000virtual:mf:__mfe_internal__iobroker_admin__mf_owner__280951576695701__loadShare___mf_0_iobroker_mf_1_dm_mf_2_gui_mf_2_components__loadShare__.js"
       ]
     },
     "assets/locale-DN6Bdkdt.js": {
@@ -15023,14 +15027,14 @@
         "\u0000rolldown/runtime.js"
       ]
     },
-    "assets/sentry-B4uGc7ut.js": {
+    "assets/sentry-BFzW-2KQ.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
-        "assets/WifiTethering-Da8nW7Do.js",
-        "assets/Apps-C8LE9l6Z.js",
-        "assets/Storage-COo2RkS1.js",
-        "assets/VpnKey-iMA7KrB-.js",
-        "assets/AdminUtils-DDT_kD8H.js"
+        "assets/loadShare-eager-BpwDZfDr.js",
+        "assets/WifiTethering-Cp63fmkC.js",
+        "assets/Apps-BKnx1gzD.js",
+        "assets/Storage-DrC3j-wf.js",
+        "assets/VpnKey-o8QeqmnU.js",
+        "assets/AdminUtils-CopxRJZ2.js"
       ],
       "dynamicImports": [],
       "modules": [
@@ -15039,9 +15043,9 @@
         "src/assets/sentry.svg"
       ]
     },
-    "assets/setYear-DurmWw03.js": {
+    "assets/setYear-DhVdgUBF.js": {
       "imports": [
-        "assets/loadShare-eager-CRNcc8D7.js",
+        "assets/loadShare-eager-BpwDZfDr.js",
         "assets/en-US-BjjaEI6N.js"
       ],
       "dynamicImports": [],
@@ -15179,17 +15183,17 @@
   },
   "assets": {
     "remoteEntry.js": {
-      "sha256": "549b22ab84d357d9c3397ebd20bb9b56bc0aac0fbbac7046b5b392f87393a988",
+      "sha256": "b49cb31674624ae9f353abbb875a23e8da7acc2da3f351a83ce6e8d99f3ba365",
       "imports": [
-        "remoteEntry-eos-8.0.1.js"
+        "remoteEntry-eos-8.0.2.js"
       ]
     },
-    "assets/mf-entry-bootstrap-0-f6098d8b.js": {
-      "sha256": "f6098d8b2e981835d272e6afe3d8ae85f45729d25634ae3f19e65187230dd6e7",
+    "assets/mf-entry-bootstrap-0-2d631020.js": {
+      "sha256": "2d631020605949bfa7954c97d51ac638f453286eb7ea1ad0c53fee751e6da126",
       "imports": [
-        "assets/hostInit-huY-0clu.js",
-        "assets/pendingShares-CuQbFsaK.js",
-        "assets/index-D8vmzGp8.js"
+        "assets/hostInit-Cd61hJHh.js",
+        "assets/pendingShares-D1Vr_qYv.js",
+        "assets/index-D6uhIclX.js"
       ]
     }
   }

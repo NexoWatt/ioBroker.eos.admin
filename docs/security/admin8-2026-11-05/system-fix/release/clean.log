@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.2 clean:eos-runtime
+> node tools/nexowatt-clean-legacy-runtime.cjs
+
+[NexoWatt EOS runtime cleanup] OK (runtime Admin8 manifest, shell v7109, removed 0 legacy files)

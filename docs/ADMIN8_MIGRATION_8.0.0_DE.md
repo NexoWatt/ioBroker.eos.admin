@@ -1,3 +1,5 @@
+> Ergänzung 05.11.2026: 8.0.2 stellt die sichtbaren System-/Expertenbedienelemente wieder her und integriert die EOS-Lizenzverwaltung. Bestehende Anlagen- und Lizenzdaten bleiben erhalten. Siehe `START_HERE_8.0.2.md` und `docs/security/admin8-2026-11-05/system-fix/`.
+
 > Korrektur vom 05.11.2026: EOS **8.0.1** behebt die Gruppen-ID-Verwechslung in der Anmeldung von 8.0.0. Siehe `../START_HERE_8.0.1.md` und `security/admin8-2026-11-05/login-fix/REPORT_DE.md`. Die ursprüngliche Migration ist nachfolgend historisch dokumentiert.
 
 # NexoWatt EOS Admin 8.0.0 – Migration und Betrieb

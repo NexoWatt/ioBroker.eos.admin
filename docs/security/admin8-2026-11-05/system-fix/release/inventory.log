@@ -1,0 +1,8 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.2 security:inventory
+> node tools/nexowatt-security-inventory.cjs
+
+backend: 773 lockfile components; 0 manifest mismatches; 6 unresolved references
+frontend: 582 lockfile components; 0 manifest mismatches; 22 unresolved references
+Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.

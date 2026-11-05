@@ -384,10 +384,10 @@ interface DrawerProps {
     width: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     theme: IobTheme;
     provideTabsInfo: (tabs: AdminTab[]) => void;
-    /** Opens the system settings. Sits at the bottom of the menu, not in the app bar */
+    /** Opens the native System dialog from the pinned EOS navigation. */
     onSystemSettings: () => void;
-    /** Global buttons (notifications, theme, expert mode, ...) shown at the lower edge of the menu */
-    menuButtons?: JSX.Element;
+    eosAccessRole: string;
+    expertModeControl?: JSX.Element | null;
     /** Logged-in user. Shown at the lower edge of the menu, it used to sit in the app bar */
     user?: {
         id: string;
@@ -1028,30 +1028,43 @@ class Drawer extends Component<DrawerProps, DrawerState> {
         }, delay);
     }
 
+    /** Fixed entry points stay before the independently scrolling adapter tab strip. */
+    renderSystemNavigation(): JSX.Element | null {
+        if (!['admin', 'service'].includes(this.props.eosAccessRole)) {
+            return null;
+        }
+        return (
+            <Box className="eos-system-navigation">
+                <IsVisible
+                    name="admin.appBar.systemSettings"
+                    config={this.props.adminGuiConfig}
+                >
+                    <DrawerItem
+                        theme={this.props.theme}
+                        compact={false}
+                        tabName="tab-system"
+                        onClick={this.props.onSystemSettings}
+                        text={this.props.t('System')}
+                        icon={<SystemSettingsIcon />}
+                    />
+                </IsVisible>
+                {this.props.expertModeControl}
+            </Box>
+        );
+    }
+
     /**
-     * Everything below the navigation: system settings, logout and the global buttons that used to
-     * sit in the app bar. The block never scrolls - only the list above it does.
+     * The account/logout entry stays separate from the scrolling adapter tab strip.
      */
     renderFooter(): JSX.Element {
         const compact = !this.isSwipeable() && this.props.state !== STATES.opened;
         const user = this.props.user;
 
         return (
-            <Box sx={styles.footer}>
-                {['admin', 'service'].includes(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown') ? (
-                    <IsVisible
-                        name="admin.appBar.systemSettings"
-                        config={this.props.adminGuiConfig}
-                    >
-                        <DrawerItem
-                            theme={this.props.theme}
-                            compact={compact}
-                            onClick={this.props.onSystemSettings}
-                            text={this.props.t('System settings')}
-                            icon={<SystemSettingsIcon />}
-                        />
-                    </IsVisible>
-                ) : null}
+            <Box
+                className="eos-drawer-account"
+                sx={styles.footer}
+            >
                 {this.props.isSecure ? (
                     <>
                         {/* Shows who is logged in - that used to be in the app bar. A click does not
@@ -1102,7 +1115,6 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                         </Menu>
                     </>
                 ) : null}
-                {this.props.menuButtons ? <Box sx={styles.footerButtons}>{this.props.menuButtons}</Box> : null}
             </Box>
         );
     }
@@ -1211,6 +1223,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
         return (
             <Box
                 component="div"
+                data-eos-drawer-header="1"
                 sx={Utils.getStyle(
                     this.props.theme,
                     styles.header,
@@ -1515,6 +1528,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
                     <CustomDragLayer theme={this.props.theme} />
 
                     {this.getHeader()}
+                    {this.renderSystemNavigation()}
 
                     <List style={styles.list}>
                         {this.getNavigationItems()}
@@ -1547,6 +1561,7 @@ class Drawer extends Component<DrawerProps, DrawerState> {
             >
                 <CustomDragLayer theme={this.props.theme} />
                 {this.getHeader()}
+                {this.renderSystemNavigation()}
                 <List style={styles.list}>
                     {this.getNavigationItems()}
                     {this.renderEditButton()}

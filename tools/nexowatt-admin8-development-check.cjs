@@ -10,7 +10,14 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const receiptPath = path.join(root, 'release-manifests/admin8-development-validation.json');
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
-const DEVELOPMENT_TESTS = ['eos-admin8-backend.test.cjs', 'eos-admin8-web.test.cjs', 'eos-instance-proxy.test.cjs'];
+// These tests execute actual TypeScript/React or installed HTTP modules. They
+// always run before sealing; a source-bound receipt is required for publication
+// from the prebuilt ZIP when its development toolchain is not installed.
+const DEVELOPMENT_TESTS = [
+    'eos-admin8-backend.test.cjs', 'eos-admin8-web.test.cjs', 'eos-instance-proxy.test.cjs',
+    'eos-admin8-navigation.test.cjs', 'eos-admin8-role-context.test.cjs', 'eos-system-license-ui.test.cjs',
+    'eos-system-save.test.cjs',
+];
 function commands() {
     return [
         ['node_modules/mocha/bin/mocha.js', 'test/package', '--exit'],

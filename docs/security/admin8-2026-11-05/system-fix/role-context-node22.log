@@ -1,0 +1,44 @@
+(node:5) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:12) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: controller translated view keys resolve canonical admin membership for any username
+ok 1 - controller translated view keys resolve canonical admin membership for any username
+  ---
+  duration_ms: 3.916739
+  type: 'test'
+  ...
+# Subtest: configured service and installer groups use canonical IDs; display text cannot elevate privileges
+ok 2 - configured service and installer groups use canonical IDs; display text cannot elevate privileges
+  ---
+  duration_ms: 2.32122
+  type: 'test'
+  ...
+# Subtest: role context rejects malformed views and duplicate IDs instead of returning partial roles
+ok 3 - role context rejects malformed views and duplicate IDs instead of returning partial roles
+  ---
+  duration_ms: 6.18421
+  type: 'test'
+  ...
+# Subtest: role context ignores presentation key type and orders distinct identities deterministically
+ok 4 - role context ignores presentation key type and orders distinct identities deterministically
+  ---
+  duration_ms: 1.394661
+  type: 'test'
+  ...
+# Subtest: real OAuth tokens authenticate role context and protected license status via cookie and bearer
+ok 5 - real OAuth tokens authenticate role context and protected license status via cookie and bearer
+  ---
+  duration_ms: 121.884532
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1001.929644

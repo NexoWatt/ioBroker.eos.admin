@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.2 seal:eos-prebuilt-release
+> node tools/nexowatt-prebuilt-release-selftest.cjs --write
+
+[NexoWatt EOS prebuilt release] sealed 1181 source/runtime file(s) for 8.0.2

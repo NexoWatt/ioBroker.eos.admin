@@ -1,0 +1,56 @@
+(node:37) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:44) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: System and expert controls are rendered for administrative policy only
+ok 1 - System and expert controls are rendered for administrative policy only
+  ---
+  duration_ms: 139.777042
+  type: 'test'
+  ...
+# Subtest: expert mode keeps confirmation and toggles both directions within the browser session
+ok 2 - expert mode keeps confirmation and toggles both directions within the browser session
+  ---
+  duration_ms: 37.149358
+  type: 'test'
+  ...
+# Subtest: cancelling expert confirmation preserves mode; settings link opens native System dialog
+ok 3 - cancelling expert confirmation preserves mode; settings link opens native System dialog
+  ---
+  duration_ms: 16.771618
+  type: 'test'
+  ...
+# Subtest: saved expert default and suppressed confirmation still allow disabling and reenabling
+ok 4 - saved expert default and suppressed confirmation still allow disabling and reenabling
+  ---
+  duration_ms: 13.239777
+  type: 'test'
+  ...
+# Subtest: policy arriving after launch updates React controls and restores session preference
+ok 5 - policy arriving after launch updates React controls and restores session preference
+  ---
+  duration_ms: 14.484133
+  type: 'test'
+  ...
+# Subtest: revoked, unresolved and first-login policies cannot retain expert or system controls
+ok 6 - revoked, unresolved and first-login policies cannot retain expert or system controls
+  ---
+  duration_ms: 72.12566
+  type: 'test'
+  ...
+# Subtest: a later legacy global role write cannot restore revoked React controls or an old click handler
+ok 7 - a later legacy global role write cannot restore revoked React controls or an old click handler
+  ---
+  duration_ms: 13.848997
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 746.987093

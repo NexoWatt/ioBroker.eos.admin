@@ -2430,3 +2430,12 @@
 - en: Role access RC1: end users can open EOS Admin for Smart Home and released NexoWatt UI areas; installers receive commissioning, adapter, instance, datapoint and log diagnostics plus a safe basic-settings dialog. NexoWatt Admin/Service alone retains full system, security, user and expert-mode access.
 - de: Rollen-Zugriff RC1: Endkunden können EOS Admin für Smart Home und freigegebene NexoWatt-UI-Bereiche öffnen; Installateure erhalten Inbetriebnahme, Adapter-, Instanz-, Datenpunkt- und Logdiagnose sowie einen sicheren Basis-Einstellungsdialog. Nur NexoWatt Admin/Service behält vollständigen System-, Sicherheits-, Benutzer- und Expertenmodus-Zugriff.
 - nl: Roltoegang RC1: eindgebruikers kunnen EOS Admin openen voor Smart Home en vrijgegeven NexoWatt-UI-onderdelen; installateurs krijgen inbedrijfstelling, adapter-, instantie-, datapunt- en logdiagnose plus een veilig basisinstellingendialoog. Alleen NexoWatt Admin/Service behoudt volledige systeem-, beveiligings-, gebruikers- en expertmodustoegang.
+
+
+## 7.9.87-rc.3 (archivierter io-package-Eintrag)
+
+{
+  "en": "Release candidate for the sales-ready EOS Admin: role-specific installer/end-user access, first-login password setup, Smart Home assignment access, strict expert-mode lock, NexoWatt-only customer branding, safe npm publishing under the rc dist-tag, and EOS Admin default port 8081.",
+  "de": "Release Candidate für den verkaufsfertigen EOS Admin: rollenbezogener Installateur-/Endkundenzugriff, Passwortvergabe bei der ersten Anmeldung, Smart-Home-Zuordnung, strikte Expertenmodus-Sperre, ausschließliches NexoWatt-Branding in der Kundenoberfläche, sichere npm-Veröffentlichung über den Dist-Tag rc und EOS-Admin-Standardport 8081.",
+  "nl": "Release candidate voor de verkoopklare EOS Admin: rolgebonden installateur-/eindgebruikertoegang, wachtwoordkeuze bij de eerste aanmelding, Smart Home-toewijzing, strikte blokkering van de expertmodus, uitsluitend NexoWatt-branding, veilige npm-publicatie onder de rc-dist-tag en EOS Admin-standaardpoort 8081."
+}

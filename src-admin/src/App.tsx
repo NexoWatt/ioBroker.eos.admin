@@ -178,7 +178,7 @@ declare global {
 const query: { login?: boolean } = {};
 
 const getEosAccessRole = (): string => String(window.NEXOWATT_EOS_ACCESS_ROLE || 'unknown').toLowerCase();
-const isEosAdministrator = (): boolean => ['admin', 'service'].includes(getEosAccessRole());
+const isEosAdministrator = (role = getEosAccessRole()): boolean => ['admin', 'service'].includes(role);
 
 (window.location.search || '')
     .replace(/^\?/, '')
@@ -481,6 +481,7 @@ interface AppState {
     ready: boolean;
     lang: ioBroker.Languages;
     expertMode: boolean;
+    eosAccessRole: string;
     expertModeDialog?: boolean;
     showGuiSettings?: HTMLButtonElement | null;
     /** Px reserved on the right for the docked chat assistant (0 = overlay/closed). */
@@ -758,6 +759,7 @@ class App extends Router<AppProps, AppState> {
                 hostname: window.location.hostname,
 
                 expertMode: false,
+                eosAccessRole: getEosAccessRole(),
                 chatDockWidth: 0,
 
                 hosts: [],
@@ -1223,10 +1225,46 @@ class App extends Router<AppProps, AppState> {
         }
     }
 
+    /** Refresh React controls when the authenticated backend policy changes after login/reconnect. */
+    onEosPolicyChanged = (event: Event): void => {
+        const detail: unknown = event instanceof CustomEvent ? event.detail : null;
+        if (!detail || typeof detail !== 'object' || !('policy' in detail)) {
+            return;
+        }
+        const policy: unknown = detail.policy;
+        let role = 'unknown';
+        if (
+            policy &&
+            typeof policy === 'object' &&
+            'authenticated' in policy &&
+            policy.authenticated === true &&
+            'role' in policy &&
+            typeof policy.role === 'string' &&
+            ['admin', 'service', 'installer', 'enduser'].includes(policy.role) &&
+            !('mustChangePassword' in policy && policy.mustChangePassword === true)
+        ) {
+            role = policy.role;
+        }
+        window.NEXOWATT_EOS_ACCESS_ROLE = role;
+        if (role === this.state.eosAccessRole) {
+            return;
+        }
+        const administrator = ['admin', 'service'].includes(role);
+        const storedExpertMode = (window._sessionStorage || window.sessionStorage).getItem('App.expertMode');
+        this.setState({
+            eosAccessRole: role,
+            expertMode:
+                administrator &&
+                (storedExpertMode ? storedExpertMode === 'true' : !!this.state.systemConfig?.common.expertMode),
+            expertModeDialog: false,
+        });
+    };
+
     componentDidMount(): void {
         // check if we are mounted as SSO response
         void App.checkSsoResponse();
         window.addEventListener('vite:preloadError', onPreloadError);
+        window.addEventListener('nexowatt-eos-policy', this.onEosPolicyChanged);
 
         if (!this.state.login) {
             window.addEventListener('hashchange', this.onHashChanged, false);
@@ -1462,7 +1500,7 @@ class App extends Router<AppProps, AppState> {
                             'App.expertMode',
                         );
                         newState.expertMode =
-                            isEosAdministrator() &&
+                            isEosAdministrator(this.state.eosAccessRole) &&
                             (storedExpertMode
                                 ? storedExpertMode === 'true'
                                 : !!newState.systemConfig?.common.expertMode);
@@ -1576,6 +1614,7 @@ class App extends Router<AppProps, AppState> {
     componentWillUnmount(): void {
         window.removeEventListener('hashchange', this.onHashChanged, false);
         window.removeEventListener('vite:preloadError', onPreloadError);
+        window.removeEventListener('nexowatt-eos-policy', this.onEosPolicyChanged);
         this.socket?.unsubscribeState('system.adapter.discovery.0.alive', this.onDiscoveryAlive);
         void this.socket?.unsubscribeObject('system.discovery', this.onDiscoveryObject);
 
@@ -2808,9 +2847,13 @@ class App extends Router<AppProps, AppState> {
         return null;
     }
 
-    getSystemSettingsDialog(): JSX.Element {
+    getSystemSettingsDialog(): JSX.Element | null {
+        if (!isEosAdministrator(this.state.eosAccessRole)) {
+            return null;
+        }
         return (
             <SystemSettingsDialog
+                eosAccessRole={this.state.eosAccessRole}
                 adminGuiConfig={this.adminGuiConfig}
                 width={this.props.width}
                 currentHost={this.state.currentHost}
@@ -2835,6 +2878,9 @@ class App extends Router<AppProps, AppState> {
                 socket={this.socket}
                 currentTab={this.state.currentTab}
                 expertModeFunc={(value: boolean) => {
+                    if (!isEosAdministrator(this.state.eosAccessRole)) {
+                        return;
+                    }
                     (window._sessionStorage || window.sessionStorage).removeItem('App.expertMode');
                     const systemConfig = JSON.parse(JSON.stringify(this.state.systemConfig));
                     systemConfig.common.expertMode = value;
@@ -3382,12 +3428,16 @@ class App extends Router<AppProps, AppState> {
     }
 
     renderExpertDialog(): JSX.Element | null {
-        if (!this.state.expertModeDialog) {
+        if (!this.state.expertModeDialog || !isEosAdministrator(this.state.eosAccessRole)) {
             return null;
         }
         return (
             <ExpertModeDialog
                 onClose={result => {
+                    if (!isEosAdministrator(this.state.eosAccessRole)) {
+                        this.setState({ expertModeDialog: false, expertMode: false });
+                        return;
+                    }
                     if (result === 'openSettings') {
                         Router.doNavigate(null, 'system');
                     } else if (result) {
@@ -3443,17 +3493,78 @@ class App extends Router<AppProps, AppState> {
         ) : null;
     }
 
-    /**
-     * The global buttons that used to sit in the app bar: notifications, discovery, theme, expert
-     * mode and the settings synchronisation.
-     *
-     * They are rendered by the drawer at its lower edge now. The app bar is supposed to disappear
-     * completely, so nothing that the user needs permanently may stay in it.
-     */
-    renderMenuButtons(): JSX.Element {
+    /** The expert switch remains visible beside System even when the tab strip scrolls. */
+    renderExpertModeButton(): JSX.Element | null {
         const storedExpertMode = (window._sessionStorage || window.sessionStorage).getItem('App.expertMode');
         const expertModePermanent =
             !storedExpertMode || (storedExpertMode === 'true') === !!this.state.systemConfig?.common.expertMode;
+        return isEosAdministrator(this.state.eosAccessRole) ? (
+            <IsVisible
+                name="admin.appBar.expertMode"
+                config={this.adminGuiConfig}
+            >
+                <Tooltip
+                    title={`${I18n.t('Toggle expert mode')} ${
+                        expertModePermanent ? '' : ` (${I18n.t('only in this browser session')})`
+                    }`}
+                    slotProps={{ popper: { sx: styles.tooltip } }}
+                >
+                    <Badge
+                        color="secondary"
+                        variant="dot"
+                        sx={{ '& .MuiBadge-badge': styles.expertBadge }}
+                        invisible={expertModePermanent}
+                    >
+                        <IconButton
+                            data-eos-expert-control="1"
+                            aria-label={I18n.t('Toggle expert mode')}
+                            aria-pressed={this.state.expertMode}
+                            onClick={() => {
+                                if (!isEosAdministrator(this.state.eosAccessRole)) {
+                                    return;
+                                }
+                                if (!!this.state.systemConfig?.common.expertMode === !this.state.expertMode) {
+                                    (window._sessionStorage || window.sessionStorage).setItem(
+                                        'App.expertMode',
+                                        this.state.expertMode ? 'false' : 'true',
+                                    );
+                                    this.setState({ expertMode: !this.state.expertMode });
+                                    this.refConfigIframe?.contentWindow?.postMessage('updateExpertMode', '*');
+                                } else if (
+                                    (window._sessionStorage || window.sessionStorage).getItem(
+                                        'App.doNotShowExpertDialog',
+                                    ) === 'true'
+                                ) {
+                                    (window._sessionStorage || window.sessionStorage).setItem(
+                                        'App.expertMode',
+                                        this.state.expertMode ? 'false' : 'true',
+                                    );
+                                    this.setState({ expertMode: !this.state.expertMode });
+                                    this.refConfigIframe?.contentWindow?.postMessage('updateExpertMode', '*');
+                                } else {
+                                    this.setState({ expertModeDialog: true });
+                                }
+                            }}
+                            style={{
+                                color: this.state.expertMode ? this.state.theme.palette.expert : undefined,
+                            }}
+                            color="default"
+                        >
+                            <IconExpert
+                                style={{
+                                    ...styles.expertIcon,
+                                    ...(this.state.expertMode ? styles.expertIconActive : undefined),
+                                }}
+                            />
+                        </IconButton>
+                    </Badge>
+                </Tooltip>
+            </IsVisible>
+        ) : null;
+    }
+
+    /** Notifications, theme and settings synchronisation stay in the persistent EOS header. */
+    renderMenuButtons(): JSX.Element {
         const sumNotification = this.state.noNotifications.warning + this.state.noNotifications.other;
 
         return (
@@ -3515,65 +3626,7 @@ class App extends Router<AppProps, AppState> {
                         />
                     </IsVisible>
                 ) : null}
-                {isEosAdministrator() ? (
-                    <IsVisible
-                        name="admin.appBar.expertMode"
-                        config={this.adminGuiConfig}
-                    >
-                        <Tooltip
-                            title={`${I18n.t('Toggle expert mode')} ${
-                                expertModePermanent ? '' : ` (${I18n.t('only in this browser session')})`
-                            }`}
-                            slotProps={{ popper: { sx: styles.tooltip } }}
-                        >
-                            <Badge
-                                color="secondary"
-                                variant="dot"
-                                sx={{ '& .MuiBadge-badge': styles.expertBadge }}
-                                invisible={expertModePermanent}
-                            >
-                                <IconButton
-                                    data-eos-expert-control="1"
-                                    onClick={() => {
-                                        if (!!this.state.systemConfig?.common.expertMode === !this.state.expertMode) {
-                                            (window._sessionStorage || window.sessionStorage).setItem(
-                                                'App.expertMode',
-                                                this.state.expertMode ? 'false' : 'true',
-                                            );
-                                            this.setState({ expertMode: !this.state.expertMode });
-                                            this.refConfigIframe?.contentWindow?.postMessage('updateExpertMode', '*');
-                                        } else if (
-                                            (window._sessionStorage || window.sessionStorage).getItem(
-                                                'App.doNotShowExpertDialog',
-                                            ) === 'true'
-                                        ) {
-                                            (window._sessionStorage || window.sessionStorage).setItem(
-                                                'App.expertMode',
-                                                this.state.expertMode ? 'false' : 'true',
-                                            );
-                                            this.setState({ expertMode: !this.state.expertMode });
-                                            this.refConfigIframe?.contentWindow?.postMessage('updateExpertMode', '*');
-                                        } else {
-                                            this.setState({ expertModeDialog: true });
-                                        }
-                                    }}
-                                    style={{
-                                        color: this.state.expertMode ? this.state.theme.palette.expert : undefined,
-                                    }}
-                                    color="default"
-                                >
-                                    <IconExpert
-                                        style={{
-                                            ...styles.expertIcon,
-                                            ...(this.state.expertMode ? styles.expertIconActive : undefined),
-                                        }}
-                                    />
-                                </IconButton>
-                            </Badge>
-                        </Tooltip>
-                    </IsVisible>
-                ) : null}
-                {isEosAdministrator() && this.state.expertMode ? (
+                {isEosAdministrator(this.state.eosAccessRole) && this.state.expertMode ? (
                     <Tooltip
                         title={I18n.t('Synchronize admin settings between all opened browser windows')}
                         slotProps={{ popper: { sx: styles.tooltip } }}
@@ -3604,6 +3657,9 @@ class App extends Router<AppProps, AppState> {
                 <IconButton
                     size="large"
                     edge="start"
+                    data-eos-menu-toggle="1"
+                    aria-label={I18n.t('Open menu')}
+                    aria-expanded={this.state.drawerState !== DrawerStates.closed}
                     style={{
                         ...styles.menuButton,
                         ...(!small && this.state.drawerState !== DrawerStates.closed ? styles.hide : undefined),
@@ -3613,8 +3669,7 @@ class App extends Router<AppProps, AppState> {
                     <MenuIcon />
                 </IconButton>
                 <div style={styles.wrapperButtons}>
-                    {/* notifications, discovery, theme, expert mode and the settings synchronisation
-                        moved to the lower edge of the menu, see `renderMenuButtons` */}
+                    <Box className="eos-header-controls">{this.renderMenuButtons()}</Box>
                     <div style={styles.flexGrow} />
                     {this.state.cmd && !this.state.cmdDialog && (
                         <IconButton
@@ -3844,7 +3899,8 @@ class App extends Router<AppProps, AppState> {
         // The bar has nothing left to show but the name of the installation.
         // Optional chaining is required: this runs before the early returns below, and until the
         // configuration has been read `systemConfig` is null - the type says otherwise.
-        const showAppBar = !!this.state.systemConfig?.common?.siteName;
+        // EOS always needs its header controls, including on an installation without a site name.
+        const showAppBar = true;
         const menuButtonSpace = this.needsMenuButtonSpace();
 
         if (this.state.cloudNotConnected) {
@@ -3940,8 +3996,7 @@ class App extends Router<AppProps, AppState> {
                         style={{ ...styles.root, paddingRight: this.state.chatDockWidth || undefined }}
                     >
                         {/*
-                         * The app bar only exists for the site name. Without a name there is
-                         * nothing left to show in it, and the space is better used by the content.
+                         * The EOS header also carries global controls when no site name is configured.
                          */}
                         {showAppBar ? (
                             <AppBar
@@ -4007,7 +4062,8 @@ class App extends Router<AppProps, AppState> {
                                     this.tabsInfo = tabs;
                                 }}
                                 onSystemSettings={() => Router.doNavigate(null, 'system')}
-                                menuButtons={this.renderMenuButtons()}
+                                eosAccessRole={this.state.eosAccessRole}
+                                expertModeControl={this.renderExpertModeButton()}
                                 user={this.state.user}
                             />
                         </DndProvider>

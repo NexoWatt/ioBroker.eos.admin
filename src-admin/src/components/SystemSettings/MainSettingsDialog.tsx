@@ -740,7 +740,9 @@ export default class MainSettingsDialog extends BaseSystemSettingsDialog<Props, 
                                     fullWidth
                                     variant="standard"
                                     id="siteName"
-                                    label={this.props.t('Site name')}
+                                    label={
+                                        I18n.getLanguage() === 'de' ? 'Kunden- / Anlagenname' : 'Customer / site name'
+                                    }
                                     value={this.props.data.common.siteName || ''}
                                     onChange={e => this.doChange('siteName', e.target.value)}
                                     helperText={this.props.t(

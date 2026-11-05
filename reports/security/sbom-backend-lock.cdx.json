@@ -3,7 +3,7 @@
   "specVersion": "1.5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-05T08:26:41.589Z",
+    "timestamp": "2026-11-05T12:10:00.281Z",
     "tools": [
       {
         "vendor": "NexoWatt",
@@ -15,8 +15,8 @@
       "type": "application",
       "bom-ref": "nexowatt:backend:root",
       "name": "iobroker.eos-admin",
-      "version": "8.0.1",
-      "purl": "pkg:npm/iobroker.eos-admin@8.0.1"
+      "version": "8.0.2",
+      "purl": "pkg:npm/iobroker.eos-admin@8.0.2"
     },
     "properties": [
       {
@@ -29,11 +29,11 @@
       },
       {
         "name": "nexowatt:input:package-json-sha256",
-        "value": "5413fac923c591278377fed1efde9d82704a1a3f5c7eb83bb7200fa36be1476e"
+        "value": "8024cbd228332a744424a502d0f9228616dbaae36d528407b9a4528a5d6131c5"
       },
       {
         "name": "nexowatt:input:package-lock-sha256",
-        "value": "168f14d1ee7c6822d67e28ebefe4bc2c488376752d57fb7709e04bedea30fb9b"
+        "value": "7e94fcf1c3a4458f4201fdca5999662c005c3382f04e4be5bcfc4f68f7b22b69"
       },
       {
         "name": "nexowatt:unresolved-edges",

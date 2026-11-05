@@ -1,0 +1,1 @@
+import{Os as e,Us as t}from"./loadShare-eager-BpwDZfDr.js";var n=e(t(`path`,{d:`M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm-1 4 6 6v10c0 1.1-.9 2-2 2H7.99C6.89 23 6 22.1 6 21l.01-14c0-1.1.89-2 1.99-2zm-1 7h5.5L14 6.5z`}),`FileCopy`),r=e(t(`path`,{d:`M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z`}),`KeyboardArrowRight`);export{n,r as t};

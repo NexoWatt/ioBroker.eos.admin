@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.2 security:artifacts
+> node tools/nexowatt-artifact-inventory.cjs
+
+{"status":"RESOLVED_WITH_DECLARED_LIMITATIONS","installed":[{"label":"backend","count":746,"absentOptional":26,"failures":0},{"label":"frontend","count":559,"absentOptional":23,"failures":0}],"frontend":{"chunks":72,"packages":168,"vendoredPackages":1,"modules":13947,"unclassified":0},"optionalPeers":[{"label":"backend","unresolved":6,"verifiedOptional":6},{"label":"frontend","unresolved":22,"verifiedOptional":22}],"licenseNotices":{"report":"docs/third-party/admin8/NOTICE-PROVENANCE.json","packages":171,"files":177,"missing":[{"name":"size-sensor","version":"1.0.2","scope":"frontend"}]}}
