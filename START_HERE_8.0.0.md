@@ -4,19 +4,21 @@ Dieses vollständige Repository enthält einen neu gebauten Admin-8-Kern auf Bas
 
 ## Gewohnter Upload aus VS Code
 
-1. ZIP direkt nach **`C:\nw`** in einen neuen Arbeitsordner entpacken und `C:\nw\ioBroker.eos-admin` in VS Code öffnen. Keinen zusätzlichen Ordner mit dem langen ZIP-Namen erzeugen. Einen vorhandenen Git-Ordner nicht löschen oder blind überkopieren: sichere Übernahme siehe **`WINDOWS_GIT_NPM_DE.md`**.
-2. Im Terminal `node --version` prüfen: benötigt wird Node.js **>=24.22.1 und <25**.
-3. Zuerst **`npm publish --dry-run`** ausführen. Nur bei erfolgreicher Prüfung mit dem vorhandenen berechtigten npm-Konto wie bisher **`npm publish`** ausführen. Unter PowerShell kann `npm.cmd` verwendet werden, falls die Ausführungsrichtlinie `npm.ps1` blockiert.
+1. Einmalig `node --version` prüfen: unterstützt sind **Node 22 ab 22.23.4** oder **Node 24 ab 24.22.1**, jeweils innerhalb ihrer Hauptversion. Node 24.21.0 muss innerhalb der 24er-Reihe aktualisiert werden. Anschließend VS Code neu öffnen, damit das Terminal die neue Installation verwendet.
+2. ZIP zunächst in einen kurzen temporären Ordner wie `C:\nw` entpacken. Dann den **gesamten Inhalt** des darin enthaltenen Projektordners in den bisherigen Git-Ordner kopieren und vorhandene Release-Dateien ersetzen. Kein zusätzlicher Projekt-Unterordner im Git-Ordner; `package.json` bleibt an derselben Stelle. `.git` nicht löschen oder verschieben.
+3. Im bisherigen VS-Code-Ordner wie gewohnt **`npm.cmd publish`** ausführen. Optional vorher `npm.cmd publish --dry-run`.
 
-Der fertige Build liegt bei. Der Upload prüft Quellen, Laufzeitdateien, Lock-Metadaten und die gebundenen Entwicklungstests. Er baut und versiegelt nichts heimlich neu. Fehlende Entwicklungsabhängigkeiten sind kein Grund für eine Umgehung der Prüfungen. Keine Option `--ignore-scripts` zum Veröffentlichen verwenden.
+Die Kopierübernahme läuft automatisch als erste Publish-Stufe. Sie prüft zunächst die vollständigen aktuellen Release-Dateien. Bekannte entfallene Dateien aus den dokumentierten Altständen werden nur bei exakt passendem Hash unter `.eos-backup/` gesichert und aus den Releasebereichen ausgelagert. Unbekannte oder lokal veränderte Zusatzdateien bleiben erhalten und werden konkret gemeldet. Fehlende aktuelle Dateien werden nicht erfunden, Hashfehler nicht übergangen und der Release nicht heimlich neu gebaut oder versiegelt.
 
-Für diesen vorgebauten Lieferstand ist vorher kein `npm install`, `npm ci` oder neuer Build nötig. Ein erfolgreicher Dry-run ersetzt weder npm-Anmeldung/Veröffentlichungsrechte noch die Prüfung, ob Version 8.0.0 bereits veröffentlicht wurde. Eine bereits veröffentlichte Paketversion kann nicht erneut verwendet werden; dann ist ein neuer vollständig gebauter und geprüfter Versionsstand erforderlich. Nicht nur die Versionsnummer im fertigen Paket ändern.
+`.git`, vorhandene `node_modules` und Dateien außerhalb der Releasebereiche bleiben erhalten. Die Sicherung wird weder ins npm-Paket noch regulär ins Git aufgenommen. Vor dem Überkopieren eigene Änderungen committen oder separat sichern: Eine bereits durch Explorer überschriebene eigene Änderung kann die nachfolgende Übernahmeprüfung nicht rekonstruieren.
 
-Der Nachweisordner wurde am 05.11.2026 nach `docs/ea/` verkürzt, damit die langen EasyAccess-Dateinamen unter Windows kopierbar sind. `.gitattributes` erhält die exakten Datei-Bytes beim Git-Transport; bestehende Quellen, Builds, Sperrdateien und Sicherheitsprüfungen bleiben unverändert.
+Der fertige Build liegt bei. Für diesen Upload sind vorher kein `npm install`, `npm ci`, MERGE_UPDATE-Aufruf oder neuer Build notwendig. Die optionalen `MERGE_UPDATE.*`-Starter führen ausschließlich denselben npm-Dry-run aus. Details und Rückfall: **`WINDOWS_GIT_NPM_DE.md`**.
+
+Alle bisherigen Integritäts-, Lock-, Sicherheits- und Stabilitätsprüfungen bleiben aktiv. Keine Veröffentlichung mit `--ignore-scripts`. npm-Anmeldung, Rechte/2FA und eine noch unveröffentlichte Version bleiben erforderlich. Bereits veröffentlichte 8.0.0 nicht durch bloßes Ändern der Versionsnummer umgehen; hierfür benötigt es einen neuen vollständig geprüften Stand.
 
 ## Installation auf dem Zielsystem
 
-Vorher vollständige Sicherung samt Lizenzablage und getrenntem lokalem Schlüssel erstellen. Benötigt werden ioBroker js-controller **>=7.2.5**, das unterstützte Node-24-Profil und HTTPS für Fernzugriff. Adapter regulär im Controller aktualisieren; bloßes Kopieren von Browserdateien ersetzt das Instanz-Upgrade nicht.
+Vorher vollständige Sicherung samt Lizenzablage und getrenntem lokalem Schlüssel erstellen. Benötigt werden ioBroker js-controller **>=7.2.5**, eines der unterstützten Node-22-/Node-24-Profile und HTTPS für Fernzugriff. Adapter regulär im Controller aktualisieren; bloßes Kopieren von Browserdateien ersetzt das Instanz-Upgrade nicht.
 
 Die vorhandenen NWL2-Home-/Pro-Lizenzen und UUID-Bindung bleiben erhalten. Windows als Entwicklungs-/Uploadsystem ist von der unterstützten Linux-Lizenzlaufzeit zu unterscheiden.
 

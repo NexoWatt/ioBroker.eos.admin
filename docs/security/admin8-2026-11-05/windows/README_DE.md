@@ -11,3 +11,6 @@ Tatsächlich ausgeführt: bestehender Prebuilt-Selbsttest und Entwicklungstest-N
 `validation.json` nennt Umgebung, Befehle, Ergebnis und Grenzen; die gleichnamigen Logs sind Rohbelege. `path-budget.json` misst die vollständigen Pfade des fertigen ZIP-Inhalts für den Benutzerzielordner und das kurze Entpackziel. Windows-Pfadlängen wurden rechnerisch geprüft; ein nativer Windows-/Explorer-Test wurde nicht ausgeführt. Anmeldung, Veröffentlichungsrechte, 2FA und freie npm-Version muss der reale Upload erfüllen. Es wurde nicht veröffentlicht oder auf einer Anlage installiert.
 
 Bisherige Funktions-/Robustheitsbefunde und Zielsystemabnahme bleiben unverändert offen. Keine neue IEC-/CRA-Konformitätsaussage oder Garantie von Fehlerfreiheit.
+
+
+Nachtrag 05.11.2026: Der aktuelle Kopierablauf und die zusätzliche Node-22-Unterstützung sind im Bericht `docs/security/admin8-2026-11-05/copy-update/REPORT_DE.md` (Pfad ab Repositorywurzel) dokumentiert. Frühere Angaben dieses Berichts bleiben historische Prüfstände.

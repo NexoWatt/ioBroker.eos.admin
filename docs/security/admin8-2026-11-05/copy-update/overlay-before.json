@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "finding": "EOS-ADMIN8-COPY-OVERLAY-001",
+  "examinedAt": "2026-11-05T05:44:26.620Z",
+  "scope": "Pre-fix cleanup of synthetic removed release files using unchanged delivered helper and real release metadata",
+  "environment": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v24.22.1"
+  },
+  "productVersion": "8.0.0",
+  "sourceRoot": "/workspace/scratch/c16def314bc5/admin8-windows/ioBroker.eos-admin",
+  "sourceSha256": {
+    "tools/nexowatt-clean-legacy-runtime.cjs": "90bb4d03d7dd83be0c72b07cfbab345a8a4edc123b60dd5dce20d08ee8b9bc5f",
+    "tools/nexowatt-prebuilt-release-selftest.cjs": "4321598a1a019d422f5c71ac363a0fa1e4e4c3a5cc2b72d82486958de7902d9a",
+    "tools/nexowatt-frontend-artifacts.cjs": "6a705ba001cd2cd38f9c0f95318741ec2c1902f8cfc43d9da1b64d8ce7eae8ed",
+    "tools/nexowatt-merge-update-selftest.cjs": "f8abe1505e4dd8ade64577825e8c67ae3828892493c613a566ea353b668bfaaf",
+    "package.json": "d9d20691a883012cf1b090e40cc47641e25c5b51804711d66f7f4c736ba4f633",
+    ".npmrc": "de2f0b1f276196d9a9a4d2c2ecf2b8ad54f6dd47887bf5062b3b68c137827f70",
+    "NEXOWATT_EOS_BUILD_INFO.json": "f30ffa89553f45ca31ccefc22654a7a22a5fc6b8cde0928641c7a2704b983555",
+    "adminWww/NEXOWATT_EOS_FRONTEND_MANIFEST.json": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9"
+  },
+  "fixtureFiles": [
+    "adminWww/assets/old-EXAMPLE.js",
+    "adminWww/assets/old-EXAMPLE.css",
+    "adminWww/assets/old-EXAMPLE.js.map",
+    "admin/custom/assets/old-EXAMPLE.js",
+    "src-admin/src/RemovedAdmin7.tsx",
+    "tools/removed-test.cjs"
+  ],
+  "expectedRemovedForCompleteOverlay": [
+    "adminWww/assets/old-EXAMPLE.js",
+    "adminWww/assets/old-EXAMPLE.css",
+    "adminWww/assets/old-EXAMPLE.js.map",
+    "admin/custom/assets/old-EXAMPLE.js",
+    "src-admin/src/RemovedAdmin7.tsx",
+    "tools/removed-test.cjs"
+  ],
+  "actualSelectedForCleanup": [
+    "adminWww/assets/old-EXAMPLE.js"
+  ],
+  "unhandled": [
+    "adminWww/assets/old-EXAMPLE.css",
+    "adminWww/assets/old-EXAMPLE.js.map",
+    "admin/custom/assets/old-EXAMPLE.js",
+    "src-admin/src/RemovedAdmin7.tsx",
+    "tools/removed-test.cjs"
+  ],
+  "assertionsPassed": true,
+  "repositoryChanged": false,
+  "nativeWindowsExecuted": false,
+  "userFailureCause": "Not uniquely determined: only Node.js version and final npm lifecycle footer were supplied; first actual error/log missing",
+  "nodeProfile": {
+    "userReported": "24.21.0",
+    "declaredMinimum": "24.22.1",
+    "declaredMaximumExclusive": "25",
+    "priorPublishPatchVersionGuard": false,
+    "conclusion": "User runtime outside declared profile, but the supplied tail does not demonstrate a version check failure"
+  },
+  "testGap": "Existing merge-update selftest checks marker strings and orchestration, but does not reproduce this actual old-files overlay transition"
+}

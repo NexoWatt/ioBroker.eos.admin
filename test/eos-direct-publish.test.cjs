@@ -3,6 +3,9 @@
 // Real npm lifecycle execution, isolated package, injected registry metadata.
 // --dry-run is mandatory; the registry is unreachable loopback and credentials
 // are not copied into the fixture. This does not assert a real npm upload.
+// Copy preparation is an explicit orchestration stub here, like version/default
+// preparation. Its real manifest, retirement and backup behavior is tested by
+// eos-copy-update.test.cjs and the complete old-release overlay validation.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -24,7 +27,7 @@ function npmCli() {
     assert.fail('npm CLI unavailable; run this lifecycle test through npm run test:eos-security-audit.');
 }
 
-function fixture(t, failRegistry = false) {
+function fixture(t, failRegistry = false, failCopyPreparation = false) {
     // A space in the path also exercises the normal Windows VS Code layout.
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'eos direct publish-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -55,7 +58,14 @@ const { run: admit } = require(${JSON.stringify(admissionModule)});
 const { generate: inventory } = require(${JSON.stringify(inventoryModule)});
 const record = event => fs.appendFileSync('events.jsonl', JSON.stringify(event) + '\\n');
 async function main(event) {
-    if (event === 'repair') {
+    if (event === 'prepare-copy-update') {
+        record(event);
+        if (${JSON.stringify(failCopyPreparation)}) {
+            const error = new Error('Injected copy preparation rejection');
+            error.code = 'COPY_UPDATE_REJECTED';
+            throw error;
+        }
+    } else if (event === 'repair') {
         record('repair:start');
         const result = await repair({ root: process.cwd(), write: true, fetchMetadata: async expected => {
             record('registry:' + expected.name + '@' + expected.version);
@@ -75,7 +85,8 @@ module.exports = event => main(event).catch(error => { record('failure:' + (erro
 if (require.main === module) module.exports(process.argv[2]);
 `;
     fs.writeFileSync(path.join(directory, 'fixture.cjs'), runner);
-    for (const [tool, event] of [['nexowatt-repair-lock-metadata.cjs', 'repair'],
+    for (const [tool, event] of [['nexowatt-prepare-copy-update.cjs', 'prepare-copy-update'],
+        ['nexowatt-repair-lock-metadata.cjs', 'repair'],
         ['nexowatt-security-inventory.cjs', 'security:inventory'], ['nexowatt-lock-provenance-check.cjs', 'check:eos-production-release']]) {
         fs.writeFileSync(path.join(directory, 'tools', tool), `require('../fixture.cjs')(${JSON.stringify(event)});\n`);
     }
@@ -108,7 +119,7 @@ test('plain publish lifecycle repairs exact missing metadata before inventory, a
     const first = publishDryRun(directory);
     assert.equal(first.status, 0, first.stderr);
     const observed = events(directory);
-    assert.deepEqual(observed.slice(0, 6), ['sync:eos-version', 'repair:start', 'registry:sample@1.2.3',
+    assert.deepEqual(observed.slice(0, 7), ['prepare-copy-update', 'sync:eos-version', 'repair:start', 'registry:sample@1.2.3',
         'repair:complete', 'security:inventory', 'check:eos-production-release']);
     assert.ok(observed.indexOf('check:eos-production-release') < observed.indexOf('check:eos-stability'));
     assert.ok(observed.indexOf('check:eos-stability') < observed.indexOf('prepack'));
@@ -130,7 +141,7 @@ test('plain publish lifecycle repairs exact missing metadata before inventory, a
     const second = publishDryRun(directory);
     assert.equal(second.status, 0, second.stderr);
     assert.deepEqual(locks(directory), repairedLocks);
-    assert.deepEqual(events(directory).slice(0, 5), ['sync:eos-version', 'repair:start', 'repair:complete',
+    assert.deepEqual(events(directory).slice(0, 6), ['prepare-copy-update', 'sync:eos-version', 'repair:start', 'repair:complete',
         'security:inventory', 'check:eos-production-release']);
     assert.equal(events(directory).some(event => event.startsWith('registry:')), false);
 });
@@ -140,7 +151,17 @@ test('plain publish lifecycle stops on registry failure before inventory, admiss
     const before = locks(directory);
     const result = publishDryRun(directory);
     assert.notEqual(result.status, 0);
-    assert.deepEqual(events(directory), ['sync:eos-version', 'repair:start', 'registry:sample@1.2.3', 'failure:REGISTRY_UNAVAILABLE']);
+    assert.deepEqual(events(directory), ['prepare-copy-update', 'sync:eos-version', 'repair:start', 'registry:sample@1.2.3', 'failure:REGISTRY_UNAVAILABLE']);
+    assert.deepEqual(locks(directory), before);
+    assert.equal(fs.existsSync(path.join(directory, 'reports')), false);
+});
+
+test('plain publish lifecycle stops a rejected copy preparation before version sync or lock repair', { timeout: 60000 }, t => {
+    const directory = fixture(t, false, true);
+    const before = locks(directory);
+    const result = publishDryRun(directory);
+    assert.notEqual(result.status, 0);
+    assert.deepEqual(events(directory), ['prepare-copy-update', 'failure:COPY_UPDATE_REJECTED']);
     assert.deepEqual(locks(directory), before);
     assert.equal(fs.existsSync(path.join(directory, 'reports')), false);
 });

@@ -46,14 +46,14 @@ test('receipt permits the real federation asset entry but rejects missing depend
     assert.throws(() => inspectFrontendGraph(f.manifest, f.base), /Missing/);
 });
 
-test('manifest cleanup removes old versioned and hashed modules while retaining current entry, federation and source assets', t => {
+test('Admin8 legacy cleaner preserves unknown files for the hash-bound copy migration and strict seal', t => {
     const f = fixture(t);
     const stale = ['assets/bootstrap-old-v85.js', 'assets/bootstrap-old-hash.js', 'remoteEntry-v85.js'];
     for (const rel of stale) fs.writeFileSync(path.join(f.base, rel), '// stale fixture');
     const result = cleanLegacyRuntime({ root: f.root, silent: true });
     assert.equal(result.activeRuntime, 0);
-    assert.equal(result.removed.length, stale.length);
-    for (const rel of stale) assert.equal(fs.existsSync(path.join(f.base, rel)), false);
+    assert.equal(result.removed.length, 0);
+    for (const rel of stale) assert.equal(fs.readFileSync(path.join(f.base, rel), 'utf8'), '// stale fixture');
     for (const rel of [f.manifest.entry, ...Object.keys(f.manifest.chunks)]) assert.equal(fs.existsSync(path.join(f.base, rel)), true);
     assert.equal(cleanLegacyRuntime({ root: f.root, silent: true }).removed.length, 0);
 });

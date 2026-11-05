@@ -1,9 +1,9 @@
 {
   "tool": "nexowatt-security-inventory@1.0.0",
-  "timestamp": "2026-11-05T05:37:38.016Z",
+  "timestamp": "2026-11-05T05:54:15.273Z",
   "environment": {
-    "node": "v24.21.0",
-    "platform": "win32",
+    "node": "v24.22.1",
+    "platform": "linux",
     "arch": "x64"
   },
   "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
@@ -14,8 +14,8 @@
       "version": "8.0.0",
       "lockfileVersion": 3,
       "inputHashes": {
-        "manifest": "d9d20691a883012cf1b090e40cc47641e25c5b51804711d66f7f4c736ba4f633",
-        "lock": "a499ca75ecf16ad9f9864e2092a8da56a6d85373eda9455414912c8b7eff130f"
+        "manifest": "ae3e5d4be255dff9341892b043e0c5aac0e2ff388ce063f29acd33d0bdcf820a",
+        "lock": "f21cdbd90e1c0629df36fdd4a3b3a05be4e5685ab89ed91e4e8ca11a7da570e7"
       },
       "limitations": "Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.",
       "componentCount": 773,
@@ -168,7 +168,7 @@
         }
       ],
       "rootEngines": {
-        "node": ">=24.22.1 <25"
+        "node": ">=22.23.4 <23 || >=24.22.1 <25"
       }
     },
     {
@@ -363,8 +363,8 @@
       "rootEngines": {}
     }
   ],
-  "runtimeFileCount": 930,
-  "sourceFileCount": 42,
+  "runtimeFileCount": 460,
+  "sourceFileCount": 33,
   "vendoredPackageManifests": [
     {
       "path": "adminWww/lib/js/crypto-js/package.json",

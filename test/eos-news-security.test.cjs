@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { stripTypeScriptTypes } = require('node:module');
-assert.equal(typeof stripTypeScriptTypes, 'function', 'Release tests require Node.js 24.x (or a supported Node.js version exposing stripTypeScriptTypes). Run node --version.');
+assert.equal(typeof stripTypeScriptTypes, 'function', 'Release tests require a supported Node.js 22/24 version (or a supported Node.js version exposing stripTypeScriptTypes). Run node --version.');
 const root = path.resolve(__dirname, '..');
 const backend = require('../src/lib/eosNewsSecurity.js');
 const ts = fs.readFileSync(path.join(root, 'src-admin/src/helpers/eosNewsSecurity.ts'), 'utf8');

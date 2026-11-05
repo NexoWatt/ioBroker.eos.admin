@@ -1,75 +1,61 @@
-# Windows: ZIP übernehmen, Git erhalten und aus VS Code veröffentlichen
+# ZIP in den bestehenden Git-Ordner kopieren und veröffentlichen
 
-Stand: 05.11.2026, EOS Admin 8.0.0. Der gemeldete Explorer-Fehler **0x80010135 „Pfad zu lang“** entsteht durch den vollständigen Datei- und Ordnerpfad. Im bisherigen ZIP lagen drei EasyAccess-Nachweisdateien im gezeigten Ziel über der klassischen Windows-Grenze. Die Nachweise liegen jetzt unter `docs/ea/`; die Originaldateien und der geprüfte Produktbuild bleiben erhalten.
+Stand: 05.11.2026, EOS Admin 8.0.0. Der gewünschte Ablauf ist **ZIP-Inhalt über den bestehenden Projektordner kopieren → in VS Code npm publish ausführen**. Der Git-Ordner muss dafür weder gelöscht noch neu aufgebaut werden.
 
-## 1. Neu entpacken
+## Einmalige Node-Voraussetzung
 
-1. Den abgebrochenen Kopiervorgang abbrechen. Den bisherigen Git-Ordner vollständig als Sicherung behalten; `.git` nicht löschen.
-2. Das korrigierte vollständige ZIP verwenden. In „Alle extrahieren“ als Ziel ausdrücklich **`C:\nw`** wählen, sofern dort Schreibrechte bestehen, und keinen bereits belegten Projektordner überschreiben. Andernfalls einen ähnlich kurzen, beschreibbaren Ordner wählen.
-3. Danach muss `C:\nw\ioBroker.eos-admin\package.json` vorhanden sein. Keinen zusätzlichen Zwischenordner mit dem langen ZIP-Dateinamen erzeugen. Falls dort schon eine Arbeitskopie liegt, einen anderen kurzen neuen Zielordner verwenden.
-4. Den frisch entpackten Projektordner in VS Code öffnen. Für npm ist ein vorheriger Git-Upload nicht erforderlich.
+Unterstützte Sicherheitsprofile:
 
-Einfaches Überkopieren des alten Arbeitsordners kann veraltete Build-Dateien zurücklassen. Die Integritätsprüfung weist solche zusätzlichen Dateien zu Recht zurück. Deshalb mit dem vollständigen neuen Dateibaum arbeiten. Keine Löschbefehle wie `git clean -fdx`, keinen Reset und kein spiegelndes Kopieren mit `/MIR` verwenden.
+| Hauptversion | Mindest-Patchstand | Obergrenze |
+| --- | --- | --- |
+| Node.js 22 | 22.23.4 | kleiner 23 |
+| Node.js 24 | 24.22.1 | kleiner 25 |
 
-## 2. Bestehende Git-Historie übernehmen
+Node-22-Anlagen dürfen auf ihrer Hauptversion bleiben. Der gemeldete Windows-PC mit **24.21.0** benötigt ein Patch-/Minor-Update innerhalb der 24er-Reihe. Aus einer generischen „neueste LTS“-Installation kann inzwischen eine andere Hauptversion werden; deshalb ausdrücklich die passende 22er-/24er-Version wählen. Offizielle Release-/Downloadseiten: https://nodejs.org/en/blog/release/v22.23.4 und https://nodejs.org/en/blog/release/v24.22.1 . Den Installer passend zu x64/ARM64 und zum vorhandenen Installationsverfahren verwenden. Kein versteckter Download oder Austausch der lokalen Node-Installation durch das Adapterpaket.
 
-Für ein gewöhnliches Repository, bei dem `.git` ein **Ordner** ist:
-
-1. Vorher `git status --short` im alten Ordner ansehen. Offene eigene Änderungen bleiben im alten Ordner gesichert und müssen anschließend gezielt verglichen werden. Auch unversionierte lokale Dateien behalten.
-2. VS Code und andere Git-Programme für den alten Ordner schließen. Im Explorer „Ausgeblendete Elemente“ einschalten und ausschließlich den vollständigen Ordner `.git` aus dem alten Repository in den frisch entpackten Projektordner **kopieren**. Der alte Ordner bleibt unverändert erhalten.
-3. Im neuen VS-Code-Terminal prüfen:
-
-```powershell
-git rev-parse --show-toplevel
-git status --short
-git diff --stat
-git diff
-git diff --cached --stat
-git diff --cached
-```
-
-Der erste Befehl muss den **neuen** Arbeitsordner melden. Die Änderungen einschließlich entfallener Altdateien in VS Code prüfen und eigene noch benötigte Änderungen aus der Sicherung gezielt übernehmen. Auch bereits vorgemerkte Änderungen prüfen: Die `.git`-Kopie übernimmt den bisherigen Git-Index. Erst danach wie gewohnt committen und pushen. Keine npm-Tokens, Signierschlüssel oder produktiven Konfigurationsdateien aus der Sicherung übernehmen oder committen. Die vorhandene lokale Git-Historie, Branches und Remote-Konfiguration bleiben durch die vollständige `.git`-Kopie erhalten.
-
-**Wenn `.git` eine Datei ist oder `--show-toplevel` den alten Ordner meldet, dieses Kopierverfahren nicht verwenden.** Das kann ein verknüpfter Worktree, ein Submodul oder eine besondere Arbeitsbaum-Konfiguration sein; hierfür muss die konkrete Git-Struktur berücksichtigt werden. npm kann unabhängig davon aus dem frischen ZIP-Ordner getestet werden.
-
-Die neue `.gitattributes` enthält bewusst `* -text`: Git verändert keine Zeilenenden beim Hinzufügen oder Auschecken. Das erhält bytegenaue Versiegelungen sowie originale Fremdquellen mit ihren vorhandenen Zeilenenden. Sie repariert keine bereits umgewandelten alten Dateien; deshalb die frische ZIP-Kopie verwenden. Eigene Änderungen an versiegelten Quellen brauchen anschließend den regulären Build und neue passende Prüfbelege.
-
-## 3. npm direkt aus VS Code
-
-Im Terminal des Ordners mit der `package.json` nacheinander ausführen:
+Nach der Aktualisierung VS Code vollständig schließen und neu öffnen. Im Terminal prüfen:
 
 ```powershell
 node --version
+where.exe node
 npm.cmd --version
-npm.cmd publish --dry-run
 ```
 
-Benötigt wird Node.js **>=24.22.1 und <25**. Der fertige Build ist enthalten: Für diese Veröffentlichung sind vorher weder `npm install`/`npm ci` noch ein Neuaufbau erforderlich. `npm.cmd` ist unter Windows derselbe npm-CLI-Einstieg und vermeidet eine mögliche PowerShell-Sperre von `npm.ps1`, ohne die Ausführungsrichtlinie zu ändern.
+Zeigt `node --version` weiterhin den alten Stand, verwendet das Terminal noch eine andere Installation aus PATH. Diese Zuordnung zuerst korrigieren. Die neue erste Publish-Stufe nennt bei einer nicht unterstützten Version das tatsächlich verwendete Node-Programm, bevor sie Dateien verändert.
 
-Nur wenn der Dry-run erfolgreich ist:
+## Regelmäßiger Kopierablauf
 
-```powershell
-npm.cmd whoami
-```
-
-Bei fehlender Anmeldung `npm.cmd login` ausführen und den offiziellen Browser-/2FA-Ablauf abschließen. Danach mit dem berechtigten Konto veröffentlichen:
+1. Eigene Änderungen vor dem Ersetzen committen oder separat sichern. Das gilt auch für unversionierte eigene Dateien. Der spätere npm-Lauf kann vom Explorer bereits überschriebene Inhalte nicht wiederherstellen.
+2. Das vollständige ZIP in einen kurzen temporären Pfad wie `C:\nw` entpacken. Den langen ZIP-Namen nicht als zusätzlichen Entpackordner verwenden.
+3. **Den Inhalt** des entpackten Projektordners auswählen und nach `C:\Users\User\Desktop\ioBroker\ioBroker.eos.admin` kopieren. Alle enthaltenen Dateien ersetzen lassen, auch `.gitattributes`, `.gitignore`, `tools`, `src`, `admin`, `adminWww`, `build`, `package.json` und Locks. Es darf keine zusätzliche Ebene `ioBroker.eos-admin` im Ziel entstehen.
+4. Den vorhandenen Ordner in VS Code öffnen und wie gewohnt ausführen:
 
 ```powershell
 npm.cmd publish
 ```
 
-Alle normalen Publish-Prüfungen bleiben aktiv. Keine Umgehung mit `--ignore-scripts`, keinen erzwungenen Kanalwechsel, kein `audit fix --force` und keine manuelle Neuversiegelung zur Fehlerunterdrückung verwenden. Wenn der Dry-run abbricht, die **erste konkrete Fehlermeldung vor dem abschließenden „npm error code 1“** sichern; keine Tokens oder Schlüssel weitergeben.
+Ein vorheriger Git-Upload ist nicht nötig. Wer erst ohne Veröffentlichung prüfen möchte, führt `npm.cmd publish --dry-run` aus. Kein zusätzliches Merge-Skript, kein Neuaufbau und kein `npm install` sind für den vorgebauten Lieferstand erforderlich. `npm.cmd` vermeidet die mögliche PowerShell-Sperre von `npm.ps1`, ohne die Ausführungsrichtlinie abzuschalten.
 
-Die Kombination `iobroker.eos-admin@8.0.0` darf noch nicht veröffentlicht worden sein. npm erlaubt keine Wiederverwendung bereits veröffentlichter Versionen. Ist 8.0.0 schon belegt, benötigt es einen neuen abgestimmten Versionsstand samt Build und Prüfungen; nur `package.json` zu ändern macht die Versiegelung ungültig.
+## Was automatisch geschieht
 
-## Prüfgrenze und Rückfall
+Die erste Stufe prüft die Node-Version und danach alle aktuellen versiegelten Dateien. Nur wenn der neue Stand vollständig und unverändert vorliegt, werden entfallene Dateien aus den nachgewiesenen älteren Lieferständen anhand **Pfad und SHA-256** erkannt. Sie werden zunächst vollständig gesichert und dann aus dem Releasebereich ausgelagert. Der dokumentierte Katalog enthält den historischen Stand 7.10.12 und das tatsächlich geladene vollständige 7.10.9-Paket. Er ist selbst Bestandteil der neuen Versiegelung.
 
-Der beigefügte Windows-Prüfvermerk dokumentiert gemessene Pfadlängen, Dateiintegrität, Git-Transport und den npm-Dry-run in der dort genannten Umgebung. Ein nativer Windows-/Explorer-Test und die Anmeldung, Rechte, 2FA sowie tatsächliche Veröffentlichung mit Dominiques npm-Konto wurden hier nicht ausgeführt. Ein erfolgreicher Dry-run ist keine Zusage, dass das Konto oder die Registry den Upload akzeptiert.
+Die Sicherungen liegen kurz und flach unter `.eos-backup/r-.../`: `journal.json` ordnet Originalpfade, Hashes und Sicherungsdateien zu. `.bin` enthält die geprüfte Kopie, `.retired` bewahrt die aus dem alten Dateibaum verschobene Datei. Die flachen Namen vermeiden neue Windows-Pfadlängenprobleme. Der Ordner ist in Git ausgeschlossen und liegt außerhalb der npm-Dateifreigabe. Kein Inhalt wird beim Upload automatisch weitergegeben. Sicherungen bis zur erfolgreichen Übernahme behalten.
 
-Bis Git-Übernahme und Dry-run erfolgreich sind, den alten Ordner behalten. Für einen Rückfall den bisherigen Ordner wieder in VS Code öffnen. Eine Installation auf der Anlage ist ein eigener Schritt mit Sicherung, Lizenzablage und Zielsystemabnahme gemäß `docs/ADMIN8_MIGRATION_8.0.0_DE.md`.
+Unbekannte oder selbst geänderte Zusatzdateien werden **nicht automatisch entfernt**. Der Vorgang stoppt mit den betroffenen Pfaden. Diese Dateien prüfen und, sofern eigene Arbeit, außerhalb der ausgelieferten Releasebereiche sichern oder in einen regulär neu gebauten Stand übernehmen. Bei fehlenden oder veränderten aktuellen Dateien das vollständige ZIP erneut korrekt kopieren. Keine pauschalen Löschbefehle, kein `git reset --hard`, kein `git clean -fdx` und keine neue Versiegelung zum Übergehen eines Fehlers.
 
-## Offizielle Grundlagen
+`.git` bleibt am bisherigen Ort, ebenso vorhandene `node_modules` und sonstige Dateien außerhalb der festgelegten Releasebereiche. Die normale Publish-Prüfung benötigt die alten Entwicklerabhängigkeiten nicht. `.gitattributes` verhindert Änderungen der Datei-Bytes durch Git-Zeilenendenumwandlung. Vor dem Commit in VS Code sowohl normale als auch bereits vorgemerkte Änderungen prüfen (`git diff`, `git diff --cached`, `git status --short`).
 
-- Windows-Pfadgrenzen und erforderliche Anwendungsunterstützung: https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
-- Git-Zeilenendensteuerung mit `text`/`-text`: https://git-scm.com/docs/gitattributes
-- npm-Publish, Dry-run, Versionsbelegung und Authentifizierung: https://docs.npmjs.com/cli/v11/commands/npm-publish/
+## Abbruch und Wiederherstellung
+
+Bei einem unerwarteten Schreib-/Sperrfehler bleiben die Sicherungsdateien und das Journal erhalten. Bereits ausgelagerte Dateien werden nach Möglichkeit zurückgelegt, ohne eine inzwischen vorhandene Datei zu überschreiben. Bei Prozessabbruch kann `.eos-backup/.lock` erhalten bleiben. Nicht blind entfernen: erst ausschließen, dass noch ein Lauf arbeitet, und den Journalstatus prüfen. Das Journal nennt gegebenenfalls `RECOVERY_REQUIRED`; der Originalinhalt bleibt über die zugeordneten `.bin`-/`.retired`-Dateien verfügbar. Der nächste Lauf darf eine ungeklärte Sicherung nicht still übergehen.
+
+## npm und Prüfgrenzen
+
+Der normale Ablauf führt anschließend alle bisherigen Versions-, Lock-, Paket-, Integritäts- und Sicherheitstests aus. Keine Option `--ignore-scripts`, keine automatische Neuversiegelung, keine Deaktivierung eines Sicherheitsgates. Die optionalen `MERGE_UPDATE.cmd/.ps1/.sh` führen nur `npm publish --dry-run` aus und veröffentlichen nichts.
+
+Für den tatsächlichen Upload sind ein berechtigtes npm-Konto, erforderliche Anmeldung/2FA und eine noch unveröffentlichte Kombination aus Paketname und Version nötig. `npm.cmd whoami` zeigt die aktuelle Anmeldung; bei Bedarf `npm.cmd login`. Eine bereits veröffentlichte `iobroker.eos-admin@8.0.0` kann nicht überschrieben werden.
+
+`npm error code 1` und die abschließende Node-Versionszeile nennen allein nicht die konkrete Ursache. Bei erneutem Abbruch die **erste Fehlermeldung oberhalb dieses Schlussblocks** oder das npm-Debuglog bereitstellen; keine Tokens, Kennwörter oder privaten Schlüssel weitergeben. Der ursprüngliche Windows-Schlussblock ist kein Beweis, dass Node24.21 allein den früheren Abbruch verursacht hat.
+
+Prüfumfang, tatsächliche Node-Läufe, echtes Altstand-Overlay und offene Grenzen stehen unter `docs/security/admin8-2026-11-05/copy-update/`. Native Windows-/Explorer-Tests und Tests auf realen Node-22-Anlagen sind getrennt von den Linux-Laufzeit-/Publish-Tests zu bewerten. Vor Anlagenupdates Sicherung einschließlich Lizenzablage durchführen und die Zielsystem-Abnahme aus `docs/ADMIN8_MIGRATION_8.0.0_DE.md` verwenden.

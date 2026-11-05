@@ -11,8 +11,8 @@ const fail = msg => {
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const readJson = file => JSON.parse(read(file));
 const exists = file => fs.existsSync(path.join(root, file));
-const canonicalPrepublishOnly = 'npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
-const canonicalPrepack = 'node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
+const canonicalPrepublishOnly = 'node tools/nexowatt-prepare-copy-update.cjs && npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability';
+const canonicalPrepack = 'node tools/nexowatt-prepare-copy-update.cjs && node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs';
 
 const pkg = readJson('package.json');
 const pkgLock = readJson('package-lock.json');

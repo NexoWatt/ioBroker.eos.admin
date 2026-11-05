@@ -17,7 +17,7 @@ Dies ist eine tatsächliche Quellcode-Migration mit neu gebautem Frontend und Ba
 
 ## Voraussetzungen und Aktualisierung
 
-Benötigt werden Node.js **ab 24.22.1 innerhalb der 24er-Reihe** und ioBroker js-controller **ab 7.2.5**. Der lokale Build wurde mit Node.js 24.22.1 ausgeführt; für den Betrieb den aktuellen unterstützten Sicherheitspatch der 24er-Reihe einsetzen. Andere Hauptversionen sind in diesem Paket nicht freigegeben.
+Benötigt werden Node.js **22 ab 22.23.4 oder Node.js 24 ab 24.22.1**, jeweils innerhalb der betreffenden Hauptversion, und ioBroker js-controller **ab 7.2.5**. Der Release-Build wird mit Node.js 24.22.1 erstellt; die zusätzliche Laufzeit-/Publish-Prüfung für Node 22 ist im Kopierupdate-Nachweis dokumentiert. Bestehende Anlagen dürfen innerhalb der unterstützten Node-22-Reihe bleiben. Node 23, 25 und andere Hauptversionen sind in diesem Paket nicht freigegeben.
 
 1. Vor dem Adapterwechsel die vorhandene ioBroker-Konfiguration, individuellen Konten und Lizenzdaten mit dem etablierten Backup-Verfahren sichern. Zugriff auf die lokale Administrationskonsole sicherstellen.
 2. Das vollständige Repository in einen sauberen Arbeitsordner entpacken. Vorhandene `node_modules` und alte Buildreste nicht in den neuen Ordner übernehmen.

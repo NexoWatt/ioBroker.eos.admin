@@ -42,7 +42,7 @@ function fixture(t) {
 test('local publish and release paths require actual admission; candidate packaging remains separate', () => {
     const scripts = packageJson.scripts;
     assert.equal(scripts['check:eos-production-release'], 'node tools/nexowatt-lock-provenance-check.cjs');
-    assert.match(scripts.prepublishOnly, /^npm run sync:eos-version && npm run repair:eos-lock && /);
+    assert.match(scripts.prepublishOnly, /^node tools\/nexowatt-prepare-copy-update\.cjs && npm run sync:eos-version && npm run repair:eos-lock && /);
     assert.equal(scripts['repair:eos-lock'], 'node tools/nexowatt-repair-lock-metadata.cjs --write && npm run security:inventory && npm run check:eos-production-release');
     assert.equal(scripts['security:inventory'], 'node tools/nexowatt-security-inventory.cjs');
     assert.match(scripts['check:eos-release'], /^npm run check:eos-production-release && /);

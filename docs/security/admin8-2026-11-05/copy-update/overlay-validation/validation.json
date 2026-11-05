@@ -1,0 +1,44 @@
+{
+  "dateUtc": "2026-11-05T05:57:10.590400+00:00",
+  "platform": "Linux x64 with the user target directory nesting; no native Windows execution",
+  "results": [
+    {
+      "scenario": "from-7.10.9-node22",
+      "versions": {
+        "node": "v22.23.4",
+        "npm": "10.9.9"
+      },
+      "oldArchiveSha256": "bf1a040ce33e4f4d9bc038eef4fdab887bb96153745270aa28c38c9407f7c619",
+      "lifecycleExit": 0,
+      "log": "from-7.10.9-node22.log",
+      "sha256": "f0fc4b7193c615f9615ff0278fbf4276dc3ce544607fa47ff3d4ba954b1e3a8d",
+      "currentSealedFiles": 1093,
+      "retiredAndBackedUp": 581,
+      "gitUnchanged": true,
+      "existingNodeModulesSentinelUnchanged": true,
+      "userNotesUnchanged": true,
+      "backupExcludedFromNpm": true,
+      "idempotent": true,
+      "nativeWindows": false
+    },
+    {
+      "scenario": "from-8.0.0-node24",
+      "versions": {
+        "node": "v24.22.1",
+        "npm": "11.9.0"
+      },
+      "oldArchiveSha256": "0dad263f83ce8d032cfbb2d9a7811ddbd89e3b85d69e84fb2d913eaa8a76d825",
+      "lifecycleExit": 0,
+      "log": "from-8.0.0-node24.log",
+      "sha256": "4cd6212f331529fdaa412ea845bb2736ecae59da95d8ea99ea763d444124e734",
+      "currentSealedFiles": 1093,
+      "retiredAndBackedUp": 0,
+      "gitUnchanged": true,
+      "existingNodeModulesSentinelUnchanged": true,
+      "userNotesUnchanged": true,
+      "backupExcludedFromNpm": true,
+      "idempotent": true,
+      "nativeWindows": false
+    }
+  ]
+}

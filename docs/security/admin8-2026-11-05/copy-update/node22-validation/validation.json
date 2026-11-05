@@ -1,0 +1,100 @@
+{
+  "node": "v22.23.4",
+  "platform": "Linux x64",
+  "dateUtc": "2026-11-05T05:54:59.752073+00:00",
+  "inputHash": "536c900a800e7d39308bd18745e0bc6981d49dff77fb685abbfbaecb3b2c8ed4",
+  "commands": [
+    {
+      "args": [
+        "node_modules/mocha/bin/mocha.js",
+        "test/package",
+        "--exit"
+      ],
+      "exitCode": 0,
+      "log": "command-1.log",
+      "sha256": "3d1b4a6b2fdcf855e01fba0acf2b8b93ac290821b0f91fc8ca84c14dbb2146db"
+    },
+    {
+      "args": [
+        "--test",
+        "test/eos-admin8-backend.test.cjs",
+        "test/eos-admin8-frontend-receipt.test.cjs",
+        "test/eos-admin8-web.test.cjs",
+        "test/eos-auth-regressions.test.cjs",
+        "test/eos-config-expression-safety.test.cjs",
+        "test/eos-copy-update.test.cjs",
+        "test/eos-direct-publish.test.cjs",
+        "test/eos-documentation-fetch.test.cjs",
+        "test/eos-file-transfer-security.test.cjs",
+        "test/eos-instance-proxy.test.cjs",
+        "test/eos-license-client.test.cjs",
+        "test/eos-license-core.test.cjs",
+        "test/eos-license-http.test.cjs",
+        "test/eos-license-service.test.cjs",
+        "test/eos-license-trust.test.cjs",
+        "test/eos-lock-repair.test.cjs",
+        "test/eos-news-security.test.cjs",
+        "test/eos-release-admission.test.cjs",
+        "test/eos-session-security.test.cjs",
+        "test/eos-web-resources.test.cjs"
+      ],
+      "exitCode": 0,
+      "log": "command-2.log",
+      "sha256": "15a15f4ec3e0883919175e60b64027e573b2a8dacc1d1ee08b114b3701c54120"
+    },
+    {
+      "args": [
+        "tools/nexowatt-admin8-objectbrowser-fixtures.mjs",
+        "--check"
+      ],
+      "exitCode": 0,
+      "log": "command-3.log",
+      "sha256": "c91de9a131ce259ff63226c17a11f2a8f900b97d3e0a43413b1bb575b58075b8"
+    },
+    {
+      "args": [
+        "tools/nexowatt-admin8-objectbrowser-selftest.mjs"
+      ],
+      "exitCode": 0,
+      "log": "command-4.log",
+      "sha256": "9609ad4c87859f7b2d88497bfa3bf248091b5c40c2f9e1e02b1d5e4aa76b72a6"
+    },
+    {
+      "args": [
+        "tools/nexowatt-markdown-security-selftest.mjs"
+      ],
+      "exitCode": 0,
+      "log": "command-5.log",
+      "sha256": "50708fd13f8102fc59df2b53e0330a7d4d6b65f5992fd49b9f00d903e81c09fe"
+    },
+    {
+      "args": [
+        "tools/nexowatt-custom-config-security-selftest.mjs"
+      ],
+      "exitCode": 0,
+      "log": "command-6.log",
+      "sha256": "7520e148a9dc7b4b509ad8e3e29fdfe8b0cb0732e12ce2dccdab74eae2bb2673"
+    },
+    {
+      "args": [
+        "tools/nexowatt-admin8-overview-selftest.cjs"
+      ],
+      "exitCode": 0,
+      "log": "command-7.log",
+      "sha256": "c67c81e2068290a8c3973add0299f1812fa6c779f8bb7bde6528e527c38e90e2"
+    },
+    {
+      "args": [
+        "tools/nexowatt-admin8-public-assets-selftest.mjs"
+      ],
+      "exitCode": 0,
+      "log": "command-8.log",
+      "sha256": "7a14ed68ab00c20bce1616e1a89ead222b5268d9c58cfbbcca8edf34b3f72699"
+    }
+  ],
+  "notExecuted": [
+    "Native Windows",
+    "Real ioBroker-controller installation",
+    "Physical plant integration"
+  ]
+}

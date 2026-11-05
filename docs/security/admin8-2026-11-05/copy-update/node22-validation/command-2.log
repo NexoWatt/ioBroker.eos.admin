@@ -1,0 +1,1417 @@
+(node:14) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:21) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Admin 8 GUI capability is bound to live socket, identity, role and security epoch
+ok 1 - Admin 8 GUI capability is bound to live socket, identity, role and security epoch
+  ---
+  duration_ms: 1.578789
+  type: 'test'
+  ...
+# Subtest: GUI subscription bounds and explicit revocation cannot be bypassed by renewals
+ok 2 - GUI subscription bounds and explicit revocation cannot be bypassed by renewals
+  ---
+  duration_ms: 0.469673
+  type: 'test'
+  ...
+# Subtest: Admin 8 log search reads matching local and compressed logs
+ok 3 - Admin 8 log search reads matching local and compressed logs
+  ---
+  duration_ms: 16.067294
+  type: 'test'
+  ...
+# Subtest: Log file reads reject traversal, symbolic links and oversized expansion
+ok 4 - Log file reads reject traversal, symbolic links and oversized expansion
+  ---
+  duration_ms: 123.54985
+  type: 'test'
+  ...
+# Subtest: Remote log files are limited to validated listed basenames
+ok 5 - Remote log files are limited to validated listed basenames
+  ---
+  duration_ms: 1.822098
+  type: 'test'
+  ...
+# Subtest: Shipped Admin 8 GUI requests require the authenticated sender and suppress revoked in-flight results
+ok 6 - Shipped Admin 8 GUI requests require the authenticated sender and suppress revoked in-flight results
+  ---
+  duration_ms: 9.38309
+  type: 'test'
+  ...
+# Subtest: Shipped EOS socket authorization refuses startup if the Admin 8 dispatcher contract changes
+ok 7 - Shipped EOS socket authorization refuses startup if the Admin 8 dispatcher contract changes
+  ---
+  duration_ms: 2.468741
+  type: 'test'
+  ...
+# Subtest: Controller search replies validate shape, size and values before browser delivery
+ok 8 - Controller search replies validate shape, size and values before browser delivery
+  ---
+  duration_ms: 1.215143
+  type: 'test'
+  ...
+# Subtest: Legacy OS-password RPC is disabled for every EOS role and never reflects supplied credentials
+ok 9 - Legacy OS-password RPC is disabled for every EOS role and never reflects supplied credentials
+  ---
+  duration_ms: 2.403265
+  type: 'test'
+  ...
+# Subtest: Shipped startup has no OS credential-probing helper or standalone su test program
+ok 10 - Shipped startup has no OS credential-probing helper or standalone su test program
+  ---
+  duration_ms: 1.290834
+  type: 'test'
+  ...
+# Subtest: Malformed fetch metadata is rejected without coercing untrusted header objects
+ok 11 - Malformed fetch metadata is rejected without coercing untrusted header objects
+  ---
+  duration_ms: 0.812609
+  type: 'test'
+  ...
+# Subtest: License storage reports both primary write failure and cleanup failures without losing either
+ok 12 - License storage reports both primary write failure and cleanup failures without losing either
+  ---
+  duration_ms: 2.289787
+  type: 'test'
+  ...
+# (node:22) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: graph parser distinguishes actual imports from translations and never executes emitted code
+ok 13 - graph parser distinguishes actual imports from translations and never executes emitted code
+  ---
+  duration_ms: 17.39067
+  type: 'test'
+  ...
+# Subtest: receipt permits the real federation asset entry but rejects missing dependencies, changed asset bytes and unsafe paths
+ok 14 - receipt permits the real federation asset entry but rejects missing dependencies, changed asset bytes and unsafe paths
+  ---
+  duration_ms: 7.985739
+  type: 'test'
+  ...
+# Subtest: Admin8 legacy cleaner preserves unknown files for the hash-bound copy migration and strict seal
+ok 15 - Admin8 legacy cleaner preserves unknown files for the hash-bound copy migration and strict seal
+  ---
+  duration_ms: 3.876918
+  type: 'test'
+  ...
+# Subtest: prepared release parser works without installed packages and rejects altered vendor bytes before loading them
+ok 16 - prepared release parser works without installed packages and rejects altered vendor bytes before loading them
+  ---
+  duration_ms: 144.485405
+  type: 'test'
+  ...
+# (node:23) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Admin8 serialized log buffers validate bytes and transfer size before conversion
+ok 17 - Admin8 serialized log buffers validate bytes and transfer size before conversion
+  ---
+  duration_ms: 1.662993
+  type: 'test'
+  ...
+# Subtest: serialized and compressed logs render escaped text and ignore forged size metadata
+ok 18 - serialized and compressed logs render escaped text and ignore forged size metadata
+  ---
+  duration_ms: 15.572489
+  type: 'test'
+  ...
+# Subtest: Admin8 public path survives login, iframe socket info and escaped 404 details
+ok 19 - Admin8 public path survives login, iframe socket info and escaped 404 details
+  ---
+  duration_ms: 1.237846
+  type: 'test'
+  ...
+# Subtest: configured external SSO cannot become active through Admin8 config
+ok 20 - configured external SSO cannot become active through Admin8 config
+  ---
+  duration_ms: 0.409284
+  type: 'test'
+  ...
+# Subtest: proxy revocation and shutdown are wired to the Web lifecycle
+ok 21 - proxy revocation and shutdown are wired to the Web lifecycle
+  ---
+  duration_ms: 0.310698
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible
+ok 22 - installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible
+  ---
+  duration_ms: 76.932304
+  type: 'test'
+  ...
+# Subtest: installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens
+ok 23 - installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens
+  ---
+  duration_ms: 21.35595
+  type: 'test'
+  ...
+# Subtest: Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes
+ok 24 - Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes
+  ---
+  duration_ms: 45.820224
+  type: 'test'
+  ...
+# (node:29) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins
+ok 25 - login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins
+  ---
+  duration_ms: 1.871651
+  type: 'test'
+  ...
+# Subtest: production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin
+ok 26 - production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin
+  ---
+  duration_ms: 0.363896
+  type: 'test'
+  ...
+# Subtest: all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies
+ok 27 - all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies
+  ---
+  duration_ms: 0.52184
+  type: 'test'
+  ...
+# Subtest: HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state
+ok 28 - HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state
+  ---
+  duration_ms: 1.309422
+  type: 'test'
+  ...
+# Subtest: EOS token readers no longer accept query credentials but preserve cookie and Authorization
+ok 29 - EOS token readers no longer accept query credentials but preserve cookie and Authorization
+  ---
+  duration_ms: 1.045943
+  type: 'test'
+  ...
+# Subtest: file identity guard rejects anonymous and pending-password users and passes normalized caller
+ok 30 - file identity guard rejects anonymous and pending-password users and passes normalized caller
+  ---
+  duration_ms: 0.542961
+  type: 'test'
+  ...
+# Subtest: SSO remains denied before OAuth and DB file routes have their own identity guard
+ok 31 - SSO remains denied before OAuth and DB file routes have their own identity guard
+  ---
+  duration_ms: 1.819274
+  type: 'test'
+  ...
+# Subtest: OAuth callback messages are HTML text, replacement metacharacters cannot restore markup
+ok 32 - OAuth callback messages are HTML text, replacement metacharacters cannot restore markup
+  ---
+  duration_ms: 1.587592
+  type: 'test'
+  ...
+# (node:41) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: alias parser validates syntax without running statements or sample values
+ok 33 - alias parser validates syntax without running statements or sample values
+  ---
+  duration_ms: 11.192389
+  type: 'test'
+  ...
+# Subtest: static custom schemas remain available without executing values
+ok 34 - static custom schemas remain available without executing values
+  ---
+  duration_ms: 1.195944
+  type: 'test'
+  ...
+# Subtest: custom executable fields and alternate vendor interpolation paths are blocked
+ok 35 - custom executable fields and alternate vendor interpolation paths are blocked
+  ---
+  duration_ms: 0.684429
+  type: 'test'
+  ...
+# Subtest: schema bounds and own-data validation reject pollution, getters, cycles and oversized values
+ok 36 - schema bounds and own-data validation reject pollution, getters, cycles and oversized values
+  ---
+  duration_ms: 11.540152
+  type: 'test'
+  ...
+# Subtest: vendored syntax parser matches reviewed integrity and license provenance
+ok 37 - vendored syntax parser matches reviewed integrity and license provenance
+  ---
+  duration_ms: 1.23351
+  type: 'test'
+  ...
+# (node:42) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: accepts supported security patch lines and rejects unsupported versions
+ok 38 - accepts supported security patch lines and rejects unsupported versions
+  ---
+  duration_ms: 2.139566
+  type: 'test'
+  ...
+# Subtest: flat ZIP overlay retires only exact old files, preserving Git, modules and local data
+ok 39 - flat ZIP overlay retires only exact old files, preserving Git, modules and local data
+  ---
+  duration_ms: 37.540322
+  type: 'test'
+  ...
+# Subtest: unknown extra stops without any writes
+ok 40 - unknown extra stops without any writes
+  ---
+  duration_ms: 6.048842
+  type: 'test'
+  ...
+# Subtest: modified old stops without any writes
+ok 41 - modified old stops without any writes
+  ---
+  duration_ms: 6.821061
+  type: 'test'
+  ...
+# Subtest: modified current stops without any writes
+ok 42 - modified current stops without any writes
+  ---
+  duration_ms: 5.047966
+  type: 'test'
+  ...
+# Subtest: missing current stops without any writes
+ok 43 - missing current stops without any writes
+  ---
+  duration_ms: 5.039723
+  type: 'test'
+  ...
+# Subtest: tampered catalog stops without any writes
+ok 44 - tampered catalog stops without any writes
+  ---
+  duration_ms: 5.116707
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path ../outside
+ok 45 - rejects malicious catalog path ../outside
+  ---
+  duration_ms: 5.314699
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path src/../../outside
+ok 46 - rejects malicious catalog path src/../../outside
+  ---
+  duration_ms: 5.596725
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path src/CON.txt
+ok 47 - rejects malicious catalog path src/CON.txt
+  ---
+  duration_ms: 9.790791
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path src/trailing.
+ok 48 - rejects malicious catalog path src/trailing.
+  ---
+  duration_ms: 4.735004
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path src/with:ads
+ok 49 - rejects malicious catalog path src/with:ads
+  ---
+  duration_ms: 4.155519
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path src\\escape.ts
+ok 50 - rejects malicious catalog path src\\escape.ts
+  ---
+  duration_ms: 4.129221
+  type: 'test'
+  ...
+# Subtest: rejects malicious catalog path /absolute
+ok 51 - rejects malicious catalog path /absolute
+  ---
+  duration_ms: 7.486562
+  type: 'test'
+  ...
+# Subtest: manifest cannot redefine roots or retire current files
+ok 52 - manifest cannot redefine roots or retire current files
+  ---
+  duration_ms: 4.737459
+  type: 'test'
+  ...
+# Subtest: current and retired case aliases are refused
+ok 53 - current and retired case aliases are refused
+  ---
+  duration_ms: 4.749625
+  type: 'test'
+  ...
+# Subtest: refuses current file symlink/junction
+ok 54 - refuses current file symlink/junction
+  ---
+  duration_ms: 4.758569
+  type: 'test'
+  ...
+# Subtest: refuses source directory symlink/junction
+ok 55 - refuses source directory symlink/junction
+  ---
+  duration_ms: 4.542461
+  type: 'test'
+  ...
+# Subtest: refuses backup directory symlink/junction
+ok 56 - refuses backup directory symlink/junction
+  ---
+  duration_ms: 4.116883
+  type: 'test'
+  ...
+# Subtest: refuses root symlink/junction
+ok 57 - refuses root symlink/junction
+  ---
+  duration_ms: 4.796735
+  type: 'test'
+  ...
+# Subtest: existing lock stops and leaves its owner and all sources unchanged
+ok 58 - existing lock stops and leaves its owner and all sources unchanged
+  ---
+  duration_ms: 5.576215
+  type: 'test'
+  ...
+# Subtest: backup write failure never removes a source
+ok 59 - backup write failure never removes a source
+  ---
+  duration_ms: 12.815442
+  type: 'test'
+  ...
+# Subtest: mid-retirement failure restores removed paths and retains verified backups
+ok 60 - mid-retirement failure restores removed paths and retains verified backups
+  ---
+  duration_ms: 16.455011
+  type: 'test'
+  ...
+# Subtest: corrupt backup is detected before the first source is moved
+ok 61 - corrupt backup is detected before the first source is moved
+  ---
+  duration_ms: 19.64787
+  type: 'test'
+  ...
+# Subtest: concurrent source replacement is preserved and never blindly unlinked
+ok 62 - concurrent source replacement is preserved and never blindly unlinked
+  ---
+  duration_ms: 16.008062
+  type: 'test'
+  ...
+# Subtest: rollback refuses to overwrite a newly created source pathname
+ok 63 - rollback refuses to overwrite a newly created source pathname
+  ---
+  duration_ms: 23.64753
+  type: 'test'
+  ...
+# (node:48) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch
+ok 64 - plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch
+  ---
+  duration_ms: 4471.361736
+  type: 'test'
+  ...
+# Subtest: plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging
+ok 65 - plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging
+  ---
+  duration_ms: 670.380164
+  type: 'test'
+  ...
+# Subtest: plain publish lifecycle stops a rejected copy preparation before version sync or lock repair
+ok 66 - plain publish lifecycle stops a rejected copy preparation before version sync or lock repair
+  ---
+  duration_ms: 325.499915
+  type: 'test'
+  ...
+# (node:94) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: documentation accepts bounded UTF-8 and refuses HTTP errors and redirects
+ok 67 - documentation accepts bounded UTF-8 and refuses HTTP errors and redirects
+  ---
+  duration_ms: 51.254721
+  type: 'test'
+  ...
+# Subtest: documentation rejects unsafe origins and already-cancelled work before I/O
+ok 68 - documentation rejects unsafe origins and already-cancelled work before I/O
+  ---
+  duration_ms: 2.431146
+  type: 'test'
+  ...
+# Subtest: documentation bounds declared and streamed response sizes
+ok 69 - documentation bounds declared and streamed response sizes
+  ---
+  duration_ms: 30.495351
+  type: 'test'
+  ...
+# Subtest: documentation aborts a live streaming body at one total five-second deadline
+ok 70 - documentation aborts a live streaming body at one total five-second deadline
+  ---
+  duration_ms: 5058.874505
+  type: 'test'
+  ...
+# Subtest: caller cancellation aborts body reading without waiting for deadline
+ok 71 - caller cancellation aborts body reading without waiting for deadline
+  ---
+  duration_ms: 83.901744
+  type: 'test'
+  ...
+# (node:107) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: URL parser accepts ordinary files and strips real queries before decoding
+ok 72 - URL parser accepts ordinary files and strips real queries before decoding
+  ---
+  duration_ms: 3.587061
+  type: 'test'
+  ...
+# Subtest: URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth
+ok 73 - URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth
+  ---
+  duration_ms: 1.544658
+  type: 'test'
+  ...
+# Subtest: single file read propagates authenticated caller ACL to both operations and ignores attacker MIME
+ok 74 - single file read propagates authenticated caller ACL to both operations and ignores attacker MIME
+  ---
+  duration_ms: 1.75623
+  type: 'test'
+  ...
+# Subtest: missing or malformed identity and invalid direct-call path perform no database IO
+ok 75 - missing or malformed identity and invalid direct-call path perform no database IO
+  ---
+  duration_ms: 3.230174
+  type: 'test'
+  ...
+# Subtest: explicit authenticated user names containing @ retain their identity for ACL checks
+ok 76 - explicit authenticated user names containing @ retain their identity for ACL checks
+  ---
+  duration_ms: 1.07829
+  type: 'test'
+  ...
+# Subtest: directory exports are denied without recursive reads or archive allocation
+ok 77 - directory exports are denied without recursive reads or archive allocation
+  ---
+  duration_ms: 0.790075
+  type: 'test'
+  ...
+# Subtest: missing metadata, oversized declared files and excessive parent entries fail before reading file bytes
+ok 78 - missing metadata, oversized declared files and excessive parent entries fail before reading file bytes
+  ---
+  duration_ms: 2.676558
+  type: 'test'
+  ...
+# Subtest: actual oversized response is rejected even if metadata was small
+ok 79 - actual oversized response is rejected even if metadata was small
+  ---
+  duration_ms: 0.809474
+  type: 'test'
+  ...
+# Subtest: active file types are attachments with isolated restrictive response headers
+ok 80 - active file types are attachments with isolated restrictive response headers
+  ---
+  duration_ms: 3.252908
+  type: 'test'
+  ...
+# Subtest: database errors fail closed and do not expose internal details
+ok 81 - database errors fail closed and do not expose internal details
+  ---
+  duration_ms: 0.864716
+  type: 'test'
+  ...
+# Subtest: concurrent stalled requests reserve both slots even after the five-second deadline
+ok 82 - concurrent stalled requests reserve both slots even after the five-second deadline
+  ---
+  duration_ms: 7.09181
+  type: 'test'
+  ...
+# Subtest: aborted client cannot trigger a late file read and reservation is released after DB settles
+ok 83 - aborted client cannot trigger a late file read and reservation is released after DB settles
+  ---
+  duration_ms: 1.917178
+  type: 'test'
+  ...
+# Subtest: slow output keeps both reservations until deadline destroys unfinished responses
+ok 84 - slow output keeps both reservations until deadline destroys unfinished responses
+  ---
+  duration_ms: 2.02007
+  type: 'test'
+  ...
+# (node:131) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:131) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# Subtest: Admin8 proxy forwards selected instance request body and target authorization, never Admin credentials or caller forwarding headers
+ok 85 - Admin8 proxy forwards selected instance request body and target authorization, never Admin credentials or caller forwarding headers
+  ---
+  duration_ms: 51.419483
+  type: 'test'
+  ...
+# Subtest: missing/expired/resource-scoped sessions and disabled/forced-reset users fail closed; names grant no administrator membership
+ok 86 - missing/expired/resource-scoped sessions and disabled/forced-reset users fail closed; names grant no administrator membership
+  ---
+  duration_ms: 22.019748
+  type: 'test'
+  ...
+# Subtest: each request rechecks actual administrator membership and instance opt-in without a stale decision cache
+ok 87 - each request rechecks actual administrator membership and instance opt-in without a stale decision cache
+  ---
+  duration_ms: 10.149731
+  type: 'test'
+  ...
+# Subtest: encoded separators, traversal, credentials in query and cross-origin mutations never reach a target
+ok 88 - encoded separators, traversal, credentials in query and cross-origin mutations never reach a target
+  ---
+  duration_ms: 13.300458
+  type: 'test'
+  ...
+# Subtest: local redirects and cookies without Path remain inside the selected instance
+ok 89 - local redirects and cookies without Path remain inside the selected instance
+  ---
+  duration_ms: 7.408598
+  type: 'test'
+  ...
+# Subtest: HTTPS target rejects an untrusted certificate and accepts an explicitly trusted certificate without disabling verification
+ok 90 - HTTPS target rejects an untrusted certificate and accepts an explicitly trusted certificate without disabling verification
+  ---
+  duration_ms: 180.219952
+  type: 'test'
+  ...
+# Subtest: SSE stays streamed and is closed immediately when proxy sessions are invalidated
+ok 91 - SSE stays streamed and is closed immediately when proxy sessions are invalidated
+  ---
+  duration_ms: 5.556936
+  type: 'test'
+  ...
+# Subtest: WebSocket upgrades use the proxy before unrelated Admin websocket listeners and revoke active tunnels
+ok 92 - WebSocket upgrades use the proxy before unrelated Admin websocket listeners and revoke active tunnels
+  ---
+  duration_ms: 5.504068
+  type: 'test'
+  ...
+# Subtest: HTTPS Admin entry forwards to a local HTTP adapter and marks the scoped application cookie Secure
+ok 93 - HTTPS Admin entry forwards to a local HTTP adapter and marks the scoped application cookie Secure
+  ---
+  duration_ms: 77.55361
+  type: 'test'
+  ...
+# Subtest: trusted HTTPS certificate with a mismatched hostname is rejected
+ok 94 - trusted HTTPS certificate with a mismatched hostname is rejected
+  ---
+  duration_ms: 148.191711
+  type: 'test'
+  ...
+# Subtest: a stalled authorization database times out without forwarding and a subsequent request recovers
+ok 95 - a stalled authorization database times out without forwarding and a subsequent request recovers
+  ---
+  duration_ms: 2007.246218
+  type: 'test'
+  ...
+# (node:140) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: starts denied, permits signed-service decision and sends no license key
+ok 96 - starts denied, permits signed-service decision and sends no license key
+  ---
+  duration_ms: 4.002865
+  type: 'test'
+  ...
+# Subtest: a new request uses a new nonce and rejects replay from an older request
+ok 97 - a new request uses a new nonce and rejects replay from an older request
+  ---
+  duration_ms: 0.651691
+  type: 'test'
+  ...
+# Subtest: Home and Pro quantity limits and features are checked independently
+ok 98 - Home and Pro quantity limits and features are checked independently
+  ---
+  duration_ms: 2.324659
+  type: 'test'
+  ...
+# Subtest: malformed, stale, future, oversized and missing entitlements fail closed
+ok 99 - malformed, stale, future, oversized and missing entitlements fail closed
+  ---
+  duration_ms: 3.615353
+  type: 'test'
+  ...
+# Subtest: timeout invalidates an existing lease; late and duplicate callbacks cannot reopen it
+ok 100 - timeout invalidates an existing lease; late and duplicate callbacks cannot reopen it
+  ---
+  duration_ms: 20.839839
+  type: 'test'
+  ...
+# Subtest: throws and rejected transport promises settle denied without an unhandled rejection
+ok 101 - throws and rejected transport promises settle denied without an unhandled rejection
+  ---
+  duration_ms: 1.09859
+  type: 'test'
+  ...
+# Subtest: lease expires autonomously, onLost is once per denial episode, then recovery is possible
+ok 102 - lease expires autonomously, onLost is once per denial episode, then recovery is possible
+  ---
+  duration_ms: 39.55926
+  type: 'test'
+  ...
+# Subtest: wall clock rollback does not extend monotonic lease and a forward jump immediately denies
+ok 103 - wall clock rollback does not extend monotonic lease and a forward jump immediately denies
+  ---
+  duration_ms: 36.059908
+  type: 'test'
+  ...
+# Subtest: stop cancels in-flight request and prevents late callback activation
+ok 104 - stop cancels in-flight request and prevents late callback activation
+  ---
+  duration_ms: 0.663999
+  type: 'test'
+  ...
+# Subtest: concurrent callers coalesce safely and status mutation cannot change entitlement
+ok 105 - concurrent callers coalesce safely and status mutation cannot change entitlement
+  ---
+  duration_ms: 0.651832
+  type: 'test'
+  ...
+# Subtest: failed safe-state callback latches denial and sanitizes logs
+ok 106 - failed safe-state callback latches denial and sanitizes logs
+  ---
+  duration_ms: 5.075867
+  type: 'test'
+  ...
+# Subtest: asynchronous safe-state transition must finish before a fresh grant is accepted
+ok 107 - asynchronous safe-state transition must finish before a fresh grant is accepted
+  ---
+  duration_ms: 0.916031
+  type: 'test'
+  ...
+# Subtest: invalid configuration cannot create a permissive guard
+ok 108 - invalid configuration cannot create a permissive guard
+  ---
+  duration_ms: 0.688105
+  type: 'test'
+  ...
+# Subtest: one shared lease gates each Home/Pro feature without extra messages or rights after loss
+ok 109 - one shared lease gates each Home/Pro feature without extra messages or rights after loss
+  ---
+  duration_ms: 0.809534
+  type: 'test'
+  ...
+# (node:146) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: UUID normalizes case/space while preserving canonical and direct vendor-prefix identity
+ok 110 - UUID normalizes case/space while preserving canonical and direct vendor-prefix identity
+  ---
+  duration_ms: 3.360487
+  type: 'test'
+  ...
+# Subtest: Home license authenticates UUID, explicit adapters, limits and immutable derived features
+ok 111 - Home license authenticates UUID, explicit adapters, limits and immutable derived features
+  ---
+  duration_ms: 1.178228
+  type: 'test'
+  ...
+# Subtest: Pro license enables Pro features only from signed edition and caps 10 batteries
+ok 112 - Pro license enables Pro features only from signed edition and caps 10 batteries
+  ---
+  duration_ms: 1.400236
+  type: 'test'
+  ...
+# Subtest: expiry and notBefore use exact millisecond boundaries without coercion or grace
+ok 113 - expiry and notBefore use exact millisecond boundaries without coercion or grace
+  ---
+  duration_ms: 1.443499
+  type: 'test'
+  ...
+# Subtest: forged or edited signature, foreign signing key, unknown kid and legacy format fail closed
+ok 114 - forged or edited signature, foreign signing key, unknown kid and legacy format fail closed
+  ---
+  duration_ms: 1.150988
+  type: 'test'
+  ...
+# Subtest: trust accepts only bounded explicit Ed25519 public SPKI keys
+ok 115 - trust accepts only bounded explicit Ed25519 public SPKI keys
+  ---
+  duration_ms: 16.843093
+  type: 'test'
+  ...
+# Subtest: schema rejects wildcard adapters, duplicate adapters, unsafe limits and unknown signed fields
+ok 116 - schema rejects wildcard adapters, duplicate adapters, unsafe limits and unknown signed fields
+  ---
+  duration_ms: 10.102576
+  type: 'test'
+  ...
+# Subtest: malformed/oversized tokens and noncanonical base64 cannot reach successful verification
+ok 117 - malformed/oversized tokens and noncanonical base64 cannot reach successful verification
+  ---
+  duration_ms: 0.622779
+  type: 'test'
+  ...
+# Subtest: encrypted storage roundtrips across restart with fresh nonce and no plaintext on disk
+ok 118 - encrypted storage roundtrips across restart with fresh nonce and no plaintext on disk
+  ---
+  duration_ms: 62.867299
+  type: 'test'
+  ...
+# Subtest: GCM binds UUID and fails after ciphertext/tag/nonce corruption
+ok 119 - GCM binds UUID and fails after ciphertext/tag/nonce corruption
+  ---
+  duration_ms: 53.22459
+  type: 'test'
+  ...
+# Subtest: missing/wrong/short storage key never silently regenerates existing encrypted license
+ok 120 - missing/wrong/short storage key never silently regenerates existing encrypted license
+  ---
+  duration_ms: 27.286883
+  type: 'test'
+  ...
+# Subtest: storage high water mark cannot decrease; serialized operations preserve monotonic value
+ok 121 - storage high water mark cannot decrease; serialized operations preserve monotonic value
+  ---
+  duration_ms: 46.42433
+  type: 'test'
+  ...
+# Subtest: clear removes only license, keeps device encryption key and permits fresh install
+ok 122 - clear removes only license, keeps device encryption key and permits fresh install
+  ---
+  duration_ms: 25.503417
+  type: 'test'
+  ...
+# Subtest: storage rejects symlink files, symlink directory/ancestor and hard linked secrets
+ok 123 - storage rejects symlink files, symlink directory/ancestor and hard linked secrets
+  ---
+  duration_ms: 22.553917
+  type: 'test'
+  ...
+# Subtest: storage rejects permissive POSIX modes and unsafe directory roots
+ok 124 - storage rejects permissive POSIX modes and unsafe directory roots
+  ---
+  duration_ms: 7.554473
+  type: 'test'
+  ...
+# Subtest: storage bounds files and rejects malformed data/envelopes without destructive overwrite
+ok 125 - storage bounds files and rejects malformed data/envelopes without destructive overwrite
+  ---
+  duration_ms: 12.633644
+  type: 'test'
+  ...
+# (node:160) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: license endpoints authorize before body parser, service calls and static files
+ok 126 - license endpoints authorize before body parser, service calls and static files
+  ---
+  duration_ms: 2.145725
+  type: 'test'
+  ...
+# Subtest: secure admin activation invokes parser after authorization and returns no submitted token
+ok 127 - secure admin activation invokes parser after authorization and returns no submitted token
+  ---
+  duration_ms: 0.413971
+  type: 'test'
+  ...
+# Subtest: cross-origin, missing origin/header and cross-site writes fail before parser
+ok 128 - cross-origin, missing origin/header and cross-site writes fail before parser
+  ---
+  duration_ms: 0.667104
+  type: 'test'
+  ...
+# Subtest: forwarded host/proto headers do not establish origin or TLS trust
+ok 129 - forwarded host/proto headers do not establish origin or TLS trust
+  ---
+  duration_ms: 0.247465
+  type: 'test'
+  ...
+# Subtest: plaintext LAN is denied for every route; explicit socket loopback can perform setup
+ok 130 - plaintext LAN is denied for every route; explicit socket loopback can perform setup
+  ---
+  duration_ms: 0.329656
+  type: 'test'
+  ...
+# Subtest: malformed activation/removal bodies are rejected without reaching service
+ok 131 - malformed activation/removal bodies are rejected without reaching service
+  ---
+  duration_ms: 1.305916
+  type: 'test'
+  ...
+# Subtest: parser size/syntax errors are sanitized and cannot reach activation
+ok 132 - parser size/syntax errors are sanitized and cannot reach activation
+  ---
+  duration_ms: 0.660273
+  type: 'test'
+  ...
+# Subtest: authorization and asynchronous service failures return sanitized bounded errors
+ok 133 - authorization and asynchronous service failures return sanitized bounded errors
+  ---
+  duration_ms: 0.830014
+  type: 'test'
+  ...
+# Subtest: per-address write and read rate budgets deny excess operations
+ok 134 - per-address write and read rate budgets deny excess operations
+  ---
+  duration_ms: 4.009825
+  type: 'test'
+  ...
+# Subtest: license page has restrictive CSP and safe no-cache headers
+ok 135 - license page has restrictive CSP and safe no-cache headers
+  ---
+  duration_ms: 0.597742
+  type: 'test'
+  ...
+# Subtest: origin matching uses scheme, hostname and port exactly
+ok 136 - origin matching uses scheme, hostname and port exactly
+  ---
+  duration_ms: 0.215347
+  type: 'test'
+  ...
+# (node:172) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: startup without provisioned trust denies and creates no license
+ok 137 - startup without provisioned trust denies and creates no license
+  ---
+  duration_ms: 17.634832
+  type: 'test'
+  ...
+# Subtest: startup with empty trust configuration denies
+ok 138 - startup with empty trust configuration denies
+  ---
+  duration_ms: 4.010916
+  type: 'test'
+  ...
+# Subtest: trusted service without stored license denies
+ok 139 - trusted service without stored license denies
+  ---
+  duration_ms: 10.478255
+  type: 'test'
+  ...
+# Subtest: Home allows licensed adapter and published Home limits with bounded lease
+ok 140 - Home allows licensed adapter and published Home limits with bounded lease
+  ---
+  duration_ms: 29.293057
+  type: 'test'
+  ...
+# Subtest: Home rejects Pro feature and over-limit resource counts
+ok 141 - Home rejects Pro feature and over-limit resource counts
+  ---
+  duration_ms: 36.806534
+  type: 'test'
+  ...
+# Subtest: Pro grants its feature set only to listed adapter and within signed limits
+ok 142 - Pro grants its feature set only to listed adapter and within signed limits
+  ---
+  duration_ms: 25.404852
+  type: 'test'
+  ...
+# Subtest: licensed second adapter receives grants only when enabled
+ok 143 - licensed second adapter receives grants only when enabled
+  ---
+  duration_ms: 14.582439
+  type: 'test'
+  ...
+# Subtest: missing, disabled, renamed or non-instance senders cannot obtain grants
+ok 144 - missing, disabled, renamed or non-instance senders cannot obtain grants
+  ---
+  duration_ms: 30.172564
+  type: 'test'
+  ...
+# Subtest: sender mismatch, unknown feature, extra keys and invalid quota types reject
+ok 145 - sender mismatch, unknown feature, extra keys and invalid quota types reject
+  ---
+  duration_ms: 11.162244
+  type: 'test'
+  ...
+# Subtest: malformed or untrusted import preserves existing encrypted license
+ok 146 - malformed or untrusted import preserves existing encrypted license
+  ---
+  duration_ms: 14.159244
+  type: 'test'
+  ...
+# Subtest: explicit license removal denies checks and remains removed after restart
+ok 147 - explicit license removal denies checks and remains removed after restart
+  ---
+  duration_ms: 14.631712
+  type: 'test'
+  ...
+# Subtest: external license deletion invalidates previously cached grant eligibility
+ok 148 - external license deletion invalidates previously cached grant eligibility
+  ---
+  duration_ms: 33.39677
+  type: 'test'
+  ...
+# Subtest: tampered authenticated ciphertext invalidates cached license
+ok 149 - tampered authenticated ciphertext invalidates cached license
+  ---
+  duration_ms: 18.962469
+  type: 'test'
+  ...
+# Subtest: encrypted license and edition persist over clean service restart
+ok 150 - encrypted license and edition persist over clean service restart
+  ---
+  duration_ms: 25.479021
+  type: 'test'
+  ...
+# Subtest: changed system UUID denies while running
+ok 151 - changed system UUID denies while running
+  ---
+  duration_ms: 12.579134
+  type: 'test'
+  ...
+# Subtest: lease is capped at expiry and license expires at exact boundary
+ok 152 - lease is capped at expiry and license expires at exact boundary
+  ---
+  duration_ms: 13.022989
+  type: 'test'
+  ...
+# Subtest: expiry is rechecked after delayed adapter object lookup
+ok 153 - expiry is rechecked after delayed adapter object lookup
+  ---
+  duration_ms: 8.019118
+  type: 'test'
+  ...
+# Subtest: wall clock rollback relative to monotonic time fails closed until restart
+ok 154 - wall clock rollback relative to monotonic time fails closed until restart
+  ---
+  duration_ms: 7.096047
+  type: 'test'
+  ...
+# Subtest: frequent sub-tolerance checks cannot keep a frozen wall clock licensed
+ok 155 - frequent sub-tolerance checks cannot keep a frozen wall clock licensed
+  ---
+  duration_ms: 12.935881
+  type: 'test'
+  ...
+# Subtest: small cumulative backward steps cannot reset the monotonic clock anchor
+ok 156 - small cumulative backward steps cannot reset the monotonic clock anchor
+  ---
+  duration_ms: 10.476824
+  type: 'test'
+  ...
+# Subtest: persisted high-water mark detects ordinary rollback across restart
+ok 157 - persisted high-water mark detects ordinary rollback across restart
+  ---
+  duration_ms: 57.57368
+  type: 'test'
+  ...
+# Subtest: sender rate cap denies excess requests and renews after window
+ok 158 - sender rate cap denies excess requests and renews after window
+  ---
+  duration_ms: 96.494969
+  type: 'test'
+  ...
+# Subtest: queue cap rejects excess work without preventing earlier jobs completing
+ok 159 - queue cap rejects excess work without preventing earlier jobs completing
+  ---
+  duration_ms: 1.893754
+  type: 'test'
+  ...
+# Subtest: new checks and mutations after stop are denied
+ok 160 - new checks and mutations after stop are denied
+  ---
+  duration_ms: 9.320307
+  type: 'test'
+  ...
+# Subtest: check queued before stop cannot grant or restore cached validity after stop
+ok 161 - check queued before stop cannot grant or restore cached validity after stop
+  ---
+  duration_ms: 9.249352
+  type: 'test'
+  ...
+# Subtest: check already in adapter lookup cannot grant after stop
+ok 162 - check already in adapter lookup cannot grant after stop
+  ---
+  duration_ms: 8.010867
+  type: 'test'
+  ...
+# Subtest: database timeout clears validity, bounds outstanding reads and ignores late results
+ok 163 - database timeout clears validity, bounds outstanding reads and ignores late results
+  ---
+  duration_ms: 33.364072
+  type: 'test'
+  ...
+# Subtest: timeout during adapter identity lookup clears a previously valid license view
+ok 164 - timeout during adapter identity lookup clears a previously valid license view
+  ---
+  duration_ms: 37.31529
+  type: 'test'
+  ...
+# Subtest: serialized deletion ahead of a check prevents an intervening grant
+ok 165 - serialized deletion ahead of a check prevents an intervening grant
+  ---
+  duration_ms: 10.686502
+  type: 'test'
+  ...
+# Subtest: status rechecks expiry after delayed UUID lookup
+ok 166 - status rechecks expiry after delayed UUID lookup
+  ---
+  duration_ms: 6.001242
+  type: 'test'
+  ...
+# Subtest: import expiring during UUID lookup preserves the previous valid license
+ok 167 - import expiring during UUID lookup preserves the previous valid license
+  ---
+  duration_ms: 7.054395
+  type: 'test'
+  ...
+# Subtest: production directory resolver works without an assumed adapter instance method
+ok 168 - production directory resolver works without an assumed adapter instance method
+  ---
+  duration_ms: 6.535069
+  type: 'test'
+  ...
+# Subtest: directory resolver failure is contained and keeps authority denied
+ok 169 - directory resolver failure is contained and keeps authority denied
+  ---
+  duration_ms: 1.018472
+  type: 'test'
+  ...
+# (node:178) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: trusted root-owned complete directory chain accepts bounded public keys
+ok 170 - trusted root-owned complete directory chain accepts bounded public keys
+  ---
+  duration_ms: 7.590405
+  type: 'test'
+  ...
+# Subtest: writable, foreign-owned or symbolic-link ancestor is denied before file open
+ok 171 - writable, foreign-owned or symbolic-link ancestor is denied before file open
+  ---
+  duration_ms: 5.279517
+  type: 'test'
+  ...
+# Subtest: unsafe trust file and inode swap fail closed
+ok 172 - unsafe trust file and inode swap fail closed
+  ---
+  duration_ms: 9.05734
+  type: 'test'
+  ...
+# Subtest: read remains bounded after growth and rejects malformed contents with close
+ok 173 - read remains bounded after growth and rejects malformed contents with close
+  ---
+  duration_ms: 5.792494
+  type: 'test'
+  ...
+# Subtest: Windows and noncanonical paths require explicit supported provisioning
+ok 174 - Windows and noncanonical paths require explicit supported provisioning
+  ---
+  duration_ms: 5.092931
+  type: 'test'
+  ...
+# (node:185) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks
+ok 175 - exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks
+  ---
+  duration_ms: 10.993916
+  type: 'test'
+  ...
+# Subtest: dry run and already complete locks do not mutate inputs or fetch unnecessary metadata
+ok 176 - dry run and already complete locks do not mutate inputs or fetch unnecessary metadata
+  ---
+  duration_ms: 5.340567
+  type: 'test'
+  ...
+# Subtest: aliases use actual package name, not installation directory
+ok 177 - aliases use actual package name, not installation directory
+  ---
+  duration_ms: 0.380481
+  type: 'test'
+  ...
+# Subtest: network failure leaves every input unchanged and never writes a success report
+ok 178 - network failure leaves every input unchanged and never writes a success report
+  ---
+  duration_ms: 2.376746
+  type: 'test'
+  ...
+# Subtest: wrong package/version, weak or malformed digest and foreign tarball are rejected before writing
+ok 179 - wrong package/version, weak or malformed digest and foreign tarball are rejected before writing
+  ---
+  duration_ms: 10.589289
+  type: 'test'
+  ...
+# Subtest: existing conflicting or malformed metadata is never overwritten
+ok 180 - existing conflicting or malformed metadata is never overwritten
+  ---
+  duration_ms: 3.011642
+  type: 'test'
+  ...
+# Subtest: concurrent package or lock changes are preserved and stop repair
+ok 181 - concurrent package or lock changes are preserved and stop repair
+  ---
+  duration_ms: 1.56561
+  type: 'test'
+  ...
+# Subtest: second-lock commit failure restores both original locks and records rollback evidence
+ok 182 - second-lock commit failure restores both original locks and records rollback evidence
+  ---
+  duration_ms: 3.772374
+  type: 'test'
+  ...
+# Subtest: rollback preserves a concurrent developer edit and reports that backup review is required
+ok 183 - rollback preserves a concurrent developer edit and reports that backup review is required
+  ---
+  duration_ms: 5.072667
+  type: 'test'
+  ...
+# Subtest: registry transport has fixed five-second budget, TLS validation and no redirect/retry
+ok 184 - registry transport has fixed five-second budget, TLS validation and no redirect/retry
+  ---
+  duration_ms: 0.392649
+  type: 'test'
+  ...
+# (node:200) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:200) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# Subtest: backend and frontend compare data and reject executable/malformed conditions
+ok 185 - backend and frontend compare data and reject executable/malformed conditions
+  ---
+  duration_ms: 1.176205
+  type: 'test'
+  ...
+# Subtest: shipped frontend expression has the same outcomes and contains no news eval
+ok 186 - shipped frontend expression has the same outcomes and contains no news eval
+  ---
+  duration_ms: 32.214997
+  type: 'test'
+  ...
+# Subtest: actual shipped news method refuses marker and preserves numeric behavior
+ok 187 - actual shipped news method refuses marker and preserves numeric behavior
+  ---
+  duration_ms: 10.301004
+  type: 'test'
+  ...
+# Subtest: Node index validates bounded schema and strips unused data
+ok 188 - Node index validates bounded schema and strips unused data
+  ---
+  duration_ms: 9.4644
+  type: 'test'
+  ...
+# (node:214) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: local publish and release paths require actual admission; candidate packaging remains separate
+ok 189 - local publish and release paths require actual admission; candidate packaging remains separate
+  ---
+  duration_ms: 0.817676
+  type: 'test'
+  ...
+# Subtest: actual repository CLI returns nonzero whenever its current lock metadata is blocked
+ok 190 - actual repository CLI returns nonzero whenever its current lock metadata is blocked
+  ---
+  duration_ms: 141.367089
+  type: 'test'
+  ...
+# Subtest: complete fixture metadata admits without fetching or executing any package
+ok 191 - complete fixture metadata admits without fetching or executing any package
+  ---
+  duration_ms: 56.673333
+  type: 'test'
+  ...
+# Subtest: missing integrity in one scope rejects the real admission process
+ok 192 - missing integrity in one scope rejects the real admission process
+  ---
+  duration_ms: 62.677388
+  type: 'test'
+  ...
+# Subtest: missing lockfile fails closed instead of permitting a publish check
+ok 193 - missing lockfile fails closed instead of permitting a publish check
+  ---
+  duration_ms: 67.232457
+  type: 'test'
+  ...
+# (node:224) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:224) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# Subtest: pinned upstream password login, token pair and refresh work with security binding
+ok 194 - pinned upstream password login, token pair and refresh work with security binding
+  ---
+  duration_ms: 7.980691
+  type: 'test'
+  ...
+# Subtest: all devices access and refresh tokens reject changed password without waiting for object event
+ok 195 - all devices access and refresh tokens reject changed password without waiting for object event
+  ---
+  duration_ms: 2.628167
+  type: 'test'
+  ...
+# Subtest: disable, deletion and changed group ACL independently invalidate both token classes
+ok 196 - disable, deletion and changed group ACL independently invalidate both token classes
+  ---
+  duration_ms: 6.294063
+  type: 'test'
+  ...
+# Subtest: observed disable then re-enable cannot resurrect old token after snapshot returns to original
+ok 197 - observed disable then re-enable cannot resurrect old token after snapshot returns to original
+  ---
+  duration_ms: 2.394001
+  type: 'test'
+  ...
+# Subtest: legacy and unbound external tokens are rejected and direct internal minting is denied
+ok 198 - legacy and unbound external tokens are rejected and direct internal minting is denied
+  ---
+  duration_ms: 1.163066
+  type: 'test'
+  ...
+# Subtest: proof cannot be forged by passing a user-shaped object or copied authenticated identity
+ok 199 - proof cannot be forged by passing a user-shaped object or copied authenticated identity
+  ---
+  duration_ms: 0.816124
+  type: 'test'
+  ...
+# Subtest: password mutation during credential verification and before token save fails closed
+ok 200 - password mutation during credential verification and before token save fails closed
+  ---
+  duration_ms: 1.094214
+  type: 'test'
+  ...
+# Subtest: refresh credential cannot cross revocation between lookup and save
+ok 201 - refresh credential cannot cross revocation between lookup and save
+  ---
+  duration_ms: 1.648401
+  type: 'test'
+  ...
+# Subtest: restart generation does not accept previously saved capabilities
+ok 202 - restart generation does not accept previously saved capabilities
+  ---
+  duration_ms: 2.314183
+  type: 'test'
+  ...
+# Subtest: session database failures and bounded stalled reads fail closed without unbounded backlog
+ok 203 - session database failures and bounded stalled reads fail closed without unbounded backlog
+  ---
+  duration_ms: 77.395428
+  type: 'test'
+  ...
+# Subtest: socket revocation synchronously blocks commands, clears subscriptions and closes every connection
+ok 204 - socket revocation synchronously blocks commands, clears subscriptions and closes every connection
+  ---
+  duration_ms: 0.829323
+  type: 'test'
+  ...
+# Subtest: metadata-only account updates do not revoke established capabilities
+ok 205 - metadata-only account updates do not revoke established capabilities
+  ---
+  duration_ms: 1.038622
+  type: 'test'
+  ...
+# Subtest: expired access and refresh capabilities fail closed in the common session reader
+ok 206 - expired access and refresh capabilities fail closed in the common session reader
+  ---
+  duration_ms: 0.632292
+  type: 'test'
+  ...
+# Subtest: late socket authentication cannot reopen a connection after revocation
+ok 207 - late socket authentication cannot reopen a connection after revocation
+  ---
+  duration_ms: 0.402945
+  type: 'test'
+  ...
+# Subtest: real five-second watchdog closes a socket after a missed credential object event
+ok 208 - real five-second watchdog closes a socket after a missed credential object event
+  ---
+  duration_ms: 5251.091227
+  type: 'test'
+  ...
+# (node:277) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling
+ok 209 - HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling
+  ---
+  duration_ms: 3.964688
+  type: 'test'
+  ...
+# Subtest: HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport
+ok 210 - HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport
+  ---
+  duration_ms: 1.770912
+  type: 'test'
+  ...
+# Subtest: HTTPS rejects redirects without contacting redirect targets
+ok 211 - HTTPS rejects redirects without contacting redirect targets
+  ---
+  duration_ms: 1.028617
+  type: 'test'
+  ...
+# Subtest: HTTPS rejects oversized declared and streamed responses and compressed bodies
+ok 212 - HTTPS rejects oversized declared and streamed responses and compressed bodies
+  ---
+  duration_ms: 2.649027
+  type: 'test'
+  ...
+# Subtest: HTTPS rejects malformed or primitive JSON without exposing body/error text
+ok 213 - HTTPS rejects malformed or primitive JSON without exposing body/error text
+  ---
+  duration_ms: 2.317959
+  type: 'test'
+  ...
+# Subtest: HTTPS hard deadline destroys a request before response including DNS/connect stalls
+ok 214 - HTTPS hard deadline destroys a request before response including DNS/connect stalls
+  ---
+  duration_ms: 21.967061
+  type: 'test'
+  ...
+# Subtest: HTTPS hard deadline also bounds slow response bodies
+ok 215 - HTTPS hard deadline also bounds slow response bodies
+  ---
+  duration_ms: 21.432863
+  type: 'test'
+  ...
+# Subtest: HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected
+ok 216 - HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected
+  ---
+  duration_ms: 1.535875
+  type: 'test'
+  ...
+# Subtest: gzip preview returns text but rejects bombs, oversized input, and invalid gzip
+ok 217 - gzip preview returns text but rejects bombs, oversized input, and invalid gzip
+  ---
+  duration_ms: 35.203685
+  type: 'test'
+  ...
+# Subtest: gzip preview concurrency is bounded independently of compressed size
+ok 218 - gzip preview concurrency is bounded independently of compressed size
+  ---
+  duration_ms: 35.858701
+  type: 'test'
+  ...
+# Subtest: system-info calls coalesce and cache npm version; no shell is used
+ok 219 - system-info calls coalesce and cache npm version; no shell is used
+  ---
+  duration_ms: 1.732074
+  type: 'test'
+  ...
+# Subtest: upload budget admits two across routes; third denied and aborted temporary files cleaned
+ok 220 - upload budget admits two across routes; third denied and aborted temporary files cleaned
+  ---
+  duration_ms: 85.477839
+  type: 'test'
+  ...
+# Subtest: upload parser receives actual total/file/part limits and private temporary directory
+ok 221 - upload parser receives actual total/file/part limits and private temporary directory
+  ---
+  duration_ms: 34.960797
+  type: 'test'
+  ...
+# Subtest: restore storage replaces an existing regular file without modifying unrelated data
+ok 222 - restore storage replaces an existing regular file without modifying unrelated data
+  ---
+  duration_ms: 38.430955
+  type: 'test'
+  ...
+# Subtest: POSIX restore storage replaces a destination symlink and persists restrictive permissions
+ok 223 - POSIX restore storage replaces a destination symlink and persists restrictive permissions
+  ---
+  duration_ms: 39.766485
+  type: 'test'
+  ...
+# Subtest: retained upload data counts against shared quota at the next admission
+ok 224 - retained upload data counts against shared quota at the next admission
+  ---
+  duration_ms: 48.260394
+  type: 'test'
+  ...
+# Subtest: upload total deadline aborts a still-active parser and removes its partial directory
+ok 225 - upload total deadline aborts a still-active parser and removes its partial directory
+  ---
+  duration_ms: 51.707769
+  type: 'test'
+  ...
+# Subtest: upload admission rejects low disk space before constructing parser
+ok 226 - upload admission rejects low disk space before constructing parser
+  ---
+  duration_ms: 1.74872
+  type: 'test'
+  ...
+# Subtest: synchronous parser initialization failure releases reserved capacity
+ok 227 - synchronous parser initialization failure releases reserved capacity
+  ---
+  duration_ms: 69.879491
+  type: 'test'
+  ...
+1..227
+# tests 227
+# suites 0
+# pass 227
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6187.497045

@@ -51,3 +51,6 @@ Ein vollständiger upstream-Lizenztext für `size-sensor` 1.0.2 fehlt weiterhin;
 **Die reale Zielsystemabnahme bleibt offen.** Benötigt werden ein gesicherter Upgrade-/Wiederherstellungsversuch, ein laufender unterstützter js-controller, reale TLS-/Netzwerkbedingungen, sämtliche Rollen, gültige/ungültige Home-/Pro-Lizenzen und die tatsächlichen Geräteaktionen. Allgemeine JSON-Config-Seiten installierter Drittanbieter-Adapter behalten eigene Ausdrucks-/Komponentenfähigkeiten und bilden eine separate Vertrauensgrenze. Der Gesamtbestand ist nicht als vollständig evalfrei oder vollständig nach jeder zusätzlichen TS-/JS-Regel modernisiert nachgewiesen.
 
 Die einzelnen Anforderungen, Befunde, Verantwortlichkeiten und offenen Abnahmen stehen in `REQUIREMENTS_REVIEW_DE.md`. Die technische Auslieferung ist weder eine Behauptung völliger Fehlerfreiheit noch eine IEC-Zertifizierung oder CRA-Konformitätsbescheinigung. Für Vorgehen und Voraussetzungen siehe `START_HERE_8.0.0.md` und `docs/ADMIN8_MIGRATION_8.0.0_DE.md` im Repository.
+
+
+Nachtrag 05.11.2026: Der aktuelle Kopierablauf und die zusätzliche Node-22-Unterstützung sind im Bericht `docs/security/admin8-2026-11-05/copy-update/REPORT_DE.md` (Pfad ab Repositorywurzel) dokumentiert. Frühere Angaben dieses Berichts bleiben historische Prüfstände.

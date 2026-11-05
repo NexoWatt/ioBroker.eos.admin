@@ -10,7 +10,7 @@
     "ldittmar <iobroker@lmdsoft.de>"
   ],
   "engines": {
-    "node": ">=24.22.1 <25"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25"
   },
   "license": "UNLICENSED",
   "keywords": [
@@ -177,7 +177,9 @@
     "tools/nexowatt-admin8-overview-selftest.cjs",
     "tools/nexowatt-artifact-inventory.cjs",
     "tools/nexowatt-admin8-public-assets-selftest.mjs",
-    "START_HERE_8.0.0.md"
+    "START_HERE_8.0.0.md",
+    "tools/nexowatt-prepare-copy-update.cjs",
+    "tools/vendor/eos-retired-release-files.json"
   ],
   "scripts": {
     "npm": "npm ci && npm --prefix src-admin ci",
@@ -188,7 +190,7 @@
     "test:integration": "mocha test/integration --exit && npm run test:gui && npm run test:rule && npm run test:unit",
     "test:rule": "mocha test/rule --exit",
     "test:gui": "mocha test/*.gui.js --exit",
-    "prepublishOnly": "npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability",
+    "prepublishOnly": "node tools/nexowatt-prepare-copy-update.cjs && npm run sync:eos-version && npm run repair:eos-lock && npm run prepare:eos-release-defaults && npm run clean:eos-runtime && npm run check:eos-publish-channel && npm run check:eos-package && npm run check:eos-stability",
     "build": "npm run sync:eos-version && npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run security:inventory && npm run security:artifacts && npm run test:eos-admin8-development && npm run seal:eos-prebuilt-release",
     "build:backend": "tsc -p tsconfig.build.json && node --import tsx tasks.mts --backend-i18n",
     "build:frontend": "node --import tsx tasks.mts",
@@ -212,12 +214,12 @@
     "nexowatt:repo-entry": "node tools/nexowatt-generate-repo-entry.cjs",
     "nexowatt:patch-repo": "node tools/nexowatt-patch-repo.cjs",
     "nexowatt:repair-update": "node tools/nexowatt-repair-eos-admin-update.cjs",
-    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-esm-syntax-selftest.cjs && node tools/nexowatt-backend-runtime-selftest.cjs && node tools/nexowatt-prebuilt-release-selftest.cjs && node tools/nexowatt-import-integrity-selftest.cjs && node tools/nexowatt-entrypoint-smoke-selftest.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-publish-channel-selftest.cjs && node tools/nexowatt-release-defaults-selftest.cjs && node tools/nexowatt-role-access-selftest.cjs && node tools/nexowatt-internal-reserve-selftest.cjs && node tools/nexowatt-admin8-public-assets-selftest.mjs && node tools/nexowatt-admin8-overview-selftest.cjs && node tools/nexowatt-modern-ui-selftest.cjs && node tools/nexowatt-login-layout-selftest.cjs && node tools/nexowatt-branding-selftest.cjs && node tools/nexowatt-default-port-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-assistant-separation-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs && node tools/nexowatt-version-sync-selftest.cjs && node tools/nexowatt-merge-update-selftest.cjs && node tools/nexowatt-password-write-selftest.cjs && node tools/nexowatt-account-password-flow-selftest.cjs && npm run check:eos-stable-v7103 && node tools/nexowatt-ems-overview-selftest.cjs && node tools/nexowatt-ui-overview-runtime-selftest.cjs && node tools/nexowatt-auto-update-selftest.cjs && node tools/nexowatt-auto-update-placement-selftest.cjs && node tools/nexowatt-role-security-selftest.cjs && node tools/nexowatt-user-area-selftest.cjs && node tools/nexowatt-installer-ems-selftest.cjs && node tools/nexowatt-v7109-clean-core-selftest.cjs && npm run test:eos-licensing && npm run test:eos-security-boundaries && npm run test:eos-security-upgrade && npm run test:eos-security-audit",
+    "check:eos-stability": "node tools/nexowatt-stability-check.cjs && node tools/nexowatt-esm-syntax-selftest.cjs && node tools/nexowatt-backend-runtime-selftest.cjs && node tools/nexowatt-prebuilt-release-selftest.cjs && node tools/nexowatt-import-integrity-selftest.cjs && node tools/nexowatt-entrypoint-smoke-selftest.cjs && node tools/nexowatt-frontend-graph-check.cjs && node tools/nexowatt-policy-selftest.cjs && node tools/nexowatt-publish-channel-selftest.cjs && node tools/nexowatt-release-defaults-selftest.cjs && node tools/nexowatt-role-access-selftest.cjs && node tools/nexowatt-internal-reserve-selftest.cjs && node tools/nexowatt-admin8-public-assets-selftest.mjs && node tools/nexowatt-admin8-overview-selftest.cjs && node tools/nexowatt-modern-ui-selftest.cjs && node tools/nexowatt-login-layout-selftest.cjs && node tools/nexowatt-branding-selftest.cjs && node tools/nexowatt-default-port-selftest.cjs && node tools/nexowatt-module-popup-selftest.cjs && node tools/nexowatt-datapoint-selftest.cjs && node tools/nexowatt-update-selftest.cjs && node tools/nexowatt-datapoint-interaction-selftest.cjs && node tools/nexowatt-manual-write-policy-selftest.cjs && node tools/nexowatt-value-column-selftest.cjs && node tools/nexowatt-native-shell-selftest.cjs && node tools/nexowatt-assistant-separation-selftest.cjs && node tools/nexowatt-runtime-cleanup-selftest.cjs && node tools/nexowatt-version-sync-selftest.cjs && node tools/nexowatt-merge-update-selftest.cjs && node tools/nexowatt-password-write-selftest.cjs && node tools/nexowatt-account-password-flow-selftest.cjs && npm run check:eos-stable-v7103 && node tools/nexowatt-ems-overview-selftest.cjs && node tools/nexowatt-ui-overview-runtime-selftest.cjs && node tools/nexowatt-auto-update-selftest.cjs && node tools/nexowatt-auto-update-placement-selftest.cjs && node tools/nexowatt-role-security-selftest.cjs && node tools/nexowatt-user-area-selftest.cjs && node tools/nexowatt-installer-ems-selftest.cjs && node tools/nexowatt-v7109-clean-core-selftest.cjs && npm run test:eos-licensing && npm run test:eos-security-boundaries && npm run test:eos-security-upgrade && npm run test:eos-security-audit && npm run test:eos-copy-update",
     "nexowatt:patch-built-frontend": "node tools/nexowatt-patch-built-frontend.cjs",
     "clean:eos-runtime": "node tools/nexowatt-clean-legacy-runtime.cjs",
     "precheck:eos-package": "npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime",
     "precheck:eos-stability": "npm run sync:eos-version && npm run prepare:eos-release-defaults && npm run clean:eos-runtime",
-    "prepack": "node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs",
+    "prepack": "node tools/nexowatt-prepare-copy-update.cjs && node tools/nexowatt-sync-release-version.cjs --quiet && node tools/nexowatt-ensure-release-defaults.cjs && node tools/nexowatt-clean-legacy-runtime.cjs --quiet && node tools/nexowatt-prebuilt-release-selftest.cjs",
     "check:eos-esm": "node tools/nexowatt-esm-syntax-selftest.cjs",
     "check:eos-imports": "node tools/nexowatt-import-integrity-selftest.cjs",
     "check:eos-release": "npm run check:eos-production-release && npm run check:eos-package && npm run check:eos-stability && npm pack --dry-run",
@@ -254,7 +256,9 @@
     "repair:eos-lock": "node tools/nexowatt-repair-lock-metadata.cjs --write && npm run security:inventory && npm run check:eos-production-release",
     "test:eos-admin8-development": "node tools/nexowatt-admin8-development-check.cjs --write",
     "check:eos-admin8-evidence": "node tools/nexowatt-admin8-development-check.cjs",
-    "security:artifacts": "node tools/nexowatt-artifact-inventory.cjs"
+    "security:artifacts": "node tools/nexowatt-artifact-inventory.cjs",
+    "check:eos-copy-update": "node tools/nexowatt-prepare-copy-update.cjs --check",
+    "test:eos-copy-update": "node --test test/eos-copy-update.test.cjs"
   },
   "author": "NexoWatt",
   "private": false,

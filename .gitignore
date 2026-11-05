@@ -38,3 +38,6 @@ build-backend
 !/src-admin/public/js/eos-branding.js
 !/src-admin/public/img/eos/
 !/src-admin/public/img/eos/**
+
+# Local verified ZIP-overwrite recovery copies; never commit or publish.
+/.eos-backup/

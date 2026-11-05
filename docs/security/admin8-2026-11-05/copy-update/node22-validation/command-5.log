@@ -1,0 +1,4 @@
+(node:822) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS Markdown security renderer (URL policy, real React SSR, XSS payloads, links/images/headings/GFM)
+PASS Markdown request lifecycle (new request cancels old, stale results ignored, timeout shown, unmount cancels)

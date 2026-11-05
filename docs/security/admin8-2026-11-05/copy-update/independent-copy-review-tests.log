@@ -1,0 +1,37 @@
+✔ accepts supported security patch lines and rejects unsupported versions (2.287874ms)
+✔ flat ZIP overlay retires only exact old files, preserving Git, modules and local data (44.622928ms)
+✔ unknown extra stops without any writes (4.901748ms)
+✔ modified old stops without any writes (18.748858ms)
+✔ modified current stops without any writes (3.114272ms)
+✔ missing current stops without any writes (2.851845ms)
+✔ tampered catalog stops without any writes (3.110457ms)
+✔ rejects malicious catalog path ../outside (3.719254ms)
+✔ rejects malicious catalog path src/../../outside (3.311524ms)
+✔ rejects malicious catalog path src/CON.txt (3.300367ms)
+✔ rejects malicious catalog path src/trailing. (2.744527ms)
+✔ rejects malicious catalog path src/with:ads (3.482555ms)
+✔ rejects malicious catalog path src\escape.ts (2.747101ms)
+✔ rejects malicious catalog path /absolute (3.050148ms)
+✔ manifest cannot redefine roots or retire current files (2.616008ms)
+✔ current and retired case aliases are refused (3.39753ms)
+✔ refuses current file symlink/junction (8.494481ms)
+✔ refuses source directory symlink/junction (3.263122ms)
+✔ refuses backup directory symlink/junction (3.258405ms)
+✔ refuses root symlink/junction (3.897298ms)
+✔ existing lock stops and leaves its owner and all sources unchanged (5.055615ms)
+✔ backup write failure never removes a source (13.0275ms)
+✔ mid-retirement failure restores removed paths and retains verified backups (14.668361ms)
+✔ corrupt backup is detected before the first source is moved (21.863395ms)
+✔ concurrent source replacement is preserved and never blindly unlinked (13.341985ms)
+✔ rollback refuses to overwrite a newly created source pathname (12.627897ms)
+✔ plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch (5087.134037ms)
+✔ plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging (803.350749ms)
+✔ plain publish lifecycle stops a rejected copy preparation before version sync or lock repair (372.371015ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6369.612105

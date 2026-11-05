@@ -1,0 +1,540 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 build
+> npm run sync:eos-version && npm run build:frontend && npm run build:backend && npm run clean:eos-runtime && npm run security:inventory && npm run security:artifacts && npm run test:eos-admin8-development && npm run seal:eos-prebuilt-release
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 sync:eos-version
+> node tools/nexowatt-sync-release-version.cjs
+
+[NexoWatt EOS version sync] OK (8.0.0; all release files match)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 build:frontend
+> node --import tsx tasks.mts
+
+vite v8.3.5 building client environment for production...
+transforming...
+<script src="js/eos-manual-write-policy.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-role-bootstrap.js?v=7109&security=20260930"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-policy-client.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-branding-sanitizer.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/nexowatt-native-shell.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-native-security.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-basic-settings.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-role-ui.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="./js/eos-auto-update.js?v=7103"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-account-management.js?v=7109&security=20260930"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-ems-overview.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-assistant.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="static/js/nexowatt-stable-login.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="static/js/nexowatt-stable-v7109.js?v=7109"> in "/index.html" can't be bundled without type="module" attribute
+<script src="js/eos-license-link.js?v=7110"> in "/index.html" can't be bundled without type="module" attribute
+
+css/leaflet.css doesn't exist at build time, it will remain unchanged to be resolved at runtime
+
+css/nexowatt-native-shell.css?v=7109 doesn't exist at build time, it will remain unchanged to be resolved at runtime
+
+css/eos-ems-overview.css?v=7109 doesn't exist at build time, it will remain unchanged to be resolved at runtime
+
+./css/eos-auto-update.css?v=7103 doesn't exist at build time, it will remain unchanged to be resolved at runtime
+✓ 14840 modules transformed.
+rendering chunks...
+computing gzip size...
+build/remoteEntry.js                                                                                       0.04 kB
+build/eos-object-browser-guards.json                                                                       0.18 kB │ gzip:     0.15 kB
+build/assets/mf-entry-bootstrap-0-a6a54377.js                                                              2.16 kB
+build/assets/user5-DwFpzcW1.svg                                                                            4.19 kB │ gzip:     1.56 kB
+build/assets/user2-kVvfO6hI.svg                                                                            4.90 kB │ gzip:     2.00 kB
+build/assets/user7-DkJFgUmb.svg                                                                            5.15 kB │ gzip:     1.67 kB
+build/assets/user10-DvWuZ_uc.svg                                                                           5.30 kB │ gzip:     1.74 kB
+build/assets/user3-B1MPu8jB.svg                                                                            5.30 kB │ gzip:     2.27 kB
+build/mf-manifest.json                                                                                     5.37 kB │ gzip:     0.71 kB
+build/assets/user4-DmVDIOoi.svg                                                                            5.49 kB │ gzip:     1.95 kB
+build/assets/echarts-BDq-rBJC.png                                                                          5.81 kB
+build/assets/user8-BZA6Afc4.svg                                                                            6.52 kB │ gzip:     2.05 kB
+build/assets/user9-BLdaSIG0.svg                                                                            6.87 kB │ gzip:     2.22 kB
+build/assets/user11-Ch5DvO34.svg                                                                           7.04 kB │ gzip:     2.00 kB
+build/assets/group5-T3CGkJFm.svg                                                                           7.55 kB │ gzip:     1.79 kB
+build/assets/user12-DEiNnJWd.svg                                                                           7.88 kB │ gzip:     2.14 kB
+build/assets/user6-DHgFm0fc.svg                                                                            7.89 kB │ gzip:     2.19 kB
+build/assets/group4-D4IM6-jV.svg                                                                           8.26 kB │ gzip:     2.23 kB
+build/assets/group1-CmFsZszo.svg                                                                           8.78 kB │ gzip:     3.36 kB
+build/index.html                                                                                           9.32 kB │ gzip:     2.11 kB
+build/assets/user1-D1GAYfim.svg                                                                            9.64 kB │ gzip:     4.06 kB
+build/assets/group7-D-h4KR6w.svg                                                                          10.35 kB │ gzip:     2.75 kB
+build/assets/group6-CLVorg7G.svg                                                                          11.44 kB │ gzip:     2.18 kB
+build/assets/group3-CRAMNPrf.svg                                                                          11.75 kB │ gzip:     3.55 kB
+build/assets/group2-CuvSswwx.svg                                                                          12.06 kB │ gzip:     3.38 kB
+build/assets/group10-Dp9tRs6I.svg                                                                         14.68 kB │ gzip:     4.87 kB
+build/mf-stats.json                                                                                       17.52 kB │ gzip:     2.78 kB
+build/assets/group8-BXzJmR7Y.svg                                                                          24.17 kB │ gzip:     6.34 kB
+build/.vite/manifest.json                                                                                 24.68 kB │ gzip:     3.44 kB
+build/assets/logo-vO-KvdxW.svg                                                                            40.08 kB │ gzip:    30.10 kB
+build/assets/material-peAUziEw.woff2                                                                      60.83 kB
+build/assets/material-nACPaH8J.woff                                                                       64.00 kB
+build/assets/wizard-finish-B2y4teLv.jpg                                                                  195.74 kB
+build/NEXOWATT_EOS_FRONTEND_MANIFEST.json                                                                979.07 kB │ gzip:    88.89 kB
+build/assets/wizard-welcome-BhniCBF1.jpg                                                               1,096.89 kB
+build/assets/bootstrap-BxGG6BRn.css                                                                        9.73 kB │ gzip:     2.70 kB
+build/assets/helpers-DBoACUHw.js                                                                           0.09 kB │ gzip:     0.11 kB
+build/assets/Remove-DplJatnC.js                                                                            0.12 kB │ gzip:     0.13 kB
+build/assets/isSameWeek-WMSJR5Qs.js                                                                        0.13 kB │ gzip:     0.14 kB
+build/assets/ctrlEnter-CruFIPb_.js                                                                         0.17 kB │ gzip:     0.15 kB
+build/assets/Storage-COo2RkS1.js                                                                           0.18 kB │ gzip:     0.16 kB
+build/assets/ViewList-DuKCnBnc.js                                                                          0.18 kB │ gzip:     0.17 kB
+build/assets/Book-QmHxDaHb.js                                                                              0.20 kB │ gzip:     0.18 kB
+build/assets/Computer-DFIUq-fL.js                                                                          0.21 kB │ gzip:     0.19 kB
+build/assets/Apps-C8LE9l6Z.js                                                                              0.22 kB │ gzip:     0.17 kB
+build/assets/VpnKey-iMA7KrB-.js                                                                            0.25 kB │ gzip:     0.22 kB
+build/assets/InfoOutlined-l86Si1qa.js                                                                      0.26 kB │ gzip:     0.21 kB
+build/assets/TextSnippet-Bywi1YuG.js                                                                       0.28 kB │ gzip:     0.23 kB
+build/assets/DeleteForever-BnEM-6_v.js                                                                     0.30 kB │ gzip:     0.23 kB
+build/assets/Schedule-BMMrgd7j.js                                                                          0.31 kB │ gzip:     0.24 kB
+build/assets/AccessTime-Dpa6PKHY.js                                                                        0.32 kB │ gzip:     0.24 kB
+build/assets/Cached-f77QQBQD.js                                                                            0.32 kB │ gzip:     0.25 kB
+build/assets/KeyboardArrowRight-zZUJhG9e.js                                                                0.32 kB │ gzip:     0.26 kB
+build/assets/UnfoldMore-Du7-8wYn.js                                                                        0.35 kB │ gzip:     0.24 kB
+build/assets/Extension-DU1jqvic.js                                                                         0.39 kB │ gzip:     0.27 kB
+build/assets/PushPinOutlined-DvxsqPHo.js                                                                   0.48 kB │ gzip:     0.28 kB
+build/assets/classPrivateFieldGet2-CBZxMSQ4.js                                                             0.52 kB │ gzip:     0.31 kB
+build/assets/State-vP1o2BCL.js                                                                             0.53 kB │ gzip:     0.34 kB
+build/assets/Timeline-IQCnSLiw.js                                                                          0.65 kB │ gzip:     0.37 kB
+build/assets/ViewCompact-C3SC0jFF.js                                                                       0.81 kB │ gzip:     0.45 kB
+build/assets/PersonOff-ANdO5Nu4.js                                                                         0.88 kB │ gzip:     0.49 kB
+build/assets/Usb-Ca47vqRv.js                                                                               1.03 kB │ gzip:     0.61 kB
+build/assets/MoreHoriz-CR2kD-dc.js                                                                         1.04 kB │ gzip:     0.55 kB
+build/assets/Pageview-DBITLOzI.js                                                                          1.16 kB │ gzip:     0.60 kB
+build/assets/Timer-Be9yF62g.js                                                                             1.17 kB │ gzip:     0.66 kB
+build/assets/rolldown-runtime-sJBDdmOt.js                                                                  1.20 kB │ gzip:     0.67 kB
+build/assets/index-BZifaJHi.js                                                                             1.24 kB │ gzip:     0.72 kB
+build/assets/ViewSidebar-kHvah-XS.js                                                                       1.30 kB │ gzip:     0.70 kB
+build/assets/pendingShares-CuQbFsaK.js                                                                     1.55 kB │ gzip:     0.87 kB
+build/assets/vite-preload-helper-BbbETgeG.js                                                               1.56 kB │ gzip:     0.81 kB
+build/assets/CustomModal-B8vdCRn1.js                                                                       2.08 kB │ gzip:     1.15 kB
+build/assets/Fields-DnckPMA8.js                                                                            2.38 kB │ gzip:     1.09 kB
+build/assets/ConfigManager-CFuOc_kb.js                                                                     2.40 kB │ gzip:     1.18 kB
+build/assets/Star-DNdm064z.js                                                                              2.82 kB │ gzip:     1.42 kB
+build/assets/sentry-B4uGc7ut.js                                                                            4.08 kB │ gzip:     2.29 kB
+build/assets/EasyMode-TwIN5yxu.js                                                                          4.57 kB │ gzip:     1.96 kB
+build/assets/CustomTab-DSPqif6P.js                                                                         6.08 kB │ gzip:     2.23 kB
+build/assets/hostInit-2xIZYDSq.js                                                                          6.19 kB │ gzip:     2.51 kB
+build/assets/UsedResources-CMTzFOX3.js                                                                     6.69 kB │ gzip:     2.78 kB
+build/assets/WifiTethering-Da8nW7Do.js                                                                     7.29 kB │ gzip:     3.25 kB
+build/assets/en-US-BjjaEI6N.js                                                                             7.89 kB │ gzip:     2.80 kB
+build/assets/_virtual_mf-localSharedImportMap___mfe_internal__iobroker_admin__mf_owner__1-CpelrCgN.js     12.80 kB │ gzip:     2.60 kB
+build/assets/Config-BZDUILCW.js                                                                           13.31 kB │ gzip:     3.86 kB
+build/assets/AdminUtils-DDT_kD8H.js                                                                       16.34 kB │ gzip:     5.66 kB
+build/remoteEntry-eos-8.0.0.js                                                                            22.98 kB │ gzip:     7.49 kB
+build/assets/lib-CE1B3iHH.js                                                                              23.20 kB │ gzip:     8.17 kB
+build/assets/Logs-Cngy2Opt.js                                                                             25.07 kB │ gzip:     7.62 kB
+build/assets/Users-BjTGOjzL.js                                                                            29.77 kB │ gzip:     8.12 kB
+build/assets/date-fns-Bpgjk9P-.js                                                                         32.87 kB │ gzip:     9.42 kB
+build/assets/Overview-WwP6FjK-.js                                                                         35.02 kB │ gzip:    11.63 kB
+build/assets/setYear-DurmWw03.js                                                                          38.81 kB │ gzip:     8.10 kB
+build/assets/Files-CwUHx0pF.js                                                                            44.16 kB │ gzip:    15.26 kB
+build/assets/AdapterUpdateDialog-B3y8RL_5.js                                                              49.74 kB │ gzip:    15.09 kB
+build/assets/Intro-DsfrPrWv.js                                                                            57.71 kB │ gzip:    16.92 kB
+build/assets/Enums-CSzSzWm7.js                                                                            83.45 kB │ gzip:    25.54 kB
+build/assets/prod-ChPGnyiA.js                                                                             92.19 kB │ gzip:    31.54 kB
+build/assets/Hosts-QkyuASJy.js                                                                           136.95 kB │ gzip:    31.10 kB
+build/assets/Adapters-BDxfhfGe.js                                                                        137.03 kB │ gzip:    34.23 kB
+build/assets/zh-cn-B6dBxOyw.js                                                                           148.00 kB │ gzip:    46.29 kB
+build/assets/AceEditor-DTzNaeVy.js                                                                       153.33 kB │ gzip:    41.00 kB
+build/assets/Instances-BaWBemTT.js                                                                       199.80 kB │ gzip:    55.27 kB
+build/assets/iconLibraryData-B5fiyl1C.js                                                                 264.14 kB │ gzip:   101.95 kB
+build/assets/Objects-DY8KS7zK.js                                                                         374.55 kB │ gzip:   104.68 kB
+build/assets/installSVGRenderer-Pe6-VnD2.js                                                              525.23 kB │ gzip:   179.11 kB
+build/assets/locale-DN6Bdkdt.js                                                                          608.59 kB │ gzip:   107.66 kB
+build/assets/bootstrap-Bs4TZ7iA.js                                                                     1,995.79 kB │ gzip:   652.73 kB
+build/assets/icons-material-BLgrEUSv.js                                                                3,816.29 kB │ gzip:   687.99 kB
+build/assets/loadShare-eager-CRNcc8D7.js                                                               4,268.11 kB │ gzip: 1,223.60 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 20.42s
+[NexoWatt EOS post-build guard] OK: reviewed Admin 8 source guards, unchanged emitted modules
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 build:backend
+> tsc -p tsconfig.build.json && node --import tsx tasks.mts --backend-i18n
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 clean:eos-runtime
+> node tools/nexowatt-clean-legacy-runtime.cjs
+
+[NexoWatt EOS runtime cleanup] OK (runtime Admin8 manifest, shell v7109, removed 0 legacy files)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 security:inventory
+> node tools/nexowatt-security-inventory.cjs
+
+backend: 773 lockfile components; 0 manifest mismatches; 6 unresolved references
+frontend: 582 lockfile components; 0 manifest mismatches; 22 unresolved references
+Lockfile reference inventory only; no installed tree, bundle composition, CVE assessment, or deployed-device attestation.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 security:artifacts
+> node tools/nexowatt-artifact-inventory.cjs
+
+{"status":"RESOLVED_WITH_DECLARED_LIMITATIONS","installed":[{"label":"backend","count":747,"absentOptional":26,"failures":0},{"label":"frontend","count":559,"absentOptional":23,"failures":0}],"frontend":{"chunks":72,"packages":168,"vendoredPackages":1,"modules":13945,"unclassified":0},"optionalPeers":[{"label":"backend","unresolved":6,"verifiedOptional":6},{"label":"frontend","unresolved":22,"verifiedOptional":22}],"licenseNotices":{"report":"docs/third-party/admin8/NOTICE-PROVENANCE.json","packages":171,"files":177,"missing":[{"name":"size-sensor","version":"1.0.2","scope":"frontend"}]}}
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 test:eos-admin8-development
+> node tools/nexowatt-admin8-development-check.cjs --write
+
+
+
+  Reviewed EOS package-validation profile
+    ✔ uses the reviewed upstream validator version and exact source
+    ✔ pins both official schemas by immutable commit and SHA-256
+    ✔ keeps the official schema immutable and validates the actual complete EOS metadata (528ms)
+    ✔ ships the concrete proprietary license link as actual nonempty files
+
+  Validate the package files
+    Ensure they are readable
+      package.json
+        ✔ exists
+        ✔ contains valid JSON
+        ✔ is an object
+      io-package.json
+        ✔ exists
+        ✔ contains valid JSON
+        ✔ is an object
+    Check contents of package.json
+      ✔ The property "name" exists
+      ✔ The property "version" exists
+      ✔ The property "description" exists
+      ✔ The property "author" exists
+      ✔ The property "license" exists
+      ✔ The package name is correct
+      ✔ property main is defined for non onlyWWW adapters
+      ✔ Repository metadata is truthful for the proprietary EOS distribution
+      ✔ npm is not listed as a dependency
+      ✔ No "prepare" script is defined in package.json
+      ✔ iobroker.js-controller is not listed as a dependency
+    Check contents of io-package.json
+      ✔ The property "common.name" exists
+      ✔ The property "common.titleLang" exists
+      ✔ The property "common.version" exists
+      ✔ The property "common.news" exists
+      ✔ The property "common.desc" exists
+      ✔ The property "common.icon" exists
+      ✔ The property "common.extIcon" exists
+      ✔ The property "common.type" exists
+      ✔ The property "common.authors" exists
+      ✔ The property "native" exists
+      ✔ io-package.json matches the strict EOS profile of the pinned official schema (342ms)
+      ✔ The title does not contain "adapter" or "iobroker"
+      ✔ titleLang is an object to support multiple languages
+      ✔ titleLang does not contain "adapter" or "iobroker"
+      ✔ The description is an object to support multiple languages
+      ✔ common.authors is an array that is not empty
+      ✔ common.news is an object that contains maximum 20 entries
+      ✔ if common.licenseInformation exists, it is an object with required properties
+      ✔ common.license should not exist together with common.licenseInformation
+      ✔ common.tier must be 1, 2 or 3
+      ✔ The adapter uses a supported admin UI
+      ✔ The JSON config file exists
+      ✔ Check JSON config file (398ms)
+    Compare contents of package.json and io-package.json
+      ✔ The name matches
+      ✔ The version matches
+      ✔ The license matches
+    Validate JSON files
+      Base directory JSON files
+        ✔ package.json contains valid JSON
+        ✔ io-package.json contains valid JSON
+      admin/*.json files
+        ✔ admin/custom/mf-manifest.json contains valid JSON
+      admin/*.json5 files
+        ✔ admin/jsonConfig.json5 contains valid JSON5
+      admin/i18n/**/*.json files
+        ✔ admin/custom/i18n/de.json contains valid JSON
+        ✔ admin/custom/i18n/en.json contains valid JSON
+        ✔ admin/custom/i18n/es.json contains valid JSON
+        ✔ admin/custom/i18n/fr.json contains valid JSON
+        ✔ admin/custom/i18n/it.json contains valid JSON
+        ✔ admin/custom/i18n/nl.json contains valid JSON
+        ✔ admin/custom/i18n/pl.json contains valid JSON
+        ✔ admin/custom/i18n/pt.json contains valid JSON
+        ✔ admin/custom/i18n/ru.json contains valid JSON
+        ✔ admin/custom/i18n/zh-cn.json contains valid JSON
+        ✔ admin/i18n/de.json contains valid JSON
+        ✔ admin/i18n/en.json contains valid JSON
+        ✔ admin/i18n/es.json contains valid JSON
+        ✔ admin/i18n/fr.json contains valid JSON
+        ✔ admin/i18n/it.json contains valid JSON
+        ✔ admin/i18n/nl.json contains valid JSON
+        ✔ admin/i18n/pl.json contains valid JSON
+        ✔ admin/i18n/pt.json contains valid JSON
+        ✔ admin/i18n/ru.json contains valid JSON
+        ✔ admin/i18n/uk.json contains valid JSON
+        ✔ admin/i18n/zh-cn.json contains valid JSON
+
+  Check additional files
+    ✔ README.md exists
+    ✔ LICENSE exists or is present in the README.md
+
+
+  74 passing (1s)
+
+✔ Admin 8 GUI capability is bound to live socket, identity, role and security epoch (2.267906ms)
+✔ GUI subscription bounds and explicit revocation cannot be bypassed by renewals (0.487179ms)
+✔ Admin 8 log search reads matching local and compressed logs (49.278393ms)
+✔ Log file reads reject traversal, symbolic links and oversized expansion (135.18941ms)
+✔ Remote log files are limited to validated listed basenames (1.451301ms)
+✔ Shipped Admin 8 GUI requests require the authenticated sender and suppress revoked in-flight results (6.368226ms)
+✔ Shipped EOS socket authorization refuses startup if the Admin 8 dispatcher contract changes (1.620771ms)
+✔ Controller search replies validate shape, size and values before browser delivery (2.221207ms)
+✔ Legacy OS-password RPC is disabled for every EOS role and never reflects supplied credentials (1.998329ms)
+✔ Shipped startup has no OS credential-probing helper or standalone su test program (0.802895ms)
+✔ Malformed fetch metadata is rejected without coercing untrusted header objects (1.799385ms)
+✔ License storage reports both primary write failure and cleanup failures without losing either (2.307966ms)
+✔ graph parser distinguishes actual imports from translations and never executes emitted code (17.691825ms)
+✔ receipt permits the real federation asset entry but rejects missing dependencies, changed asset bytes and unsafe paths (11.405164ms)
+✔ Admin8 legacy cleaner preserves unknown files for the hash-bound copy migration and strict seal (4.611715ms)
+✔ prepared release parser works without installed packages and rejects altered vendor bytes before loading them (206.631119ms)
+✔ Admin8 serialized log buffers validate bytes and transfer size before conversion (2.008864ms)
+✔ serialized and compressed logs render escaped text and ignore forged size metadata (10.82298ms)
+✔ Admin8 public path survives login, iframe socket info and escaped 404 details (0.98224ms)
+✔ configured external SSO cannot become active through Admin8 config (0.248576ms)
+✔ proxy revocation and shutdown are wired to the Web lifecycle (0.531545ms)
+✔ installed Admin8 OAuth password grant, token proof, cookie and refresh are compatible (66.496439ms)
+✔ installed Admin8 OAuth denies bad credentials, unbound minting and URL tokens (24.532013ms)
+✔ Admin8 OAuth invalidates cookie and refresh capability after credential/ACL changes (44.018922ms)
+✔ login redirect rejects remote, protocol-relative, encoded separator, backslash and control origins (1.891922ms)
+✔ production same-origin caller binds HTTPS versus HTTP and rejects forged forwarded origin (0.390977ms)
+✔ all retired passwordless endpoints deny even legacy-enabled accounts and existing claim cookies (0.582339ms)
+✔ HTTP credential query guard rejects bearer/password forms and preserves normal OAuth code/state (0.922431ms)
+✔ EOS token readers no longer accept query credentials but preserve cookie and Authorization (0.946637ms)
+✔ file identity guard rejects anonymous and pending-password users and passes normalized caller (0.461221ms)
+✔ SSO remains denied before OAuth and DB file routes have their own identity guard (1.426255ms)
+✔ OAuth callback messages are HTML text, replacement metacharacters cannot restore markup (1.366296ms)
+✔ alias parser validates syntax without running statements or sample values (8.316882ms)
+✔ static custom schemas remain available without executing values (1.330673ms)
+✔ custom executable fields and alternate vendor interpolation paths are blocked (0.500398ms)
+✔ schema bounds and own-data validation reject pollution, getters, cycles and oversized values (6.945344ms)
+✔ vendored syntax parser matches reviewed integrity and license provenance (1.324825ms)
+✔ accepts supported security patch lines and rejects unsupported versions (1.60608ms)
+✔ flat ZIP overlay retires only exact old files, preserving Git, modules and local data (48.850752ms)
+✔ unknown extra stops without any writes (5.971301ms)
+✔ modified old stops without any writes (5.749364ms)
+✔ modified current stops without any writes (4.403768ms)
+✔ missing current stops without any writes (5.451624ms)
+✔ tampered catalog stops without any writes (5.250408ms)
+✔ rejects malicious catalog path ../outside (6.3294ms)
+✔ rejects malicious catalog path src/../../outside (6.054293ms)
+✔ rejects malicious catalog path src/CON.txt (5.334201ms)
+✔ rejects malicious catalog path src/trailing. (5.478373ms)
+✔ rejects malicious catalog path src/with:ads (4.35025ms)
+✔ rejects malicious catalog path src\escape.ts (4.713496ms)
+✔ rejects malicious catalog path /absolute (4.806112ms)
+✔ manifest cannot redefine roots or retire current files (5.192912ms)
+✔ current and retired case aliases are refused (4.77786ms)
+✔ refuses current file symlink/junction (2.922572ms)
+✔ refuses source directory symlink/junction (3.552621ms)
+✔ refuses backup directory symlink/junction (2.869003ms)
+✔ refuses root symlink/junction (2.227517ms)
+✔ existing lock stops and leaves its owner and all sources unchanged (4.328658ms)
+✔ backup write failure never removes a source (11.431788ms)
+✔ mid-retirement failure restores removed paths and retains verified backups (13.950295ms)
+✔ corrupt backup is detected before the first source is moved (16.054569ms)
+✔ concurrent source replacement is preserved and never blindly unlinked (13.269419ms)
+✔ rollback refuses to overwrite a newly created source pathname (16.845507ms)
+✔ plain publish lifecycle repairs exact missing metadata before inventory, admission and packaging; a repeated publish needs no registry fetch (5060.282536ms)
+✔ plain publish lifecycle stops on registry failure before inventory, admission, subsequent checks or packaging (845.780647ms)
+✔ plain publish lifecycle stops a rejected copy preparation before version sync or lock repair (390.255733ms)
+✔ documentation accepts bounded UTF-8 and refuses HTTP errors and redirects (39.556087ms)
+✔ documentation rejects unsafe origins and already-cancelled work before I/O (12.519263ms)
+✔ documentation bounds declared and streamed response sizes (30.088897ms)
+✔ documentation aborts a live streaming body at one total five-second deadline (5053.453551ms)
+✔ caller cancellation aborts body reading without waiting for deadline (83.259029ms)
+✔ URL parser accepts ordinary files and strips real queries before decoding (4.290471ms)
+✔ URL parser rejects encoded routing delimiters, double encoding, traversal, malformed URLs and excessive depth (5.468008ms)
+✔ single file read propagates authenticated caller ACL to both operations and ignores attacker MIME (2.466098ms)
+✔ missing or malformed identity and invalid direct-call path perform no database IO (4.490096ms)
+✔ explicit authenticated user names containing @ retain their identity for ACL checks (6.532494ms)
+✔ directory exports are denied without recursive reads or archive allocation (1.64023ms)
+✔ missing metadata, oversized declared files and excessive parent entries fail before reading file bytes (8.323642ms)
+✔ actual oversized response is rejected even if metadata was small (0.965725ms)
+✔ active file types are attachments with isolated restrictive response headers (17.839998ms)
+✔ database errors fail closed and do not expose internal details (1.285206ms)
+✔ concurrent stalled requests reserve both slots even after the five-second deadline (22.081603ms)
+✔ aborted client cannot trigger a late file read and reservation is released after DB settles (1.927434ms)
+✔ slow output keeps both reservations until deadline destroys unfinished responses (1.357933ms)
+(node:372) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Admin8 proxy forwards selected instance request body and target authorization, never Admin credentials or caller forwarding headers (42.643402ms)
+✔ missing/expired/resource-scoped sessions and disabled/forced-reset users fail closed; names grant no administrator membership (18.211993ms)
+✔ each request rechecks actual administrator membership and instance opt-in without a stale decision cache (7.514438ms)
+✔ encoded separators, traversal, credentials in query and cross-origin mutations never reach a target (7.455471ms)
+✔ local redirects and cookies without Path remain inside the selected instance (6.213629ms)
+✔ HTTPS target rejects an untrusted certificate and accepts an explicitly trusted certificate without disabling verification (193.058307ms)
+✔ SSE stays streamed and is closed immediately when proxy sessions are invalidated (9.382269ms)
+✔ WebSocket upgrades use the proxy before unrelated Admin websocket listeners and revoke active tunnels (6.321248ms)
+✔ HTTPS Admin entry forwards to a local HTTP adapter and marks the scoped application cookie Secure (105.279865ms)
+✔ trusted HTTPS certificate with a mismatched hostname is rejected (109.915676ms)
+✔ a stalled authorization database times out without forwarding and a subsequent request recovers (2010.300473ms)
+✔ starts denied, permits signed-service decision and sends no license key (5.040878ms)
+✔ a new request uses a new nonce and rejects replay from an older request (0.926748ms)
+✔ Home and Pro quantity limits and features are checked independently (5.38794ms)
+✔ malformed, stale, future, oversized and missing entitlements fail closed (6.121243ms)
+✔ timeout invalidates an existing lease; late and duplicate callbacks cannot reopen it (21.913856ms)
+✔ throws and rejected transport promises settle denied without an unhandled rejection (0.81297ms)
+✔ lease expires autonomously, onLost is once per denial episode, then recovery is possible (35.952599ms)
+✔ wall clock rollback does not extend monotonic lease and a forward jump immediately denies (38.382821ms)
+✔ stop cancels in-flight request and prevents late callback activation (19.568104ms)
+✔ concurrent callers coalesce safely and status mutation cannot change entitlement (1.492572ms)
+✔ failed safe-state callback latches denial and sanitizes logs (3.224828ms)
+✔ asynchronous safe-state transition must finish before a fresh grant is accepted (1.768991ms)
+✔ invalid configuration cannot create a permissive guard (0.964613ms)
+✔ one shared lease gates each Home/Pro feature without extra messages or rights after loss (1.498982ms)
+✔ UUID normalizes case/space while preserving canonical and direct vendor-prefix identity (5.23232ms)
+✔ Home license authenticates UUID, explicit adapters, limits and immutable derived features (1.85693ms)
+✔ Pro license enables Pro features only from signed edition and caps 10 batteries (3.611158ms)
+✔ expiry and notBefore use exact millisecond boundaries without coercion or grace (2.351861ms)
+✔ forged or edited signature, foreign signing key, unknown kid and legacy format fail closed (1.708ms)
+✔ trust accepts only bounded explicit Ed25519 public SPKI keys (129.278027ms)
+✔ schema rejects wildcard adapters, duplicate adapters, unsafe limits and unknown signed fields (41.079265ms)
+✔ malformed/oversized tokens and noncanonical base64 cannot reach successful verification (0.704159ms)
+✔ encrypted storage roundtrips across restart with fresh nonce and no plaintext on disk (40.644467ms)
+✔ GCM binds UUID and fails after ciphertext/tag/nonce corruption (31.493111ms)
+✔ missing/wrong/short storage key never silently regenerates existing encrypted license (25.386729ms)
+✔ storage high water mark cannot decrease; serialized operations preserve monotonic value (50.665064ms)
+✔ clear removes only license, keeps device encryption key and permits fresh install (50.698728ms)
+✔ storage rejects symlink files, symlink directory/ancestor and hard linked secrets (28.956247ms)
+✔ storage rejects permissive POSIX modes and unsafe directory roots (20.20973ms)
+✔ storage bounds files and rejects malformed data/envelopes without destructive overwrite (50.181711ms)
+✔ license endpoints authorize before body parser, service calls and static files (3.760659ms)
+✔ secure admin activation invokes parser after authorization and returns no submitted token (0.58306ms)
+✔ cross-origin, missing origin/header and cross-site writes fail before parser (0.893188ms)
+✔ forwarded host/proto headers do not establish origin or TLS trust (0.350227ms)
+✔ plaintext LAN is denied for every route; explicit socket loopback can perform setup (0.403876ms)
+✔ malformed activation/removal bodies are rejected without reaching service (2.885758ms)
+✔ parser size/syntax errors are sanitized and cannot reach activation (1.065793ms)
+✔ authorization and asynchronous service failures return sanitized bounded errors (0.912527ms)
+✔ per-address write and read rate budgets deny excess operations (2.837307ms)
+✔ license page has restrictive CSP and safe no-cache headers (0.538274ms)
+✔ origin matching uses scheme, hostname and port exactly (0.269928ms)
+✔ startup without provisioned trust denies and creates no license (17.925741ms)
+✔ startup with empty trust configuration denies (3.389321ms)
+✔ trusted service without stored license denies (6.121183ms)
+✔ Home allows licensed adapter and published Home limits with bounded lease (20.872184ms)
+✔ Home rejects Pro feature and over-limit resource counts (19.52598ms)
+✔ Pro grants its feature set only to listed adapter and within signed limits (31.715988ms)
+✔ licensed second adapter receives grants only when enabled (30.939814ms)
+✔ missing, disabled, renamed or non-instance senders cannot obtain grants (32.603668ms)
+✔ sender mismatch, unknown feature, extra keys and invalid quota types reject (27.54231ms)
+✔ malformed or untrusted import preserves existing encrypted license (37.015513ms)
+✔ explicit license removal denies checks and remains removed after restart (18.18ms)
+✔ external license deletion invalidates previously cached grant eligibility (21.356462ms)
+✔ tampered authenticated ciphertext invalidates cached license (13.774255ms)
+✔ encrypted license and edition persist over clean service restart (22.733796ms)
+✔ changed system UUID denies while running (20.043625ms)
+✔ lease is capped at expiry and license expires at exact boundary (14.369773ms)
+✔ expiry is rechecked after delayed adapter object lookup (24.798792ms)
+✔ wall clock rollback relative to monotonic time fails closed until restart (29.317253ms)
+✔ frequent sub-tolerance checks cannot keep a frozen wall clock licensed (9.052728ms)
+✔ small cumulative backward steps cannot reset the monotonic clock anchor (14.36769ms)
+✔ persisted high-water mark detects ordinary rollback across restart (24.615601ms)
+✔ sender rate cap denies excess requests and renews after window (71.616279ms)
+✔ queue cap rejects excess work without preventing earlier jobs completing (7.416063ms)
+✔ new checks and mutations after stop are denied (8.832803ms)
+✔ check queued before stop cannot grant or restore cached validity after stop (7.555177ms)
+✔ check already in adapter lookup cannot grant after stop (9.259423ms)
+✔ database timeout clears validity, bounds outstanding reads and ignores late results (31.99378ms)
+✔ timeout during adapter identity lookup clears a previously valid license view (39.441338ms)
+✔ serialized deletion ahead of a check prevents an intervening grant (14.509711ms)
+✔ status rechecks expiry after delayed UUID lookup (8.41661ms)
+✔ import expiring during UUID lookup preserves the previous valid license (9.12283ms)
+✔ production directory resolver works without an assumed adapter instance method (6.437049ms)
+✔ directory resolver failure is contained and keeps authority denied (1.161133ms)
+✔ trusted root-owned complete directory chain accepts bounded public keys (6.835376ms)
+✔ writable, foreign-owned or symbolic-link ancestor is denied before file open (6.635149ms)
+✔ unsafe trust file and inode swap fail closed (8.278325ms)
+✔ read remains bounded after growth and rejects malformed contents with close (6.096476ms)
+✔ Windows and noncanonical paths require explicit supported provisioning (5.390028ms)
+✔ exact registry repair preserves versions/graph, deduplicates metadata requests and admits both locks (11.681517ms)
+✔ dry run and already complete locks do not mutate inputs or fetch unnecessary metadata (6.740957ms)
+✔ aliases use actual package name, not installation directory (1.408398ms)
+✔ network failure leaves every input unchanged and never writes a success report (2.985054ms)
+✔ wrong package/version, weak or malformed digest and foreign tarball are rejected before writing (9.768503ms)
+✔ existing conflicting or malformed metadata is never overwritten (2.291701ms)
+✔ concurrent package or lock changes are preserved and stop repair (2.411047ms)
+✔ second-lock commit failure restores both original locks and records rollback evidence (7.060649ms)
+✔ rollback preserves a concurrent developer edit and reports that backup review is required (5.424705ms)
+✔ registry transport has fixed five-second budget, TLS validation and no redirect/retry (6.795802ms)
+(node:457) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ backend and frontend compare data and reject executable/malformed conditions (1.265107ms)
+✔ shipped frontend expression has the same outcomes and contains no news eval (28.797152ms)
+✔ actual shipped news method refuses marker and preserves numeric behavior (7.255075ms)
+✔ Node index validates bounded schema and strips unused data (2.666164ms)
+✔ local publish and release paths require actual admission; candidate packaging remains separate (1.276634ms)
+✔ actual repository CLI returns nonzero whenever its current lock metadata is blocked (140.823251ms)
+✔ complete fixture metadata admits without fetching or executing any package (93.532463ms)
+✔ missing integrity in one scope rejects the real admission process (78.355006ms)
+✔ missing lockfile fails closed instead of permitting a publish check (66.656576ms)
+(node:514) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ pinned upstream password login, token pair and refresh work with security binding (5.777084ms)
+✔ all devices access and refresh tokens reject changed password without waiting for object event (1.610636ms)
+✔ disable, deletion and changed group ACL independently invalidate both token classes (4.803147ms)
+✔ observed disable then re-enable cannot resurrect old token after snapshot returns to original (0.86762ms)
+✔ legacy and unbound external tokens are rejected and direct internal minting is denied (0.866659ms)
+✔ proof cannot be forged by passing a user-shaped object or copied authenticated identity (0.347523ms)
+✔ password mutation during credential verification and before token save fails closed (0.559396ms)
+✔ refresh credential cannot cross revocation between lookup and save (0.703858ms)
+✔ restart generation does not accept previously saved capabilities (0.41332ms)
+✔ session database failures and bounded stalled reads fail closed without unbounded backlog (76.844168ms)
+✔ socket revocation synchronously blocks commands, clears subscriptions and closes every connection (0.740032ms)
+✔ metadata-only account updates do not revoke established capabilities (0.98947ms)
+✔ expired access and refresh capabilities fail closed in the common session reader (0.535595ms)
+✔ late socket authentication cannot reopen a connection after revocation (0.359791ms)
+✔ real five-second watchdog closes a socket after a missed credential object event (5251.025313ms)
+✔ HTTPS accepts bounded JSON with explicit TLS verification, identity encoding and no pooling (6.387034ms)
+✔ HTTPS rejects scheme, credentials, fragments, alternate port and non-allowlisted host before transport (1.933833ms)
+✔ HTTPS rejects redirects without contacting redirect targets (1.436629ms)
+✔ HTTPS rejects oversized declared and streamed responses and compressed bodies (3.570229ms)
+✔ HTTPS rejects malformed or primitive JSON without exposing body/error text (5.806348ms)
+✔ HTTPS hard deadline destroys a request before response including DNS/connect stalls (21.534325ms)
+✔ HTTPS hard deadline also bounds slow response bodies (21.433255ms)
+✔ HTTP bind is literal loopback unless TLS enabled; nonloopback Host and peer are rejected (1.586401ms)
+✔ gzip preview returns text but rejects bombs, oversized input, and invalid gzip (46.116974ms)
+✔ gzip preview concurrency is bounded independently of compressed size (30.459985ms)
+✔ system-info calls coalesce and cache npm version; no shell is used (1.997457ms)
+✔ upload budget admits two across routes; third denied and aborted temporary files cleaned (78.540845ms)
+✔ upload parser receives actual total/file/part limits and private temporary directory (33.937292ms)
+✔ restore storage replaces an existing regular file without modifying unrelated data (39.999491ms)
+✔ POSIX restore storage replaces a destination symlink and persists restrictive permissions (36.37969ms)
+✔ retained upload data counts against shared quota at the next admission (35.87388ms)
+✔ upload total deadline aborts a still-active parser and removes its partial directory (53.214086ms)
+✔ upload admission rejects low disk space before constructing parser (2.836583ms)
+✔ synchronous parser initialization failure releases reserved capacity (65.172236ms)
+ℹ tests 227
+ℹ suites 0
+ℹ pass 227
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6431.831666
+PASS Admin8 ObjectBrowser fixture provenance and fresh compiler/vendor equivalence
+PASS Admin8 ObjectBrowser source guards (55 assertions)
+PASS Markdown security renderer (URL policy, real React SSR, XSS payloads, links/images/headings/GFM)
+PASS Markdown request lifecycle (new request cancels old, stale results ignored, timeout shown, unmount cancels)
+PASS Custom configuration integration (rejected schema never mounts vendor, save blocked, static forms retained)
+PASS Admin8 overview handoff: no duplicate hero, no duplicate EMS reads
+PASS version-bound Admin7→Admin8 public JS/CSS/socket cache invalidation
+[NexoWatt EOS Admin8 development evidence] OK: 685 unchanged inputs, 8 successful test commands
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> iobroker.eos-admin@8.0.0 seal:eos-prebuilt-release
+> node tools/nexowatt-prebuilt-release-selftest.cjs --write
+

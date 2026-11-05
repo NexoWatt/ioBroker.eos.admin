@@ -78,3 +78,11 @@ Die integrativen Backend-, Proxy- und Webprüfungen stammen aus den gesondert be
 ## Nachprüfung 05.11.2026
 
 `EOS-ADMIN8-CUSTOM-BUNDLE-001` ist für die Herkunft, tatsächliche Zusammensetzung und aktuelle Advisory-Zuordnung der unveränderten EasyAccess-3.0.8-Dateien geschlossen. Bytegleicher Nachbau und echte Browserprüfung einschließlich geladener EOS-Oberfläche liegen vor. Der vollständige Einstellungs-/Speicherablauf mit realem Controller sowie die oben genannten neuen P2-Fälle bleiben offen. Siehe `../admin8-2026-11-05/EASYACCESS_FOLLOWUP_DE.md`. Keine allgemeine Produktions- oder Konformitätsfreigabe.
+
+
+## Nachtrag Kopierablauf und Node22, 05.11.2026
+
+| Kennung | Anforderung | Status und Beleg |
+| --- | --- | --- |
+| EOS-ADMIN8-COPY-UPDATE-001 | Vollständiges ZIP in vorhandenen Git-Ordner übernehmen; bekannte Altdateien sicher auslagern, aktuelle Integrität und eigene Dateien erhalten | Im dokumentierten Umfang bestanden: echte 7.10.9- und 8.0.0-Overlays mit normalen npm-Dry-runs; unbekannte/geänderte Zusatzdateien stoppen weiterhin. Siehe `docs/security/admin8-2026-11-05/copy-update/REPORT_DE.md` ab Repositorywurzel. Native Windows-Ausführung offen. |
+| EOS-ADMIN8-NODE22-COMPAT-001 | Bestehende Node22-Anlagen unterstützen | Node22.23.4: acht Prüfgruppen einschließlich 74 Paket- und 227 EOS-Tests bestanden; Sicherheitsprofil neben Node24.22.1 freigegeben für die geprüfte Softwareebene. Reale Anlageninstallation/-abnahme offen. |

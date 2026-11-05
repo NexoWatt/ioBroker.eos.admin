@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-11-05T05:53:42.510630+00:00",
+  "reviewType": "Separate coding-agent review plus independently executed isolated tests; not an external certification",
+  "scope": "Copy preparation helper, exacthash retirement, backup and rollback data preservation, platform path guards, and npm orchestration fixture",
+  "reviewedSha256": {
+    "tools/nexowatt-prepare-copy-update.cjs": "1708c3a98f8ce978339f94d3c29696921a0db0a90fbfb5b3038f62d79866c84c",
+    "test/eos-copy-update.test.cjs": "fb82bae32596ca0bd3d3faf05c51ea34d4ab499ffb6c29af9d3fb24bb0970994",
+    "test/eos-direct-publish.test.cjs": "0434b2cd617a8627034becfb90e87e4ab3e24eee3afe2b357db26f073862333a"
+  },
+  "findings": {
+    "blocking": [],
+    "nonBlockingLimits": [
+      "Native Windows filesystem/Explorer/ACL execution not performed",
+      "Only exact historical catalog entries are retired; unknown or modified extras intentionally stop",
+      "Release hash manifests are integrity evidence, not publisher authentication against an actor who can rewrite the complete checkout",
+      "Full old-release overlay and packaged npm artifact verification are separate root-agent release gates"
+    ]
+  },
+  "test": {
+    "command": "node --test test/eos-copy-update.test.cjs test/eos-direct-publish.test.cjs",
+    "npmCliResolution": "npm_execpath set to installed npm-cli.js for isolated lifecycle fixture",
+    "node": "v24.22.1",
+    "platform": "linux",
+    "exitCode": 0,
+    "tests": 29,
+    "pass": 29,
+    "fail": 0,
+    "skip": 0,
+    "rawLog": "independent-copy-review-tests.log",
+    "rawLogSha256": "60e0af9fa85f83c95909a2682b13c458cac61f76849c6f920be549825e4fd2ba"
+  },
+  "repoEditsByReviewer": [
+    "test/eos-direct-publish.test.cjs"
+  ],
+  "reviewerChangedHelper": false
+}

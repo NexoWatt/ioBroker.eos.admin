@@ -1,0 +1,30 @@
+{
+  "files": 2259,
+  "userRoot": "C:\\Users\\User\\Desktop\\ioBroker\\ioBroker.eos.admin\\",
+  "maxVisibleCharacters": 248,
+  "over259": 0,
+  "casefoldCollisions": 0,
+  "nativeWindows": false,
+  "longest": [
+    {
+      "length": 248,
+      "path": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js"
+    },
+    {
+      "length": 245,
+      "path": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js"
+    },
+    {
+      "length": 235,
+      "path": "docs/ea/upstream-source-proof/admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare__react_mf_2_dom_mf_1_client__loadShare__.js-DaGIWOY8.js"
+    },
+    {
+      "length": 218,
+      "path": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_gui_mf_2_components__loadShare__.js-wBTkI4zM.js"
+    },
+    {
+      "length": 215,
+      "path": "admin/custom/assets/_virtual_mf___mfe_internal__AdminComponentEasyAccessSet__mf_owner__1__loadShare___mf_0_iobroker_mf_1_json_mf_2_config__loadShare__.js-BgmCjhru.js"
+    }
+  ]
+}

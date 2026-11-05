@@ -143,6 +143,10 @@ function collectLegacyRuntimeFiles(root = DEFAULT_ROOT) {
   const recorded = manifest ? new Set([...Object.keys(manifest.chunks), ...Object.keys(manifest.assets || {})]) : null;
   const activeShell = shellNumber(root);
   const activeRelease = releaseNumber(root);
+  // Admin8 uses the hash-bound copy-update migration before publish/pack.
+  // Never delete unrecognised developer files by a name pattern or touch an
+  // unsealed src-admin/build tree. The final seal still rejects unknown extras.
+  if (manifest) return { activeRuntime, activeShell, activeRelease, files: [] };
   const referencedTools = referencedVersionedTools(root);
   const scanRoots = [
     path.join(root, 'adminWww', 'assets'),

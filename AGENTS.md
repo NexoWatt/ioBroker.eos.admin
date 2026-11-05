@@ -77,7 +77,7 @@ Vor jeder Produktionsfreigabe und bei relevanten Sicherheitsmeldungen müssen di
 
 „Aktuell“ bedeutet: gepflegt, für das Zielsystem geeignet, nachvollziehbar versioniert und geprüft. Eine ungetestete neue Hauptversion ist keine automatische Sicherheitsverbesserung. Entwürfe und Vorabversionen sind ausdrücklich zu kennzeichnen.
 
-Für EOS gilt Node.js 24 als bisher festgelegte Mindest-Hauptversion. Eingesetzt wird eine unterstützte und für EOS geprüfte LTS-Linie mit geprüftem Sicherheits-Patchstand. Die allgemeine Auswahl gepflegter Laufzeiten gilt auch für andere Projekte; deren Versionsvorgaben sind projektspezifisch festzulegen. Betriebssystem, Controller, Datenbank, Frameworks und Gerätefirmware gehören ebenfalls ins Versionsregister. [Q11]
+Ergänzung auf ausdrückliche Nutzerentscheidung vom 05.11.2026: EOS Admin unterstützt auch bestehende Anlagen mit Node.js 22. Für diesen Adapter gelten die geprüften Sicherheitsprofile Node.js >=22.23.4 <23 oder >=24.22.1 <25; ein Wechsel der Hauptversion ist für Node-22-Anlagen nicht allein wegen des Admin-Updates erforderlich. Die historische Festlegung von Node.js 24 als Mindest-Hauptversion wird für EOS Admin damit ersetzt. Eingesetzt wird eine unterstützte und für EOS geprüfte LTS-Linie mit geprüftem Sicherheits-Patchstand. Die allgemeine Auswahl gepflegter Laufzeiten gilt auch für andere Projekte; deren Versionsvorgaben sind projektspezifisch festzulegen. Betriebssystem, Controller, Datenbank, Frameworks und Gerätefirmware gehören ebenfalls ins Versionsregister. [Q11]
 
 ## 3. Arbeitsablauf bei jeder Änderung
 

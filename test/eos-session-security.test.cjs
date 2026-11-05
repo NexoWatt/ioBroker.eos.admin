@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { stripTypeScriptTypes } = require('node:module');
-assert.equal(typeof stripTypeScriptTypes, 'function', 'Release tests require Node.js 24.x (or a supported Node.js version exposing stripTypeScriptTypes). Run node --version.');
+assert.equal(typeof stripTypeScriptTypes, 'function', 'Release tests require a supported Node.js 22/24 version (or a supported Node.js version exposing stripTypeScriptTypes). Run node --version.');
 const { EosSessionSecurity } = require('../src/lib/eosSessionSecurity');
 // Real, version-pinned upstream OAuth model. Type erasure retains an empty import
 // for an all-type declaration; remove that one non-runtime import only.

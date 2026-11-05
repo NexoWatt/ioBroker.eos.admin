@@ -3,7 +3,7 @@
   "specVersion": "1.5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-05T05:37:38.016Z",
+    "timestamp": "2026-11-05T05:54:15.273Z",
     "tools": [
       {
         "vendor": "NexoWatt",
@@ -29,11 +29,11 @@
       },
       {
         "name": "nexowatt:input:package-json-sha256",
-        "value": "d9d20691a883012cf1b090e40cc47641e25c5b51804711d66f7f4c736ba4f633"
+        "value": "ae3e5d4be255dff9341892b043e0c5aac0e2ff388ce063f29acd33d0bdcf820a"
       },
       {
         "name": "nexowatt:input:package-lock-sha256",
-        "value": "a499ca75ecf16ad9f9864e2092a8da56a6d85373eda9455414912c8b7eff130f"
+        "value": "f21cdbd90e1c0629df36fdd4a3b3a05be4e5685ab89ed91e4e8ca11a7da570e7"
       },
       {
         "name": "nexowatt:unresolved-edges",

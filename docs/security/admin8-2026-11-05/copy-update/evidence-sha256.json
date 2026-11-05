@@ -1,0 +1,130 @@
+{
+  "format": 1,
+  "files": [
+    {
+      "file": "COPY_HELPER_REVIEW_DE.md",
+      "bytes": 3594,
+      "sha256": "1c6517ea3c6761998cd0508cee5917e39fa97aac9c1ccfe6b7612210cbe61a21"
+    },
+    {
+      "file": "OVERLAY_BEFORE_DE.md",
+      "bytes": 3646,
+      "sha256": "6f5b9249b06edde2b60eaf0d8019802528318805afc0f4347b5cf988d645dcbb"
+    },
+    {
+      "file": "REPORT_DE.md",
+      "bytes": 7427,
+      "sha256": "a8f0625582851f0f7a8e3a39d5ce7cce63bb4157cc1843b49612192a25d2bde7"
+    },
+    {
+      "file": "canonical-build-node24.log",
+      "bytes": 47221,
+      "sha256": "bb4f33471837a2d5d15121c22d95193469f613ece34525ab51d5cbc91efe17e6"
+    },
+    {
+      "file": "copy-helper-review.json",
+      "bytes": 1786,
+      "sha256": "cc10f9e8db483ddd0774afde127a4fc30555cedb27831c4855c2e23649699c56"
+    },
+    {
+      "file": "direct-publish-adaptation.log",
+      "bytes": 518,
+      "sha256": "1ae99d65eaec57709704f98f71321dee8b13bcb77fccb471b54f217f3186026c"
+    },
+    {
+      "file": "independent-copy-review-tests.log",
+      "bytes": 2265,
+      "sha256": "60e0af9fa85f83c95909a2682b13c458cac61f76849c6f920be549825e4fd2ba"
+    },
+    {
+      "file": "node22-compatibility-review.json",
+      "bytes": 1683,
+      "sha256": "a37cc87760755c555343dc514a0eff8a79f444707040fe47a4e5b101afaa436a"
+    },
+    {
+      "file": "node22-validation/command-1.log",
+      "bytes": 4423,
+      "sha256": "3d1b4a6b2fdcf855e01fba0acf2b8b93ac290821b0f91fc8ca84c14dbb2146db"
+    },
+    {
+      "file": "node22-validation/command-2.log",
+      "bytes": 54723,
+      "sha256": "15a15f4ec3e0883919175e60b64027e573b2a8dacc1d1ee08b114b3701c54120"
+    },
+    {
+      "file": "node22-validation/command-3.log",
+      "bytes": 259,
+      "sha256": "c91de9a131ce259ff63226c17a11f2a8f900b97d3e0a43413b1bb575b58075b8"
+    },
+    {
+      "file": "node22-validation/command-4.log",
+      "bytes": 232,
+      "sha256": "9609ad4c87859f7b2d88497bfa3bf248091b5c40c2f9e1e02b1d5e4aa76b72a6"
+    },
+    {
+      "file": "node22-validation/command-5.log",
+      "bytes": 391,
+      "sha256": "50708fd13f8102fc59df2b53e0330a7d4d6b65f5992fd49b9f00d903e81c09fe"
+    },
+    {
+      "file": "node22-validation/command-6.log",
+      "bytes": 289,
+      "sha256": "7520e148a9dc7b4b509ad8e3e29fdfe8b0cb0732e12ce2dccdab74eae2bb2673"
+    },
+    {
+      "file": "node22-validation/command-7.log",
+      "bytes": 248,
+      "sha256": "c67c81e2068290a8c3973add0299f1812fa6c779f8bb7bde6528e527c38e90e2"
+    },
+    {
+      "file": "node22-validation/command-8.log",
+      "bytes": 251,
+      "sha256": "7a14ed68ab00c20bce1616e1a89ead222b5268d9c58cfbbcca8edf34b3f72699"
+    },
+    {
+      "file": "node22-validation/validation.json",
+      "bytes": 3075,
+      "sha256": "40bf17f7421cd142d29115e734c7785f25976c28f9b6c680c040af4383c1b7f7"
+    },
+    {
+      "file": "overlay-before.json",
+      "bytes": 2829,
+      "sha256": "604efa938b4f434d98e0621afa7ceb47ef6090285a2dad6989768e6f80f24ed2"
+    },
+    {
+      "file": "overlay-validation/from-7.10.9-node22-journals.json",
+      "bytes": 149916,
+      "sha256": "a940c4f86976d18efa070ef432317d1a8549d2bd15779ed2c8d5b3d8f6806d9b"
+    },
+    {
+      "file": "overlay-validation/from-7.10.9-node22.log",
+      "bytes": 284556,
+      "sha256": "f0fc4b7193c615f9615ff0278fbf4276dc3ce544607fa47ff3d4ba954b1e3a8d"
+    },
+    {
+      "file": "overlay-validation/from-8.0.0-node24-journals.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "file": "overlay-validation/from-8.0.0-node24.log",
+      "bytes": 50699,
+      "sha256": "4cd6212f331529fdaa412ea845bb2736ecae59da95d8ea99ea763d444124e734"
+    },
+    {
+      "file": "overlay-validation/validation.json",
+      "bytes": 1462,
+      "sha256": "ce2dd3448d26575438b450e951764379ea6f7189122f6b2250cc939a2849757a"
+    },
+    {
+      "file": "path-budget.json",
+      "bytes": 1379,
+      "sha256": "e08115bfaecb132e1d1b24832df754144a735bcf4254aabc394fde9ccd472ccd"
+    },
+    {
+      "file": "validation.json",
+      "bytes": 3797,
+      "sha256": "7dd83b207dadfdee06d77c42183a503d367aaedb2101dfe8969e68c3175110e9"
+    }
+  ]
+}

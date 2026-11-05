@@ -1,0 +1,127 @@
+{
+  "dateUtc": "2026-11-05T05:59:55.763224+00:00",
+  "productVersion": "8.0.0",
+  "findings": [
+    "EOS-ADMIN8-COPY-UPDATE-001",
+    "EOS-ADMIN8-NODE22-COMPAT-001"
+  ],
+  "previousZipSha256": "0dad263f83ce8d032cfbb2d9a7811ddbd89e3b85d69e84fb2d913eaa8a76d825",
+  "supportedNode": "22 >=22.23.4 <23 OR 24 >=24.22.1 <25",
+  "engineRange": ">=22.23.4 <23 || >=24.22.1 <25",
+  "originalUserErrorIdentified": false,
+  "originalUserErrorLimitation": "Only npm lifecycle footer and Node24.21.0 were provided; exact failing stage/first error unknown. Copy-over gap was reproduced independently.",
+  "canonicalBuild": {
+    "node": "24.22.1",
+    "exitCode": 0,
+    "sourceInputs": 685,
+    "inputHash": "536c900a800e7d39308bd18745e0bc6981d49dff77fb685abbfbaecb3b2c8ed4",
+    "developmentGroups": 8,
+    "packageTests": 74,
+    "eosTests": 227
+  },
+  "node22Validation": {
+    "node": "22.23.4",
+    "developmentGroups": 8,
+    "exitCodes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "packageTests": 74,
+    "eosTests": 227,
+    "skippedEosTests": 0,
+    "officialBinarySha256": "1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce"
+  },
+  "copyHelper": {
+    "focusedTests": 26,
+    "independentHelperAndLifecycleTests": 29,
+    "retirementCatalogPaths": 602,
+    "retirementCatalogHashes": 621,
+    "unknownOrModifiedExtras": "Preserved and block publication"
+  },
+  "actualOverlayCases": [
+    {
+      "scenario": "from-7.10.9-node22",
+      "versions": {
+        "node": "v22.23.4",
+        "npm": "10.9.9"
+      },
+      "oldArchiveSha256": "bf1a040ce33e4f4d9bc038eef4fdab887bb96153745270aa28c38c9407f7c619",
+      "lifecycleExit": 0,
+      "log": "from-7.10.9-node22.log",
+      "sha256": "f0fc4b7193c615f9615ff0278fbf4276dc3ce544607fa47ff3d4ba954b1e3a8d",
+      "currentSealedFiles": 1093,
+      "retiredAndBackedUp": 581,
+      "gitUnchanged": true,
+      "existingNodeModulesSentinelUnchanged": true,
+      "userNotesUnchanged": true,
+      "backupExcludedFromNpm": true,
+      "idempotent": true,
+      "nativeWindows": false
+    },
+    {
+      "scenario": "from-8.0.0-node24",
+      "versions": {
+        "node": "v24.22.1",
+        "npm": "11.9.0"
+      },
+      "oldArchiveSha256": "0dad263f83ce8d032cfbb2d9a7811ddbd89e3b85d69e84fb2d913eaa8a76d825",
+      "lifecycleExit": 0,
+      "log": "from-8.0.0-node24.log",
+      "sha256": "4cd6212f331529fdaa412ea845bb2736ecae59da95d8ea99ea763d444124e734",
+      "currentSealedFiles": 1093,
+      "retiredAndBackedUp": 0,
+      "gitUnchanged": true,
+      "existingNodeModulesSentinelUnchanged": true,
+      "userNotesUnchanged": true,
+      "backupExcludedFromNpm": true,
+      "idempotent": true,
+      "nativeWindows": false
+    }
+  ],
+  "productSourceAndRuntimeComparison": {
+    "src": {
+      "files": 33,
+      "byteChanges": 0
+    },
+    "build": {
+      "files": 49,
+      "byteChanges": 0
+    },
+    "src-admin/src": {
+      "files": 281,
+      "byteChanges": 0
+    },
+    "src-admin/public": {
+      "files": 174,
+      "byteChanges": 0
+    },
+    "src-admin/build-tools": {
+      "files": 4,
+      "byteChanges": 0
+    },
+    "adminWww": {
+      "files": 347,
+      "byteChanges": 0
+    },
+    "admin": {
+      "files": 58,
+      "byteChanges": 0
+    }
+  },
+  "sealedFileCount": 1093,
+  "sealSha256": "59aad6a2966b9fa7f4dbb17b479cc6d76f5a5e82d486eecb723776eb05633a6f",
+  "frontendManifestSha256": "f46e01154994d504c064a6351cb8ba4fc15beda450afb96adba1db16962739a9",
+  "readmeEqualsLicense": true,
+  "notExecuted": [
+    "Native Windows/Explorer tests",
+    "npm account authentication/2FA/publication",
+    "Real Node22 installation on physical ioBroker/plant"
+  ],
+  "generalOpenFindings": "Unchanged, see EASYACCESS_FOLLOWUP_DE.md and ../admin8-2026-11-04/REQUIREMENTS_REVIEW_DE.md"
+}

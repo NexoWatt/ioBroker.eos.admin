@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-05T05:49:35.258Z",
+  "target": "22.23.4",
+  "scope": "Read-only engine and direct source API review; no Node22 execution claimed",
+  "locks": [
+    {
+      "file": "package-lock.json",
+      "sha256": "caa772968db23dd21f93bc05db60e1561bb01d5cd3ea79c54a538c69380d4565",
+      "entries": 773,
+      "nonDevEntries": 293,
+      "incompatible": []
+    },
+    {
+      "file": "src-admin/package-lock.json",
+      "sha256": "a310b3b6fd8f42ffc5783f62ce6142f09329c1fbe87d324a3439873382dc2cd3",
+      "entries": 582,
+      "nonDevEntries": 355,
+      "incompatible": []
+    }
+  ],
+  "findings": [
+    {
+      "file": "package.json",
+      "finding": "Current root engine excludes Node22; update to security-patched supported22/24 ranges and sync root lock metadata."
+    },
+    {
+      "file": "src/main.ts",
+      "finding": "getRecommendedVersions validates recommended major>=24; preference only, not runtime gate. Consider allowing documented Node22 recommendation."
+    },
+    {
+      "file": "tools/nexowatt-transpile-security-backend.cjs",
+      "finding": "Optional fallback emitter hardrequires24; not runtime/publish/canonicalbuild. No need to alter for Node22 deployment support unless expanding this optional tool scope."
+    },
+    {
+      "files": [
+        "test/eos-session-security.test.cjs",
+        "test/eos-news-security.test.cjs"
+      ],
+      "finding": "Tests check stripTypeScriptTypes availability; diagnostic wording still highlights Node24."
+    },
+    {
+      "file": "AGENTS.md",
+      "finding": "Historical minimum Node24 policy is superseded by explicit user Node22 requirement; record updated supported profile accurately."
+    }
+  ]
+}
